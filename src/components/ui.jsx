@@ -22,9 +22,10 @@ export function LogoMark({ className = "" }) {
 }
 
 export function ServiceMark({ monogram, className = "" }) {
+  const display = (monogram && monogram.trim()) ? monogram.trim().slice(0, 2).toUpperCase() : "S";
   return (
     <span className={cx("grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#18181B] text-sm font-bold text-white", className)} aria-hidden="true">
-      {monogram}
+      {display}
     </span>
   );
 }
@@ -80,70 +81,94 @@ export function ToggleSwitch({ checked, onChange, label }) {
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cx(
-        "relative h-6 w-11 rounded-full transition-colors duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black",
+        "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
         checked ? "bg-black" : "bg-[#E4E4E7]",
       )}
     >
       <span
+        aria-hidden="true"
         className={cx(
-          "absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-          checked ? "translate-x-[21px]" : "translate-x-0.5",
+          "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
+          checked ? "translate-x-5" : "translate-x-0",
         )}
       />
     </button>
   );
 }
 
-export function AppHeader({ title, onBack, onAdd, rightSlot }) {
+export function AppHeader({ title, onBack, rightSlot = null }) {
   return (
-    <header className="sticky top-0 z-20 flex min-h-16 items-center justify-between border-b border-[#E4E4E7] bg-white/95 px-5 backdrop-blur">
-      <div className="flex min-w-0 items-center gap-3">
+    <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-[#E4E4E7] bg-white/95 px-5 backdrop-blur-md">
+      <div className="flex items-center gap-2">
         {onBack ? (
-          <Button variant="secondary" size="icon" className="h-9 w-9 rounded-lg border-0 bg-transparent" onClick={onBack} aria-label="이전 화면">
-            <ArrowLeft size={19} />
-          </Button>
+          <button type="button" onClick={onBack} className="grid h-9 w-9 place-items-center rounded-lg text-[#71717A] hover:bg-[#F4F4F5] hover:text-black" aria-label="뒤로가기">
+            <ArrowLeft size={20} />
+          </button>
         ) : (
-          <LogoMark className="h-8 w-8 rounded-lg text-xs" />
+          <LogoMark />
         )}
-        <span className="truncate text-[18px] font-semibold tracking-[-0.01em]">{title || "SubMate"}</span>
+        <span className="text-[17px] font-bold tracking-tight text-black">{title}</span>
       </div>
       <div className="flex items-center gap-2">
         {rightSlot}
-        {onAdd && (
-          <Button size="compact" className="h-9 rounded-lg px-3 py-1.5 text-[13px]" onClick={onAdd} aria-label="AI로 구독 추가">
-            <Plus size={16} />
-            AI 추가
-          </Button>
-        )}
       </div>
     </header>
   );
 }
 
-export function BottomNavigation({ route, onNavigate }) {
-  const items = [
-    { id: "home", label: "홈", Icon: Home },
-    { id: "subscriptions", label: "구독", Icon: CreditCard },
-    { id: "calendar", label: "캘린더", Icon: CalendarDays },
-    { id: "promotions", label: "혜택", Icon: Sparkles },
-  ];
+export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
   return (
-    <nav className="fixed bottom-0 left-1/2 z-30 flex h-16 w-full max-w-[420px] -translate-x-1/2 border-x border-t border-[#E4E4E7] bg-white/95 px-3 pb-2 pt-2 backdrop-blur-md" aria-label="주요 탐색">
-      {items.map(({ id, label, Icon }) => {
-        const active = route === id || (route === "detail" && id === "subscriptions");
-        return (
-          <button
-            key={id}
-            type="button"
-            onClick={() => onNavigate(id)}
-            className={cx("flex flex-1 flex-col items-center gap-1 rounded-xl py-1 text-[10px] tracking-tight transition-[color,transform]", active ? "scale-[1.02] font-bold text-black" : "font-medium text-[#A1A1AA] hover:text-[#71717A]")}
-            aria-current={active ? "page" : undefined}
-          >
-            <Icon size={20} strokeWidth={active ? 2.25 : 1.75} />
-            {label}
-          </button>
-        );
-      })}
+    <nav className="fixed bottom-0 left-1/2 z-30 flex h-16 w-full max-w-[420px] -translate-x-1/2 items-center justify-around border-x border-t border-[#E4E4E7] bg-white/95 px-2 pb-1 pt-1 backdrop-blur-md" aria-label="주요 탐색">
+      <button
+        type="button"
+        onClick={() => onNavigate("home")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-[color,transform]", route === "home" ? "scale-[1.02] font-bold text-black" : "font-medium text-[#A1A1AA] hover:text-[#71717A]")}
+        aria-current={route === "home" ? "page" : undefined}
+      >
+        <Home size={20} strokeWidth={route === "home" ? 2.5 : 1.75} />
+        <span>홈</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => onNavigate("subscriptions")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-[color,transform]", (route === "subscriptions" || route === "detail") ? "scale-[1.02] font-bold text-black" : "font-medium text-[#A1A1AA] hover:text-[#71717A]")}
+        aria-current={(route === "subscriptions" || route === "detail") ? "page" : undefined}
+      >
+        <CreditCard size={20} strokeWidth={(route === "subscriptions" || route === "detail") ? 2.5 : 1.75} />
+        <span>구독</span>
+      </button>
+
+      <div className="flex flex-1 items-center justify-center">
+        <button
+          type="button"
+          onClick={onOpenAdd}
+          className="grid h-11 w-11 place-items-center rounded-full bg-black text-white shadow-md transition-transform duration-150 active:scale-95 hover:bg-[#27272A]"
+          aria-label="새 구독 추가"
+        >
+          <Plus size={22} strokeWidth={2.5} />
+        </button>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onNavigate("calendar")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-[color,transform]", route === "calendar" ? "scale-[1.02] font-bold text-black" : "font-medium text-[#A1A1AA] hover:text-[#71717A]")}
+        aria-current={route === "calendar" ? "page" : undefined}
+      >
+        <CalendarDays size={20} strokeWidth={route === "calendar" ? 2.5 : 1.75} />
+        <span>캘린더</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => onNavigate("promotions")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-[color,transform]", route === "promotions" ? "scale-[1.02] font-bold text-black" : "font-medium text-[#A1A1AA] hover:text-[#71717A]")}
+        aria-current={route === "promotions" ? "page" : undefined}
+      >
+        <Sparkles size={20} strokeWidth={route === "promotions" ? 2.5 : 1.75} />
+        <span>혜택</span>
+      </button>
     </nav>
   );
 }
@@ -151,11 +176,11 @@ export function BottomNavigation({ route, onNavigate }) {
 function SubscriptionCardBody({ subscription, onOpen, detail = false }) {
   return (
     <button type="button" onClick={onOpen} className="card-press flex w-full items-center gap-3 rounded-2xl border border-[#E4E4E7] bg-white p-3.5 text-left">
-      <ServiceMark monogram={subscription.monogram} />
+      <ServiceMark monogram={subscription.monogram || subscription.name?.slice(0, 1)} />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[15px] font-semibold">{subscription.name}</span>
         <span className="mt-0.5 block truncate text-[13px] text-[#71717A]">{subscription.plan} · {formatBillingDate(subscription)}</span>
-        {detail && <span className="mt-1 block truncate text-[12px] text-[#A1A1AA]">{subscription.paymentMethod}</span>}
+        {detail && <span className="mt-1 block truncate text-[12px] text-[#A1A1AA]">{subscription.paymentMethod || "결제수단 미등록"}</span>}
       </span>
       <span className="flex shrink-0 flex-col items-end gap-2">
         <DDayBadge subscription={subscription} />
@@ -214,27 +239,30 @@ export function SubscriptionCard({ subscription, onOpen, onCancel, onMute, swipa
   );
 }
 
-export function BottomSheet({ children, onClose, label }) {
+export function Toast({ toast, onClose }) {
+  if (!toast) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-label={label}>
-      <button type="button" className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} aria-label="닫기" />
-      <section className="sheet-enter relative max-h-[calc(100dvh-1.5rem)] w-full max-w-[420px] overflow-y-auto rounded-t-[24px] border border-[#E4E4E7] bg-white px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 shadow-2xl sm:max-h-[calc(100vh-3rem)] sm:rounded-2xl">
-        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-[#E4E4E7]" />
-        {children}
-      </section>
+    <div className="toast-animate fixed bottom-20 left-1/2 z-50 flex w-[calc(100%-2.5rem)] max-w-[380px] -translate-x-1/2 items-center justify-between gap-3 rounded-2xl bg-[#18181B] px-4 py-3.5 text-white shadow-xl">
+      <p className="text-[13px] font-medium leading-5">{toast}</p>
+      <button type="button" onClick={onClose} className="rounded-lg p-1 text-[#A1A1AA] hover:text-white" aria-label="알림 닫기">
+        <X size={16} />
+      </button>
     </div>
   );
 }
 
-export function Toast({ toast, onClose }) {
-  if (!toast) return null;
+export function BottomSheet({ children, onClose, label }) {
   return (
-    <div className="toast-enter fixed left-1/2 top-5 z-[70] w-[calc(100%-2rem)] max-w-[388px] -translate-x-1/2 rounded-xl bg-[#18181B] px-4 py-3 text-[13px] font-medium text-white shadow-xl" role="status">
-      <div className="flex items-center justify-between gap-3">
-        <span>{toast}</span>
-        <button type="button" onClick={onClose} aria-label="알림 닫기" className="text-white/70 hover:text-white">
-          <X size={16} />
-        </button>
+    <div className="sheet-backdrop fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[420px] rounded-t-[28px] border-t border-[#E4E4E7] bg-white px-5 pb-8 pt-4 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+      >
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-[#E4E4E7]" />
+        {children}
       </div>
     </div>
   );

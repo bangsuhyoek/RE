@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, CreditCard, FilterX, Plus, RefreshCw, Search, Settings2, SlidersHorizontal } from "lucide-react";
+﻿import { useMemo, useState } from "react";
+import { CalendarDays, ChevronLeft, ChevronRight, CreditCard, FilterX, RefreshCw, Search, Settings2, SlidersHorizontal } from "lucide-react";
 import { Button, DDayBadge, ServiceMark, SubscriptionCard, ToggleSwitch } from "./ui";
 import { dateForDueDay, daysUntilCharge, formatBillingDate, formatKoreanMonth, formatWon, getCalendarDays, getLastDate } from "../lib/dates";
 
@@ -28,7 +28,7 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
   const reset = () => { setQuery(""); setCategory("전체"); setStatus("all"); setSort("due"); };
 
   return (
-    <main className="relative min-h-[calc(100vh-4rem)] px-5 pb-28 pt-5">
+    <main className="relative min-h-[calc(100vh-4rem)] px-5 pb-36 pt-5">
       <div className="flex items-center gap-2">
         <label className="relative flex-1">
           <span className="sr-only">구독 검색</span>
@@ -67,7 +67,17 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
 
       {filtered.length > 0 ? (
         <div className="mt-3 space-y-3">
-          {filtered.map((subscription) => <SubscriptionCard key={subscription.subscriptionId} subscription={subscription} detail swipable onOpen={() => onOpen(subscription.subscriptionId)} onCancel={() => onStartCancel(subscription.subscriptionId)} onMute={() => onMute(subscription.subscriptionId)} />)}
+          {filtered.map((subscription) => (
+            <SubscriptionCard
+              key={subscription.subscriptionId || subscription.id}
+              subscription={subscription}
+              detail
+              swipable
+              onOpen={() => onOpen(subscription.subscriptionId || subscription.id)}
+              onCancel={() => onStartCancel(subscription.subscriptionId || subscription.id)}
+              onMute={() => onMute(subscription.subscriptionId || subscription.id)}
+            />
+          ))}
         </div>
       ) : (
         <section className="mt-16 flex flex-col items-center text-center">
@@ -77,8 +87,6 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
           <Button variant="secondary" size="compact" className="mt-5" onClick={reset}>필터 초기화</Button>
         </section>
       )}
-
-      <Button size="icon" className="fixed bottom-24 right-[max(1.25rem,calc(50%-190px))] z-20 h-14 w-14 rounded-full shadow-lg" onClick={onAdd} aria-label="구독 추가"><Plus size={25} /></Button>
     </main>
   );
 }
@@ -87,10 +95,25 @@ function DetailField({ label, value }) {
   return <div className="flex items-center justify-between gap-4 py-3"><span className="text-[13px] text-[#71717A]">{label}</span><strong className="min-w-0 truncate text-right text-[14px] font-semibold">{value}</strong></div>;
 }
 
-export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel, promotion }) {
+export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel, onBack, promotion }) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(() => ({ plan: subscription.plan, amount: subscription.amount, dueDay: subscription.dueDay, paymentMethod: subscription.paymentMethod }));
-  if (!subscription) return null;
+  const [draft, setDraft] = useState(() => ({
+    plan: subscription?.plan || "기본 플랜",
+    amount: subscription?.amount || 0,
+    dueDay: subscription?.dueDay || 1,
+    paymentMethod: subscription?.paymentMethod || "등록 안 됨"
+  }));
+
+  if (!subscription) {
+    return (
+      <main className="px-5 pb-36 pt-12 text-center">
+        <h1 className="text-[18px] font-bold">구독 정보를 찾을 수 없습니다.</h1>
+        <p className="mt-2 text-[13px] text-[#71717A]">삭제되었거나 잘못된 경로입니다.</p>
+        <Button className="mt-6 mx-auto" onClick={onBack}>목록으로 돌아가기</Button>
+      </main>
+    );
+  }
+
   const save = () => {
     const amount = Number(draft.amount);
     const dueDay = Math.max(1, Math.min(31, Number(draft.dueDay)));
@@ -98,12 +121,18 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
     onUpdate(subscription.subscriptionId, { ...draft, amount, dueDay });
     setEditing(false);
   };
+
+  const monogram = subscription.monogram || subscription.name?.slice(0, 1) || "S";
+
   return (
-    <main className="px-5 pb-28 pt-6">
+    <main className="px-5 pb-36 pt-6">
       <section className="flex items-center gap-4">
-        <ServiceMark monogram={subscription.monogram} className="h-14 w-14 rounded-2xl text-[17px]" />
+        <ServiceMark monogram={monogram} className="h-14 w-14 rounded-2xl text-[17px]" />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2"><h1 className="truncate text-[22px] font-bold tracking-[-0.02em]">{subscription.name}</h1><DDayBadge subscription={subscription} /></div>
+          <div className="flex items-center gap-2">
+            <h1 className="truncate text-[22px] font-bold tracking-[-0.02em]">{subscription.name}</h1>
+            <DDayBadge subscription={subscription} />
+          </div>
           <p className="mt-1 text-[13px] text-[#71717A]">다음 결제일 {formatBillingDate(subscription)}</p>
         </div>
       </section>
@@ -115,7 +144,7 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
         <div className="h-px bg-[#E4E4E7]" />
         <DetailField label="결제 주기" value={subscription.billingCycle || "매월"} />
         <div className="h-px bg-[#E4E4E7]" />
-        <DetailField label="결제 수단" value={subscription.paymentMethod || "등록 안 됨"} />
+        <DetailField label="결제 수단" value={subscription.paymentMethod || "직접 관리"} />
       </section>
 
       {editing && (
@@ -134,12 +163,30 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
         <h2 className="text-[15px] font-semibold">사전 알림 설정</h2>
         <p className="mt-1 text-[12px] leading-5 text-[#71717A]">원치 않는 자동 결제 전에 알려드려요.</p>
         <div className="mt-4 divide-y divide-[#E4E4E7]">
-          <div className="flex items-center justify-between py-3"><span><strong className="block text-[14px]">결제 3일 전</strong><span className="text-[12px] text-[#71717A]">D-3 알림</span></span><ToggleSwitch checked={Boolean(subscription.alertD3)} onChange={(checked) => onUpdate(subscription.subscriptionId, { alertD3: checked })} label="결제 3일 전 알림" /></div>
-          <div className="flex items-center justify-between py-3"><span><strong className="block text-[14px]">결제 하루 전</strong><span className="text-[12px] text-[#71717A]">D-1 알림</span></span><ToggleSwitch checked={Boolean(subscription.alertD1)} onChange={(checked) => onUpdate(subscription.subscriptionId, { alertD1: checked })} label="결제 하루 전 알림" /></div>
+          <div className="flex items-center justify-between py-3">
+            <span>
+              <strong className="block text-[14px]">결제 3일 전</strong>
+              <span className="text-[12px] text-[#71717A]">D-3 알림</span>
+            </span>
+            <ToggleSwitch checked={Boolean(subscription.alertD3)} onChange={(checked) => onUpdate(subscription.subscriptionId, { alertD3: checked })} label="결제 3일 전 알림" />
+          </div>
+          <div className="flex items-center justify-between py-3">
+            <span>
+              <strong className="block text-[14px]">결제 하루 전</strong>
+              <span className="text-[12px] text-[#71717A]">D-1 알림</span>
+            </span>
+            <ToggleSwitch checked={Boolean(subscription.alertD1)} onChange={(checked) => onUpdate(subscription.subscriptionId, { alertD1: checked })} label="결제 하루 전 알림" />
+          </div>
         </div>
       </section>
 
-      {promotion && <section className="mt-5 rounded-2xl border border-black bg-white p-4"><p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">절약 기회</p><h2 className="mt-2 text-[16px] font-semibold">{promotion.title}</h2><p className="mt-1 text-[13px] text-[#71717A]">이 구독을 해지한 뒤 혜택을 받을 수 있어요.</p></section>}
+      {promotion && (
+        <section className="mt-5 rounded-2xl border border-black bg-white p-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">절약 기회</p>
+          <h2 className="mt-2 text-[16px] font-semibold">{promotion.title}</h2>
+          <p className="mt-1 text-[13px] text-[#71717A]">이 구독을 해지한 뒤 혜택을 받을 수 있어요.</p>
+        </section>
+      )}
 
       <div className="mt-8 space-y-3">
         <Button className="w-full" onClick={() => onStartCancel(subscription.subscriptionId, promotion)}>웹사이트에서 다이렉트 해지하기</Button>
@@ -150,51 +197,108 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
 }
 
 export function CalendarScreen({ subscriptions, onOpen }) {
-  const now = new Date();
-  const [visible, setVisible] = useState({ year: now.getFullYear(), month: now.getMonth() });
-  const [selectedDay, setSelectedDay] = useState(now.getDate());
-  const days = getCalendarDays(visible.year, visible.month);
-  const paymentMap = useMemo(() => {
+  const [date, setDate] = useState(() => new Date());
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const [selectedDay, setSelectedDay] = useState(() => new Date().getDate());
+
+  const days = useMemo(() => getCalendarDays(year, month), [year, month]);
+  const lastDay = getLastDate(year, month);
+  const clampedDay = Math.min(selectedDay, lastDay);
+
+  const duesByDay = useMemo(() => {
     const map = new Map();
-    subscriptions.forEach((subscription) => {
-      const day = Math.min(subscription.dueDay, getLastDate(visible.year, visible.month));
-      const existing = map.get(day) || [];
-      map.set(day, [...existing, subscription]);
-    });
+    for (const sub of subscriptions) {
+      const day = Math.min(sub.dueDay, lastDay);
+      const list = map.get(day) || [];
+      list.push(sub);
+      map.set(day, list);
+    }
     return map;
-  }, [subscriptions, visible]);
-  const selected = paymentMap.get(selectedDay) || [];
-  const selectedTotal = selected.reduce((sum, subscription) => sum + subscription.amount, 0);
-  const shiftMonth = (direction) => {
-    const date = new Date(visible.year, visible.month + direction, 1);
-    setVisible({ year: date.getFullYear(), month: date.getMonth() });
-    setSelectedDay(1);
-  };
-  const todayInView = visible.year === now.getFullYear() && visible.month === now.getMonth();
+  }, [lastDay, subscriptions]);
+
+  const selectedDues = duesByDay.get(clampedDay) || [];
+  const selectedTotal = selectedDues.reduce((sum, item) => sum + item.amount, 0);
+
+  const prevMonth = () => setDate(new Date(year, month - 1, 1));
+  const nextMonth = () => setDate(new Date(year, month + 1, 1));
 
   return (
-    <main className="px-5 pb-28 pt-5">
-      <section className="flex items-center justify-between">
-        <button type="button" onClick={() => shiftMonth(-1)} className="grid h-10 w-10 place-items-center rounded-xl hover:bg-[#F4F4F5]" aria-label="이전 달"><ChevronLeft size={20} /></button>
-        <h1 className="text-[18px] font-semibold">{formatKoreanMonth(visible.year, visible.month)}</h1>
-        <button type="button" onClick={() => shiftMonth(1)} className="grid h-10 w-10 place-items-center rounded-xl hover:bg-[#F4F4F5]" aria-label="다음 달"><ChevronRight size={20} /></button>
-      </section>
-      <section className="mt-6 rounded-2xl border border-[#E4E4E7] bg-white p-3">
-        <div className="grid grid-cols-7 text-center text-[11px] font-semibold text-[#A1A1AA]"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
-        <div className="mt-2 grid grid-cols-7 gap-y-1">
-          {days.map((day, index) => {
-            if (!day) return <span key={`blank-${index}`} className="aspect-square" />;
-            const bills = paymentMap.get(day) || [];
-            const selectedNow = day === selectedDay;
-            const todayNow = todayInView && day === now.getDate();
-            return <button key={day} type="button" onClick={() => setSelectedDay(day)} className={`relative flex aspect-square flex-col items-center justify-center rounded-xl text-[13px] transition-colors ${selectedNow ? "bg-black font-semibold text-white" : todayNow ? "border border-black font-semibold" : "hover:bg-[#F4F4F5]"}`} aria-pressed={selectedNow}><span>{day}</span>{bills.length > 0 && <span className={`mt-1 h-1 w-1 rounded-full ${selectedNow ? "bg-white" : "bg-black"}`} />}</button>;
+    <main className="px-5 pb-36 pt-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">Billing calendar</p>
+          <h1 className="mt-1 text-[22px] font-bold tracking-tight">{formatKoreanMonth(date)}</h1>
+        </div>
+        <div className="flex gap-1">
+          <Button variant="secondary" size="icon" className="h-9 w-9 rounded-lg" onClick={prevMonth} aria-label="이전 달"><ChevronLeft size={16} /></Button>
+          <Button variant="secondary" size="icon" className="h-9 w-9 rounded-lg" onClick={nextMonth} aria-label="다음 달"><ChevronRight size={16} /></Button>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-[#E4E4E7] bg-white p-4">
+        <div className="grid grid-cols-7 text-center text-[12px] font-semibold text-[#71717A]">
+          <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+        </div>
+        <div className="mt-2 grid grid-cols-7 gap-y-2 text-center text-[13px]">
+          {days.map((item, i) => {
+            if (!item) return <div key={`empty-${i}`} className="h-10" />;
+            const isSelected = item === clampedDay;
+            const subsOnDay = duesByDay.get(item) || [];
+            const hasDue = subsOnDay.length > 0;
+            return (
+              <button
+                key={`day-${item}`}
+                type="button"
+                onClick={() => setSelectedDay(item)}
+                className={`relative mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-xl font-medium transition-colors ${
+                  isSelected ? "bg-black text-white font-bold" : "hover:bg-[#F4F4F5]"
+                }`}
+              >
+                <span>{item}</span>
+                {hasDue && !isSelected && (
+                  <span className="absolute bottom-1 h-1 w-1 rounded-full bg-black" />
+                )}
+                {hasDue && isSelected && (
+                  <span className="absolute bottom-1 h-1 w-1 rounded-full bg-white" />
+                )}
+              </button>
+            );
           })}
         </div>
-      </section>
+      </div>
 
-      <section className="mt-6 rounded-2xl border border-[#E4E4E7] bg-[#FAFAFA] p-4">
-        <div className="flex items-start justify-between"><span><p className="text-[12px] text-[#71717A]">{visible.month + 1}월 {selectedDay}일 결제 예정</p><h2 className="mt-1 text-[18px] font-semibold">{formatWon(selectedTotal)}</h2></span><CalendarDays size={20} className="text-[#71717A]" /></div>
-        {selected.length ? <div className="mt-4 space-y-2">{selected.map((subscription) => <button key={subscription.subscriptionId} type="button" onClick={() => onOpen(subscription.subscriptionId)} className="flex w-full items-center gap-3 rounded-xl border border-[#E4E4E7] bg-white p-3 text-left hover:border-black"><ServiceMark monogram={subscription.monogram} className="h-8 w-8 rounded-lg text-[11px]" /><span className="min-w-0 flex-1"><strong className="block truncate text-[13px]">{subscription.name}</strong><span className="text-[11px] text-[#71717A]">{subscription.plan}</span></span><strong className="text-[13px]">{formatWon(subscription.amount)}</strong></button>)}</div> : <p className="mt-5 text-center text-[13px] text-[#71717A]">이 날에는 예정된 결제가 없습니다.</p>}
+      <section className="mt-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[16px] font-bold">{month + 1}월 {clampedDay}일 결제 예정 ({selectedDues.length}건)</h2>
+          {selectedDues.length > 0 && <span className="text-[14px] font-semibold">{formatWon(selectedTotal)}</span>}
+        </div>
+
+        {selectedDues.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            {selectedDues.map((sub) => (
+              <button
+                key={sub.subscriptionId || sub.id}
+                type="button"
+                onClick={() => onOpen(sub.subscriptionId || sub.id)}
+                className="card-press flex w-full items-center justify-between rounded-xl border border-[#E4E4E7] bg-white p-3 text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <ServiceMark monogram={sub.monogram || sub.name?.slice(0, 1)} className="h-9 w-9 rounded-lg text-[12px]" />
+                  <div>
+                    <strong className="block text-[14px] font-semibold">{sub.name}</strong>
+                    <span className="text-[12px] text-[#71717A]">{sub.plan}</span>
+                  </div>
+                </div>
+                <span className="text-[14px] font-semibold">{formatWon(sub.amount)}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-3 rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] p-6 text-center text-[13px] text-[#71717A]">
+            해당 일자에는 예정된 결제 일정이 없습니다.
+          </div>
+        )}
       </section>
     </main>
   );
