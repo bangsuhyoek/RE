@@ -23,3 +23,6 @@ export const writeStoredValue = (key, value) => {
 export const clearStoredValue = (key) => {
   window.localStorage.removeItem(key);
 };
+
+export const removeDemoSubscriptions = (items) =>
+  items.filter((subscription) => !String(subscription.subscriptionId || "").startsWith("seed-"));
