@@ -10,7 +10,7 @@ import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from
 import { AppHeader, BottomNavigation, BottomSheet, Button, ServiceMark, Toast } from "./components/ui";
 import { createMockSubscriptions, promotionCatalog, serviceCatalog } from "./data/subscriptionData";
 import { formatWon, getMonthKey, isPastDueThisCycle } from "./lib/dates";
-import { readStoredValue, storageKeys, writeStoredValue } from "./lib/storage";
+import { readStoredValue, removeDemoSubscriptions, storageKeys, writeStoredValue } from "./lib/storage";
 
 const readHash = () => {
   const raw = window.location.hash.replace(/^#\/?/, "");
@@ -37,8 +37,8 @@ export default function App() {
   const [profile, setProfile] = useState(storedProfile);
   const [subscriptions, setSubscriptions] = useState(() => {
     const saved = readStoredValue(storageKeys.subscriptions, null);
-    if (saved && Array.isArray(saved) && saved.length > 0) return saved;
-    return createMockSubscriptions();
+    if (Array.isArray(saved)) return storedProfile?.guest ? saved : removeDemoSubscriptions(saved);
+    return storedProfile?.guest ? createMockSubscriptions() : [];
   });
   const [onboardingComplete, setOnboardingComplete] = useState(() => readStoredValue(storageKeys.onboardingComplete, true));
   const [savedAmount, setSavedAmount] = useState(() => readStoredValue(storageKeys.savedAmount, 0));
@@ -113,12 +113,13 @@ export default function App() {
   const completeLogin = (provider, nickname, guest = false) => {
     setProfile({ nickname: nickname || "민수", provider, guest, notificationsAllowed: true });
     if (guest) {
-      setSubscriptions((current) => current.length ? current : createMockSubscriptions());
+      setSubscriptions(createMockSubscriptions());
       setOnboardingComplete(true);
       navigate("home");
       notify("데모 구독 내역 5종을 불러왔어요.");
       return;
     }
+    setSubscriptions((current) => removeDemoSubscriptions(current));
     setOnboardingComplete(false);
     navigate("onboarding");
   };
@@ -132,7 +133,7 @@ export default function App() {
   };
 
   const handleOnboardingSkip = () => {
-    setSubscriptions(createMockSubscriptions());
+    setSubscriptions([]);
     setOnboardingComplete(true);
     navigate("home");
   };
