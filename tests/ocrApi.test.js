@@ -24,14 +24,20 @@ test("결제 문자는 외부 OCR 키 없이 동일한 파서로 처리한다", 
 });
 
 test("이미지 OCR 키가 없으면 설정 오류를 명확히 반환한다", async () => {
-  const previousKey = process.env.GOOGLE_VISION_API_KEY;
+  const prevVision = process.env.GOOGLE_VISION_API_KEY;
+  const prevGemini = process.env.GEMINI_API_KEY;
   delete process.env.GOOGLE_VISION_API_KEY;
-  const request = { method: "POST", body: { mimeType: "image/png", imageBase64: "aGVsbG8=" } };
-  const response = createResponse();
+  delete process.env.GEMINI_API_KEY;
+  try {
+    const request = { method: "POST", body: { mimeType: "image/png", imageBase64: "aGVsbG8=" } };
+    const response = createResponse();
 
-  await handler(request, response);
+    await handler(request, response);
 
-  assert.equal(response.statusCode, 503);
-  assert.equal(response.payload.code, "OCR_NOT_CONFIGURED");
-  if (previousKey) process.env.GOOGLE_VISION_API_KEY = previousKey;
+    assert.equal(response.statusCode, 503);
+    assert.equal(response.payload.code, "OCR_NOT_CONFIGURED");
+  } finally {
+    if (prevVision) process.env.GOOGLE_VISION_API_KEY = prevVision;
+    if (prevGemini) process.env.GEMINI_API_KEY = prevGemini;
+  }
 });

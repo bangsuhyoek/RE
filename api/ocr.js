@@ -18,6 +18,47 @@ const readBody = (request) => {
   return request.body || {};
 };
 
+const callGeminiVision = async ({ imageBase64, mimeType, apiKey }) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 25_000);
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: mimeType || "image/jpeg",
+                    data: imageBase64,
+                  },
+                },
+                {
+                  text: "영수증 또는 결제 내역 이미지의 모든 텍스트를 보이는 그대로 정확히 추출(OCR)해주세요. 요약이나 설명 없이 텍스트 원문만 줄바꿈하여 출력하세요.",
+                },
+              ],
+            },
+          ],
+        }),
+        signal: controller.signal,
+      }
+    );
+    const payload = await response.json();
+    if (!response.ok || payload.error) {
+      const message = payload.error?.message || "Gemini OCR 호출에 실패했습니다.";
+      throw new Error(message);
+    }
+    const candidate = payload.candidates?.[0]?.content?.parts?.find((part) => part.text);
+    return candidate?.text || "";
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 const callGoogleVision = async ({ imageBase64, apiKey }) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 25_000);
@@ -78,13 +119,16 @@ export default async function handler(request, response) {
     return send(response, 413, { ok: false, code: "IMAGE_TOO_LARGE", message: "이미지는 8MB 이하만 사용할 수 있습니다." });
   }
 
-  const apiKey = process.env.GOOGLE_VISION_API_KEY;
-  if (!apiKey) {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const visionKey = process.env.GOOGLE_VISION_API_KEY;
+  if (!geminiKey && !visionKey) {
     return send(response, 503, { ok: false, code: "OCR_NOT_CONFIGURED", message: "OCR 환경변수가 설정되지 않았습니다." });
   }
 
   try {
-    const rawText = await callGoogleVision({ imageBase64, apiKey });
+    const rawText = geminiKey
+      ? await callGeminiVision({ imageBase64, mimeType, apiKey: geminiKey })
+      : await callGoogleVision({ imageBase64, apiKey: visionKey });
     const parsed = parseReceiptText(rawText);
     return send(response, parsed.ok ? 200 : 422, parsed);
   } catch (error) {

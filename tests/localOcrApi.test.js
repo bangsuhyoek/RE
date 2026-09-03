@@ -40,8 +40,10 @@ test("Vite 개발 서버에서 결제 문자 OCR API를 실행한다", async () 
 });
 
 test("이미지 OCR 키가 없으면 더미 결과 대신 설정 오류를 반환한다", async () => {
-  const previousKey = process.env.GOOGLE_VISION_API_KEY;
+  const prevVision = process.env.GOOGLE_VISION_API_KEY;
+  const prevGemini = process.env.GEMINI_API_KEY;
   delete process.env.GOOGLE_VISION_API_KEY;
+  delete process.env.GEMINI_API_KEY;
   try {
     const result = await runMiddleware({
       body: { imageBase64: "dGVzdA==", mimeType: "image/png" },
@@ -50,7 +52,8 @@ test("이미지 OCR 키가 없으면 더미 결과 대신 설정 오류를 반�
     assert.equal(result.payload.ok, false);
     assert.equal(result.payload.code, "OCR_NOT_CONFIGURED");
   } finally {
-    if (previousKey) process.env.GOOGLE_VISION_API_KEY = previousKey;
+    if (prevVision) process.env.GOOGLE_VISION_API_KEY = prevVision;
+    if (prevGemini) process.env.GEMINI_API_KEY = prevGemini;
   }
 });
 
