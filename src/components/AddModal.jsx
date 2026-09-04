@@ -161,7 +161,7 @@ export function AddModal({ catalog, onClose, onAdd }) {
           ) : (
             <label className={`block rounded-xl border-2 p-4 transition-colors ${scanning ? "scanner-shimmer border-black bg-white" : "border-[#E4E4E7] bg-[#FAFAFA] focus-within:border-black"}`}>
               <span className="mb-2 block text-[12px] font-semibold">결제 문자 붙여넣기</span>
-              <textarea disabled={scanning} value={sms} onChange={(event) => { setSms(event.target.value); setError(""); }} placeholder="예: 상품명 티빙 / 13,500원 결제완료 / 09월 10일" rows={4} className="w-full resize-none bg-transparent text-[14px] leading-6 outline-none placeholder:text-[#A1A1AA]" />
+              <textarea disabled={scanning} value={sms} onChange={(event) => { setSms(event.target.value); setError(""); }} placeholder="예: 상품명 티빙 / 13,500원 결제완료 / 09월 10일" rows={4} className="no-focus-ring w-full resize-none bg-transparent text-[14px] leading-6 outline-none placeholder:text-[#A1A1AA] focus:outline-none focus-visible:!outline-none focus-visible:!ring-0" />
             </label>
           )}
           {error && <p className="mt-2 text-[12px] leading-5 text-[#EF4444]">{error}</p>}
