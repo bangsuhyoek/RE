@@ -21,9 +21,10 @@ const readBody = (request) => {
 const callGeminiVision = async ({ imageBase64, mimeType, apiKey }) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 25_000);
+  const modelName = process.env.GEMINI_MODEL || "gemini-3.5-flash";
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(apiKey)}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

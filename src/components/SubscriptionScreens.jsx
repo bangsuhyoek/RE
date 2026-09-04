@@ -1,5 +1,5 @@
 ﻿import { useMemo, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, CreditCard, FilterX, RefreshCw, Search, Settings2, SlidersHorizontal } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, CreditCard, FilterX, RefreshCw, Search, Send, Settings2, SlidersHorizontal } from "lucide-react";
 import { Button, DDayBadge, ServiceMark, SubscriptionCard, ToggleSwitch } from "./ui";
 import { dateForDueDay, daysUntilCharge, formatBillingDate, formatKoreanMonth, formatWon, getCalendarDays, getLastDate } from "../lib/dates";
 
@@ -95,7 +95,7 @@ function DetailField({ label, value }) {
   return <div className="flex items-center justify-between gap-4 py-3"><span className="text-[13px] text-[#71717A]">{label}</span><strong className="min-w-0 truncate text-right text-[14px] font-semibold">{value}</strong></div>;
 }
 
-export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel, onBack, promotion }) {
+export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel, onBack, promotion, onTriggerNotification, highlightCancel }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(() => ({
     plan: subscription?.plan || "기본 플랜",
@@ -178,6 +178,18 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
             <ToggleSwitch checked={Boolean(subscription.alertD1)} onChange={(checked) => onUpdate(subscription.subscriptionId, { alertD1: checked })} label="결제 하루 전 알림" />
           </div>
         </div>
+        <div className="mt-3 pt-3 border-t border-[#E4E4E7] flex items-center justify-between">
+          <span className="text-[12px] text-[#71717A]">알림 동작 미리보기</span>
+          <Button
+            size="compact"
+            variant="secondary"
+            className="!py-1.5 !px-3 !text-[12px]"
+            onClick={() => onTriggerNotification?.(subscription)}
+          >
+            <Send size={13} />
+            이 구독 알림 테스트
+          </Button>
+        </div>
       </section>
 
       {promotion && (
@@ -189,7 +201,7 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
       )}
 
       <div className="mt-8 space-y-3">
-        <Button className="w-full" onClick={() => onStartCancel(subscription.subscriptionId, promotion)}>웹사이트에서 다이렉트 해지하기</Button>
+        <Button className={`w-full ${highlightCancel ? "cancel-highlight" : ""}`} onClick={() => onStartCancel(subscription.subscriptionId, promotion)}>웹사이트에서 다이렉트 해지하기</Button>
         <Button className="w-full" variant="secondary" onClick={() => setEditing((value) => !value)}>{editing ? "수정 닫기" : "구독 정보 수정"}</Button>
       </div>
     </main>

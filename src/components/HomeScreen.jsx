@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight, Inbox, ReceiptText, ScanLine, Sparkles } from "lucide-react";
+import { ArrowRight, BellRing, ChevronLeft, ChevronRight, Inbox, ReceiptText, ScanLine, Send, Sparkles } from "lucide-react";
 import { Button, SubscriptionCard } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 
@@ -91,7 +91,7 @@ function EmptyState({ onAdd, onScan }) {
   );
 }
 
-export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onStartOnboarding }) {
+export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTriggerTestNotification }) {
   const upcoming = useMemo(() => [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b)).slice(0, 3), [subscriptions]);
 
   if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onAdd} />;
@@ -100,14 +100,45 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
     <main className="px-5 pb-28 pt-6">
       <p className="text-[13px] font-medium text-[#71717A]">{profile?.nickname || "민수"}님, 이번 달</p>
       <h1 className="mt-1 text-[24px] font-bold tracking-[-0.02em]">고정지출을 확인하세요</h1>
-      {notificationDenied && (
-        <button type="button" onClick={onStartOnboarding} className="mt-5 flex w-full items-center gap-3 rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-3 text-left">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-white"><Sparkles size={16} /></span>
-          <span>
-            <strong className="block text-[13px]">결제 전 알림이 꺼져 있어요</strong>
-            <span className="mt-0.5 block text-[12px] text-[#71717A]">알림을 켜고 D-3, D-1에 알려드릴게요.</span>
+      {notificationDenied ? (
+        <button
+          type="button"
+          onClick={onToggleNotificationPermission}
+          className="mt-5 flex w-full items-center justify-between rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-3 text-left transition-colors hover:bg-[#F4F4F5]"
+        >
+          <div className="flex items-center gap-3">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-white shadow-sm text-black">
+              <Sparkles size={16} />
+            </span>
+            <div>
+              <strong className="block text-[13px]">결제 전 알림이 꺼져 있어요</strong>
+              <span className="mt-0.5 block text-[12px] text-[#71717A]">탭하여 알림을 켜고 D-3, D-1에 미리 안내받으세요.</span>
+            </div>
+          </div>
+          <span className="rounded-lg bg-black px-2.5 py-1 text-[11px] font-bold text-white">
+            켜기
           </span>
         </button>
+      ) : (
+        <div className="mt-5 flex w-full items-center justify-between rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-black text-white">
+              <BellRing size={14} />
+            </span>
+            <div>
+              <strong className="block text-[12px] font-semibold text-black">사전 결제 스마트 알림 활성화</strong>
+              <span className="block text-[11px] text-[#71717A]">D-3, D-1 결제 및 무료체험 종료 안내</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onTriggerTestNotification}
+            className="flex items-center gap-1 rounded-lg border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-black shadow-xs hover:bg-[#F4F4F5] active:scale-95 transition-transform"
+          >
+            <Send size={11} />
+            알림 테스트
+          </button>
+        </div>
       )}
       <div className="mt-5"><SummaryCard subscriptions={subscriptions} /></div>
 

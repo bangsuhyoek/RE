@@ -147,3 +147,36 @@ button {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+.push-banner-enter {
+  animation: push-banner-enter 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes push-banner-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cancel-highlight {
+  animation: cancel-highlight-pulse 1.8s ease-in-out infinite;
+  border: 2px solid #000000 !important;
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15) !important;
+}
+
+@keyframes cancel-highlight-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 8px rgba(0, 0, 0, 0.08);
+  }
+}
+
