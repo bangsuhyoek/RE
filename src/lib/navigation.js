@@ -19,8 +19,9 @@ export const parseHash = (hash = "") => {
 export const routeForSession = ({ requestedRoute, hasProfile, onboardingComplete }) => {
   if (requestedRoute && knownRoutes.has(requestedRoute)) {
     if (publicRoutes.has(requestedRoute)) return requestedRoute;
-    if (hasProfile) return requestedRoute;
-    return "login";
+    if (!hasProfile) return "login";
+    if (!onboardingComplete && requestedRoute !== "onboarding") return "onboarding";
+    return requestedRoute;
   }
   if (!hasProfile) return "landing";
   return onboardingComplete ? "home" : "onboarding";
