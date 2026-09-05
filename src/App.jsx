@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { AuthLogin, AuthRegister } from "./components/AuthScreens";
+import { IntroScreen, LandingScreen, SplashScreen } from "./components/EntryScreens";
 import { AddModal } from "./components/AddModal";
 import { CancelModal } from "./components/CancelModal";
 import { HomeScreen } from "./components/HomeScreen";
@@ -12,23 +13,13 @@ import { AppHeader, BottomNavigation, BottomSheet, Button, ServiceMark, Toast } 
 import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
 import { daysUntilCharge, formatWon, getMonthKey, isPastDueThisCycle } from "./lib/dates";
 import { readStoredValue, removeDemoSubscriptions, storageKeys, writeStoredValue } from "./lib/storage";
+import { hashForRoute, knownRoutes, parseHash, publicRoutes, routeForSession } from "./lib/navigation";
 import {
   generateSubscriptionAlerts,
   getStoredNotifications,
   saveStoredNotifications,
   requestNotificationPermission,
 } from "./lib/notifications";
-
-const readHash = () => {
-  const raw = window.location.hash.replace(/^#\/?/, "");
-  if (!raw) return { route: null, id: null, params: new URLSearchParams() };
-  const [routeAndId, queryPart] = raw.split("?");
-  const parts = (routeAndId || "").split("/");
-  const route = parts[0] || null;
-  const id = parts.slice(1).join("/") || null;
-  const params = new URLSearchParams(queryPart || "");
-  return { route, id: id ? decodeURIComponent(id) : null, params };
-};
 
 const notificationPermissionNow = () => {
   if (typeof window !== "undefined" && "Notification" in window) return Notification.permission;
@@ -37,11 +28,12 @@ const notificationPermissionNow = () => {
 
 export default function App() {
   const storedProfile = readStoredValue(storageKeys.profile, null);
-  const initialHash = readHash();
+  const initialHash = parseHash(window.location.hash);
   const explicitGuest = initialHash.params?.get("guest") === "1";
   const effectiveProfile = storedProfile || (explicitGuest ? { nickname: "", provider: "Guest", guest: true, notificationsAllowed: true } : null);
 
   const [profile, setProfile] = useState(effectiveProfile);
+  const profileRef = useRef(effectiveProfile);
   const [subscriptions, setSubscriptions] = useState(() => {
     const saved = readStoredValue(storageKeys.subscriptions, []);
     return Array.isArray(saved) ? removeDemoSubscriptions(saved) : [];
@@ -49,8 +41,12 @@ export default function App() {
   const initialOnboardingComplete = readStoredValue(storageKeys.onboardingComplete, false);
   const [onboardingComplete, setOnboardingComplete] = useState(initialOnboardingComplete);
   const [screen, setScreen] = useState(() => {
-    if (initialHash.route && (effectiveProfile || ["login", "register"].includes(initialHash.route))) return initialHash;
-    return effectiveProfile ? { route: initialOnboardingComplete ? "home" : "onboarding", id: null } : { route: "login", id: null };
+    const route = routeForSession({
+      requestedRoute: initialHash.route,
+      hasProfile: Boolean(effectiveProfile),
+      onboardingComplete: initialOnboardingComplete,
+    });
+    return { ...initialHash, route, id: initialHash.route === route ? initialHash.id : null };
   });
   const [addOpen, setAddOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState(null);
@@ -64,10 +60,19 @@ export default function App() {
 
   useEffect(() => {
     const onHashChange = () => {
-      const next = readHash();
+      const next = parseHash(window.location.hash);
       if (!next.route) return;
-      if (!profile && !["login", "register"].includes(next.route)) {
-        setScreen({ route: "login", id: null });
+      if (!knownRoutes.has(next.route)) {
+        const fallback = routeForSession({
+          requestedRoute: null,
+          hasProfile: Boolean(profileRef.current),
+          onboardingComplete,
+        });
+        setScreen({ route: fallback, id: null, params: new URLSearchParams() });
+        return;
+      }
+      if (!profileRef.current && !publicRoutes.has(next.route)) {
+        setScreen({ route: "login", id: null, params: new URLSearchParams() });
         return;
       }
       setScreen(next);
@@ -80,7 +85,7 @@ export default function App() {
     };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
-  }, [profile, subscriptions]);
+  }, [onboardingComplete, subscriptions]);
 
   useEffect(() => window.scrollTo(0, 0), [screen.route, screen.id]);
   useEffect(() => writeStoredValue(storageKeys.profile, profile), [profile]);
@@ -112,9 +117,10 @@ export default function App() {
   }, [screen.route, subscriptions]);
 
   const navigate = (route, id = null) => {
-    const hash = id ? `#/${route}/${encodeURIComponent(id)}` : `#/${route}`;
-    if (window.location.hash === hash) setScreen({ route, id, params: new URLSearchParams() });
-    else window.location.hash = hash;
+    const next = { route, id, params: new URLSearchParams() };
+    setScreen(next);
+    const hash = hashForRoute(route, id);
+    if (window.location.hash !== hash) window.location.hash = hash;
   };
 
   const notify = (message) => setToast(message);
@@ -143,6 +149,7 @@ export default function App() {
 
   const completeLogin = (provider, nickname, guest = false) => {
     const nextProfile = { nickname: nickname || "", provider, guest, notificationsAllowed: true };
+    profileRef.current = nextProfile;
     setProfile(nextProfile);
     setSubscriptions((current) => removeDemoSubscriptions(current));
     setNotifications([]);
@@ -233,7 +240,7 @@ export default function App() {
     notify("여기까지 기억해둘게요. 다음에 이어서 해지할 수 있어요.");
   };
 
-  const finishCancellation = (subscriptionId) => {
+  const finishCancellation = (subscriptionId, destination = "subscriptions") => {
     setSubscriptions((current) => current.map((subscription) =>
       subscription.subscriptionId === subscriptionId
         ? {
@@ -248,7 +255,7 @@ export default function App() {
     ));
     setCancelTarget(null);
     setRenewalTarget(null);
-    if (screen.route === "detail") navigate("subscriptions");
+    navigate(destination === "home" ? "home" : "subscriptions");
   };
 
   const muteSubscription = (subscriptionId) => {
@@ -304,7 +311,7 @@ export default function App() {
     notify("결제 전 알림을 껐어요.");
   };
 
-  const hasAppChrome = Boolean(profile) && !["login", "register", "onboarding"].includes(screen.route);
+  const hasAppChrome = Boolean(profile) && !publicRoutes.has(screen.route) && screen.route !== "onboarding";
   const pageTitles = {
     home: "RE.",
     subscriptions: "구독 목록",
@@ -314,7 +321,22 @@ export default function App() {
   };
 
   let content;
-  if (screen.route === "register") {
+  if (screen.route === "landing") {
+    content = <LandingScreen onStart={() => navigate("splash")} onLogin={() => navigate("login")} />;
+  } else if (screen.route === "splash") {
+    content = <SplashScreen onDone={() => navigate("intro")} />;
+  } else if (screen.route === "intro") {
+    content = <IntroScreen onContinue={() => navigate("login")} onBack={() => navigate("landing")} />;
+  } else if (screen.route === "login") {
+    content = (
+      <AuthLogin
+        onGuest={() => completeLogin("Guest", "", true)}
+        onSocial={(provider, nickname) => completeLogin(provider, nickname)}
+        onRegister={() => navigate("register")}
+        onBack={() => navigate("intro")}
+      />
+    );
+  } else if (screen.route === "register") {
     content = <AuthRegister onBack={() => navigate("login")} onComplete={({ nickname }) => completeLogin("RE.", nickname)} />;
   } else if (screen.route === "onboarding") {
     content = <OnboardingScreen onFindComplete={handleOnboardingFindComplete} onManual={handleOnboardingManual} />;
@@ -363,16 +385,16 @@ export default function App() {
     );
   } else {
     content = (
-      <AuthLogin
-        onGuest={() => completeLogin("Guest", "", true)}
-        onSocial={(provider, nickname) => completeLogin(provider, nickname)}
-        onRegister={() => navigate("register")}
-      />
+      <main className="px-6 py-20 text-center">
+        <h1 className="text-[23px] font-extrabold text-[#1B2A8C]">화면을 찾을 수 없어요.</h1>
+        <p className="mt-3 text-[13px] leading-6 text-[#7E8AC0]">저장된 정보는 그대로 두고 안전한 화면으로 돌아갈게요.</p>
+        <Button className="mt-6" onClick={() => navigate(profileRef.current ? (onboardingComplete ? "home" : "onboarding") : "landing")}>돌아가기</Button>
+      </main>
     );
   }
 
   return (
-    <div className="app-shell" data-screen={screen.route || "login"}>
+    <div className="app-shell" data-screen={screen.route || "landing"}>
       {hasAppChrome && (
         <AppHeader
           title={pageTitles[screen.route] || "RE."}

@@ -48,8 +48,8 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onIn
             <p className="re-hand mt-8 rotate-[-6deg] text-[22px]">잘 했어요!<br />또 만나요! ♡</p>
             <RECharacter state="complete" className="mx-auto mt-2 h-[250px] w-auto object-contain" />
             <Progress current={3} />
-            <Button className="mt-5 w-full" onClick={() => onComplete(subscription.subscriptionId)}>홈으로 돌아가기</Button>
-            <Button variant="secondary" className="mt-3 w-full" onClick={() => onComplete(subscription.subscriptionId)}>다른 구독도 확인하기</Button>
+            <Button className="mt-5 w-full" onClick={() => onComplete(subscription.subscriptionId, "home")}>홈으로 돌아가기</Button>
+            <Button variant="secondary" className="mt-3 w-full" onClick={() => onComplete(subscription.subscriptionId, "subscriptions")}>다른 구독도 확인하기</Button>
           </div>
         </div>
       </div>
