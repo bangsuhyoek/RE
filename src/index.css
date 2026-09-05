@@ -4,15 +4,13 @@
 
 :root {
   font-family: Pretendard, Inter, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
-  color: #000000;
+  color: #18181b;
   background: #f4f4f5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html {
   min-width: 320px;
@@ -29,9 +27,7 @@ body {
 button,
 input,
 textarea,
-select {
-  font: inherit;
-}
+select { font: inherit; }
 
 button:focus-visible,
 input:focus-visible,
@@ -48,15 +44,11 @@ a:focus-visible {
   box-shadow: none !important;
 }
 
-button {
-  -webkit-tap-highlight-color: transparent;
-}
-
-#root {
-  min-height: 100vh;
-}
+button { -webkit-tap-highlight-color: transparent; }
+#root { min-height: 100vh; }
 
 .app-shell {
+  position: relative;
   min-height: 100vh;
   width: 100%;
   max-width: 420px;
@@ -64,37 +56,242 @@ button {
   overflow-x: hidden;
   border-left: 1px solid #e4e4e7;
   border-right: 1px solid #e4e4e7;
+  background: #fbfcff;
+  box-shadow: 0 0 44px rgba(50, 62, 110, 0.07);
+}
+
+.re-page-transition { min-height: inherit; }
+
+.re-water-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.re-water-wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(250,252,255,.36), rgba(250,252,255,.78)),
+    radial-gradient(circle at 18% 16%, rgba(226,244,239,.35), transparent 32%),
+    radial-gradient(circle at 82% 30%, rgba(234,226,248,.28), transparent 34%);
+}
+
+.re-entry,
+.re-auth,
+.re-onboarding,
+.re-home { background: #fbfcff; }
+
+.re-entry-hero {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 54% center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.re-entry-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(250,252,255,.22) 0%, rgba(250,252,255,.52) 44%, rgba(250,252,255,.94) 78%, #fbfcff 100%);
+  pointer-events: none;
+}
+
+.re-entry-card {
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 26px;
+  padding: 20px;
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 18px 48px rgba(50,72,155,.12), inset 0 1px 0 rgba(255,255,255,.92);
+  backdrop-filter: blur(18px);
+}
+
+.re-entry-chip {
+  display: flex;
+  min-height: 72px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(228,234,246,.78);
+  border-radius: 16px;
+  background: rgba(247,249,253,.92);
+  color: #475fac;
+  font-size: 10px;
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 5px 12px rgba(52,72,145,.05);
+}
+
+.re-eyebrow {
+  font-size: 10px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: .14em;
+  color: #7e8ac0;
+}
+
+.re-serif-title {
+  font-family: Georgia, "Times New Roman", "Noto Serif KR", serif;
+  font-weight: 700;
+}
+
+.re-splash { background: #fbfcff; }
+.re-splash-logo { animation: re-logo-arrive 520ms cubic-bezier(.2,.8,.2,1) both; }
+.re-splash-tagline {
+  margin-top: 24px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: #1b2a8c;
+}
+
+.re-intro-features {
+  border: 1px solid rgba(228,234,246,.9);
+  border-radius: 20px;
+  padding: 10px;
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 14px 34px rgba(50,72,155,.07);
+  backdrop-filter: blur(16px);
+}
+
+.re-intro-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  border-radius: 14px;
+  padding: 10px 11px;
+  background: rgba(247,249,253,.82);
+}
+
+.re-intro-feature-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 11px;
   background: #ffffff;
+  color: #475fac;
+  box-shadow: 0 3px 9px rgba(52,72,145,.08);
+}
+
+.re-intro-feature strong {
+  display: block;
+  font-size: 12px;
+  color: #1b2a8c;
+}
+
+.re-intro-feature p {
+  margin: 3px 0 0;
+  font-size: 10px;
+  line-height: 1.55;
+  color: #7e8ac0;
+}
+
+.re-field {
+  border: 1px solid rgba(218,225,241,.96);
+  background: rgba(255,255,255,.9);
+  color: #18181b;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 5px 14px rgba(50,72,155,.055);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.re-field:focus {
+  border-color: #000000;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0,0,0,.045), 0 7px 18px rgba(50,72,155,.07);
+}
+
+.re-label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475fac;
+}
+
+.re-icon-control {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid rgba(228,228,231,.9);
+  border-radius: 14px;
+  background: rgba(255,255,255,.9);
+  color: #71717a;
+  box-shadow: 0 3px 0 rgba(24,24,27,.05), 0 7px 15px rgba(24,24,27,.055);
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.re-icon-control:hover { transform: translateY(-1px); color: #000; }
+.re-icon-control:active { transform: translateY(1px); box-shadow: 0 1px 0 rgba(24,24,27,.04), 0 4px 9px rgba(24,24,27,.045); }
+
+.re-surface-card {
+  box-shadow: 0 9px 24px rgba(40,54,96,.055), inset 0 1px 0 rgba(255,255,255,.94);
+}
+
+.re-summary-card {
+  box-shadow: 0 10px 0 rgba(24,24,27,.035), 0 20px 34px rgba(24,24,27,.13), inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.re-button { position: relative; }
+.re-button::before {
+  content: "";
+  position: absolute;
+  inset: 1px 9px auto;
+  height: 1px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.3);
+  pointer-events: none;
 }
 
 .card-press {
-  transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), border-color 150ms cubic-bezier(0.2, 0, 0, 1), border-width 150ms cubic-bezier(0.2, 0, 0, 1);
+  transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), border-color 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms cubic-bezier(0.2, 0, 0, 1);
 }
 
-.card-press:active {
-  transform: scale(0.98);
-  border-color: #000000;
+.card-press:hover { transform: translateY(-1px); }
+.card-press:active { transform: translateY(1px); border-color: #000000; }
+
+.re-page-turn-soft {
+  transform-origin: 100% 50%;
+  backface-visibility: hidden;
+  animation: re-soft-page-turn 300ms cubic-bezier(.22,.74,.24,1) both;
 }
 
-.today-pulse {
-  animation: today-pulse 1.2s ease-in-out infinite;
+.today-pulse { animation: today-pulse 1.2s ease-in-out infinite; }
+.scanner-shimmer { animation: scanner-shimmer 800ms linear infinite; }
+.sheet-backdrop { animation: backdrop-enter 180ms ease-out both; }
+.sheet-slide-up { animation: sheet-enter 320ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+.sheet-enter { animation: sheet-enter 320ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+.toast-enter,
+.toast-animate { animation: toast-enter 180ms cubic-bezier(0.2, 0, 0, 1) both; }
+.field-enter { overflow: hidden; animation: field-enter 190ms cubic-bezier(0.2, 0, 0, 1) both; }
+.push-banner-enter { animation: push-banner-enter 360ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+.cancel-highlight {
+  animation: cancel-highlight-pulse 1.8s ease-in-out infinite;
+  border: 2px solid #000000 !important;
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15) !important;
 }
 
-.scanner-shimmer {
-  animation: scanner-shimmer 800ms linear infinite;
+@keyframes re-logo-arrive {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.sheet-enter {
-  animation: sheet-enter 320ms cubic-bezier(0.32, 0.72, 0, 1) both;
-}
-
-.toast-enter {
-  animation: toast-enter 180ms cubic-bezier(0.2, 0, 0, 1) both;
-}
-
-.field-enter {
-  overflow: hidden;
-  animation: field-enter 180ms cubic-bezier(0.2, 0, 0, 1) both;
+@keyframes re-soft-page-turn {
+  0% { opacity: .86; transform: perspective(1200px) translateX(7px) rotateY(-4deg); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: perspective(1200px) translateX(0) rotateY(0); }
 }
 
 @keyframes today-pulse {
@@ -105,6 +302,11 @@ button {
 @keyframes scanner-shimmer {
   0%, 100% { border-color: rgba(0, 0, 0, 0.4); background-color: rgba(255, 255, 255, 0.4); }
   50% { border-color: rgba(0, 0, 0, 1); background-color: rgba(255, 255, 255, 1); }
+}
+
+@keyframes backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes sheet-enter {
@@ -118,65 +320,46 @@ button {
 }
 
 @keyframes field-enter {
-  from { max-height: 0; opacity: 0; transform: translateY(-8px); }
-  to { max-height: 540px; opacity: 1; transform: translateY(0); }
+  from { max-height: 0; opacity: 0; transform: translateY(6px); }
+  to { max-height: 720px; opacity: 1; transform: translateY(0); }
+}
+
+@keyframes push-banner-enter {
+  from { opacity: 0; transform: translateY(-24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes cancel-highlight-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2); }
+  50% { box-shadow: 0 0 0 8px rgba(0, 0, 0, 0.08); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 150ms !important;
+    animation-duration: 120ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
-    transition-duration: 150ms !important;
+    transition-duration: 120ms !important;
   }
 
+  .re-page-turn-soft,
   .sheet-enter,
+  .sheet-slide-up,
   .toast-enter,
-  .field-enter {
-    animation-name: reduced-fade;
+  .toast-animate,
+  .field-enter,
+  .push-banner-enter,
+  .re-splash-logo {
+    animation-name: reduced-fade !important;
   }
 
-  .today-pulse {
-    animation: none;
-  }
+  .today-pulse,
+  .cancel-highlight { animation: none !important; }
 }
 
 @keyframes reduced-fade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
-.push-banner-enter {
-  animation: push-banner-enter 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes push-banner-enter {
-  from {
-    opacity: 0;
-    transform: translateY(-24px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.cancel-highlight {
-  animation: cancel-highlight-pulse 1.8s ease-in-out infinite;
-  border: 2px solid #000000 !important;
-  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15) !important;
-}
-
-@keyframes cancel-highlight-pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2);
-  }
-  50% {
-    transform: scale(1.02);
-    box-shadow: 0 0 0 8px rgba(0, 0, 0, 0.08);
-  }
-}
-
