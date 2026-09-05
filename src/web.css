@@ -1,0 +1,639 @@
+/* RE. responsive web presentation layer.
+ * Business logic lives in the existing React components; this file only changes presentation.
+ */
+
+:root {
+  --re-ink-blue: #1b2a8c;
+  --re-copy-blue: #6f7eb9;
+  --re-line: rgba(186, 197, 229, 0.48);
+  --re-glass: rgba(255, 255, 255, 0.78);
+  --re-glass-strong: rgba(255, 255, 255, 0.9);
+  --re-shadow: 0 22px 70px rgba(75, 86, 145, 0.13);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(circle at 14% 8%, rgba(214, 244, 237, 0.52), transparent 28%),
+    radial-gradient(circle at 84% 9%, rgba(232, 219, 249, 0.5), transparent 30%),
+    radial-gradient(circle at 52% 90%, rgba(224, 235, 255, 0.52), transparent 35%),
+    #f8faff;
+}
+
+.app-shell-public,
+.app-shell-authenticated {
+  position: relative;
+}
+
+.app-shell-public {
+  width: 100%;
+  max-width: none;
+  border: 0;
+  overflow: visible;
+  background: #f9fbff;
+}
+
+.app-shell-public .re-page-transition {
+  min-height: 100vh;
+}
+
+/* ---------- Public web landing ---------- */
+.re-web-landing {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  color: #17265f;
+  background: #f8fbff;
+}
+
+.re-web-landing-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 34% 48%;
+  filter: saturate(1.04) brightness(1.035);
+  user-select: none;
+  pointer-events: none;
+}
+
+.re-web-landing-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(251, 253, 255, 0.04) 0%, rgba(251, 253, 255, 0.04) 38%, rgba(251, 253, 255, 0.72) 67%, rgba(251, 253, 255, 0.95) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(247, 250, 255, 0.16) 60%, rgba(247, 250, 255, 0.82));
+  pointer-events: none;
+}
+
+.re-web-nav {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 28px;
+  width: min(1440px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 24px 0;
+}
+
+.re-web-nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 34px;
+}
+
+.re-web-nav-links a {
+  color: #586aa9;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.re-web-nav-links a:hover {
+  color: #182a83;
+}
+
+.re-web-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.re-web-hero {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(410px, 0.75fr);
+  align-items: center;
+  gap: 48px;
+  width: min(1440px, calc(100% - 64px));
+  min-height: calc(100vh - 94px);
+  margin: 0 auto;
+  padding: 44px 0 72px;
+}
+
+.re-web-copy {
+  grid-column: 2;
+  justify-self: end;
+  width: min(100%, 560px);
+  padding: 38px 38px 34px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 34px;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 28px 80px rgba(70, 84, 150, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px) saturate(1.08);
+}
+
+.re-web-copy .re-serif-title {
+  text-wrap: balance;
+}
+
+.re-web-feature-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.re-web-feature-chip {
+  min-width: 0;
+  padding: 14px 12px;
+  border: 1px solid rgba(204, 214, 239, 0.64);
+  border-radius: 18px;
+  background: rgba(250, 252, 255, 0.82);
+  color: #6070ad;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96), 0 8px 22px rgba(76, 92, 155, 0.07);
+}
+
+.re-web-feature-chip svg {
+  margin: 0 auto 8px;
+  color: #4e63b0;
+}
+
+.re-web-feature-chip strong {
+  display: block;
+  color: #2a3e8a;
+  font-size: 12px;
+}
+
+.re-web-feature-chip span {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.re-web-sections {
+  position: relative;
+  z-index: 4;
+  margin-top: -8px;
+  padding: 0 32px 64px;
+}
+
+.re-web-section-panel {
+  width: min(1320px, 100%);
+  margin: 0 auto;
+  padding: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--re-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+}
+
+.re-web-section-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.re-web-section-card {
+  min-height: 156px;
+  padding: 20px;
+  border: 1px solid rgba(204, 214, 239, 0.6);
+  border-radius: 22px;
+  background: rgba(249, 251, 255, 0.88);
+  box-shadow: 0 12px 28px rgba(72, 88, 151, 0.06), inset 0 1px 0 #fff;
+}
+
+.re-web-section-card svg {
+  color: #566bbc;
+}
+
+.re-web-section-card strong {
+  display: block;
+  margin-top: 18px;
+  color: #20347f;
+  font-size: 14px;
+}
+
+.re-web-section-card p {
+  margin: 7px 0 0;
+  color: #7b88bb;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* ---------- Splash & first-run intro ---------- */
+.re-splash,
+.re-intro-screen {
+  width: 100%;
+  min-height: 100svh;
+}
+
+.re-splash .re-water-background,
+.re-intro-art {
+  object-fit: cover;
+}
+
+.re-intro-screen {
+  position: relative;
+  overflow: hidden;
+  background: #f8fbff;
+}
+
+.re-intro-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-position: 43% center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.re-intro-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(249, 252, 255, 0.1) 0%, rgba(249, 252, 255, 0.18) 42%, rgba(249, 252, 255, 0.88) 74%, rgba(249, 252, 255, 0.97) 100%);
+  pointer-events: none;
+}
+
+.re-intro-panel {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  min-height: 100svh;
+  width: min(1320px, calc(100% - 56px));
+  margin: 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 64px 0;
+}
+
+.re-intro-card {
+  width: min(500px, 100%);
+  padding: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.94);
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--re-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+}
+
+/* ---------- Auth & onboarding ---------- */
+.re-auth {
+  width: 100%;
+  min-height: 100svh;
+  background: #f8fbff;
+}
+
+.re-auth > .relative.z-10 {
+  width: min(520px, calc(100% - 32px));
+  margin-inline: auto;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.73);
+  box-shadow: var(--re-shadow);
+  backdrop-filter: blur(20px);
+}
+
+.re-onboarding {
+  width: 100%;
+  max-width: none;
+  background: #f8fbff;
+}
+
+.re-onboarding > .relative.z-10 {
+  width: min(1080px, 100%);
+  margin-inline: auto;
+}
+
+.re-onboarding section[aria-label="구독 서비스 선택"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* ---------- Authenticated app shell ---------- */
+.app-shell-authenticated {
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  border: 0;
+  overflow: visible;
+  background:
+    linear-gradient(180deg, rgba(248, 251, 255, 0.88), rgba(249, 251, 255, 0.97)),
+    url('/re-assets/bg_plate.jpg') center / cover fixed;
+}
+
+.app-shell-authenticated::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 8%, rgba(206, 240, 235, 0.28), transparent 26%),
+    radial-gradient(circle at 84% 12%, rgba(229, 216, 248, 0.34), transparent 30%),
+    radial-gradient(circle at 66% 88%, rgba(220, 233, 255, 0.36), transparent 34%);
+}
+
+.app-shell-authenticated > header,
+.app-shell-authenticated > nav,
+.app-shell-authenticated > .re-page-transition,
+.app-shell-authenticated > .sheet-backdrop,
+.app-shell-authenticated > .toast-animate,
+.app-shell-authenticated > .push-banner-enter {
+  position: relative;
+  z-index: 2;
+}
+
+.app-shell-authenticated .re-page-transition > main {
+  position: relative;
+  width: min(1180px, 100%);
+  margin-inline: auto;
+}
+
+.app-shell-authenticated .re-surface-card,
+.app-shell-authenticated .re-entry-card,
+.app-shell-authenticated main article[class*="bg-white"],
+.app-shell-authenticated main section[class*="bg-white"] {
+  border-color: rgba(204, 214, 239, 0.66) !important;
+  background-color: rgba(255, 255, 255, 0.82) !important;
+  box-shadow: 0 14px 36px rgba(68, 82, 142, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(16px);
+}
+
+.app-shell-authenticated .re-summary-card {
+  box-shadow: 0 16px 44px rgba(35, 41, 82, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.app-shell-authenticated input,
+.app-shell-authenticated textarea,
+.app-shell-authenticated select {
+  backdrop-filter: blur(12px);
+}
+
+/* Tablet keeps the familiar bottom navigation but gets more breathing room. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .app-shell {
+    max-width: 760px;
+  }
+
+  .app-shell-authenticated > nav[aria-label="주요 탐색"] {
+    width: min(760px, 100vw) !important;
+    max-width: 760px !important;
+  }
+
+  .re-onboarding section[aria-label="구독 서비스 선택"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .re-onboarding > div.fixed {
+    max-width: 760px !important;
+  }
+}
+
+/* Desktop turns the mobile bottom nav into a calm left rail. */
+@media (min-width: 1024px) {
+  .app-shell-authenticated > header {
+    position: fixed !important;
+    top: 0;
+    right: 0;
+    left: 232px;
+    z-index: 35;
+    width: auto !important;
+    height: 72px !important;
+    padding-inline: 30px !important;
+    border-color: rgba(203, 213, 239, 0.66) !important;
+    background: rgba(252, 253, 255, 0.82) !important;
+    box-shadow: 0 8px 26px rgba(68, 82, 142, 0.04);
+    backdrop-filter: blur(22px) saturate(1.06);
+  }
+
+  .app-shell-authenticated > nav[aria-label="주요 탐색"] {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    z-index: 40;
+    display: flex !important;
+    width: 232px !important;
+    max-width: none !important;
+    height: 100vh !important;
+    transform: none !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 8px;
+    padding: 92px 18px 24px !important;
+    border: 0 !important;
+    border-right: 1px solid rgba(203, 213, 239, 0.68) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(247, 250, 255, 0.86)),
+      url('/re-assets/bg_plate.jpg') center / cover !important;
+    box-shadow: 14px 0 40px rgba(68, 82, 142, 0.06) !important;
+    backdrop-filter: blur(24px);
+  }
+
+  .app-shell-authenticated > nav[aria-label="주요 탐색"]::before {
+    content: "RE.";
+    position: absolute;
+    top: 28px;
+    left: 28px;
+    color: #1b2a8c;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+  }
+
+  .app-shell-authenticated > nav[aria-label="주요 탐색"] > button {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    min-height: 48px;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    border-radius: 15px;
+    padding: 0 14px !important;
+  }
+
+  .app-shell-authenticated > nav[aria-label="주요 탐색"] > button[aria-current="page"] {
+    background: rgba(224, 231, 255, 0.72);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 7px 18px rgba(71, 87, 150, 0.07);
+  }
+
+  .app-shell-authenticated > nav[aria-label="주요 탐색"] > div {
+    flex: 0 0 auto !important;
+    width: 100%;
+    justify-content: flex-start !important;
+    padding: 2px 0;
+  }
+
+  .app-shell-authenticated > nav[aria-label="주요 탐색"] > div > button {
+    width: 100% !important;
+    height: 46px !important;
+    border-radius: 15px !important;
+    justify-content: flex-start;
+    gap: 12px;
+    padding-inline: 14px;
+  }
+
+  .app-shell-authenticated > nav[aria-label="주요 탐색"] > div > button::after {
+    content: "구독 추가";
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .app-shell-authenticated > .re-page-transition {
+    min-height: 100vh;
+    margin-left: 232px;
+    padding-top: 72px;
+  }
+
+  .app-shell-authenticated .re-page-transition > main {
+    padding-right: 32px !important;
+    padding-left: 32px !important;
+  }
+
+  .app-shell-authenticated .sheet-backdrop {
+    background: rgba(20, 26, 58, 0.32) !important;
+  }
+
+  .app-shell-authenticated .sheet-slide-up {
+    position: fixed !important;
+    top: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: calc(50% + 116px) !important;
+    width: min(720px, calc(100vw - 320px)) !important;
+    max-width: 720px !important;
+    max-height: min(86vh, 820px);
+    overflow-y: auto;
+    transform: translate(-50%, -50%) !important;
+    border: 1px solid rgba(203, 213, 239, 0.72) !important;
+    border-radius: 28px !important;
+    box-shadow: 0 32px 90px rgba(39, 48, 97, 0.22) !important;
+    animation: re-desktop-dialog-enter 220ms cubic-bezier(.2,.75,.2,1) both !important;
+  }
+
+  .re-onboarding section[aria-label="구독 서비스 선택"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .re-onboarding > div.fixed {
+    max-width: 760px !important;
+    border-radius: 24px 24px 0 0;
+  }
+}
+
+@keyframes re-desktop-dialog-enter {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 14px)) scale(.985); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@media (max-width: 767px) {
+  .re-web-nav {
+    width: calc(100% - 32px);
+    grid-template-columns: 1fr auto;
+    padding-top: 18px;
+  }
+
+  .re-web-nav-links {
+    display: none;
+  }
+
+  .re-web-nav-actions .re-web-start-mini {
+    display: none;
+  }
+
+  .re-web-landing-art {
+    object-position: 43% center;
+  }
+
+  .re-web-landing-wash {
+    background: linear-gradient(180deg, rgba(250, 252, 255, 0.06) 0%, rgba(250, 252, 255, 0.15) 35%, rgba(250, 252, 255, 0.96) 76%, #f9fbff 100%);
+  }
+
+  .re-web-hero {
+    display: flex;
+    width: 100%;
+    min-height: calc(100svh - 76px);
+    align-items: flex-end;
+    padding: 280px 16px 24px;
+  }
+
+  .re-web-copy {
+    width: 100%;
+    padding: 24px 20px 20px;
+    border-radius: 26px;
+  }
+
+  .re-web-feature-strip {
+    gap: 7px;
+  }
+
+  .re-web-feature-chip {
+    padding: 12px 8px;
+  }
+
+  .re-web-feature-chip span {
+    display: none;
+  }
+
+  .re-web-sections {
+    padding: 10px 16px 40px;
+  }
+
+  .re-web-section-panel {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .re-web-section-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .re-web-section-card {
+    min-height: 132px;
+    padding: 16px;
+  }
+
+  .re-intro-art {
+    object-position: 42% center;
+  }
+
+  .re-intro-screen::after {
+    background: linear-gradient(180deg, rgba(249, 252, 255, 0.08) 0%, rgba(249, 252, 255, 0.2) 42%, rgba(249, 252, 255, 0.95) 75%, #f9fbff 100%);
+  }
+
+  .re-intro-panel {
+    width: 100%;
+    min-height: 100svh;
+    align-items: flex-end;
+    padding: 300px 16px 20px;
+  }
+
+  .re-intro-card {
+    padding: 22px 20px;
+    border-radius: 26px;
+  }
+
+  .re-auth > .relative.z-10 {
+    width: 100%;
+    min-height: 100svh;
+    padding: 24px;
+    border: 0;
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .re-web-landing-art,
+  .re-intro-art {
+    transform: none !important;
+  }
+}
