@@ -42,7 +42,7 @@ const notificationPermissionNow = () => {
 export default function App() {
   const storedProfile = readStoredValue(storageKeys.profile, null);
   const initialRequested = useRef(readHash());
-  const initialOnboardingComplete = readStoredValue(storageKeys.onboardingComplete, false);
+  const initialOnboardingComplete = readStoredValue(storageKeys.onboardingComplete, Boolean(storedProfile));
   const initialIntroSeen = readStoredValue(storageKeys.introSeen, false);
 
   const [profile, setProfile] = useState(storedProfile);
@@ -58,6 +58,7 @@ export default function App() {
   const [savedAmount, setSavedAmount] = useState(() => readStoredValue(storageKeys.savedAmount, 0));
   const [screen, setScreen] = useState({ route: "splash", id: null, params: new URLSearchParams() });
   const screenRef = useRef(screen);
+  const [loginBackToIntro, setLoginBackToIntro] = useState(false);
   const [pageTurn, setPageTurn] = useState("");
   const pageTurnTimerRef = useRef(null);
 
@@ -113,6 +114,8 @@ export default function App() {
   };
 
   const routeAfterSplash = () => {
+    setLoginBackToIntro(false);
+
     if (!introSeenRef.current) {
       navigate("landing");
       return;
@@ -216,6 +219,7 @@ export default function App() {
   const handleIntroComplete = () => {
     introSeenRef.current = true;
     setIntroSeen(true);
+    setLoginBackToIntro(true);
     navigate("login", null, "page-turn");
   };
 
@@ -280,6 +284,11 @@ export default function App() {
       service.name.toLowerCase() === normalizedName || service.id === data.id
     );
     const dueDay = Number(data.dueDay);
+    const amount = Number(data.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      notify("결제 금액을 확인해 주세요.");
+      return false;
+    }
     if (!Number.isFinite(dueDay) || dueDay < 1 || dueDay > 31) {
       notify("결제일을 1~31 사이로 확인해 주세요.");
       return false;
@@ -294,7 +303,7 @@ export default function App() {
       subscriptionId: `manual-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       createdAt: new Date().toISOString(),
       dueDay,
-      amount: Number(data.amount),
+      amount,
       status: data.isTrial ? "trial" : "active",
       alertD3: true,
       alertD1: true,
@@ -348,7 +357,7 @@ export default function App() {
     setSavedAmount((amount) => amount + Number(saved || target.amount || 0));
     setRenewalTarget(null);
     if (screenRef.current.route === "detail") navigate("subscriptions");
-    // cancelTarget은 완료 모션이 끝날 때까지 유지합니다. 실제 삭제는 위에서 이미 끝납니다.
+    // 완료 모션은 기능 처리가 끝난 뒤 보이므로 cancelTarget은 모션 종료까지 유지합니다.
   };
 
   const muteSubscription = (subscriptionId) => {
@@ -478,7 +487,7 @@ export default function App() {
         onGuest={() => completeLogin("Guest", "", true)}
         onSocial={(provider, nickname) => completeLogin(provider, nickname)}
         onRegister={() => navigate("register")}
-        onBack={() => navigate(introSeen ? "login" : "intro")}
+        onBack={loginBackToIntro ? () => navigate("intro") : undefined}
       />
     );
   }
