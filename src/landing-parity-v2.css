@@ -1,0 +1,418 @@
+/* RE. landing parity v2
+   - approved landing layout density
+   - soft watercolor logo palette
+   - onboarding lotus background
+   - same-page progressive disclosure
+*/
+
+:root {
+  --re-logo-sage-deep: #7fa4a0;
+  --re-logo-aqua: #91b6b7;
+  --re-logo-blue: #a0bad7;
+  --re-logo-lavender: #bbcbe0;
+  --re-logo-blush: #f1e2df;
+  --re-logo-cream: #e8e7dc;
+}
+
+/* Pastel watercolor logo. Existing PNG alpha is used only as a mask, so every live logo
+   keeps the approved mark/RE. shape while adopting the requested softer palette. */
+.re-brand-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: .12em;
+  line-height: 0;
+}
+.re-brand-logo__mark,
+.re-brand-logo__word {
+  display: block;
+  flex: 0 0 auto;
+  background:
+    linear-gradient(135deg,
+      var(--re-logo-sage-deep) 0%,
+      var(--re-logo-aqua) 23%,
+      var(--re-logo-blue) 48%,
+      var(--re-logo-lavender) 68%,
+      var(--re-logo-blush) 84%,
+      var(--re-logo-cream) 100%);
+  filter: saturate(.92) brightness(1.05) contrast(.92);
+}
+.re-brand-logo__mark {
+  width: 1.45em;
+  height: 1em;
+  -webkit-mask: url("/re-assets/logo_mark.png") center / contain no-repeat;
+  mask: url("/re-assets/logo_mark.png") center / contain no-repeat;
+}
+.re-brand-logo__word {
+  width: 1.35em;
+  height: .72em;
+  -webkit-mask: url("/re-assets/logo_lockup.png") center / contain no-repeat;
+  mask: url("/re-assets/logo_lockup.png") center / contain no-repeat;
+}
+.re-brand-logo--xs { font-size: 24px; }
+.re-brand-logo--sm { font-size: 34px; }
+.re-brand-logo--md { font-size: 46px; }
+.re-brand-logo--lg { font-size: 58px; }
+.re-brand-logo--xl { font-size: 108px; }
+.re-brand-logo.is-stacked {
+  flex-direction: column;
+  gap: .02em;
+}
+.re-brand-logo.is-stacked .re-brand-logo__mark {
+  width: 1.55em;
+  height: 1.08em;
+}
+.re-brand-logo.is-stacked .re-brand-logo__word {
+  width: 1.6em;
+  height: .62em;
+}
+
+/* Legacy mark images that still exist in mobile AppHeader get the same softened tone. */
+img[src="/re-assets/logo_mark.png"],
+img[src="/re-assets/logo_lockup.png"] {
+  filter: saturate(.62) brightness(1.10) contrast(.86);
+}
+
+/* The approved landing image itself is unchanged. Only the baked-in logo is overlaid
+   with the same mark/word masks so the color tone matches every live logo. */
+.re-reference-landing__logo-tone {
+  position: absolute;
+  z-index: 4;
+  left: 3.45%;
+  top: .7%;
+  width: 9.8%;
+  height: 5.8%;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+.re-reference-landing__logo-tone .re-brand-logo {
+  width: 100%;
+  height: 100%;
+  gap: 1%;
+}
+.re-reference-landing__logo-tone .re-brand-logo__mark {
+  width: 43%;
+  height: 100%;
+}
+.re-reference-landing__logo-tone .re-brand-logo__word {
+  width: 57%;
+  height: 72%;
+}
+
+/* Onboarding: user-approved landing art is used as a faint blurred lotus texture.
+   The source image itself is not modified. */
+.re-onboarding .re-water-background--onboarding {
+  inset: -22px;
+  width: calc(100% + 44px);
+  height: calc(100% + 44px);
+  object-fit: cover;
+  object-position: center 44%;
+  opacity: .22;
+  filter: blur(12px) saturate(.72) brightness(1.12);
+  transform: scale(1.035);
+}
+.re-onboarding .re-water-wash--onboarding {
+  background:
+    linear-gradient(180deg, rgba(252,254,255,.72), rgba(250,253,255,.88)),
+    radial-gradient(circle at 12% 18%, rgba(210,239,233,.28), transparent 34%),
+    radial-gradient(circle at 86% 28%, rgba(228,218,244,.28), transparent 35%);
+}
+.re-onboarding-service {
+  border-color: rgba(208,224,242,.86);
+  background: rgba(255,255,255,.80);
+  box-shadow: 0 10px 24px rgba(71,92,157,.055);
+  backdrop-filter: blur(12px);
+}
+.re-onboarding-service:hover {
+  border-color: rgba(153,194,218,.86);
+  background: rgba(255,255,255,.90);
+}
+.re-onboarding-service.is-selected {
+  border-color: rgba(139,189,203,.92);
+  background: linear-gradient(135deg, rgba(226,247,242,.94), rgba(241,235,252,.90));
+  box-shadow: 0 12px 28px rgba(95,119,178,.09);
+}
+.re-onboarding-service__check {
+  background: linear-gradient(135deg, #84c7bd, #a8a6dc);
+}
+
+/* Same-page Progressive Disclosure: new fields appear, but once revealed they remain
+   visible even if a previous value is edited into an invalid state. */
+.re-progressive-form,
+.re-manual-progressive {
+  scroll-margin-top: 24px;
+}
+.re-progressive-field,
+.re-manual-field {
+  transform-origin: top center;
+}
+.field-enter {
+  animation: re-field-reveal 230ms cubic-bezier(.2,.78,.2,1) both;
+}
+@keyframes re-field-reveal {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .field-enter { animation: none; }
+}
+
+.re-manual-progressive {
+  border-top: 1px solid rgba(216,229,243,.76);
+  padding-top: 16px;
+}
+.re-manual-progressive__intro {
+  margin-bottom: 16px;
+  border: 1px solid rgba(207,224,240,.76);
+  border-radius: 17px;
+  background: linear-gradient(130deg, rgba(237,249,246,.82), rgba(243,239,252,.78));
+  padding: 13px 14px;
+}
+.re-manual-progressive__intro span,
+.re-manual-progressive__intro strong {
+  display: block;
+}
+.re-manual-progressive__intro span {
+  color: #8290b7;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.re-manual-progressive__intro strong {
+  margin-top: 4px;
+  color: #29438f;
+  font-size: 13px;
+}
+.re-manual-progressive__intro p {
+  margin-top: 4px;
+  color: #8290b7;
+  font-size: 10px;
+  line-height: 1.55;
+}
+.re-manual-field + .re-manual-field {
+  margin-top: 16px;
+}
+.re-cycle-choice {
+  border-color: #d8e5f3;
+  background: rgba(255,255,255,.90);
+  color: #7180ae;
+  box-shadow: 0 7px 18px rgba(72,92,155,.045);
+}
+.re-cycle-choice.is-selected {
+  border-color: rgba(135,190,199,.88);
+  background: linear-gradient(120deg, rgba(126,205,194,.26), rgba(180,159,225,.28));
+  color: #29438f;
+  box-shadow: 0 9px 22px rgba(83,107,171,.09);
+}
+.re-manual-trial {
+  border-color: #d8e5f3;
+  background: rgba(255,255,255,.88);
+}
+.re-manual-summary {
+  border: 1px solid rgba(214,227,242,.84);
+  background: rgba(246,250,254,.86);
+  color: #7180ae;
+}
+.re-add-tabs {
+  border: 1px solid rgba(211,225,241,.80);
+  background: rgba(239,246,252,.72);
+}
+.re-add-tabs button {
+  color: #7b88b2;
+}
+.re-add-tabs button.is-active {
+  background: rgba(255,255,255,.95);
+  color: #29438f;
+  box-shadow: 0 5px 14px rgba(70,91,155,.08);
+}
+
+/* Desktop dialogs: Add / Notification / Cancel become floating RE panels.
+   Mobile remains a bottom sheet. */
+@media (min-width: 768px) {
+  .sheet-slide-up {
+    inset: 50% auto auto 50% !important;
+    width: min(760px, calc(100vw - 56px)) !important;
+    max-width: 760px !important;
+    max-height: calc(100dvh - 64px);
+    overflow-y: auto;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(255,255,255,.92) !important;
+    border-radius: 28px !important;
+    padding: 22px 24px 26px !important;
+    background: linear-gradient(155deg, rgba(255,255,255,.97), rgba(246,251,255,.94)) !important;
+    box-shadow: 0 28px 90px rgba(58,73,137,.20) !important;
+  }
+  .sheet-slide-up > .mx-auto.mb-4 {
+    width: 44px;
+    height: 4px;
+    background: linear-gradient(90deg, #9bcfc7, #bbb0e5) !important;
+  }
+}
+
+/* Promotion / Notification surfaces: remove remaining prototype black/white accents. */
+.app-shell[data-screen="promotions"] button.bg-black,
+.sheet-slide-up .bg-black {
+  border-color: transparent !important;
+  background: linear-gradient(110deg, #7fbfb7, #8ab9d4 48%, #a99bdd) !important;
+  color: #fff !important;
+}
+.app-shell[data-screen="promotions"] button.border-black,
+.sheet-slide-up .border-black {
+  border-color: rgba(129,174,205,.68) !important;
+  color: #29438f !important;
+}
+.app-shell[data-screen="promotions"] main > section.re-surface-card {
+  border-color: rgba(210,225,242,.84) !important;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.92), rgba(247,251,255,.86)),
+    url("/re-assets/bg_plate.jpg") center / cover !important;
+  box-shadow: 0 18px 50px rgba(62,81,151,.075) !important;
+}
+.sheet-backdrop {
+  background: rgba(52,64,118,.28) !important;
+}
+
+/* Desktop Home is rebuilt to match the approved landing blueprint:
+   sidebar + main + schedule + independent concierge column. */
+@media (min-width: 1440px) {
+  .re-web-sidebar {
+    width: 176px !important;
+  }
+  .re-web-sidebar__brand {
+    min-height: 92px !important;
+    padding: 16px 18px !important;
+  }
+  .re-web-sidebar__brand .re-brand-logo {
+    transform: translateX(-2px);
+  }
+
+  .app-shell[data-screen="home"],
+  .app-shell[data-screen="subscriptions"],
+  .app-shell[data-screen="calendar"],
+  .app-shell[data-screen="promotions"],
+  .app-shell[data-screen="detail"],
+  .app-shell[data-screen="settings"] {
+    padding-left: 176px !important;
+  }
+
+  .re-dashboard-home {
+    grid-template-columns: minmax(0, 1fr) 492px !important;
+    gap: 12px !important;
+    width: min(100%, 1540px) !important;
+    padding: 10px 12px 22px !important;
+  }
+
+  .re-dashboard-right-column {
+    display: grid !important;
+    grid-template-columns: 288px 192px;
+    grid-auto-rows: auto;
+    gap: 12px !important;
+    align-items: stretch;
+  }
+  .re-dashboard-right-column .re-mini-calendar {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .re-dashboard-right-column .re-concierge-card {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 100%;
+  }
+  .re-dashboard-right-column .re-dashboard-benefit-link {
+    grid-column: 1 / -1;
+  }
+
+  .re-dashboard-greeting {
+    min-height: 68px;
+    padding: 5px 10px 7px;
+  }
+  .re-dashboard-stats {
+    gap: 9px;
+  }
+  .re-dashboard-stat {
+    min-height: 92px;
+    padding: 12px 14px;
+    border-radius: 16px;
+  }
+  .re-dashboard-stat strong {
+    font-size: clamp(18px, 1.55vw, 23px);
+  }
+  .re-dashboard-upcoming,
+  .re-dashboard-subscriptions {
+    margin-top: 10px;
+    padding: 12px;
+  }
+  .re-dashboard-upcoming__body {
+    margin-top: 8px;
+    gap: 9px;
+  }
+  .re-dashboard-guide-banner {
+    min-height: 128px;
+    padding-top: 14px;
+    padding-bottom: 13px;
+  }
+  .re-dashboard-guide-banner > img {
+    right: -2%;
+    bottom: -15%;
+    width: 44%;
+    height: 125%;
+    object-fit: contain !important;
+    object-position: center bottom !important;
+  }
+  .re-dashboard-subscription-grid {
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .re-subscription-grid-card {
+    padding: 10px;
+    border-radius: 14px;
+  }
+  .re-mini-calendar {
+    padding: 14px;
+  }
+  .re-concierge-card {
+    padding: 16px 13px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.72), rgba(247,250,255,.84)),
+      url("/re-assets/bg_plate.jpg") center / cover no-repeat;
+  }
+  .re-concierge-card__copy {
+    width: 100%;
+  }
+  .re-concierge-card__copy strong {
+    font-size: 16px;
+  }
+  .re-concierge-card__character {
+    right: 3px;
+    bottom: 64px;
+    width: 176px;
+    height: 190px;
+  }
+  .re-concierge-card > .re-button {
+    left: 13px;
+    right: 13px;
+    bottom: 14px;
+    width: calc(100% - 26px);
+  }
+}
+
+/* Full calendar visually inherits the Home mini-calendar instead of feeling like a
+   separate prototype page. */
+@media (min-width: 1024px) {
+  .re-calendar-main {
+    padding: 18px !important;
+  }
+  .re-calendar-head h1 {
+    font-size: clamp(27px, 2.4vw, 34px) !important;
+  }
+  .re-calendar-day {
+    min-height: 50px !important;
+    border-radius: 14px !important;
+  }
+  .re-calendar-day.is-selected {
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, #79cbc5, #8bbdd8 52%, #ae9bdf) !important;
+  }
+}

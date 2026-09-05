@@ -21,7 +21,7 @@ export function SettingsScreen({
         <div>
           <p className="re-eyebrow">SETTINGS</p>
           <h1>설정</h1>
-          <p>현재 사용 중인 기능과 안내 방식을 확인할 수 있어요.</p>
+          <p>현재 사용 중인 기능과 안내 방식을 편하게 확인하고 바꿀 수 있어요.</p>
         </div>
       </header>
 
@@ -52,7 +52,7 @@ export function SettingsScreen({
           <div className="re-settings-card__body">
             <span className="re-settings-card__label">서비스 소개</span>
             <strong>소개 화면 다시 보기</strong>
-            <p>최초 실행에만 보이는 RE. 소개 화면을 원할 때 다시 확인할 수 있어요.</p>
+            <p>처음 만났을 때의 RE. 소개 화면을 원할 때 다시 확인할 수 있어요.</p>
             <Button className="mt-4" size="compact" variant="secondary" onClick={onReplayIntro}>다시 보기</Button>
           </div>
         </article>
@@ -60,9 +60,9 @@ export function SettingsScreen({
         <article className="re-settings-card">
           <span className="re-settings-card__icon"><ShieldCheck size={20} /></span>
           <div className="re-settings-card__body">
-            <span className="re-settings-card__label">데이터 원칙</span>
-            <strong>가짜 구독 데이터 없음</strong>
-            <p>운영 화면에는 사용자가 실제로 등록한 구독만 표시해요. 테스트 fixture는 운영 데이터와 분리되어 있어요.</p>
+            <span className="re-settings-card__label">데이터 및 개인정보</span>
+            <strong>내가 확인한 구독 정보를 기준으로 관리해요</strong>
+            <p>RE.는 사용자가 등록하거나 확인한 구독 정보를 바탕으로 일정과 관리 기능을 보여드려요.</p>
           </div>
         </article>
       </section>

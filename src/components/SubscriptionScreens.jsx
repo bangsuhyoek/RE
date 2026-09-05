@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button, DDayBadge, ServiceMark, SubscriptionCard, ToggleSwitch } from "./ui";
 import { RiveCharacter } from "./RiveCharacter";
+import { serviceMarkToneClass } from "../lib/serviceBrand";
 import {
   daysUntilCharge,
   formatBillingDate,
@@ -29,13 +30,15 @@ const baseCategories = ["전체", "OTT", "음악", "쇼핑", "생산성"];
 
 const cx = (...classes) => classes.filter(Boolean).join(" ");
 
+
+
 function LibraryCard({ subscription, onOpen, onStartCancel, onMute }) {
   const id = subscription.subscriptionId || subscription.id;
   return (
     <article className="re-library-card">
       <button type="button" className="re-library-card__main" onClick={() => onOpen(id)}>
         <span className="re-library-card__head">
-          <ServiceMark monogram={subscription.monogram || subscription.name?.slice(0, 1)} className="h-11 w-11 rounded-full text-[12px]" />
+          <ServiceMark monogram={subscription.monogram || subscription.name?.slice(0, 1)} className={`h-11 w-11 rounded-full text-[12px] ${serviceMarkToneClass(subscription)}`} />
           <span className="min-w-0 flex-1">
             <strong>{subscription.name}</strong>
             <span>{subscription.plan || "기본 플랜"}</span>
@@ -221,7 +224,7 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
     <main className="re-final-page re-detail-page">
       <header className="re-final-page__header">
         <div className="re-detail-title">
-          <ServiceMark monogram={monogram} className="h-14 w-14 rounded-full text-[16px]" />
+          <ServiceMark monogram={monogram} className={`h-14 w-14 rounded-full text-[16px] ${serviceMarkToneClass(subscription)}`} />
           <div>
             <p className="re-eyebrow">SUBSCRIPTION DETAIL</p>
             <div className="flex items-center gap-2">
@@ -417,7 +420,7 @@ export function CalendarScreen({ subscriptions, onOpen }) {
               <strong>필요한 것만, 더 가볍게.</strong>
               <p>결제 예정일을 확인하고 필요한 구독만 남겨보세요.</p>
             </div>
-            <RiveCharacter state="idle" className="re-calendar-tip__character" />
+            <img src="/re-assets/char_stand.jpg" alt="" className="re-calendar-tip__character re-character-hq" />
           </section>
         </aside>
       </div>
@@ -436,7 +439,7 @@ export function CalendarScreen({ subscriptions, onOpen }) {
             {selectedDues.map((sub) => (
               <button key={sub.subscriptionId || sub.id} type="button" onClick={() => onOpen(sub.subscriptionId || sub.id)}>
                 <span className="flex items-center gap-3">
-                  <ServiceMark monogram={sub.monogram || sub.name?.slice(0, 1)} className="h-10 w-10 rounded-full text-[11px]" />
+                  <ServiceMark monogram={sub.monogram || sub.name?.slice(0, 1)} className={`h-10 w-10 rounded-full text-[11px] ${serviceMarkToneClass(sub)}`} />
                   <span>
                     <strong>{sub.name}</strong>
                     <small>{sub.plan}</small>

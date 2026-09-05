@@ -25,7 +25,7 @@ function RefreshBrand() {
       <div className="re-dream-orb re-dream-orb-a" aria-hidden="true" />
       <div className="re-dream-orb re-dream-orb-b" aria-hidden="true" />
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        <RELogo stacked className="re-splash-logo re-refresh-logo" markClassName="h-[118px] w-auto md:h-[150px]" />
+        <RELogo stacked size="xl" className="re-splash-logo re-refresh-logo" />
         <p className="re-splash-tagline mt-8">지금도, 더 좋은 너를 향해.</p>
         <p className="mt-2 text-[11px] font-semibold tracking-[0.28em] text-[#8090C2] md:text-[12px]">
           RETHINK · RELEASE · REYOU
@@ -86,7 +86,7 @@ export function LandingScreen({ onContinue, onLogin }) {
 
         {referenceFailed && (
           <div className="re-reference-landing__fallback-copy">
-            <RELogo markClassName="h-[54px] w-auto" />
+            <RELogo size="lg" />
             <h1>일상의 모든 선택이<br />더 가벼워질 수 있도록.</h1>
             <p>승인한 랜딩페이지 원본을 불러오지 못했어요.</p>
             <div className="flex flex-wrap gap-3">
@@ -108,7 +108,7 @@ export function IntroScreen({ onContinue }) {
 
       <section className="relative z-10 mx-auto grid min-h-screen w-full max-w-[1280px] grid-cols-1 items-center gap-7 px-5 py-8 lg:grid-cols-[1fr_.78fr] lg:px-10">
         <div className="re-intro-copy rounded-[30px] border border-white/80 bg-white/72 px-6 py-7 shadow-[0_22px_60px_rgba(66,84,154,.12)] backdrop-blur-xl sm:px-9 lg:px-12 lg:py-10">
-          <RELogo markClassName="h-[46px] w-auto md:h-[54px]" />
+          <RELogo size="md" />
 
           <div className="mt-10 max-w-[560px]">
             <p className="re-eyebrow">RE. CARE</p>
