@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, FileImage, LoaderCircle, MessageSquareText, ScanLine, UploadCloud } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileImage, Keyboard, LoaderCircle, MessageSquareText, ScanLine, UploadCloud } from "lucide-react";
 import { BottomSheet, Button } from "./ui";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -39,15 +39,29 @@ const callRecognitionApi = async (payload) => {
   }
 };
 
-const inputClass = (missing) => `mt-1.5 w-full rounded-lg border bg-white px-3 py-2.5 text-[14px] text-black outline-none focus:border-black ${missing ? "border-[#F59E0B]" : "border-[#E4E4E7]"}`;
+const blankForm = (service = null) => ({
+  id: service?.id,
+  name: service?.name || "",
+  monogram: service?.monogram || "",
+  category: service?.category || "기타",
+  plan: "",
+  amount: "",
+  dueDay: "",
+  billingCycle: "매월",
+  paymentMethod: "",
+  cancelUrl: service?.cancelUrl || "",
+  isTrial: false,
+});
 
-export function AddModal({ catalog, onClose, onAdd }) {
-  const [tab, setTab] = useState("image");
+const inputClass = (missing) => `mt-1.5 w-full rounded-xl border bg-white px-3 py-2.5 text-[14px] text-black outline-none transition-shadow focus:border-black focus:shadow-[0_0_0_3px_rgba(0,0,0,.05)] ${missing ? "border-[#F59E0B]" : "border-[#E4E4E7]"}`;
+
+export function AddModal({ catalog = [], initialService = null, onClose, onAdd }) {
+  const [tab, setTab] = useState(initialService ? "manual" : "image");
   const [file, setFile] = useState(null);
   const [sms, setSms] = useState("");
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState(null);
+  const [form, setForm] = useState(initialService ? blankForm(initialService) : null);
   const [warnings, setWarnings] = useState([]);
   const fileInput = useRef(null);
 
@@ -78,15 +92,16 @@ export function AddModal({ catalog, onClose, onAdd }) {
         : { text: sms.trim() };
       const result = await callRecognitionApi(payload);
       const recognized = result.data;
-      const matched = catalog.find((service) => service.id === recognized.serviceId || service.name.toLowerCase() === recognized.name.toLowerCase());
+      const matched = catalog.find((service) => service.id === recognized.serviceId || service.name.toLowerCase() === String(recognized.name || "").toLowerCase());
 
       setForm({
-        name: recognized.name,
+        id: matched?.id || recognized.serviceId || undefined,
+        name: recognized.name || matched?.name || "",
         monogram: matched?.monogram || recognized.name?.trim().slice(0, 1).toUpperCase() || "?",
         category: matched?.category || "기타",
-        plan: recognized.plan,
-        amount: recognized.amount,
-        dueDay: recognized.dueDay,
+        plan: recognized.plan || "",
+        amount: recognized.amount || "",
+        dueDay: recognized.dueDay || "",
         billingCycle: recognized.billingCycle || "매월",
         paymentMethod: recognized.paymentMethod || "",
         cancelUrl: matched?.cancelUrl || "",
@@ -114,8 +129,8 @@ export function AddModal({ catalog, onClose, onAdd }) {
       setError("결제 금액과 결제일을 올바르게 입력해 주세요.");
       return;
     }
-    const added = onAdd({ ...form, amount, dueDay });
-    if (added) onClose();
+    const outcome = onAdd({ ...form, amount, dueDay });
+    if (outcome === true) onClose();
   };
 
   const update = (key, value) => {
@@ -124,7 +139,7 @@ export function AddModal({ catalog, onClose, onAdd }) {
   };
 
   const resetRecognition = () => {
-    setForm(null);
+    setForm(tab === "manual" ? blankForm(initialService) : null);
     setWarnings([]);
     setError("");
   };
@@ -133,20 +148,55 @@ export function AddModal({ catalog, onClose, onAdd }) {
     setTab(nextTab);
     setError("");
     setWarnings([]);
-    setForm(null);
+    setForm(nextTab === "manual" ? blankForm(initialService) : null);
   };
 
+  const renderForm = form && (
+    <section className="field-enter mt-5">
+      {warnings.length ? (
+        <div className="mb-4 rounded-xl border border-[#F59E0B]/40 bg-[#FFFBEB] px-3 py-3 text-[12px] text-[#92400E]">
+          <div className="flex items-center gap-2 font-semibold"><AlertTriangle size={16} />일부 정보는 직접 확인해 주세요.</div>
+          <ul className="mt-2 list-disc space-y-1 pl-5 leading-5">{warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>
+        </div>
+      ) : tab !== "manual" ? (
+        <div className="mb-4 flex items-center gap-2 rounded-xl border border-[#10B981]/30 bg-[#10B981]/10 px-3 py-2.5 text-[12px] text-[#047857]"><CheckCircle2 size={16} />결제 내역을 인식했어요. 저장 전에 확인해 주세요.</div>
+      ) : null}
+
+      <div className="space-y-3">
+        <label className="block text-[12px] font-medium text-[#71717A]">서비스명<input value={form.name} onChange={(event) => update("name", event.target.value)} className={inputClass(!form.name)} placeholder="서비스명을 입력해 주세요" /></label>
+        <label className="block text-[12px] font-medium text-[#71717A]">요금제<input value={form.plan} onChange={(event) => update("plan", event.target.value)} className={inputClass(!form.plan)} placeholder="요금제를 입력해 주세요" /></label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block text-[12px] font-medium text-[#71717A]">결제 금액<input type="number" min="1" value={form.amount} onChange={(event) => update("amount", event.target.value)} className={inputClass(!Number(form.amount))} placeholder="0" /></label>
+          <label className="block text-[12px] font-medium text-[#71717A]">결제일<input type="number" min="1" max="31" value={form.dueDay} onChange={(event) => update("dueDay", event.target.value)} className={inputClass(!Number(form.dueDay))} placeholder="1~31" /></label>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block text-[12px] font-medium text-[#71717A]">결제 주기<select value={form.billingCycle} onChange={(event) => update("billingCycle", event.target.value)} className={inputClass(false)}><option>매월</option><option>매년</option></select></label>
+          <label className="block text-[12px] font-medium text-[#71717A]">결제 수단<input value={form.paymentMethod} onChange={(event) => update("paymentMethod", event.target.value)} className={inputClass(false)} placeholder="선택 입력" /></label>
+        </div>
+        <label className="flex items-center justify-between rounded-xl border border-[#E4E4E7] bg-white px-3 py-3 text-[12px]">
+          <span><strong className="block text-[13px]">무료 체험 중</strong><span className="mt-0.5 block text-[#71717A]">체험 종료 전 알림에 사용해요.</span></span>
+          <input type="checkbox" checked={Boolean(form.isTrial)} onChange={(event) => update("isTrial", event.target.checked)} className="h-5 w-5" />
+        </label>
+      </div>
+
+      {error && <p className="mt-2 text-[12px] leading-5 text-[#EF4444]">{error}</p>}
+      {tab !== "manual" && <p className="mt-3 text-[11px] leading-4 text-[#A1A1AA]">이미지는 OCR 처리에만 사용되며 원본과 OCR 원문을 저장하지 않습니다. 확인한 구독 정보만 저장합니다.</p>}
+      <div className="mt-5 grid grid-cols-2 gap-2"><Button variant="secondary" onClick={resetRecognition}>{tab === "manual" ? "입력 초기화" : "다시 인식하기"}</Button><Button onClick={save}>내 구독에 추가</Button></div>
+    </section>
+  );
+
   return (
-    <BottomSheet onClose={onClose} label="AI 스마트 구독 추가">
+    <BottomSheet onClose={onClose} label="구독 추가">
       <div className="flex items-start justify-between gap-4">
-        <div><p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">AI Smart Add</p><h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em]">10초 만에 구독 추가하기</h2></div>
+        <div><p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">ADD SUBSCRIPTION</p><h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em]">구독 정보를 확인해요</h2></div>
         <ScanLine size={22} />
       </div>
-      <p className="mt-2 text-[13px] leading-5 text-[#71717A]">영수증 이미지나 카드 결제 문자를 인식해 필요한 정보를 채워드려요.</p>
+      <p className="mt-2 text-[13px] leading-5 text-[#71717A]">영수증 이미지, 결제 문자 또는 직접 입력으로 추가할 수 있어요.</p>
 
-      <div className="mt-5 grid grid-cols-2 rounded-xl bg-[#F4F4F5] p-1">
-        <button type="button" onClick={() => changeTab("image")} className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-[12px] font-semibold transition-colors ${tab === "image" ? "bg-white text-black shadow-sm" : "text-[#71717A]"}`}><FileImage size={16} />영수증 이미지</button>
-        <button type="button" onClick={() => changeTab("sms")} className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-[12px] font-semibold transition-colors ${tab === "sms" ? "bg-white text-black shadow-sm" : "text-[#71717A]"}`}><MessageSquareText size={16} />결제 문자</button>
+      <div className="mt-5 grid grid-cols-3 rounded-xl bg-[#F4F4F5] p-1">
+        <button type="button" onClick={() => changeTab("image")} className={`flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-[11px] font-semibold transition-colors ${tab === "image" ? "bg-white text-black shadow-sm" : "text-[#71717A]"}`}><FileImage size={15} />이미지</button>
+        <button type="button" onClick={() => changeTab("sms")} className={`flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-[11px] font-semibold transition-colors ${tab === "sms" ? "bg-white text-black shadow-sm" : "text-[#71717A]"}`}><MessageSquareText size={15} />결제 문자</button>
+        <button type="button" onClick={() => changeTab("manual")} className={`flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-[11px] font-semibold transition-colors ${tab === "manual" ? "bg-white text-black shadow-sm" : "text-[#71717A]"}`}><Keyboard size={15} />직접 입력</button>
       </div>
 
       {!form && (
@@ -161,7 +211,7 @@ export function AddModal({ catalog, onClose, onAdd }) {
           ) : (
             <label className={`block rounded-xl border-2 p-4 transition-colors ${scanning ? "scanner-shimmer border-black bg-white" : "border-[#E4E4E7] bg-[#FAFAFA] focus-within:border-black"}`}>
               <span className="mb-2 block text-[12px] font-semibold">결제 문자 붙여넣기</span>
-              <textarea disabled={scanning} value={sms} onChange={(event) => { setSms(event.target.value); setError(""); }} placeholder="예: 상품명 티빙 / 13,500원 결제완료 / 09월 10일" rows={4} className="no-focus-ring w-full resize-none bg-transparent text-[14px] leading-6 outline-none placeholder:text-[#A1A1AA] focus:outline-none focus-visible:!outline-none focus-visible:!ring-0" />
+              <textarea disabled={scanning} value={sms} onChange={(event) => { setSms(event.target.value); setError(""); }} placeholder="결제 문자를 붙여넣어 주세요" rows={4} className="no-focus-ring w-full resize-none bg-transparent text-[14px] leading-6 outline-none placeholder:text-[#A1A1AA]" />
             </label>
           )}
           {error && <p className="mt-2 text-[12px] leading-5 text-[#EF4444]">{error}</p>}
@@ -169,27 +219,7 @@ export function AddModal({ catalog, onClose, onAdd }) {
         </div>
       )}
 
-      {form && (
-        <section className="field-enter mt-5">
-          {warnings.length ? (
-            <div className="mb-4 rounded-xl border border-[#F59E0B]/40 bg-[#FFFBEB] px-3 py-3 text-[12px] text-[#92400E]">
-              <div className="flex items-center gap-2 font-semibold"><AlertTriangle size={16} />일부 정보는 직접 확인해 주세요.</div>
-              <ul className="mt-2 list-disc space-y-1 pl-5 leading-5">{warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>
-            </div>
-          ) : (
-            <div className="mb-4 flex items-center gap-2 rounded-xl border border-[#10B981]/30 bg-[#10B981]/10 px-3 py-2.5 text-[12px] text-[#047857]"><CheckCircle2 size={16} />결제 내역을 인식했어요. 저장 전에 확인해 주세요.</div>
-          )}
-          <div className="space-y-3">
-            <label className="block text-[12px] font-medium text-[#71717A]">서비스명<input value={form.name} onChange={(event) => update("name", event.target.value)} className={inputClass(!form.name)} placeholder="서비스명을 입력해 주세요" /></label>
-            <label className="block text-[12px] font-medium text-[#71717A]">요금제<input value={form.plan} onChange={(event) => update("plan", event.target.value)} className={inputClass(!form.plan)} placeholder="확인된 요금제를 입력해 주세요" /></label>
-            <div className="grid grid-cols-2 gap-3"><label className="block text-[12px] font-medium text-[#71717A]">결제 금액<input type="number" min="1" value={form.amount} onChange={(event) => update("amount", event.target.value)} className={inputClass(!Number(form.amount))} placeholder="0" /></label><label className="block text-[12px] font-medium text-[#71717A]">결제일<input type="number" min="1" max="31" value={form.dueDay} onChange={(event) => update("dueDay", event.target.value)} className={inputClass(!Number(form.dueDay))} placeholder="1~31" /></label></div>
-            <div className="grid grid-cols-2 gap-3"><label className="block text-[12px] font-medium text-[#71717A]">결제 주기<select value={form.billingCycle} onChange={(event) => update("billingCycle", event.target.value)} className={inputClass(false)}><option>매월</option><option>매년</option></select></label><label className="block text-[12px] font-medium text-[#71717A]">결제 수단<input value={form.paymentMethod} onChange={(event) => update("paymentMethod", event.target.value)} className={inputClass(false)} placeholder="선택 입력" /></label></div>
-          </div>
-          {error && <p className="mt-2 text-[12px] leading-5 text-[#EF4444]">{error}</p>}
-          <p className="mt-3 text-[11px] leading-4 text-[#A1A1AA]">이미지는 OCR 처리에만 사용되며 SubMate에는 원본과 OCR 원문을 저장하지 않습니다. 확인한 구독 정보만 저장합니다.</p>
-          <div className="mt-5 grid grid-cols-2 gap-2"><Button variant="secondary" onClick={resetRecognition}>다시 인식하기</Button><Button onClick={save}>내 구독에 추가</Button></div>
-        </section>
-      )}
+      {renderForm}
     </BottomSheet>
   );
 }
