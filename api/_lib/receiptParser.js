@@ -120,18 +120,36 @@ const selectAmount = (text, service) => {
   return { amount: null, source: "missing" };
 };
 
+const validDateParts = (year, month, day) => {
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+};
+
+const toIsoDate = (year, month, day) =>
+  `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+const parseExplicitFullDate = (value = "") => {
+  let match = String(value).match(/(20\d{2})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{1,2})/);
+  if (!match) match = String(value).match(/(20\d{2})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일/);
+  if (!match) return "";
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  return validDateParts(year, month, day) ? toIsoDate(year, month, day) : "";
+};
+
 const parseDayFromValue = (value) => {
-  const fullDate = value.match(/(?:20\d{2}\s*[./-]\s*)?(\d{1,2})\s*[./-]\s*(\d{1,2})/);
+  const fullDate = String(value).match(/(?:20\d{2}\s*[./-]\s*)?(\d{1,2})\s*[./-]\s*(\d{1,2})/);
   if (fullDate) {
     const day = Number(fullDate[2]);
     return day >= 1 && day <= 31 ? day : null;
   }
-  const koreanDate = value.match(/(?:\d{4}\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/);
+  const koreanDate = String(value).match(/(?:\d{4}\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/);
   if (koreanDate) {
     const day = Number(koreanDate[2]);
     return day >= 1 && day <= 31 ? day : null;
   }
-  const dayOnly = value.match(/(\d{1,2})\s*일/);
+  const dayOnly = String(value).match(/(\d{1,2})\s*일/);
   if (dayOnly) {
     const day = Number(dayOnly[1]);
     return day >= 1 && day <= 31 ? day : null;
@@ -142,15 +160,15 @@ const parseDayFromValue = (value) => {
 const detectDueDay = (text, lines) => {
   const nextPayment = findLabeledValue(lines, ["다음 결제일", "다음결제일", "결제 예정일", "결제예정일", "자동 결제일", "자동결제일", "갱신일", "청구 예정일"]);
   const nextDay = parseDayFromValue(nextPayment);
-  if (nextDay) return { dueDay: nextDay, source: "next-payment-date" };
+  if (nextDay) return { dueDay: nextDay, nextBillingDate: parseExplicitFullDate(nextPayment), source: "next-payment-date" };
 
   const transaction = findLabeledValue(lines, ["결제일시", "결제 일시", "승인일시", "승인 일시", "결제일", "승인일", "거래일"]);
   const transactionDay = parseDayFromValue(transaction);
-  if (transactionDay) return { dueDay: transactionDay, source: "transaction-date" };
+  if (transactionDay) return { dueDay: transactionDay, nextBillingDate: "", source: "transaction-date" };
 
   const anyDate = parseDayFromValue(text);
-  if (anyDate) return { dueDay: anyDate, source: "unlabeled-date-needs-review" };
-  return { dueDay: null, source: "missing" };
+  if (anyDate) return { dueDay: anyDate, nextBillingDate: "", source: "unlabeled-date-needs-review" };
+  return { dueDay: null, nextBillingDate: "", source: "missing" };
 };
 
 const detectPaymentMethod = (text, lines) => {
@@ -207,6 +225,7 @@ export function parseReceiptText(rawText) {
   if (!dueDayResult.dueDay) warnings.push("결제일을 찾지 못했습니다.");
   else if (dueDayResult.source === "transaction-date") warnings.push("다음 결제일이 없어 거래일의 날짜를 결제일로 입력했습니다.");
   else if (dueDayResult.source.includes("needs-review")) warnings.push("문서에서 찾은 날짜를 결제일로 입력했습니다. 날짜를 확인해 주세요.");
+  if (cycleResult.billingCycle === "매년" && !dueDayResult.nextBillingDate) warnings.push("연간 구독의 정확한 월을 확인하려면 다음 결제일을 날짜로 입력해 주세요.");
   if (amountResult.source.includes("needs-review")) warnings.push("금액이 여러 개여서 가장 큰 금액을 선택했습니다. 결제 금액을 확인해 주세요.");
   if (cycleResult.source.includes("needs-review")) warnings.push("결제 주기를 확인하지 못해 매월로 표시했습니다.");
 
@@ -219,6 +238,7 @@ export function parseReceiptText(rawText) {
       amount: amountResult.amount || "",
       dueDay: dueDayResult.dueDay || "",
       billingCycle: cycleResult.billingCycle,
+      nextBillingDate: dueDayResult.nextBillingDate || "",
       paymentMethod: paymentResult.paymentMethod,
     },
     fieldSources: {
@@ -226,6 +246,7 @@ export function parseReceiptText(rawText) {
       plan: planResult.source,
       amount: amountResult.source,
       dueDay: dueDayResult.source,
+      nextBillingDate: dueDayResult.nextBillingDate ? dueDayResult.source : "missing",
       billingCycle: cycleResult.source,
       paymentMethod: paymentResult.source,
     },

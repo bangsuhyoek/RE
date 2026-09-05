@@ -13,6 +13,7 @@ const baseSteps = [
 export function CancelModal({ subscription, promotion, onClose, onComplete, onToast }) {
   const [checked, setChecked] = useState([false, false, false]);
   const [celebrating, setCelebrating] = useState(false);
+  const allChecked = checked.every(Boolean);
 
   useEffect(() => {
     if (!celebrating) return undefined;
@@ -24,10 +25,20 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
     if (!subscription.cancelUrl) return;
     window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
     onToast(`${subscription.name} 해지 페이지를 새 탭에서 열었어요.`);
-    setChecked((current) => [true, ...current.slice(1)]);
+    setChecked((current) => [true, current[1], current[2]]);
+  };
+
+  const toggleStep = (index) => {
+    if (index > 0 && !checked[index - 1]) return;
+    setChecked((current) => current.map((value, itemIndex) => {
+      if (itemIndex === index) return !value;
+      if (itemIndex > index) return false;
+      return value;
+    }));
   };
 
   const complete = () => {
+    if (!allChecked) return;
     onComplete(subscription.subscriptionId, subscription.amount);
     setCelebrating(true);
   };
@@ -61,14 +72,29 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
         {!subscription.cancelUrl && <p className="mt-2 text-center text-[12px] text-[#EF4444]">이 서비스의 공식 해지 URL이 등록되어 있지 않습니다.</p>}
 
         <section className="mt-6">
-          <div className="flex items-center justify-between"><h3 className="text-[15px] font-semibold">해지 가이드</h3><span className="text-[12px] text-[#71717A]">Step 1–3</span></div>
+          <div className="flex items-center justify-between"><h3 className="text-[15px] font-semibold">해지 가이드</h3><span className="text-[12px] text-[#71717A]">하나씩 확인해요</span></div>
           <ol className="mt-3 space-y-2">
-            {baseSteps.map((step, index) => <li key={step}><button type="button" onClick={() => setChecked((current) => current.map((value, itemIndex) => itemIndex === index ? !value : value))} className={`flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition-colors ${checked[index] ? "border-black bg-[#FAFAFA]" : "border-[#E4E4E7] bg-white hover:border-[#A1A1AA]"}`}><span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${checked[index] ? "bg-black text-white" : "bg-[#F4F4F5] text-[#71717A]"}`}>{checked[index] ? <Check size={14} strokeWidth={3} /> : index + 1}</span><span className={`text-[13px] ${checked[index] ? "font-semibold" : "text-[#71717A]"}`}>{step}</span></button></li>)}
+            {baseSteps.map((step, index) => {
+              const visible = index === 0 || checked[index - 1];
+              if (!visible) return null;
+              return (
+                <li key={step} className="field-enter">
+                  <button type="button" onClick={() => toggleStep(index)} className={`flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition-colors ${checked[index] ? "border-black bg-[#FAFAFA]" : "border-[#E4E4E7] bg-white hover:border-[#A1A1AA]"}`}>
+                    <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${checked[index] ? "bg-black text-white" : "bg-[#F4F4F5] text-[#71717A]"}`}>{checked[index] ? <Check size={14} strokeWidth={3} /> : index + 1}</span>
+                    <span className={`text-[13px] ${checked[index] ? "font-semibold" : "text-[#71717A]"}`}>{step}</span>
+                  </button>
+                </li>
+              );
+            })}
           </ol>
         </section>
 
-        <div className="mt-6 rounded-xl bg-[#F4F4F5] px-3 py-3"><div className="flex gap-2"><ShieldCheck className="shrink-0" size={17} /><p className="text-[12px] leading-5 text-[#71717A]">RE.는 해지를 대행하지 않아요. 공식 서비스에서 완료 여부를 확인한 뒤 아래 버튼을 눌러주세요. 완료 확인 시 구독은 목록에서 즉시 제거돼요.</p></div></div>
-        <Button variant="secondary" className="mt-4 w-full" onClick={complete}>해지 완료했습니다</Button>
+        <div className="mt-6 rounded-xl bg-[#F4F4F5] px-3 py-3"><div className="flex gap-2"><ShieldCheck className="shrink-0" size={17} /><p className="text-[12px] leading-5 text-[#71717A]">RE.는 해지를 대행하지 않아요. 공식 서비스에서 완료 여부를 직접 확인해 주세요. 완료 확인 시 구독은 목록에서 즉시 제거돼요.</p></div></div>
+        {allChecked ? (
+          <Button variant="secondary" className="field-enter mt-4 w-full" onClick={complete}>해지 완료했습니다</Button>
+        ) : (
+          <p className="mt-4 text-center text-[12px] text-[#71717A]">위 단계를 순서대로 확인하면 완료 버튼이 나타나요.</p>
+        )}
       </div>
     </BottomSheet>
   );

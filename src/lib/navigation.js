@@ -1,5 +1,5 @@
 export const publicRoutes = new Set(["landing", "splash", "intro", "login", "register"]);
-export const appRoutes = new Set(["onboarding", "home", "subscriptions", "calendar", "promotions", "detail"]);
+export const appRoutes = new Set(["onboarding", "home", "subscriptions", "calendar", "promotions", "detail", "settings"]);
 export const knownRoutes = new Set([...publicRoutes, ...appRoutes]);
 
 export const parseHash = (hash = "") => {
@@ -19,8 +19,9 @@ export const parseHash = (hash = "") => {
 export const routeForSession = ({ requestedRoute, hasProfile, onboardingComplete }) => {
   if (requestedRoute && knownRoutes.has(requestedRoute)) {
     if (publicRoutes.has(requestedRoute)) return requestedRoute;
-    if (hasProfile) return requestedRoute;
-    return "login";
+    if (!hasProfile) return "login";
+    if (!onboardingComplete && requestedRoute !== "onboarding") return "onboarding";
+    return requestedRoute;
   }
   if (!hasProfile) return "landing";
   return onboardingComplete ? "home" : "onboarding";

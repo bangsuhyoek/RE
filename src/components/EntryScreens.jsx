@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { ArrowRight, BellRing, CreditCard, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowRight, BellRing, ShieldCheck } from "lucide-react";
 import { Button } from "./ui";
 import { RELogo, WaterBackground } from "./REBrand";
 import { RiveCharacter } from "./RiveCharacter";
@@ -36,49 +36,39 @@ export function SplashScreen({ onDone }) {
   );
 }
 
-export function LandingScreen({ onContinue }) {
+export function LandingScreen({ onContinue, onLogin }) {
+  const [referenceFailed, setReferenceFailed] = useState(false);
+  const source = referenceFailed ? "/re-assets/hero.jpg" : "/re-assets/web/landing-page-reference.png";
+
   return (
-    <main className="re-entry re-web-landing relative min-h-screen overflow-hidden">
-      <div className="re-landing-art" aria-hidden="true">
-        <img src="/re-assets/hero.jpg" alt="" className="re-landing-art-image" />
-        <div className="re-landing-art-wash" />
-      </div>
+    <main className="re-reference-landing">
+      <section className="re-reference-landing__canvas" aria-label="RE. 서비스 랜딩페이지">
+        <img
+          src={source}
+          alt="RE. 구독 관리 서비스 소개와 대시보드 구성을 보여주는 랜딩페이지"
+          className={`re-reference-landing__image ${referenceFailed ? "is-fallback" : ""}`}
+          onError={() => setReferenceFailed(true)}
+        />
 
-      <section className="relative z-10 mx-auto grid min-h-screen w-full max-w-[1500px] grid-cols-1 lg:grid-cols-[minmax(0,1.18fr)_minmax(420px,.82fr)]">
-        <div className="re-landing-visual-spacer hidden lg:block" aria-hidden="true" />
+        {!referenceFailed && (
+          <>
+            <button type="button" className="re-reference-hotspot re-reference-hotspot--login" onClick={onLogin} aria-label="로그인" />
+            <button type="button" className="re-reference-hotspot re-reference-hotspot--header-start" onClick={onContinue} aria-label="시작하기" />
+            <button type="button" className="re-reference-hotspot re-reference-hotspot--hero-start" onClick={onContinue} aria-label="지금 시작하기" />
+          </>
+        )}
 
-        <div className="re-landing-copy flex min-h-screen flex-col px-6 pb-8 pt-7 sm:px-10 lg:px-12 lg:pb-12 lg:pt-10 xl:px-16">
-          <div className="flex items-center justify-between">
-            <RELogo markClassName="h-[40px] w-auto md:h-[48px]" />
-            <span className="rounded-full border border-white/80 bg-white/60 px-3 py-1.5 text-[10px] font-bold tracking-[0.16em] text-[#6677AD] shadow-sm backdrop-blur-md">RE. WEB</span>
-          </div>
-
-          <div className="mt-14 max-w-[560px] lg:mt-auto lg:mb-auto">
-            <p className="re-eyebrow">YOUR SUBSCRIPTIONS, IN ONE PLACE</p>
-            <h1 className="re-serif-title mt-4 text-[38px] font-bold leading-[1.2] tracking-[-0.045em] text-[#1B2A8C] sm:text-[46px] lg:text-[54px] xl:text-[62px]">
-              잊고 있던 구독까지,<br />RE.가 먼저 챙길게요.
-            </h1>
-            <p className="mt-6 max-w-[500px] text-[15px] leading-7 text-[#6C78AD] sm:text-[16px] lg:text-[17px]">
-              흩어진 구독은 한곳에서 정리하고, 필요한 순간에는 먼저 알려드릴게요.
-              선택은 언제나 사용자에게 남겨두고, RE.는 그 선택을 기억합니다.
-            </p>
-
-            <div className="mt-8 grid max-w-[520px] grid-cols-3 gap-2.5 text-center sm:gap-3">
-              <div className="re-entry-chip"><CreditCard size={18} /><span>구독 정리</span></div>
-              <div className="re-entry-chip"><BellRing size={18} /><span>결제 전 확인</span></div>
-              <div className="re-entry-chip"><ShieldCheck size={18} /><span>해지 안내</span></div>
+        {referenceFailed && (
+          <div className="re-reference-landing__fallback-copy">
+            <RELogo markClassName="h-[54px] w-auto" />
+            <h1>일상의 모든 선택이<br />더 가벼워질 수 있도록.</h1>
+            <p>승인한 랜딩 이미지가 준비되면 원본 비율 그대로 표시돼요.</p>
+            <div className="flex flex-wrap gap-3">
+              <Button onClick={onContinue}>지금 시작하기 <ArrowRight size={18} /></Button>
+              <Button variant="secondary" onClick={onLogin}>로그인</Button>
             </div>
-
-            <Button className="mt-8 min-h-[52px] w-full max-w-[420px] sm:min-h-[56px]" onClick={onContinue}>
-              서비스 소개 보기 <ArrowRight size={18} />
-            </Button>
           </div>
-
-          <div className="mt-8 flex items-center justify-between border-t border-white/70 pt-4 text-[10px] font-semibold tracking-[0.18em] text-[#8E9BC7] lg:mt-0">
-            <span>RETHINK · RELEASE · REYOU</span>
-            <span>2026</span>
-          </div>
-        </div>
+        )}
       </section>
     </main>
   );
@@ -94,7 +84,7 @@ export function IntroScreen({ onContinue }) {
         <div className="re-intro-copy flex flex-col px-6 pb-8 pt-8 sm:px-10 lg:px-12 lg:pb-12 lg:pt-10 xl:px-16">
           <RELogo markClassName="h-[38px] w-auto md:h-[44px]" />
 
-          <div className="mt-12 max-w-[540px] lg:mt-auto lg:mb-auto">
+          <div className="mt-12 max-w-[540px] lg:mb-auto lg:mt-auto">
             <p className="re-eyebrow">RE. CARE</p>
             <h1 className="re-serif-title mt-4 text-[36px] font-bold leading-[1.25] tracking-[-0.04em] text-[#1B2A8C] sm:text-[44px] lg:text-[50px]">
               구독도, 나답게.<br />필요한 순간에만 함께.

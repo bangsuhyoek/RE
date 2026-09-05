@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink, FilterX, RefreshCw, Search, Settings2, SlidersHorizontal } from "lucide-react";
 import { Button, DDayBadge, ServiceMark, SubscriptionCard, ToggleSwitch } from "./ui";
-import { daysUntilCharge, formatBillingDate, formatKoreanMonth, formatWon, getCalendarDays, getLastDate } from "../lib/dates";
+import { daysUntilCharge, formatBillingDate, formatKoreanMonth, formatWon, getCalendarDays, getChargeDateInMonth, getLastDate, monthlyEquivalentTotal } from "../lib/dates";
 
 const categories = ["전체", "OTT", "음악", "쇼핑", "생산성"];
 
@@ -24,7 +24,7 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
       });
   }, [category, query, sort, status, subscriptions]);
 
-  const total = filtered.reduce((sum, subscription) => sum + subscription.amount, 0);
+  const total = monthlyEquivalentTotal(filtered);
   const reset = () => { setQuery(""); setCategory("전체"); setStatus("all"); setSort("due"); };
 
   return (
@@ -50,7 +50,7 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
         <label className="flex-1"><select className="w-full appearance-none rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-[12px] font-medium outline-none focus:border-black" value={status} onChange={(event) => setStatus(event.target.value)} aria-label="구독 상태"><option value="all">모든 상태</option><option value="active">활성 구독</option><option value="trial">무료 체험</option></select></label>
       </div>
 
-      <div className="mt-6 flex items-end justify-between"><span className="text-[13px] text-[#71717A]"><strong className="font-semibold text-black">{filtered.length}개</strong> 구독</span><span className="text-[13px] font-semibold">월 {formatWon(total)}</span></div>
+      <div className="mt-6 flex items-end justify-between"><span className="text-[13px] text-[#71717A]"><strong className="font-semibold text-black">{filtered.length}개</strong> 구독</span><span className="text-[13px] font-semibold">월 환산 {formatWon(total)}</span></div>
 
       {filtered.length > 0 ? (
         <div className="mt-3 space-y-3">{filtered.map((subscription) => <SubscriptionCard key={subscription.subscriptionId || subscription.id} subscription={subscription} detail swipable onOpen={() => onOpen(subscription.subscriptionId || subscription.id)} onCancel={() => onStartCancel(subscription.subscriptionId || subscription.id)} onMute={() => onMute(subscription.subscriptionId || subscription.id)} />)}</div>
@@ -67,7 +67,14 @@ function DetailField({ label, value }) {
 
 export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel, onBack, promotion, highlightCancel }) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(() => ({ plan: subscription?.plan || "기본 플랜", amount: subscription?.amount || 0, dueDay: subscription?.dueDay || 1, paymentMethod: subscription?.paymentMethod || "등록 안 됨" }));
+  const [draft, setDraft] = useState(() => ({
+    plan: subscription?.plan || "기본 플랜",
+    amount: subscription?.amount || 0,
+    dueDay: subscription?.dueDay || 1,
+    billingCycle: subscription?.billingCycle || "매월",
+    nextBillingDate: subscription?.nextBillingDate || "",
+    paymentMethod: subscription?.paymentMethod || "등록 안 됨",
+  }));
 
   if (!subscription) {
     return <main className="px-5 pb-36 pt-12 text-center"><h1 className="text-[18px] font-bold">구독 정보를 찾을 수 없습니다.</h1><p className="mt-2 text-[13px] text-[#71717A]">삭제되었거나 잘못된 경로입니다.</p><Button className="mx-auto mt-6" onClick={onBack}>목록으로 돌아가기</Button></main>;
@@ -75,9 +82,11 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
 
   const save = () => {
     const amount = Number(draft.amount);
-    const dueDay = Math.max(1, Math.min(31, Number(draft.dueDay)));
+    const nextBillingDate = String(draft.nextBillingDate || "").trim();
+    const parsed = nextBillingDate ? new Date(`${nextBillingDate}T00:00:00`) : null;
+    const dueDay = parsed && !Number.isNaN(parsed.getTime()) ? parsed.getDate() : Math.max(1, Math.min(31, Number(draft.dueDay)));
     if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(dueDay)) return;
-    onUpdate(subscription.subscriptionId, { ...draft, amount, dueDay });
+    onUpdate(subscription.subscriptionId, { ...draft, amount, dueDay, nextBillingDate });
     setEditing(false);
   };
 
@@ -87,14 +96,18 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
     <main className="px-5 pb-36 pt-6">
       <section className="flex items-center gap-4"><ServiceMark monogram={monogram} className="h-14 w-14 rounded-2xl text-[17px]" /><div className="min-w-0 flex-1"><div className="flex items-center gap-2"><h1 className="truncate text-[22px] font-bold tracking-[-0.02em] text-[#1B2A8C]">{subscription.name}</h1><DDayBadge subscription={subscription} /></div><p className="mt-1 text-[13px] text-[#71717A]">다음 결제일 {formatBillingDate(subscription)}</p></div></section>
 
-      <section className="re-surface-card mt-8 rounded-2xl border border-[#E4E4E7] bg-white px-4"><DetailField label="요금제" value={subscription.plan} /><div className="h-px bg-[#E4E4E7]" /><DetailField label="결제 금액" value={formatWon(subscription.amount)} /><div className="h-px bg-[#E4E4E7]" /><DetailField label="결제 주기" value={subscription.billingCycle || "매월"} /><div className="h-px bg-[#E4E4E7]" /><DetailField label="결제 수단" value={subscription.paymentMethod || "직접 관리"} /></section>
+      <section className="re-surface-card mt-8 rounded-2xl border border-[#E4E4E7] bg-white px-4"><DetailField label="요금제" value={subscription.plan} /><div className="h-px bg-[#E4E4E7]" /><DetailField label="결제 금액" value={formatWon(subscription.amount)} /><div className="h-px bg-[#E4E4E7]" /><DetailField label="결제 주기" value={subscription.billingCycle || "매월"} /><div className="h-px bg-[#E4E4E7]" /><DetailField label="다음 결제일" value={formatBillingDate(subscription)} /><div className="h-px bg-[#E4E4E7]" /><DetailField label="결제 수단" value={subscription.paymentMethod || "직접 관리"} /></section>
 
       {editing && (
         <section className="field-enter mt-4 rounded-2xl border border-black bg-[#FAFAFA] p-4">
           <div className="mb-4 flex items-center justify-between"><h2 className="text-[15px] font-semibold">구독 정보 수정</h2><Settings2 size={17} /></div>
           <div className="space-y-3">
             <label className="block text-[12px] font-medium text-[#71717A]">요금제<input className="mt-1.5 w-full rounded-lg border border-[#E4E4E7] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-black" value={draft.plan} onChange={(event) => setDraft((value) => ({ ...value, plan: event.target.value }))} /></label>
-            <div className="grid grid-cols-2 gap-3"><label className="block text-[12px] font-medium text-[#71717A]">월 금액<input className="mt-1.5 w-full rounded-lg border border-[#E4E4E7] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-black" type="number" min="0" value={draft.amount} onChange={(event) => setDraft((value) => ({ ...value, amount: event.target.value }))} /></label><label className="block text-[12px] font-medium text-[#71717A]">결제일<input className="mt-1.5 w-full rounded-lg border border-[#E4E4E7] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-black" type="number" min="1" max="31" value={draft.dueDay} onChange={(event) => setDraft((value) => ({ ...value, dueDay: event.target.value }))} /></label></div>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block text-[12px] font-medium text-[#71717A]">결제 금액<input className="mt-1.5 w-full rounded-lg border border-[#E4E4E7] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-black" type="number" min="1" value={draft.amount} onChange={(event) => setDraft((value) => ({ ...value, amount: event.target.value }))} /></label>
+              <label className="block text-[12px] font-medium text-[#71717A]">결제 주기<select className="mt-1.5 w-full rounded-lg border border-[#E4E4E7] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-black" value={draft.billingCycle} onChange={(event) => setDraft((value) => ({ ...value, billingCycle: event.target.value }))}><option>매월</option><option>매년</option></select></label>
+            </div>
+            <label className="block text-[12px] font-medium text-[#71717A]">다음 결제일<input className="mt-1.5 w-full rounded-lg border border-[#E4E4E7] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-black" type="date" value={draft.nextBillingDate} onChange={(event) => setDraft((value) => ({ ...value, nextBillingDate: event.target.value }))} /></label>
             <label className="block text-[12px] font-medium text-[#71717A]">결제 수단<input className="mt-1.5 w-full rounded-lg border border-[#E4E4E7] bg-white px-3 py-2.5 text-[14px] outline-none focus:border-black" value={draft.paymentMethod} onChange={(event) => setDraft((value) => ({ ...value, paymentMethod: event.target.value }))} /></label>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2"><Button variant="secondary" size="compact" onClick={() => setEditing(false)}>취소</Button><Button size="compact" onClick={save}>저장</Button></div>
@@ -136,22 +149,24 @@ export function CalendarScreen({ subscriptions, onOpen }) {
   const duesByDay = useMemo(() => {
     const map = new Map();
     for (const sub of subscriptions) {
-      const day = Math.min(sub.dueDay, lastDay);
+      const chargeDate = getChargeDateInMonth(sub, year, month);
+      if (!chargeDate) continue;
+      const day = chargeDate.getDate();
       const list = map.get(day) || [];
       list.push(sub);
       map.set(day, list);
     }
     return map;
-  }, [lastDay, subscriptions]);
+  }, [month, subscriptions, year]);
 
   const selectedDues = duesByDay.get(clampedDay) || [];
-  const selectedTotal = selectedDues.reduce((sum, item) => sum + item.amount, 0);
+  const selectedTotal = selectedDues.reduce((sum, item) => sum + Number(item.amount || 0), 0);
   const prevMonth = () => setDate(new Date(year, month - 1, 1));
   const nextMonth = () => setDate(new Date(year, month + 1, 1));
 
   return (
     <main className="px-5 pb-36 pt-6">
-      <div className="flex items-center justify-between"><div><p className="re-eyebrow">BILLING CALENDAR</p><h1 className="mt-1 text-[22px] font-bold tracking-tight text-[#1B2A8C]">{formatKoreanMonth(date)}</h1></div><div className="flex gap-1"><Button variant="secondary" size="icon" className="h-9 w-9" onClick={prevMonth} aria-label="이전 달"><ChevronLeft size={16} /></Button><Button variant="secondary" size="icon" className="h-9 w-9" onClick={nextMonth} aria-label="다음 달"><ChevronRight size={16} /></Button></div></div>
+      <div className="flex items-center justify-between"><div><p className="re-eyebrow">BILLING CALENDAR</p><h1 className="mt-1 text-[22px] font-bold tracking-tight text-[#1B2A8C]">{formatKoreanMonth(year, month)}</h1></div><div className="flex gap-1"><Button variant="secondary" size="icon" className="h-9 w-9" onClick={prevMonth} aria-label="이전 달"><ChevronLeft size={16} /></Button><Button variant="secondary" size="icon" className="h-9 w-9" onClick={nextMonth} aria-label="다음 달"><ChevronRight size={16} /></Button></div></div>
 
       <div className="re-surface-card mt-5 rounded-2xl border border-[#E4E4E7] bg-white p-4">
         <div className="grid grid-cols-7 text-center text-[12px] font-semibold text-[#71717A]"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>

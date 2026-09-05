@@ -9,10 +9,18 @@ import { OnboardingScreen } from "./components/OnboardingScreen";
 import { PromotionScreen } from "./components/PromotionScreen";
 import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from "./components/SubscriptionScreens";
 import { PushNotificationBanner, NotificationCenterModal } from "./components/NotificationComponents";
+import { SettingsScreen } from "./components/SettingsScreen";
+import { WebSidebar } from "./components/WebSidebar";
 import { AppHeader, BottomNavigation, BottomSheet, Button, ServiceMark, Toast } from "./components/ui";
 import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
 import { getMonthKey, isPastDueThisCycle } from "./lib/dates";
-import { readStoredValue, removeDemoSubscriptions, storageKeys, writeStoredValue } from "./lib/storage";
+import {
+  readStoredValue,
+  removeDemoSubscriptions,
+  sanitizeCancellationHistory,
+  storageKeys,
+  writeStoredValue,
+} from "./lib/storage";
 import {
   generateSubscriptionAlerts,
   getStoredNotifications,
@@ -21,7 +29,7 @@ import {
 } from "./lib/notifications";
 
 const PUBLIC_ROUTES = new Set(["splash", "landing", "intro", "login", "register"]);
-const APP_ROUTES = new Set(["home", "subscriptions", "calendar", "promotions", "detail", "onboarding"]);
+const APP_ROUTES = new Set(["home", "subscriptions", "calendar", "promotions", "detail", "settings", "onboarding"]);
 const PAGE_TURN_MS = 320;
 
 const readHash = () => {
@@ -39,11 +47,26 @@ const notificationPermissionNow = () => {
   return "unsupported";
 };
 
+const cancellationRecord = (subscription, saved = 0, source = "guide") => ({
+  historyId: `cancelled-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+  subscriptionId: subscription.subscriptionId,
+  id: subscription.id,
+  name: subscription.name,
+  monogram: subscription.monogram,
+  plan: subscription.plan,
+  category: subscription.category || "기타",
+  amount: Number(saved || subscription.amount || 0),
+  billingCycle: subscription.billingCycle || "매월",
+  cancelledAt: new Date().toISOString(),
+  source,
+});
+
 export default function App() {
   const storedProfile = readStoredValue(storageKeys.profile, null);
   const initialRequested = useRef(readHash());
   const initialOnboardingComplete = readStoredValue(storageKeys.onboardingComplete, Boolean(storedProfile));
   const initialIntroSeen = readStoredValue(storageKeys.introSeen, false);
+  const initialRoute = initialRequested.current.route && initialRequested.current.route !== "landing" ? "splash" : "landing";
 
   const [profile, setProfile] = useState(storedProfile);
   const profileRef = useRef(storedProfile);
@@ -51,12 +74,15 @@ export default function App() {
     const saved = readStoredValue(storageKeys.subscriptions, []);
     return removeDemoSubscriptions(saved);
   });
+  const [cancellationHistory, setCancellationHistory] = useState(() =>
+    sanitizeCancellationHistory(readStoredValue(storageKeys.cancellationHistory, []))
+  );
   const [onboardingComplete, setOnboardingComplete] = useState(initialOnboardingComplete);
   const onboardingCompleteRef = useRef(initialOnboardingComplete);
   const [introSeen, setIntroSeen] = useState(initialIntroSeen);
   const introSeenRef = useRef(initialIntroSeen);
   const [savedAmount, setSavedAmount] = useState(() => readStoredValue(storageKeys.savedAmount, 0));
-  const [screen, setScreen] = useState({ route: "splash", id: null, params: new URLSearchParams() });
+  const [screen, setScreen] = useState({ route: initialRoute, id: null, params: new URLSearchParams() });
   const screenRef = useRef(screen);
   const [loginBackToIntro, setLoginBackToIntro] = useState(false);
   const [pageTurn, setPageTurn] = useState("");
@@ -73,6 +99,7 @@ export default function App() {
   const [notifications, setNotifications] = useState(() =>
     getStoredNotifications().filter((item) => !item?.isTest && !String(item?.subscriptionId || "").startsWith("seed-"))
   );
+  const notificationsRef = useRef(notifications);
   const [activeBanner, setActiveBanner] = useState(null);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [highlightCancelId, setHighlightCancelId] = useState(null);
@@ -93,6 +120,10 @@ export default function App() {
   useEffect(() => {
     screenRef.current = screen;
   }, [screen]);
+
+  useEffect(() => {
+    notificationsRef.current = notifications;
+  }, [notifications]);
 
   useEffect(() => () => {
     if (pageTurnTimerRef.current) window.clearTimeout(pageTurnTimerRef.current);
@@ -117,7 +148,7 @@ export default function App() {
     setLoginBackToIntro(false);
 
     if (!introSeenRef.current) {
-      navigate("landing");
+      navigate("intro");
       return;
     }
     if (!profileRef.current) {
@@ -163,24 +194,56 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  useEffect(() => window.scrollTo(0, 0), [screen.route, screen.id]);
-  useEffect(() => writeStoredValue(storageKeys.profile, profile), [profile]);
-  useEffect(() => writeStoredValue(storageKeys.subscriptions, subscriptions), [subscriptions]);
-  useEffect(() => writeStoredValue(storageKeys.onboardingComplete, onboardingComplete), [onboardingComplete]);
-  useEffect(() => writeStoredValue(storageKeys.introSeen, introSeen), [introSeen]);
-  useEffect(() => writeStoredValue(storageKeys.savedAmount, savedAmount), [savedAmount]);
-  useEffect(() => saveStoredNotifications(notifications), [notifications]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screen.route, screen.id]);
+
+  useEffect(() => {
+    if (profile?.guest) return;
+    writeStoredValue(storageKeys.profile, profile);
+  }, [profile]);
+
+  useEffect(() => {
+    if (profile?.guest) return;
+    writeStoredValue(storageKeys.subscriptions, subscriptions);
+  }, [profile?.guest, subscriptions]);
+
+  useEffect(() => {
+    if (profile?.guest) return;
+    writeStoredValue(storageKeys.cancellationHistory, cancellationHistory);
+  }, [cancellationHistory, profile?.guest]);
+
+  useEffect(() => {
+    if (profile?.guest) return;
+    writeStoredValue(storageKeys.onboardingComplete, onboardingComplete);
+  }, [onboardingComplete, profile?.guest]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.introSeen, introSeen);
+  }, [introSeen]);
+
+  useEffect(() => {
+    if (profile?.guest) return;
+    writeStoredValue(storageKeys.savedAmount, savedAmount);
+  }, [profile?.guest, savedAmount]);
+
+  useEffect(() => {
+    if (profile?.guest) return;
+    saveStoredNotifications(notifications);
+  }, [notifications, profile?.guest]);
 
   useEffect(() => {
     if (!subscriptions.length) return;
     const generated = generateSubscriptionAlerts(subscriptions);
     if (!generated.length) return;
-    setNotifications((current) => {
-      const existingIds = new Set(current.map((item) => item.id));
-      const next = generated.filter((item) => !existingIds.has(item.id));
-      return next.length ? [...next, ...current] : current;
-    });
-  }, [subscriptions]);
+    const existingIds = new Set(notificationsRef.current.map((item) => item.id));
+    const next = generated.filter((item) => !existingIds.has(item.id));
+    if (!next.length) return;
+    const merged = [...next, ...notificationsRef.current];
+    notificationsRef.current = merged;
+    setNotifications(merged);
+    if (profileRef.current?.notificationsAllowed !== false) setActiveBanner(next[0]);
+  }, [screen.route, subscriptions]);
 
   useEffect(() => {
     if (screen.route !== "home") return;
@@ -224,14 +287,18 @@ export default function App() {
   };
 
   const completeLogin = (provider, nickname, guest = false) => {
-    const nextProfile = { nickname: nickname || "", provider, guest, notificationsAllowed: true };
+    const nextProfile = {
+      nickname: nickname || "",
+      provider,
+      guest,
+      notificationsAllowed: notificationPermission === "granted",
+    };
     profileRef.current = nextProfile;
     setProfile(nextProfile);
-    setSubscriptions((current) => removeDemoSubscriptions(current));
-    setNotifications((current) => current.filter((item) => !item?.isTest && !String(item?.subscriptionId || "").startsWith("seed-")));
 
     if (guest) {
       setSubscriptions([]);
+      setCancellationHistory([]);
       setNotifications([]);
       onboardingCompleteRef.current = true;
       setOnboardingComplete(true);
@@ -239,6 +306,9 @@ export default function App() {
       return;
     }
 
+    setSubscriptions((current) => removeDemoSubscriptions(current));
+    setCancellationHistory((current) => sanitizeCancellationHistory(current));
+    setNotifications((current) => current.filter((item) => !item?.isTest && !String(item?.subscriptionId || "").startsWith("seed-")));
     onboardingCompleteRef.current = false;
     setOnboardingComplete(false);
     navigate("onboarding");
@@ -353,11 +423,12 @@ export default function App() {
   const finishCancellation = (subscriptionId, saved) => {
     const target = subscriptions.find((subscription) => subscription.subscriptionId === subscriptionId);
     if (!target) return;
+    setCancellationHistory((current) => [cancellationRecord(target, saved, "guide"), ...current]);
     setSubscriptions((current) => current.filter((subscription) => subscription.subscriptionId !== subscriptionId));
     setSavedAmount((amount) => amount + Number(saved || target.amount || 0));
     setRenewalTarget(null);
     if (screenRef.current.route === "detail") navigate("subscriptions");
-    // 완료 모션은 기능 처리가 끝난 뒤 보이므로 cancelTarget은 모션 종료까지 유지합니다.
+    // 기능상 제거는 즉시 처리하고, 완료 모션이 끝날 때까지 cancelTarget만 유지합니다.
   };
 
   const muteSubscription = (subscriptionId) => {
@@ -382,6 +453,7 @@ export default function App() {
       ));
       notify(`${renewalSubscription.name}을 다음 결제 주기로 유지했어요.`);
     } else {
+      setCancellationHistory((current) => [cancellationRecord(renewalSubscription, renewalSubscription.amount, "renewal-check"), ...current]);
       setSubscriptions((current) => current.filter((subscription) => subscription.subscriptionId !== renewalSubscription.subscriptionId));
       setSavedAmount((amount) => amount + Number(renewalSubscription.amount || 0));
       notify(`${renewalSubscription.name}을 목록에서 해지 처리했어요.`);
@@ -412,11 +484,16 @@ export default function App() {
     const permission = await requestNotificationPermission();
     setNotificationPermission(permission);
     setProfile((current) => current ? { ...current, notificationsAllowed: permission === "granted" } : current);
-    notify(permission === "granted" ? "결제 전 알림을 켰어요." : "알림 권한이 허용되지 않았어요.");
+    notify(permission === "granted" ? "결제 전 알림을 켰어요." : permission === "unsupported" ? "이 브라우저에서는 기기 알림을 사용할 수 없어요." : "알림 권한이 허용되지 않았어요.");
   };
 
   const handleTogglePermissionFromHome = async () => {
-    if (profile?.notificationsAllowed === false) {
+    if (profile?.notificationsAllowed === false && notificationPermission === "granted") {
+      setProfile((current) => current ? { ...current, notificationsAllowed: true } : current);
+      notify("결제 전 알림을 켰어요.");
+      return;
+    }
+    if (notificationPermission !== "granted") {
       await handleRequestPermission();
       return;
     }
@@ -424,14 +501,21 @@ export default function App() {
     notify("결제 전 알림을 껐어요.");
   };
 
+  const handleReplayIntro = () => {
+    introSeenRef.current = false;
+    setIntroSeen(false);
+    setLoginBackToIntro(false);
+    navigate("intro", null, "page-turn");
+  };
+
   const hasAppChrome = Boolean(profile) && !PUBLIC_ROUTES.has(screen.route) && screen.route !== "onboarding";
-  const pageTitles = { home: "RE.", subscriptions: "구독 목록", calendar: "결제 캘린더", promotions: "혜택", detail: "구독 상세" };
+  const pageTitles = { home: "RE.", subscriptions: "구독 목록", calendar: "결제 캘린더", promotions: "혜택", detail: "구독 상세", settings: "설정" };
 
   let content;
   if (screen.route === "splash") {
     content = <SplashScreen onDone={routeAfterSplash} />;
   } else if (screen.route === "landing") {
-    content = <LandingScreen onContinue={() => navigate("intro", null, "page-turn")} />;
+    content = <LandingScreen onContinue={() => navigate("splash")} onLogin={() => { setLoginBackToIntro(false); navigate("login"); }} />;
   } else if (screen.route === "intro") {
     content = <IntroScreen onContinue={handleIntroComplete} />;
   } else if (screen.route === "register") {
@@ -450,15 +534,17 @@ export default function App() {
     content = (
       <HomeScreen
         subscriptions={subscriptions}
+        cancellationHistory={cancellationHistory}
         promotions={promotionCatalog}
         profile={profile}
-        notificationDenied={profile?.notificationsAllowed === false}
+        notificationDenied={notificationPermission !== "granted" || profile?.notificationsAllowed === false}
         onOpenSubscription={openSubscription}
         onShowAll={() => navigate("subscriptions")}
         onOpenPromotion={handlePromotion}
         onExplorePromotions={() => navigate("promotions")}
         onAdd={() => setAddOpen(true)}
         onToggleNotificationPermission={handleTogglePermissionFromHome}
+        onOpenCalendar={() => navigate("calendar")}
       />
     );
   } else if (screen.route === "subscriptions") {
@@ -467,6 +553,16 @@ export default function App() {
     content = <CalendarScreen subscriptions={subscriptions} onOpen={openSubscription} />;
   } else if (screen.route === "promotions") {
     content = <PromotionScreen subscriptions={subscriptions} promotions={promotionCatalog} onOpenPromotion={handlePromotion} />;
+  } else if (screen.route === "settings") {
+    content = (
+      <SettingsScreen
+        profile={profile}
+        notificationPermission={notificationPermission}
+        notificationsEnabled={notificationPermission === "granted" && profile?.notificationsAllowed !== false}
+        onToggleNotifications={handleTogglePermissionFromHome}
+        onReplayIntro={handleReplayIntro}
+      />
+    );
   } else if (screen.route === "detail") {
     content = (
       <SubscriptionDetailScreen
@@ -507,6 +603,20 @@ export default function App() {
               {unreadCount > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />}
             </button>
           }
+        />
+      )}
+
+      {hasAppChrome && (
+        <WebSidebar
+          route={screen.route}
+          profile={profile}
+          unreadCount={unreadCount}
+          onNavigate={(targetRoute) => {
+            setHighlightCancelId(null);
+            navigate(targetRoute);
+          }}
+          onOpenAdd={() => setAddOpen(true)}
+          onOpenNotifications={() => setNotificationCenterOpen(true)}
         />
       )}
 
@@ -555,8 +665,8 @@ export default function App() {
 function RenewalSheet({ subscription, onKeep, onCancel, onClose }) {
   return (
     <BottomSheet onClose={onClose} label="결제일 경과 구독 확인">
-      <div className="flex items-start gap-3"><ServiceMark monogram={subscription.monogram} className="h-11 w-11 rounded-xl text-[13px]" /><div><p className="re-eyebrow">RENEWAL CHECK</p><h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-[#1B2A8C]">이번 달에도 계속 이용하셨나요?</h2></div></div>
-      <p className="mt-4 text-[14px] leading-6 text-[#71717A]"><strong className="font-semibold text-black">{subscription.name}</strong>은 지난 결제일이 지났어요. 계속 이용했다면 다음 달에도 알림을 보내드릴게요.</p>
+      <div className="flex items-start gap-3"><ServiceMark monogram={subscription.monogram} className="h-11 w-11 rounded-xl text-[13px]" /><div><p className="re-eyebrow">RENEWAL CHECK</p><h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-[#1B2A8C]">이번 결제 주기에도 계속 이용하셨나요?</h2></div></div>
+      <p className="mt-4 text-[14px] leading-6 text-[#71717A]"><strong className="font-semibold text-black">{subscription.name}</strong>은 최근 결제일이 지났어요. 계속 이용했다면 다음 결제 주기에도 알림을 보내드릴게요.</p>
       <div className="mt-6 grid grid-cols-2 gap-3"><Button variant="secondary" onClick={onCancel}>해지했음</Button><Button onClick={onKeep}>계속 유지</Button></div>
       <button type="button" onClick={onClose} className="mx-auto mt-4 block text-[12px] text-[#71717A] underline underline-offset-4">나중에 확인하기</button>
     </BottomSheet>

@@ -4,8 +4,8 @@ import { localOcrApiPlugin } from "./vite/localOcrApiPlugin.js";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  if (env.GOOGLE_VISION_API_KEY) {
-    process.env.GOOGLE_VISION_API_KEY = env.GOOGLE_VISION_API_KEY;
+  for (const key of ["GEMINI_API_KEY", "GEMINI_MODEL", "GOOGLE_VISION_API_KEY"]) {
+    if (env[key]) process.env[key] = env[key];
   }
 
   return {
