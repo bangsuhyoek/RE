@@ -18,6 +18,7 @@ test("상품명 표현과 금액으로 티빙 스탠다드를 채운다", () => 
     amount: 13500,
     dueDay: 9,
     billingCycle: "매월",
+    nextBillingDate: "",
     paymentMethod: "네이버페이",
   });
   assert.equal(result.fieldSources.plan, "exact-service-amount");
@@ -46,11 +47,13 @@ test("할인 금액이 요금제표와 다르면 플랜을 임의 입력하지 �
   assert.equal(result.fieldSources.plan, "unmatched-amount");
 });
 
-test("명시된 플랜명은 금액보다 우선해 인식한다", () => {
+test("명시된 플랜명은 금액보다 우선하고 다음 결제일 전체 날짜를 보존한다", () => {
   const result = parseReceiptText("서비스명 Netflix\n요금제 Premium\n청구 금액 17,000원\n다음 결제일 2026-10-15");
   assert.equal(result.data.name, "Netflix");
   assert.equal(result.data.plan, "프리미엄");
   assert.equal(result.data.dueDay, 15);
+  assert.equal(result.data.nextBillingDate, "2026-10-15");
+  assert.equal(result.fieldSources.nextBillingDate, "next-payment-date");
   assert.equal(result.fieldSources.plan, "labeled-plan");
 });
 
