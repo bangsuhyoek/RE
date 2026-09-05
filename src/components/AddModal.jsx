@@ -16,7 +16,7 @@ export function AddModal({ catalog = [], onClose, onAdd }) {
     name: "",
     plan: "",
     amount: "",
-    billingCycle: "매월",
+    billingCycle: "",
     nextBillingDate: "",
     paymentMethod: "",
     isTrial: false,
