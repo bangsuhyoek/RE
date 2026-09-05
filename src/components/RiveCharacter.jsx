@@ -16,6 +16,14 @@ const TIMELINE_BY_STATE = {
   done: "Done",
 };
 
+const FALLBACK_BY_STATE = {
+  idle: "/re-assets/sd/idle.png",
+  loading: "/re-assets/sd/loading.png",
+  sorry: "/re-assets/sd/sorry.png",
+  guide: "/re-assets/sd/idle.png",
+  done: "/re-assets/sd/done.png",
+};
+
 export const RIVE_CHARACTER_ASSET = "/re-assets/re-character.riv";
 export const RIVE_CHARACTER_STATE_MACHINE = "Character";
 export const RIVE_CHARACTER_MODE_INPUT = "Mode";
@@ -130,11 +138,13 @@ export function RiveCharacter({
     if (timeline) instance.play?.(timeline);
   }, [normalizedState, reduceMotion, riveReady]);
 
+  const fallbackSrc = FALLBACK_BY_STATE[normalizedState] || FALLBACK_BY_STATE.idle;
+
   return (
     <div aria-hidden="true" className={`pointer-events-none relative select-none ${className}`.trim()}>
       {(!riveReady || reduceMotion || loadFailed) && (
         <img
-          src="/re-assets/char_stand.jpg"
+          src={fallbackSrc}
           alt=""
           className="absolute inset-0 h-full w-full object-contain"
         />
