@@ -1,18 +1,18 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, BellRing, ChevronLeft, ChevronRight, Inbox, ReceiptText, ScanLine, Sparkles } from "lucide-react";
 import { Button, SubscriptionCard } from "./ui";
-import { daysUntilCharge, formatWon } from "../lib/dates";
+import { daysUntilCharge, formatWon, monthlyEquivalentTotal } from "../lib/dates";
 import { RiveCharacter } from "./RiveCharacter";
 
 function SummaryCard({ subscriptions }) {
   const [annual, setAnnual] = useState(false);
-  const monthly = subscriptions.reduce((sum, subscription) => sum + Number(subscription.amount || 0), 0);
+  const monthly = monthlyEquivalentTotal(subscriptions);
   const displayAmount = annual ? monthly * 12 : monthly;
   return (
-    <button type="button" onClick={() => setAnnual((value) => !value)} className="card-press re-summary-card w-full rounded-[24px] bg-[#18181B] p-5 text-left text-white" aria-label="월간 및 연간 지출 전환">
-      <span className="block text-[13px] font-medium text-white/65">{annual ? "연간 환산 지출액" : "이번 달 총 결제 예정"}</span>
+    <button type="button" onClick={() => setAnnual((value) => !value)} className="card-press re-summary-card w-full rounded-[24px] bg-[#18181B] p-5 text-left text-white" aria-label="월간 및 연간 예상 구독액 전환">
+      <span className="block text-[13px] font-medium text-white/65">{annual ? "연간 환산 구독액" : "월 예상 구독액"}</span>
       <span className="mt-2 block text-[28px] font-bold tracking-tight text-white">{formatWon(displayAmount)}</span>
-      <span className="mt-1 flex items-center gap-1 text-[12px] text-[#A1A1AA]">탭하면 {annual ? "월간" : "연간"} 지출로 전환</span>
+      <span className="mt-1 flex items-center gap-1 text-[12px] text-[#A1A1AA]">탭하면 {annual ? "월간" : "연간"} 기준으로 전환</span>
       <div className="mt-4 grid grid-cols-2 gap-4 border-t border-[#27272A] pt-3.5">
         <span><span className="block text-[11px] text-[#A1A1AA]">관리 중인 구독</span><strong className="mt-1 block text-[16px] font-semibold text-white">{subscriptions.length}개</strong></span>
         <span><span className="block text-[11px] text-[#A1A1AA]">연간 환산</span><strong className="mt-1 block text-[16px] font-semibold text-white">{formatWon(monthly * 12)}</strong></span>
