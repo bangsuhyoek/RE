@@ -21,7 +21,7 @@ export function AuthLogin({ onGuest, onSocial, onRegister, onBack }) {
       <WaterBackground variant="signup" />
       <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col">
         <div className="flex items-center justify-between">
-          <button type="button" onClick={onBack} className="re-icon-control" aria-label="이전 화면"><ArrowLeft size={20} /></button>
+          {onBack ? <button type="button" onClick={onBack} className="re-icon-control" aria-label="이전 화면"><ArrowLeft size={20} /></button> : <span className="w-10" />}
           <RELogo markClassName="h-[36px] w-auto" />
           <span className="w-10" />
         </div>
