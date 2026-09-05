@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { AuthLogin, AuthRegister } from "./components/AuthScreens";
-import { IntroScreen, LandingScreen, SplashScreen } from "./components/EntryScreens";
+import { LandingScreen, SplashScreen, IntroScreen } from "./components/EntryScreens";
 import { AddModal } from "./components/AddModal";
 import { CancelModal } from "./components/CancelModal";
 import { HomeScreen } from "./components/HomeScreen";
@@ -11,15 +11,28 @@ import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from
 import { PushNotificationBanner, NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, BottomSheet, Button, ServiceMark, Toast } from "./components/ui";
 import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
-import { daysUntilCharge, formatWon, getMonthKey, isPastDueThisCycle } from "./lib/dates";
+import { getMonthKey, isPastDueThisCycle } from "./lib/dates";
 import { readStoredValue, removeDemoSubscriptions, storageKeys, writeStoredValue } from "./lib/storage";
-import { hashForRoute, knownRoutes, parseHash, publicRoutes, routeForSession } from "./lib/navigation";
 import {
   generateSubscriptionAlerts,
   getStoredNotifications,
   saveStoredNotifications,
   requestNotificationPermission,
 } from "./lib/notifications";
+
+const PUBLIC_ROUTES = new Set(["splash", "landing", "intro", "login", "register"]);
+const APP_ROUTES = new Set(["home", "subscriptions", "calendar", "promotions", "detail", "onboarding"]);
+const PAGE_TURN_MS = 320;
+
+const readHash = () => {
+  const raw = window.location.hash.replace(/^#\/?/, "");
+  const [routeAndId, queryPart] = raw.split("?");
+  const parts = (routeAndId || "").split("/");
+  const route = parts[0] || "";
+  const id = parts.slice(1).join("/") || null;
+  const params = new URLSearchParams(queryPart || "");
+  return { route, id: id ? decodeURIComponent(id) : null, params };
+};
 
 const notificationPermissionNow = () => {
   if (typeof window !== "undefined" && "Notification" in window) return Notification.permission;
@@ -28,78 +41,193 @@ const notificationPermissionNow = () => {
 
 export default function App() {
   const storedProfile = readStoredValue(storageKeys.profile, null);
-  const initialHash = parseHash(window.location.hash);
-  const explicitGuest = initialHash.params?.get("guest") === "1";
-  const effectiveProfile = storedProfile || (explicitGuest ? { nickname: "", provider: "Guest", guest: true, notificationsAllowed: true } : null);
+  const initialRequested = useRef(readHash());
+  const initialOnboardingComplete = readStoredValue(storageKeys.onboardingComplete, Boolean(storedProfile));
+  const initialIntroSeen = readStoredValue(storageKeys.introSeen, false);
+  const requestedAtBoot = initialRequested.current;
+  const initialRoute = !requestedAtBoot.route
+    ? "landing"
+    : APP_ROUTES.has(requestedAtBoot.route)
+      ? "splash"
+      : requestedAtBoot.route;
 
-  const [profile, setProfile] = useState(effectiveProfile);
-  const profileRef = useRef(effectiveProfile);
+  const [profile, setProfile] = useState(storedProfile);
+  const profileRef = useRef(storedProfile);
   const [subscriptions, setSubscriptions] = useState(() => {
     const saved = readStoredValue(storageKeys.subscriptions, []);
-    return Array.isArray(saved) ? removeDemoSubscriptions(saved) : [];
+    return removeDemoSubscriptions(saved);
   });
-  const initialOnboardingComplete = readStoredValue(storageKeys.onboardingComplete, false);
   const [onboardingComplete, setOnboardingComplete] = useState(initialOnboardingComplete);
-  const [screen, setScreen] = useState(() => {
-    const route = routeForSession({
-      requestedRoute: initialHash.route,
-      hasProfile: Boolean(effectiveProfile),
-      onboardingComplete: initialOnboardingComplete,
-    });
-    return { ...initialHash, route, id: initialHash.route === route ? initialHash.id : null };
+  const onboardingCompleteRef = useRef(initialOnboardingComplete);
+  const [introSeen, setIntroSeen] = useState(initialIntroSeen);
+  const introSeenRef = useRef(initialIntroSeen);
+  const [savedAmount, setSavedAmount] = useState(() => readStoredValue(storageKeys.savedAmount, 0));
+  const [screen, setScreen] = useState({
+    route: initialRoute,
+    id: initialRoute === requestedAtBoot.route ? requestedAtBoot.id : null,
+    params: initialRoute === requestedAtBoot.route ? requestedAtBoot.params : new URLSearchParams(),
   });
+  const screenRef = useRef(screen);
+  const launchIntentRef = useRef("default");
+  const [loginBackToIntro, setLoginBackToIntro] = useState(false);
+  const [pageTurn, setPageTurn] = useState("");
+  const pageTurnTimerRef = useRef(null);
+
+  const [selectedOnboarding, setSelectedOnboarding] = useState([]);
+  const [onboardingQueue, setOnboardingQueue] = useState([]);
+  const [onboardingIndex, setOnboardingIndex] = useState(0);
   const [addOpen, setAddOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [renewalTarget, setRenewalTarget] = useState(null);
   const [toast, setToast] = useState("");
-  const [notifications, setNotifications] = useState(() => getStoredNotifications());
+
+  const [notifications, setNotifications] = useState(() =>
+    getStoredNotifications().filter((item) => !item?.isTest && !String(item?.subscriptionId || "").startsWith("seed-"))
+  );
   const [activeBanner, setActiveBanner] = useState(null);
-  const [notificationCenterOpen, setNotificationCenterOpen] = useState(() => initialHash.params?.get("notifications") === "1");
-  const [highlightCancelId, setHighlightCancelId] = useState(() => initialHash.params?.get("highlight") === "cancel" ? initialHash.id : null);
+  const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
+  const [highlightCancelId, setHighlightCancelId] = useState(null);
   const [notificationPermission, setNotificationPermission] = useState(notificationPermissionNow);
 
   useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
+
+  useEffect(() => {
+    onboardingCompleteRef.current = onboardingComplete;
+  }, [onboardingComplete]);
+
+  useEffect(() => {
+    introSeenRef.current = introSeen;
+  }, [introSeen]);
+
+  useEffect(() => {
+    screenRef.current = screen;
+  }, [screen]);
+
+  useEffect(() => () => {
+    if (pageTurnTimerRef.current) window.clearTimeout(pageTurnTimerRef.current);
+  }, []);
+
+  const startPageTurn = (kind) => {
+    if (!kind) return;
+    setPageTurn(kind);
+    if (pageTurnTimerRef.current) window.clearTimeout(pageTurnTimerRef.current);
+    pageTurnTimerRef.current = window.setTimeout(() => setPageTurn(""), PAGE_TURN_MS + 60);
+  };
+
+  const navigate = (route, id = null, transition = "") => {
+    startPageTurn(transition);
+    const next = { route, id, params: new URLSearchParams() };
+    setScreen(next);
+    const hash = id ? `#/${route}/${encodeURIComponent(id)}` : `#/${route}`;
+    if (window.location.hash !== hash) window.location.hash = hash;
+  };
+
+  const startAppFromLanding = (intent = "default") => {
+    launchIntentRef.current = intent;
+    initialRequested.current = { route: "", id: null, params: new URLSearchParams() };
+    navigate("splash");
+  };
+
+  const routeAfterSplash = () => {
+    setLoginBackToIntro(false);
+    const launchIntent = launchIntentRef.current;
+    launchIntentRef.current = "default";
+
+    if (launchIntent === "login") {
+      navigate("login");
+      return;
+    }
+    if (!introSeenRef.current) {
+      navigate("intro", null, "page-turn");
+      return;
+    }
+    if (!profileRef.current) {
+      navigate("login");
+      return;
+    }
+    if (!onboardingCompleteRef.current) {
+      navigate("onboarding");
+      return;
+    }
+
+    const requested = initialRequested.current;
+    if (APP_ROUTES.has(requested.route) && requested.route !== "onboarding") {
+      navigate(requested.route, requested.id);
+      if (requested.params?.get("notifications") === "1") setNotificationCenterOpen(true);
+      if (requested.params?.get("highlight") === "cancel") setHighlightCancelId(requested.id || null);
+      return;
+    }
+    navigate("home");
+  };
+
+  useEffect(() => {
     const onHashChange = () => {
-      const next = parseHash(window.location.hash);
-      if (!next.route) return;
-      if (!knownRoutes.has(next.route)) {
-        const fallback = routeForSession({
-          requestedRoute: null,
-          hasProfile: Boolean(profileRef.current),
-          onboardingComplete,
-        });
-        setScreen({ route: fallback, id: null, params: new URLSearchParams() });
+      const next = readHash();
+      if (!next.route) {
+        setScreen({ route: "landing", id: null, params: new URLSearchParams() });
         return;
       }
-      if (!profileRef.current && !publicRoutes.has(next.route)) {
-        setScreen({ route: "login", id: null, params: new URLSearchParams() });
+      if (next.route === "splash") {
+        setScreen(next);
+        return;
+      }
+      if (!PUBLIC_ROUTES.has(next.route) && !APP_ROUTES.has(next.route)) {
+        navigate(profileRef.current ? "home" : "login");
+        return;
+      }
+      if (!PUBLIC_ROUTES.has(next.route) && !profileRef.current) {
+        navigate("login");
+        return;
+      }
+      if (profileRef.current && !onboardingCompleteRef.current && next.route !== "onboarding" && !PUBLIC_ROUTES.has(next.route)) {
+        navigate("onboarding");
         return;
       }
       setScreen(next);
       if (next.params?.get("notifications") === "1") setNotificationCenterOpen(true);
       if (next.params?.get("highlight") === "cancel") setHighlightCancelId(next.id || null);
-      if (next.params?.get("banner") === "1") {
-        const generated = generateSubscriptionAlerts(subscriptions);
-        setActiveBanner(generated[0] || null);
-      }
     };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
-  }, [onboardingComplete, subscriptions]);
+  }, []);
 
-  useEffect(() => window.scrollTo(0, 0), [screen.route, screen.id]);
-  useEffect(() => writeStoredValue(storageKeys.profile, profile), [profile]);
-  useEffect(() => writeStoredValue(storageKeys.subscriptions, subscriptions), [subscriptions]);
-  useEffect(() => writeStoredValue(storageKeys.onboardingComplete, onboardingComplete), [onboardingComplete]);
-  useEffect(() => saveStoredNotifications(notifications), [notifications]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screen.route, screen.id]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.profile, profile);
+  }, [profile]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.subscriptions, subscriptions);
+  }, [subscriptions]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.onboardingComplete, onboardingComplete);
+  }, [onboardingComplete]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.introSeen, introSeen);
+  }, [introSeen]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.savedAmount, savedAmount);
+  }, [savedAmount]);
+
+  useEffect(() => {
+    saveStoredNotifications(notifications);
+  }, [notifications]);
 
   useEffect(() => {
     if (!subscriptions.length) return;
     const generated = generateSubscriptionAlerts(subscriptions);
     if (!generated.length) return;
     setNotifications((current) => {
-      const existingIds = new Set(current.map((n) => n.id));
-      const next = generated.filter((n) => !existingIds.has(n.id));
+      const existingIds = new Set(current.map((item) => item.id));
+      const next = generated.filter((item) => !existingIds.has(item.id));
       return next.length ? [...next, ...current] : current;
     });
   }, [subscriptions]);
@@ -108,20 +236,10 @@ export default function App() {
     if (screen.route !== "home") return;
     const currentMonth = getMonthKey();
     const pastDue = subscriptions.find((subscription) =>
-      subscription.status !== "cancel_pending" &&
-      subscription.status !== "cancel_in_progress" &&
-      isPastDueThisCycle(subscription) &&
-      subscription.renewalReviewedFor !== currentMonth
+      isPastDueThisCycle(subscription) && subscription.renewalReviewedFor !== currentMonth
     );
     if (pastDue) setRenewalTarget(pastDue.subscriptionId);
   }, [screen.route, subscriptions]);
-
-  const navigate = (route, id = null) => {
-    const next = { route, id, params: new URLSearchParams() };
-    setScreen(next);
-    const hash = hashForRoute(route, id);
-    if (window.location.hash !== hash) window.location.hash = hash;
-  };
 
   const notify = (message) => setToast(message);
 
@@ -145,73 +263,129 @@ export default function App() {
     [cancelTarget, subscriptions]
   );
 
-  const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
+  const currentOnboardingService = onboardingQueue[onboardingIndex] || null;
+  const unreadCount = useMemo(() => notifications.filter((item) => !item.read).length, [notifications]);
+
+  const handleIntroComplete = () => {
+    introSeenRef.current = true;
+    setIntroSeen(true);
+
+    if (profileRef.current) {
+      navigate(onboardingCompleteRef.current ? "home" : "onboarding", null, "page-turn");
+      return;
+    }
+
+    setLoginBackToIntro(true);
+    navigate("login", null, "page-turn");
+  };
 
   const completeLogin = (provider, nickname, guest = false) => {
     const nextProfile = { nickname: nickname || "", provider, guest, notificationsAllowed: true };
     profileRef.current = nextProfile;
     setProfile(nextProfile);
     setSubscriptions((current) => removeDemoSubscriptions(current));
-    setNotifications([]);
+    setNotifications((current) => current.filter((item) => !item?.isTest && !String(item?.subscriptionId || "").startsWith("seed-")));
+
     if (guest) {
+      setSubscriptions([]);
+      setNotifications([]);
+      onboardingCompleteRef.current = true;
       setOnboardingComplete(true);
       navigate("home");
       return;
     }
+
+    onboardingCompleteRef.current = false;
     setOnboardingComplete(false);
     navigate("onboarding");
   };
 
-  const handleOnboardingFindComplete = () => {
-    setOnboardingComplete(true);
-    navigate("home");
-  };
-
-  const handleOnboardingManual = () => {
-    setOnboardingComplete(true);
-    navigate("home");
+  const handleOnboardingFinish = () => {
+    const picked = serviceCatalog.filter((service) => selectedOnboarding.includes(service.id));
+    if (!picked.length) return;
+    setOnboardingQueue(picked);
+    setOnboardingIndex(0);
     setAddOpen(true);
   };
 
+  const handleOnboardingSkip = () => {
+    setSelectedOnboarding([]);
+    setOnboardingQueue([]);
+    onboardingCompleteRef.current = true;
+    setOnboardingComplete(true);
+    navigate("home", null, "page-turn");
+  };
+
+  const handleCloseAdd = () => {
+    setAddOpen(false);
+    if (onboardingQueue.length) {
+      setOnboardingQueue([]);
+      setOnboardingIndex(0);
+    }
+  };
+
   const handleAddSubscription = (data) => {
-    const normalizedName = data.name.trim().toLowerCase();
+    const normalizedName = String(data.name || "").trim().toLowerCase();
     const normalizedPlan = String(data.plan || "").trim().toLowerCase();
     const duplicate = subscriptions.some((subscription) =>
-      subscription.name?.trim().toLowerCase() === normalizedName &&
+      String(subscription.name || "").trim().toLowerCase() === normalizedName &&
       String(subscription.plan || "").trim().toLowerCase() === normalizedPlan
     );
     if (duplicate) {
-      notify("이미 등록된 구독이에요. 기존 구독에서 정보를 확인해주세요.");
+      notify("이미 등록된 구독입니다. 기존 카드에서 정보를 수정해 주세요.");
       return false;
     }
 
     const matched = serviceCatalog.find((service) =>
       service.name.toLowerCase() === normalizedName || service.id === data.id
     );
-    const nextDate = data.nextBillingDate ? new Date(`${data.nextBillingDate}T12:00:00`) : null;
-    const dueDay = nextDate && !Number.isNaN(nextDate.getTime()) ? nextDate.getDate() : null;
-    if (!dueDay) {
-      notify("다음 결제일을 확인해주세요.");
+    const dueDay = Number(data.dueDay);
+    const amount = Number(data.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      notify("결제 금액을 확인해 주세요.");
+      return false;
+    }
+    if (!Number.isFinite(dueDay) || dueDay < 1 || dueDay > 31) {
+      notify("결제일을 1~31 사이로 확인해 주세요.");
       return false;
     }
 
     const record = {
       ...data,
       id: matched?.id || `custom-${Date.now()}`,
-      monogram: data.monogram || matched?.monogram || data.name.trim().slice(0, 1).toUpperCase(),
+      monogram: data.monogram || matched?.monogram || String(data.name || "").trim().slice(0, 1).toUpperCase(),
       category: data.category || matched?.category || "기타",
       cancelUrl: data.cancelUrl || matched?.cancelUrl || "",
-      subscriptionId: `manual-${Date.now()}`,
+      subscriptionId: `manual-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       createdAt: new Date().toISOString(),
       dueDay,
+      amount,
       status: data.isTrial ? "trial" : "active",
       alertD3: true,
       alertD1: true,
       renewalPending: false,
     };
+
     setSubscriptions((current) => [record, ...current]);
+    notify(`${record.name}을 내 구독에 추가했어요.`);
+
+    if (onboardingQueue.length) {
+      const nextIndex = onboardingIndex + 1;
+      if (nextIndex < onboardingQueue.length) {
+        setOnboardingIndex(nextIndex);
+        return "next";
+      }
+
+      setOnboardingQueue([]);
+      setOnboardingIndex(0);
+      setSelectedOnboarding([]);
+      onboardingCompleteRef.current = true;
+      setOnboardingComplete(true);
+      navigate("home", null, "page-turn");
+      return true;
+    }
+
     setOnboardingComplete(true);
-    notify(`${record.name}도 이제 RE.가 같이 챙길게요.`);
     return true;
   };
 
@@ -230,69 +404,63 @@ export default function App() {
     setCancelTarget({ id: target.subscriptionId, subscription: target, promotion });
   };
 
-  const markCancellationIncomplete = (subscriptionId) => {
-    setSubscriptions((current) => current.map((subscription) =>
-      subscription.subscriptionId === subscriptionId
-        ? { ...subscription, status: "cancel_in_progress", cancellationStartedAt: subscription.cancellationStartedAt || new Date().toISOString() }
-        : subscription
-    ));
-    setCancelTarget(null);
-    notify("여기까지 기억해둘게요. 다음에 이어서 해지할 수 있어요.");
-  };
+  const closeCancellation = () => setCancelTarget(null);
 
-  const finishCancellation = (subscriptionId, destination = "subscriptions") => {
-    setSubscriptions((current) => current.map((subscription) =>
-      subscription.subscriptionId === subscriptionId
-        ? {
-            ...subscription,
-            status: "cancel_pending",
-            cancellationConfirmedAt: new Date().toISOString(),
-            renewalPending: false,
-            alertD3: false,
-            alertD1: false,
-          }
-        : subscription
-    ));
-    setCancelTarget(null);
+  const finishCancellation = (subscriptionId, saved) => {
+    const target = subscriptions.find((subscription) => subscription.subscriptionId === subscriptionId);
+    if (!target) return;
+    setSubscriptions((current) => current.filter((subscription) => subscription.subscriptionId !== subscriptionId));
+    setSavedAmount((amount) => amount + Number(saved || target.amount || 0));
     setRenewalTarget(null);
-    navigate(destination === "home" ? "home" : "subscriptions");
+    if (screenRef.current.route === "detail") navigate("subscriptions");
   };
 
   const muteSubscription = (subscriptionId) => {
     setSubscriptions((current) => current.map((subscription) =>
       subscription.subscriptionId === subscriptionId ? { ...subscription, alertD3: false, alertD1: false } : subscription
     ));
-    notify("사전 알림을 껐어요.");
+    notify("사전 알림을 모두 껐어요.");
+  };
+
+  const openSubscription = (subscriptionId) => {
+    const transition = screenRef.current.route === "home" ? "page-turn" : "";
+    navigate("detail", subscriptionId, transition);
   };
 
   const handleRenewal = (keep) => {
     if (!renewalSubscription) return;
-    const target = renewalSubscription;
-    setRenewalTarget(null);
     if (keep) {
       setSubscriptions((current) => current.map((subscription) =>
-        subscription.subscriptionId === target.subscriptionId
+        subscription.subscriptionId === renewalSubscription.subscriptionId
           ? { ...subscription, renewalPending: false, renewalReviewedFor: getMonthKey() }
           : subscription
       ));
-      notify(`${target.name}은 이번 주기에 계속 이용하는 것으로 기억할게요.`);
-      return;
+      notify(`${renewalSubscription.name}을 다음 결제 주기로 유지했어요.`);
+    } else {
+      setSubscriptions((current) => current.filter((subscription) => subscription.subscriptionId !== renewalSubscription.subscriptionId));
+      setSavedAmount((amount) => amount + Number(renewalSubscription.amount || 0));
+      notify(`${renewalSubscription.name}을 목록에서 해지 처리했어요.`);
     }
-    startCancellation(target.subscriptionId);
+    setRenewalTarget(null);
   };
 
   const handlePromotion = (promotion) => {
     const source = subscriptions.find((subscription) => promotion.sourceServiceIds?.includes(subscription.id));
-    if (source) startCancellation(source.subscriptionId, promotion);
-    else if (promotion.link) window.open(promotion.link, "_blank", "noopener,noreferrer");
+    if (source) {
+      startCancellation(source.subscriptionId, promotion);
+      return;
+    }
+    if (promotion.link) window.open(promotion.link, "_blank", "noopener,noreferrer");
   };
 
-  const handleOpenDetailFromNotification = (subId) => {
-    setNotifications((current) => current.map((n) => n.subscriptionId === subId ? { ...n, read: true } : n));
+  const handleOpenDetailFromNotification = (subscriptionId) => {
+    setNotifications((current) => current.map((item) =>
+      item.subscriptionId === subscriptionId ? { ...item, read: true } : item
+    ));
     setActiveBanner(null);
     setNotificationCenterOpen(false);
-    setHighlightCancelId(subId);
-    navigate("detail", subId);
+    setHighlightCancelId(subscriptionId);
+    navigate("detail", subscriptionId);
   };
 
   const handleRequestPermission = async () => {
@@ -311,35 +479,28 @@ export default function App() {
     notify("결제 전 알림을 껐어요.");
   };
 
-  const hasAppChrome = Boolean(profile) && !publicRoutes.has(screen.route) && screen.route !== "onboarding";
-  const pageTitles = {
-    home: "RE.",
-    subscriptions: "구독 목록",
-    calendar: "결제 캘린더",
-    promotions: "혜택",
-    detail: "구독 상세",
-  };
+  const hasAppChrome = Boolean(profile) && APP_ROUTES.has(screen.route) && screen.route !== "onboarding";
+  const pageTitles = { home: "RE.", subscriptions: "구독 목록", calendar: "결제 캘린더", promotions: "혜택", detail: "구독 상세" };
 
   let content;
   if (screen.route === "landing") {
-    content = <LandingScreen onStart={() => navigate("splash")} onLogin={() => navigate("login")} />;
+    content = <LandingScreen onStart={() => startAppFromLanding("default")} onLogin={() => startAppFromLanding("login")} />;
   } else if (screen.route === "splash") {
-    content = <SplashScreen onDone={() => navigate("intro")} />;
+    content = <SplashScreen onDone={routeAfterSplash} />;
   } else if (screen.route === "intro") {
-    content = <IntroScreen onContinue={() => navigate("login")} onBack={() => navigate("landing")} />;
-  } else if (screen.route === "login") {
-    content = (
-      <AuthLogin
-        onGuest={() => completeLogin("Guest", "", true)}
-        onSocial={(provider, nickname) => completeLogin(provider, nickname)}
-        onRegister={() => navigate("register")}
-        onBack={() => navigate("intro")}
-      />
-    );
+    content = <IntroScreen onContinue={handleIntroComplete} />;
   } else if (screen.route === "register") {
     content = <AuthRegister onBack={() => navigate("login")} onComplete={({ nickname }) => completeLogin("RE.", nickname)} />;
   } else if (screen.route === "onboarding") {
-    content = <OnboardingScreen onFindComplete={handleOnboardingFindComplete} onManual={handleOnboardingManual} />;
+    content = (
+      <OnboardingScreen
+        catalog={serviceCatalog}
+        selectedIds={selectedOnboarding}
+        onToggle={(id) => setSelectedOnboarding((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id])}
+        onFinish={handleOnboardingFinish}
+        onSkip={handleOnboardingSkip}
+      />
+    );
   } else if (screen.route === "home") {
     content = (
       <HomeScreen
@@ -347,29 +508,18 @@ export default function App() {
         promotions={promotionCatalog}
         profile={profile}
         notificationDenied={profile?.notificationsAllowed === false}
-        onOpenSubscription={(subscriptionId) => navigate("detail", subscriptionId)}
-        onReviewSubscription={(subscriptionId) => setRenewalTarget(subscriptionId)}
+        onOpenSubscription={openSubscription}
         onShowAll={() => navigate("subscriptions")}
         onOpenPromotion={handlePromotion}
         onExplorePromotions={() => navigate("promotions")}
         onAdd={() => setAddOpen(true)}
         onToggleNotificationPermission={handleTogglePermissionFromHome}
-        onResumeCancel={startCancellation}
       />
     );
   } else if (screen.route === "subscriptions") {
-    content = (
-      <SubscriptionListScreen
-        subscriptions={subscriptions}
-        onOpen={(subscriptionId) => navigate("detail", subscriptionId)}
-        onAdd={() => setAddOpen(true)}
-        onStartCancel={startCancellation}
-        onMute={muteSubscription}
-        onRefresh={() => notify("저장된 구독 정보를 다시 확인했어요.")}
-      />
-    );
+    content = <SubscriptionListScreen subscriptions={subscriptions} onOpen={openSubscription} onAdd={() => setAddOpen(true)} onStartCancel={startCancellation} onMute={muteSubscription} onRefresh={() => notify("저장된 구독 목록을 다시 확인했어요.")} />;
   } else if (screen.route === "calendar") {
-    content = <CalendarScreen subscriptions={subscriptions} onOpen={(subscriptionId) => navigate("detail", subscriptionId)} />;
+    content = <CalendarScreen subscriptions={subscriptions} onOpen={openSubscription} />;
   } else if (screen.route === "promotions") {
     content = <PromotionScreen subscriptions={subscriptions} promotions={promotionCatalog} onOpenPromotion={handlePromotion} />;
   } else if (screen.route === "detail") {
@@ -378,44 +528,44 @@ export default function App() {
         subscription={selectedSubscription}
         onUpdate={updateSubscription}
         onStartCancel={startCancellation}
-        onBack={() => navigate("subscriptions")}
-        promotion={promotionCatalog.find((p) => p.sourceServiceIds?.includes(selectedSubscription?.id))}
+        onBack={() => {
+          setHighlightCancelId(null);
+          navigate("subscriptions");
+        }}
+        promotion={promotionCatalog.find((promotion) => promotion.sourceServiceIds?.includes(selectedSubscription?.id))}
         highlightCancel={highlightCancelId === selectedSubscription?.subscriptionId}
       />
     );
   } else {
     content = (
-      <main className="px-6 py-20 text-center">
-        <h1 className="text-[23px] font-extrabold text-[#1B2A8C]">화면을 찾을 수 없어요.</h1>
-        <p className="mt-3 text-[13px] leading-6 text-[#7E8AC0]">저장된 정보는 그대로 두고 안전한 화면으로 돌아갈게요.</p>
-        <Button className="mt-6" onClick={() => navigate(profileRef.current ? (onboardingComplete ? "home" : "onboarding") : "landing")}>돌아가기</Button>
-      </main>
+      <AuthLogin
+        onGuest={() => completeLogin("Guest", "", true)}
+        onSocial={(provider, nickname) => completeLogin(provider, nickname)}
+        onRegister={() => navigate("register")}
+        onBack={loginBackToIntro ? () => navigate("intro") : undefined}
+      />
     );
   }
 
   return (
-    <div className="app-shell" data-screen={screen.route || "landing"}>
+    <div className={`app-shell ${hasAppChrome ? "app-shell-authenticated" : "app-shell-public"}`} data-screen={screen.route}>
       {hasAppChrome && (
         <AppHeader
           title={pageTitles[screen.route] || "RE."}
-          onBack={screen.route === "detail" ? () => navigate("subscriptions") : undefined}
+          onBack={screen.route === "detail" ? () => {
+            setHighlightCancelId(null);
+            navigate("subscriptions");
+          } : undefined}
           rightSlot={
-            <button
-              type="button"
-              onClick={() => setNotificationCenterOpen(true)}
-              className="re-icon-button relative"
-              aria-label="알림 열기"
-            >
-              <Bell size={19} />
-              {unreadCount > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#E43C78]" />}
+            <button type="button" onClick={() => setNotificationCenterOpen(true)} className="re-icon-control relative" aria-label="알림 센터 열기">
+              <Bell size={20} />
+              {unreadCount > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />}
             </button>
           }
         />
       )}
 
-      <div key={`${screen.route || "login"}-${screen.id || ""}`} className="re-page-journey">
-        {content}
-      </div>
+      <div className={pageTurn ? "re-page-transition re-page-turn-soft" : "re-page-transition"}>{content}</div>
 
       {hasAppChrome && (
         <BottomNavigation
@@ -428,66 +578,42 @@ export default function App() {
         />
       )}
 
-      {addOpen && <AddModal catalog={serviceCatalog} onClose={() => setAddOpen(false)} onAdd={handleAddSubscription} />}
-      {cancelSubscription && (
-        <CancelModal
-          subscription={cancelSubscription}
-          promotion={cancelTarget?.promotion}
-          onClose={() => setCancelTarget(null)}
-          onComplete={finishCancellation}
-          onIncomplete={markCancellationIncomplete}
-          onToast={notify}
+      {addOpen && (
+        <AddModal
+          key={currentOnboardingService ? `onboarding-${currentOnboardingService.id}-${onboardingIndex}` : "regular-add"}
+          catalog={serviceCatalog}
+          initialService={currentOnboardingService}
+          onClose={handleCloseAdd}
+          onAdd={handleAddSubscription}
         />
       )}
-      {renewalSubscription && (
-        <RenewalSheet
-          subscription={renewalSubscription}
-          onKeep={() => handleRenewal(true)}
-          onCancel={() => handleRenewal(false)}
-          onClose={() => setRenewalTarget(null)}
-        />
-      )}
-
+      {cancelSubscription && <CancelModal subscription={cancelSubscription} promotion={cancelTarget?.promotion} onClose={closeCancellation} onComplete={finishCancellation} onToast={notify} />}
+      {renewalSubscription && <RenewalSheet subscription={renewalSubscription} onKeep={() => handleRenewal(true)} onCancel={() => handleRenewal(false)} onClose={() => setRenewalTarget(null)} />}
       <PushNotificationBanner notification={activeBanner} onClose={() => setActiveBanner(null)} onOpenDetail={handleOpenDetailFromNotification} />
-
       {notificationCenterOpen && (
         <NotificationCenterModal
           notifications={notifications}
           unreadCount={unreadCount}
           onClose={() => setNotificationCenterOpen(false)}
           onOpenDetail={handleOpenDetailFromNotification}
-          onMarkAllRead={() => setNotifications((current) => current.map((n) => ({ ...n, read: true })))}
+          onMarkAllRead={() => setNotifications((current) => current.map((item) => ({ ...item, read: true })))}
           onClearAll={() => setNotifications([])}
           notificationPermission={notificationPermission}
           onRequestPermission={handleRequestPermission}
         />
       )}
-
       <Toast toast={toast} onClose={() => setToast("")} />
     </div>
   );
 }
 
 function RenewalSheet({ subscription, onKeep, onCancel, onClose }) {
-  const days = daysUntilCharge(subscription);
-  const timing = days <= 0 ? "오늘 결제일이에요." : `${days}일 뒤 ${formatWon(subscription.amount)}이 결제될 예정이에요.`;
   return (
-    <BottomSheet onClose={onClose} label="이번 결제 주기 확인">
-      <div className="flex items-start gap-3">
-        <ServiceMark monogram={subscription.monogram || subscription.name?.slice(0, 1)} />
-        <div>
-          <p className="re-eyebrow">RE. CHECK</p>
-          <h2 className="mt-1 text-[20px] font-extrabold leading-7 text-[#1B2A8C]">이번에도 계속 이용할까요?</h2>
-        </div>
-      </div>
-      <p className="mt-4 text-[13px] leading-6 text-[#5B6DA9]">
-        <strong className="font-bold text-[#3746A5]">{subscription.name}</strong>은 {timing} 지금 정하면 같은 결제 주기의 추가 확인은 줄일게요.
-      </p>
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        <Button variant="secondary" onClick={onCancel}>그만 이용할래요</Button>
-        <Button onClick={onKeep}>계속 이용할게요</Button>
-      </div>
-      <button type="button" onClick={onClose} className="mx-auto mt-4 block text-[12px] font-medium text-[#7E8AC0] underline underline-offset-4">나중에 확인하기</button>
+    <BottomSheet onClose={onClose} label="결제일 경과 구독 확인">
+      <div className="flex items-start gap-3"><ServiceMark monogram={subscription.monogram} className="h-11 w-11 rounded-xl text-[13px]" /><div><p className="re-eyebrow">RENEWAL CHECK</p><h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-[#1B2A8C]">이번 달에도 계속 이용하셨나요?</h2></div></div>
+      <p className="mt-4 text-[14px] leading-6 text-[#71717A]"><strong className="font-semibold text-black">{subscription.name}</strong>은 지난 결제일이 지났어요. 계속 이용했다면 다음 달에도 알림을 보내드릴게요.</p>
+      <div className="mt-6 grid grid-cols-2 gap-3"><Button variant="secondary" onClick={onCancel}>해지했음</Button><Button onClick={onKeep}>계속 유지</Button></div>
+      <button type="button" onClick={onClose} className="mx-auto mt-4 block text-[12px] text-[#71717A] underline underline-offset-4">나중에 확인하기</button>
     </BottomSheet>
   );
 }
