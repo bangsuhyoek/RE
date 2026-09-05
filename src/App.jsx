@@ -9,10 +9,18 @@ import { OnboardingScreen } from "./components/OnboardingScreen";
 import { PromotionScreen } from "./components/PromotionScreen";
 import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from "./components/SubscriptionScreens";
 import { PushNotificationBanner, NotificationCenterModal } from "./components/NotificationComponents";
+import { SettingsScreen } from "./components/SettingsScreen";
+import { WebSidebar } from "./components/WebSidebar";
 import { AppHeader, BottomNavigation, BottomSheet, Button, ServiceMark, Toast } from "./components/ui";
 import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
 import { getMonthKey, isPastDueThisCycle } from "./lib/dates";
-import { readStoredValue, removeDemoSubscriptions, storageKeys, writeStoredValue } from "./lib/storage";
+import {
+  readStoredValue,
+  removeDemoSubscriptions,
+  sanitizeCancellationHistory,
+  storageKeys,
+  writeStoredValue,
+} from "./lib/storage";
 import {
   generateSubscriptionAlerts,
   getStoredNotifications,
@@ -21,7 +29,7 @@ import {
 } from "./lib/notifications";
 
 const PUBLIC_ROUTES = new Set(["splash", "landing", "intro", "login", "register"]);
-const APP_ROUTES = new Set(["home", "subscriptions", "calendar", "promotions", "detail", "onboarding"]);
+const APP_ROUTES = new Set(["home", "subscriptions", "calendar", "promotions", "detail", "settings", "onboarding"]);
 const PAGE_TURN_MS = 320;
 
 const readHash = () => {
@@ -39,6 +47,20 @@ const notificationPermissionNow = () => {
   return "unsupported";
 };
 
+const cancellationRecord = (subscription, saved = 0, source = "guide") => ({
+  historyId: `cancelled-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+  subscriptionId: subscription.subscriptionId,
+  id: subscription.id,
+  name: subscription.name,
+  monogram: subscription.monogram,
+  plan: subscription.plan,
+  category: subscription.category || "기타",
+  amount: Number(saved || subscription.amount || 0),
+  billingCycle: subscription.billingCycle || "매월",
+  cancelledAt: new Date().toISOString(),
+  source,
+});
+
 export default function App() {
   const storedProfile = readStoredValue(storageKeys.profile, null);
   const initialRequested = useRef(readHash());
@@ -52,6 +74,9 @@ export default function App() {
     const saved = readStoredValue(storageKeys.subscriptions, []);
     return removeDemoSubscriptions(saved);
   });
+  const [cancellationHistory, setCancellationHistory] = useState(() =>
+    sanitizeCancellationHistory(readStoredValue(storageKeys.cancellationHistory, []))
+  );
   const [onboardingComplete, setOnboardingComplete] = useState(initialOnboardingComplete);
   const onboardingCompleteRef = useRef(initialOnboardingComplete);
   const [introSeen, setIntroSeen] = useState(initialIntroSeen);
@@ -174,28 +199,38 @@ export default function App() {
   }, [screen.route, screen.id]);
 
   useEffect(() => {
+    if (profile?.guest) return;
     writeStoredValue(storageKeys.profile, profile);
   }, [profile]);
 
   useEffect(() => {
+    if (profile?.guest) return;
     writeStoredValue(storageKeys.subscriptions, subscriptions);
-  }, [subscriptions]);
+  }, [profile?.guest, subscriptions]);
 
   useEffect(() => {
+    if (profile?.guest) return;
+    writeStoredValue(storageKeys.cancellationHistory, cancellationHistory);
+  }, [cancellationHistory, profile?.guest]);
+
+  useEffect(() => {
+    if (profile?.guest) return;
     writeStoredValue(storageKeys.onboardingComplete, onboardingComplete);
-  }, [onboardingComplete]);
+  }, [onboardingComplete, profile?.guest]);
 
   useEffect(() => {
     writeStoredValue(storageKeys.introSeen, introSeen);
   }, [introSeen]);
 
   useEffect(() => {
+    if (profile?.guest) return;
     writeStoredValue(storageKeys.savedAmount, savedAmount);
-  }, [savedAmount]);
+  }, [profile?.guest, savedAmount]);
 
   useEffect(() => {
+    if (profile?.guest) return;
     saveStoredNotifications(notifications);
-  }, [notifications]);
+  }, [notifications, profile?.guest]);
 
   useEffect(() => {
     if (!subscriptions.length) return;
@@ -260,11 +295,10 @@ export default function App() {
     };
     profileRef.current = nextProfile;
     setProfile(nextProfile);
-    setSubscriptions((current) => removeDemoSubscriptions(current));
-    setNotifications((current) => current.filter((item) => !item?.isTest && !String(item?.subscriptionId || "").startsWith("seed-")));
 
     if (guest) {
       setSubscriptions([]);
+      setCancellationHistory([]);
       setNotifications([]);
       onboardingCompleteRef.current = true;
       setOnboardingComplete(true);
@@ -272,6 +306,9 @@ export default function App() {
       return;
     }
 
+    setSubscriptions((current) => removeDemoSubscriptions(current));
+    setCancellationHistory((current) => sanitizeCancellationHistory(current));
+    setNotifications((current) => current.filter((item) => !item?.isTest && !String(item?.subscriptionId || "").startsWith("seed-")));
     onboardingCompleteRef.current = false;
     setOnboardingComplete(false);
     navigate("onboarding");
@@ -386,11 +423,12 @@ export default function App() {
   const finishCancellation = (subscriptionId, saved) => {
     const target = subscriptions.find((subscription) => subscription.subscriptionId === subscriptionId);
     if (!target) return;
+    setCancellationHistory((current) => [cancellationRecord(target, saved, "guide"), ...current]);
     setSubscriptions((current) => current.filter((subscription) => subscription.subscriptionId !== subscriptionId));
     setSavedAmount((amount) => amount + Number(saved || target.amount || 0));
     setRenewalTarget(null);
     if (screenRef.current.route === "detail") navigate("subscriptions");
-    // 완료 모션은 기능 처리가 끝난 뒤 보이므로 cancelTarget은 모션 종료까지 유지합니다.
+    // 기능상 제거는 즉시 처리하고, 완료 모션이 끝날 때까지 cancelTarget만 유지합니다.
   };
 
   const muteSubscription = (subscriptionId) => {
@@ -415,6 +453,7 @@ export default function App() {
       ));
       notify(`${renewalSubscription.name}을 다음 결제 주기로 유지했어요.`);
     } else {
+      setCancellationHistory((current) => [cancellationRecord(renewalSubscription, renewalSubscription.amount, "renewal-check"), ...current]);
       setSubscriptions((current) => current.filter((subscription) => subscription.subscriptionId !== renewalSubscription.subscriptionId));
       setSavedAmount((amount) => amount + Number(renewalSubscription.amount || 0));
       notify(`${renewalSubscription.name}을 목록에서 해지 처리했어요.`);
@@ -462,14 +501,21 @@ export default function App() {
     notify("결제 전 알림을 껐어요.");
   };
 
+  const handleReplayIntro = () => {
+    introSeenRef.current = false;
+    setIntroSeen(false);
+    setLoginBackToIntro(false);
+    navigate("intro", null, "page-turn");
+  };
+
   const hasAppChrome = Boolean(profile) && !PUBLIC_ROUTES.has(screen.route) && screen.route !== "onboarding";
-  const pageTitles = { home: "RE.", subscriptions: "구독 목록", calendar: "결제 캘린더", promotions: "혜택", detail: "구독 상세" };
+  const pageTitles = { home: "RE.", subscriptions: "구독 목록", calendar: "결제 캘린더", promotions: "혜택", detail: "구독 상세", settings: "설정" };
 
   let content;
   if (screen.route === "splash") {
     content = <SplashScreen onDone={routeAfterSplash} />;
   } else if (screen.route === "landing") {
-    content = <LandingScreen onContinue={() => navigate("splash")} />;
+    content = <LandingScreen onContinue={() => navigate("splash")} onLogin={() => { setLoginBackToIntro(false); navigate("login"); }} />;
   } else if (screen.route === "intro") {
     content = <IntroScreen onContinue={handleIntroComplete} />;
   } else if (screen.route === "register") {
@@ -488,6 +534,7 @@ export default function App() {
     content = (
       <HomeScreen
         subscriptions={subscriptions}
+        cancellationHistory={cancellationHistory}
         promotions={promotionCatalog}
         profile={profile}
         notificationDenied={notificationPermission !== "granted" || profile?.notificationsAllowed === false}
@@ -497,6 +544,7 @@ export default function App() {
         onExplorePromotions={() => navigate("promotions")}
         onAdd={() => setAddOpen(true)}
         onToggleNotificationPermission={handleTogglePermissionFromHome}
+        onOpenCalendar={() => navigate("calendar")}
       />
     );
   } else if (screen.route === "subscriptions") {
@@ -505,6 +553,16 @@ export default function App() {
     content = <CalendarScreen subscriptions={subscriptions} onOpen={openSubscription} />;
   } else if (screen.route === "promotions") {
     content = <PromotionScreen subscriptions={subscriptions} promotions={promotionCatalog} onOpenPromotion={handlePromotion} />;
+  } else if (screen.route === "settings") {
+    content = (
+      <SettingsScreen
+        profile={profile}
+        notificationPermission={notificationPermission}
+        notificationsEnabled={notificationPermission === "granted" && profile?.notificationsAllowed !== false}
+        onToggleNotifications={handleTogglePermissionFromHome}
+        onReplayIntro={handleReplayIntro}
+      />
+    );
   } else if (screen.route === "detail") {
     content = (
       <SubscriptionDetailScreen
@@ -545,6 +603,20 @@ export default function App() {
               {unreadCount > 0 && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />}
             </button>
           }
+        />
+      )}
+
+      {hasAppChrome && (
+        <WebSidebar
+          route={screen.route}
+          profile={profile}
+          unreadCount={unreadCount}
+          onNavigate={(targetRoute) => {
+            setHighlightCancelId(null);
+            navigate(targetRoute);
+          }}
+          onOpenAdd={() => setAddOpen(true)}
+          onOpenNotifications={() => setNotificationCenterOpen(true)}
         />
       )}
 
