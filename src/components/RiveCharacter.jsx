@@ -31,8 +31,11 @@ export function RiveCharacter({
   const riveRef = useRef(null);
   const modeInputRef = useRef(null);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [riveReady, setRiveReady] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const normalizedState = useMemo(() => MODE_BY_STATE[state] === undefined ? "idle" : state, [state]);
+  const latestStateRef = useRef(normalizedState);
+  latestStateRef.current = normalizedState;
 
   useEffect(() => {
     const media = window.matchMedia?.("(prefers-reduced-motion: reduce)");
@@ -49,6 +52,8 @@ export function RiveCharacter({
     let attempts = 0;
     let retryTimer;
     let resizeHandler;
+    setLoadFailed(false);
+    setRiveReady(false);
 
     const boot = () => {
       if (disposed) return;
@@ -70,24 +75,30 @@ export function RiveCharacter({
           onLoad: () => {
             if (disposed) return;
             setLoadFailed(false);
+            setRiveReady(true);
             instance.resizeDrawingSurfaceToCanvas?.();
             const inputs = instance.stateMachineInputs?.(stateMachine) || [];
             modeInputRef.current = inputs.find((input) => input.name === modeInputName) || null;
+            const latestState = latestStateRef.current;
             if (modeInputRef.current) {
-              modeInputRef.current.value = MODE_BY_STATE[normalizedState];
+              modeInputRef.current.value = MODE_BY_STATE[latestState];
               instance.play?.(stateMachine);
             } else {
-              instance.play?.(TIMELINE_BY_STATE[normalizedState]);
+              instance.play?.(TIMELINE_BY_STATE[latestState]);
             }
           },
           onLoadError: () => {
-            if (!disposed) setLoadFailed(true);
+            if (!disposed) {
+              setRiveReady(false);
+              setLoadFailed(true);
+            }
           },
         });
         riveRef.current = instance;
         resizeHandler = () => instance.resizeDrawingSurfaceToCanvas?.();
         window.addEventListener("resize", resizeHandler);
       } catch {
+        setRiveReady(false);
         setLoadFailed(true);
       }
     };
@@ -105,7 +116,7 @@ export function RiveCharacter({
   }, [modeInputName, reduceMotion, src, stateMachine]);
 
   useEffect(() => {
-    if (reduceMotion) return;
+    if (reduceMotion || !riveReady) return;
     const modeInput = modeInputRef.current;
     const instance = riveRef.current;
     if (!instance) return;
@@ -117,24 +128,23 @@ export function RiveCharacter({
 
     const timeline = TIMELINE_BY_STATE[normalizedState];
     if (timeline) instance.play?.(timeline);
-  }, [normalizedState, reduceMotion]);
-
-  if (reduceMotion || loadFailed) {
-    return (
-      <img
-        src="/re-assets/char_stand.jpg"
-        alt=""
-        aria-hidden="true"
-        className={`pointer-events-none select-none object-contain ${className}`.trim()}
-      />
-    );
-  }
+  }, [normalizedState, reduceMotion, riveReady]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden="true"
-      className={`pointer-events-none block select-none ${className}`.trim()}
-    />
+    <div aria-hidden="true" className={`pointer-events-none relative select-none ${className}`.trim()}>
+      {(!riveReady || reduceMotion || loadFailed) && (
+        <img
+          src="/re-assets/char_stand.jpg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-contain"
+        />
+      )}
+      {!reduceMotion && !loadFailed && (
+        <canvas
+          ref={canvasRef}
+          className={`block h-full w-full transition-opacity duration-150 ${riveReady ? "opacity-100" : "opacity-0"}`}
+        />
+      )}
+    </div>
   );
 }
