@@ -68,7 +68,7 @@ export function WebSidebar({
         </button>
 
         <div className="re-web-sidebar__profile">
-          <img src="/re-assets/sd_idle.jpg" alt="" className="re-web-sidebar__avatar" />
+          <img src="/re-assets/sd/idle.png" alt="" className="re-web-sidebar__avatar" />
           <div className="min-w-0">
             <strong>RE.</strong>
             <span>{profile?.nickname ? `${profile.nickname}님과 함께` : "언제나, 너와 함께"}</span>

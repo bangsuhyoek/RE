@@ -222,7 +222,7 @@ export function HomeScreen({
           <div className="re-dashboard-greeting__aside">
             <span>작은 변화가,</span>
             <strong>더 여유로운 내일을 만들어요.</strong>
-            <img src="/re-assets/char_stand.jpg" alt="" />
+            <img src="/re-assets/sd/idle.png" alt="" />
           </div>
         </header>
 
@@ -260,7 +260,7 @@ export function HomeScreen({
                   {primaryPromotion ? "혜택 확인하기" : "구독 정리하러 가기"} <ArrowRight size={13} />
                 </button>
               </div>
-              <img src="/re-assets/char_stand.jpg" alt="" />
+              <img src="/re-assets/sd/idle.png" alt="" />
             </article>
           </div>
         </section>
