@@ -6,6 +6,7 @@ export const storageKeys = {
   onboardingComplete: `${KEY_PREFIX}:onboarding-complete`,
   introSeen: `${KEY_PREFIX}:intro-seen`,
   savedAmount: `${KEY_PREFIX}:saved-amount`,
+  cancellationHistory: `${KEY_PREFIX}:cancellation-history`,
 };
 
 export const readStoredValue = (key, fallback) => {
@@ -39,3 +40,6 @@ export const clearStoredValue = (key) => {
 // 새 운영 코드에서는 seed/mock 구독을 생성하지 않습니다.
 export const removeDemoSubscriptions = (items) =>
   (Array.isArray(items) ? items : []).filter((subscription) => !String(subscription.subscriptionId || "").startsWith("seed-"));
+
+export const sanitizeCancellationHistory = (items) =>
+  (Array.isArray(items) ? items : []).filter((item) => item && !String(item.subscriptionId || "").startsWith("seed-"));
