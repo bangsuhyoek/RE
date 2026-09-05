@@ -1,52 +1,52 @@
-import { Check, ChevronRight } from "lucide-react";
-import { Button, ServiceMark } from "./ui";
-import { formatWon } from "../lib/dates";
+import { ChevronRight, LockKeyhole, Sparkles } from "lucide-react";
+import { Button } from "./ui";
 
-export function OnboardingScreen({ catalog, selectedIds, onToggle, onFinish, onSkip }) {
-  const selected = catalog.filter((service) => selectedIds.includes(service.id));
-  const monthlyTotal = selected.reduce((total, service) => total + service.amount, 0);
-
+export function OnboardingScreen({ onSkip }) {
   return (
-    <main className="min-h-screen pb-32">
-      <header className="flex items-center justify-between px-5 pb-6 pt-7">
-        <span className="text-[13px] font-semibold text-[#71717A]">Step 1 of 2</span>
-        <button type="button" onClick={onSkip} className="text-[13px] font-medium text-[#71717A] underline underline-offset-4 hover:text-black">건너뛰기</button>
+    <main className="re-page min-h-screen px-5 pb-10 pt-8">
+      <header className="flex items-center justify-between">
+        <span className="re-serif text-[24px] font-semibold tracking-[-0.04em] text-[#303633]">RE.</span>
+        <button type="button" onClick={onSkip} className="text-[12px] font-medium text-[#7d8983]">
+          나중에
+        </button>
       </header>
-      <section className="px-5">
-        <p className="text-[13px] font-medium text-[#71717A]">3초만에 완성해요</p>
-        <h1 className="mt-2 text-[24px] font-bold leading-tight tracking-[-0.02em]">현재 이용 중인<br />구독을 선택해주세요</h1>
-        <p className="mt-3 text-[14px] leading-6 text-[#71717A]">선택한 서비스의 기본 요금과 결제일을 자동으로 불러와요. 나중에 언제든 수정할 수 있어요.</p>
-      </section>
 
-      <section className="mt-8 grid grid-cols-2 gap-3 px-5" aria-label="구독 서비스 선택">
-        {catalog.map((service) => {
-          const selectedNow = selectedIds.includes(service.id);
-          return (
-            <button
-              key={service.id}
-              type="button"
-              onClick={() => onToggle(service.id)}
-              aria-pressed={selectedNow}
-              className={`card-press relative min-h-36 rounded-2xl border p-4 text-left transition-colors ${selectedNow ? "border-black bg-[#FAFAFA]" : "border-[#E4E4E7] bg-white hover:border-[#A1A1AA]"}`}
-            >
-              {selectedNow && <span className="absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-full bg-black text-white"><Check size={13} strokeWidth={3} /></span>}
-              <ServiceMark monogram={service.monogram} className="h-10 w-10 rounded-xl text-[13px]" />
-              <span className="mt-4 block truncate text-[14px] font-semibold">{service.name}</span>
-              <span className="mt-1 block text-[12px] text-[#71717A]">{formatWon(service.amount)} / 월</span>
-            </button>
-          );
-        })}
-      </section>
-
-      <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-[420px] -translate-x-1/2 border-x border-t border-[#E4E4E7] bg-white px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
-        <div className="mb-3 flex items-center justify-between text-[13px]">
-          <span className="font-medium text-[#71717A]"><strong className="font-semibold text-black">{selected.length}개</strong> 선택됨</span>
-          <span className="font-semibold">예상 월 {formatWon(monthlyTotal)}</span>
+      <section className="pt-16">
+        <div className="re-orb grid h-20 w-20 place-items-center rounded-full">
+          <Sparkles size={25} strokeWidth={1.5} />
         </div>
-        <Button className="w-full" disabled={selected.length === 0} onClick={onFinish}>
-          선택한 {selected.length}개로 시작하기
+        <p className="mt-9 text-[12px] font-semibold tracking-[0.12em] text-[#8b829d]">FIRST CARE</p>
+        <h1 className="re-serif mt-3 text-[31px] font-semibold leading-[1.25] tracking-[-0.04em] text-[#303633]">
+          지금 이용 중인 구독을<br />찾아볼까요?
+        </h1>
+        <p className="mt-5 text-[14px] leading-6 text-[#7d8983]">
+          흩어진 구독은 한곳에서 정리하고,<br />
+          필요한 순간에는 RE.가 먼저 알려드릴게요.
+        </p>
+      </section>
+
+      <section className="re-soft-card mt-10 rounded-[24px] p-5">
+        <div className="flex gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white/75 text-[#756d88]">
+            <LockKeyhole size={18} />
+          </span>
+          <div>
+            <strong className="block text-[13px] text-[#37413d]">확인 전에는 등록하지 않아요</strong>
+            <p className="mt-1 text-[12px] leading-5 text-[#7d8983]">
+              구독으로 보이는 내역을 찾더라도, 맞는지 확인한 뒤에만 관리에 추가해요.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="mt-10">
+        <Button className="w-full" onClick={onSkip}>
+          구독 찾아보기
           <ChevronRight size={17} />
         </Button>
+        <button type="button" onClick={onSkip} className="mt-4 w-full text-[12px] font-medium text-[#7d8983]">
+          직접 등록할게요
+        </button>
       </div>
     </main>
   );
