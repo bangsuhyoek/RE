@@ -1,5 +1,5 @@
 export const publicRoutes = new Set(["landing", "splash", "intro", "login", "register"]);
-export const appRoutes = new Set(["onboarding", "home", "subscriptions", "calendar", "promotions", "detail"]);
+export const appRoutes = new Set(["onboarding", "home", "subscriptions", "calendar", "promotions", "detail", "settings"]);
 export const knownRoutes = new Set([...publicRoutes, ...appRoutes]);
 
 export const parseHash = (hash = "") => {
