@@ -15,6 +15,11 @@ test("기존 사용자는 온보딩 완료 여부를 보존한다", () => {
   assert.equal(routeForSession({ requestedRoute: null, hasProfile: true, onboardingComplete: false }), "onboarding");
 });
 
+test("온보딩 미완료 사용자의 앱 딥링크는 온보딩으로 보호한다", () => {
+  assert.equal(routeForSession({ requestedRoute: "detail", hasProfile: true, onboardingComplete: false }), "onboarding");
+  assert.equal(routeForSession({ requestedRoute: "onboarding", hasProfile: true, onboardingComplete: false }), "onboarding");
+});
+
 test("공개 화면은 로그인 전에도 직접 접근할 수 있다", () => {
   assert.equal(routeForSession({ requestedRoute: "register", hasProfile: false, onboardingComplete: false }), "register");
   assert.equal(routeForSession({ requestedRoute: "landing", hasProfile: false, onboardingComplete: false }), "landing");
