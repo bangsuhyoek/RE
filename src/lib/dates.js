@@ -14,7 +14,7 @@ const parseLocalDate = (value) => {
 
 export const formatWon = (amount) => {
   const value = Number(amount || 0);
-  return `₩${(Number.isFinite(value) ? value : 0).toLocaleString("ko-KR")}`;
+  return `₩${Math.round(Number.isFinite(value) ? value : 0).toLocaleString("ko-KR")}`;
 };
 
 export const getMonthKey = (date = new Date()) =>
@@ -120,7 +120,7 @@ export const formatKoreanMonth = (yearOrDate, monthIndex) => {
 export const monthlyEquivalentAmount = (subscription) => {
   const amount = Number(subscription?.amount || 0);
   if (!Number.isFinite(amount) || amount <= 0) return 0;
-  return isAnnual(subscription) ? amount / 12 : amount;
+  return isAnnual(subscription) ? Math.round(amount / 12) : Math.round(amount);
 };
 
 export const monthlyEquivalentTotal = (subscriptions = []) =>
