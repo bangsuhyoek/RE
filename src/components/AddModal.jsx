@@ -48,6 +48,7 @@ const blankForm = (service = null) => ({
   amount: "",
   dueDay: "",
   billingCycle: "매월",
+  nextBillingDate: "",
   paymentMethod: "",
   cancelUrl: service?.cancelUrl || "",
   isTrial: false,
@@ -103,6 +104,7 @@ export function AddModal({ catalog = [], initialService = null, onClose, onAdd }
         amount: recognized.amount || "",
         dueDay: recognized.dueDay || "",
         billingCycle: recognized.billingCycle || "매월",
+        nextBillingDate: recognized.nextBillingDate || "",
         paymentMethod: recognized.paymentMethod || "",
         cancelUrl: matched?.cancelUrl || "",
         isTrial: false,
@@ -119,17 +121,25 @@ export function AddModal({ catalog = [], initialService = null, onClose, onAdd }
   };
 
   const save = () => {
-    if (!form?.name || !form.plan || !Number(form.amount) || !Number(form.dueDay)) {
+    const amount = Number(form?.amount);
+    const nextBillingDate = String(form?.nextBillingDate || "").trim();
+    const parsedDate = nextBillingDate ? new Date(`${nextBillingDate}T00:00:00`) : null;
+    const dueDay = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.getDate() : Number(form?.dueDay);
+
+    if (!form?.name || !form.plan || !Number.isFinite(amount) || amount <= 0 || !Number.isFinite(dueDay)) {
       setError("서비스명, 요금제, 결제 금액, 결제일을 확인해 주세요.");
       return;
     }
-    const amount = Number(form.amount);
-    const dueDay = Number(form.dueDay);
-    if (amount <= 0 || dueDay < 1 || dueDay > 31) {
+    if (tab === "manual" && !nextBillingDate) {
+      setError("다음 결제일을 확인해 주세요.");
+      return;
+    }
+    if (dueDay < 1 || dueDay > 31) {
       setError("결제 금액과 결제일을 올바르게 입력해 주세요.");
       return;
     }
-    const outcome = onAdd({ ...form, amount, dueDay });
+
+    const outcome = onAdd({ ...form, amount, dueDay, nextBillingDate });
     if (outcome === true) onClose();
   };
 
@@ -167,7 +177,11 @@ export function AddModal({ catalog = [], initialService = null, onClose, onAdd }
         <label className="block text-[12px] font-medium text-[#71717A]">요금제<input value={form.plan} onChange={(event) => update("plan", event.target.value)} className={inputClass(!form.plan)} placeholder="요금제를 입력해 주세요" /></label>
         <div className="grid grid-cols-2 gap-3">
           <label className="block text-[12px] font-medium text-[#71717A]">결제 금액<input type="number" min="1" value={form.amount} onChange={(event) => update("amount", event.target.value)} className={inputClass(!Number(form.amount))} placeholder="0" /></label>
-          <label className="block text-[12px] font-medium text-[#71717A]">결제일<input type="number" min="1" max="31" value={form.dueDay} onChange={(event) => update("dueDay", event.target.value)} className={inputClass(!Number(form.dueDay))} placeholder="1~31" /></label>
+          {tab === "manual" ? (
+            <label className="block text-[12px] font-medium text-[#71717A]">다음 결제일<input type="date" value={form.nextBillingDate} onChange={(event) => update("nextBillingDate", event.target.value)} className={inputClass(!form.nextBillingDate)} /></label>
+          ) : (
+            <label className="block text-[12px] font-medium text-[#71717A]">결제일<input type="number" min="1" max="31" value={form.dueDay} onChange={(event) => update("dueDay", event.target.value)} className={inputClass(!Number(form.dueDay))} placeholder="1~31" /></label>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-3">
           <label className="block text-[12px] font-medium text-[#71717A]">결제 주기<select value={form.billingCycle} onChange={(event) => update("billingCycle", event.target.value)} className={inputClass(false)}><option>매월</option><option>매년</option></select></label>

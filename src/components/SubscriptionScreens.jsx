@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, FilterX, RefreshCw, Search, Settings2, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, FilterX, RefreshCw, Search, Settings2, SlidersHorizontal } from "lucide-react";
 import { Button, DDayBadge, ServiceMark, SubscriptionCard, ToggleSwitch } from "./ui";
 import { daysUntilCharge, formatBillingDate, formatKoreanMonth, formatWon, getCalendarDays, getLastDate } from "../lib/dates";
 
@@ -102,13 +102,24 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
       )}
 
       <section className="re-surface-card mt-5 rounded-2xl border border-[#E4E4E7] bg-[#FAFAFA] p-4">
-        <h2 className="text-[15px] font-semibold">사전 알림 설정</h2><p className="mt-1 text-[12px] leading-5 text-[#71717A]">원치 않는 자동 결제 전에 알려드려요.</p>
+        <h2 className="text-[15px] font-semibold">결제 전 알림 설정</h2><p className="mt-1 text-[12px] leading-5 text-[#71717A]">원치 않는 자동 결제 전에 알려드려요.</p>
         <div className="mt-4 divide-y divide-[#E4E4E7]"><div className="flex items-center justify-between py-3"><span><strong className="block text-[14px]">결제 3일 전</strong><span className="text-[12px] text-[#71717A]">D-3 알림</span></span><ToggleSwitch checked={Boolean(subscription.alertD3)} onChange={(checked) => onUpdate(subscription.subscriptionId, { alertD3: checked })} label="결제 3일 전 알림" /></div><div className="flex items-center justify-between py-3"><span><strong className="block text-[14px]">결제 하루 전</strong><span className="text-[12px] text-[#71717A]">D-1 알림</span></span><ToggleSwitch checked={Boolean(subscription.alertD1)} onChange={(checked) => onUpdate(subscription.subscriptionId, { alertD1: checked })} label="결제 하루 전 알림" /></div></div>
+      </section>
+
+      <section className="mt-5">
+        <Button
+          className="w-full"
+          variant="secondary"
+          disabled={!subscription.cancelUrl}
+          onClick={() => subscription.cancelUrl && window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer")}
+        >
+          공식 웹사이트 열기 <ExternalLink size={15} />
+        </Button>
       </section>
 
       {promotion && <section className="re-surface-card mt-5 rounded-2xl border border-black bg-white p-4"><p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">절약 기회</p><h2 className="mt-2 text-[16px] font-semibold">{promotion.title}</h2><p className="mt-1 text-[13px] text-[#71717A]">이 구독을 해지한 뒤 혜택을 받을 수 있어요.</p></section>}
 
-      <div className="mt-8 space-y-3"><Button className={`w-full ${highlightCancel ? "cancel-highlight" : ""}`} onClick={() => onStartCancel(subscription.subscriptionId, promotion)}>웹사이트에서 다이렉트 해지하기</Button><Button className="w-full" variant="secondary" onClick={() => setEditing((value) => !value)}>{editing ? "수정 닫기" : "구독 정보 수정"}</Button></div>
+      <div className="mt-8 space-y-3"><Button className={`w-full ${highlightCancel ? "cancel-highlight" : ""}`} onClick={() => onStartCancel(subscription.subscriptionId, promotion)}>{subscription.status === "cancel_in_progress" ? "해지 계속하기" : "구독 해지하기"}</Button><Button className="w-full" variant="secondary" onClick={() => setEditing((value) => !value)}>{editing ? "수정 닫기" : "구독 정보 수정"}</Button></div>
     </main>
   );
 }
