@@ -53,7 +53,7 @@ export function LandingScreen({ onContinue }) {
             <span className="rounded-full border border-white/80 bg-white/60 px-3 py-1.5 text-[10px] font-bold tracking-[0.16em] text-[#6677AD] shadow-sm backdrop-blur-md">RE. WEB</span>
           </div>
 
-          <div className="mt-14 max-w-[560px] lg:mt-auto lg:mb-auto">
+          <div className="mt-14 max-w-[560px] lg:mb-auto lg:mt-auto">
             <p className="re-eyebrow">YOUR SUBSCRIPTIONS, IN ONE PLACE</p>
             <h1 className="re-serif-title mt-4 text-[38px] font-bold leading-[1.2] tracking-[-0.045em] text-[#1B2A8C] sm:text-[46px] lg:text-[54px] xl:text-[62px]">
               잊고 있던 구독까지,<br />RE.가 먼저 챙길게요.
@@ -70,7 +70,7 @@ export function LandingScreen({ onContinue }) {
             </div>
 
             <Button className="mt-8 min-h-[52px] w-full max-w-[420px] sm:min-h-[56px]" onClick={onContinue}>
-              서비스 소개 보기 <ArrowRight size={18} />
+              시작하기 <ArrowRight size={18} />
             </Button>
           </div>
 
@@ -94,7 +94,7 @@ export function IntroScreen({ onContinue }) {
         <div className="re-intro-copy flex flex-col px-6 pb-8 pt-8 sm:px-10 lg:px-12 lg:pb-12 lg:pt-10 xl:px-16">
           <RELogo markClassName="h-[38px] w-auto md:h-[44px]" />
 
-          <div className="mt-12 max-w-[540px] lg:mt-auto lg:mb-auto">
+          <div className="mt-12 max-w-[540px] lg:mb-auto lg:mt-auto">
             <p className="re-eyebrow">RE. CARE</p>
             <h1 className="re-serif-title mt-4 text-[36px] font-bold leading-[1.25] tracking-[-0.04em] text-[#1B2A8C] sm:text-[44px] lg:text-[50px]">
               구독도, 나답게.<br />필요한 순간에만 함께.
