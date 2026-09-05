@@ -44,6 +44,12 @@ export default function App() {
   const initialRequested = useRef(readHash());
   const initialOnboardingComplete = readStoredValue(storageKeys.onboardingComplete, Boolean(storedProfile));
   const initialIntroSeen = readStoredValue(storageKeys.introSeen, false);
+  const requestedAtBoot = initialRequested.current;
+  const initialRoute = !requestedAtBoot.route
+    ? "landing"
+    : APP_ROUTES.has(requestedAtBoot.route)
+      ? "splash"
+      : requestedAtBoot.route;
 
   const [profile, setProfile] = useState(storedProfile);
   const profileRef = useRef(storedProfile);
@@ -56,8 +62,13 @@ export default function App() {
   const [introSeen, setIntroSeen] = useState(initialIntroSeen);
   const introSeenRef = useRef(initialIntroSeen);
   const [savedAmount, setSavedAmount] = useState(() => readStoredValue(storageKeys.savedAmount, 0));
-  const [screen, setScreen] = useState({ route: "splash", id: null, params: new URLSearchParams() });
+  const [screen, setScreen] = useState({
+    route: initialRoute,
+    id: initialRoute === requestedAtBoot.route ? requestedAtBoot.id : null,
+    params: initialRoute === requestedAtBoot.route ? requestedAtBoot.params : new URLSearchParams(),
+  });
   const screenRef = useRef(screen);
+  const launchIntentRef = useRef("default");
   const [loginBackToIntro, setLoginBackToIntro] = useState(false);
   const [pageTurn, setPageTurn] = useState("");
   const pageTurnTimerRef = useRef(null);
@@ -113,11 +124,23 @@ export default function App() {
     if (window.location.hash !== hash) window.location.hash = hash;
   };
 
+  const startAppFromLanding = (intent = "default") => {
+    launchIntentRef.current = intent;
+    initialRequested.current = { route: "", id: null, params: new URLSearchParams() };
+    navigate("splash");
+  };
+
   const routeAfterSplash = () => {
     setLoginBackToIntro(false);
+    const launchIntent = launchIntentRef.current;
+    launchIntentRef.current = "default";
 
+    if (launchIntent === "login") {
+      navigate("login");
+      return;
+    }
     if (!introSeenRef.current) {
-      navigate("landing");
+      navigate("intro", null, "page-turn");
       return;
     }
     if (!profileRef.current) {
@@ -142,7 +165,14 @@ export default function App() {
   useEffect(() => {
     const onHashChange = () => {
       const next = readHash();
-      if (!next.route || next.route === "splash") return;
+      if (!next.route) {
+        setScreen({ route: "landing", id: null, params: new URLSearchParams() });
+        return;
+      }
+      if (next.route === "splash") {
+        setScreen(next);
+        return;
+      }
       if (!PUBLIC_ROUTES.has(next.route) && !APP_ROUTES.has(next.route)) {
         navigate(profileRef.current ? "home" : "login");
         return;
@@ -163,13 +193,33 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  useEffect(() => window.scrollTo(0, 0), [screen.route, screen.id]);
-  useEffect(() => writeStoredValue(storageKeys.profile, profile), [profile]);
-  useEffect(() => writeStoredValue(storageKeys.subscriptions, subscriptions), [subscriptions]);
-  useEffect(() => writeStoredValue(storageKeys.onboardingComplete, onboardingComplete), [onboardingComplete]);
-  useEffect(() => writeStoredValue(storageKeys.introSeen, introSeen), [introSeen]);
-  useEffect(() => writeStoredValue(storageKeys.savedAmount, savedAmount), [savedAmount]);
-  useEffect(() => saveStoredNotifications(notifications), [notifications]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screen.route, screen.id]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.profile, profile);
+  }, [profile]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.subscriptions, subscriptions);
+  }, [subscriptions]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.onboardingComplete, onboardingComplete);
+  }, [onboardingComplete]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.introSeen, introSeen);
+  }, [introSeen]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.savedAmount, savedAmount);
+  }, [savedAmount]);
+
+  useEffect(() => {
+    saveStoredNotifications(notifications);
+  }, [notifications]);
 
   useEffect(() => {
     if (!subscriptions.length) return;
@@ -219,6 +269,12 @@ export default function App() {
   const handleIntroComplete = () => {
     introSeenRef.current = true;
     setIntroSeen(true);
+
+    if (profileRef.current) {
+      navigate(onboardingCompleteRef.current ? "home" : "onboarding", null, "page-turn");
+      return;
+    }
+
     setLoginBackToIntro(true);
     navigate("login", null, "page-turn");
   };
@@ -357,7 +413,6 @@ export default function App() {
     setSavedAmount((amount) => amount + Number(saved || target.amount || 0));
     setRenewalTarget(null);
     if (screenRef.current.route === "detail") navigate("subscriptions");
-    // 완료 모션은 기능 처리가 끝난 뒤 보이므로 cancelTarget은 모션 종료까지 유지합니다.
   };
 
   const muteSubscription = (subscriptionId) => {
@@ -424,14 +479,14 @@ export default function App() {
     notify("결제 전 알림을 껐어요.");
   };
 
-  const hasAppChrome = Boolean(profile) && !PUBLIC_ROUTES.has(screen.route) && screen.route !== "onboarding";
+  const hasAppChrome = Boolean(profile) && APP_ROUTES.has(screen.route) && screen.route !== "onboarding";
   const pageTitles = { home: "RE.", subscriptions: "구독 목록", calendar: "결제 캘린더", promotions: "혜택", detail: "구독 상세" };
 
   let content;
-  if (screen.route === "splash") {
+  if (screen.route === "landing") {
+    content = <LandingScreen onStart={() => startAppFromLanding("default")} onLogin={() => startAppFromLanding("login")} />;
+  } else if (screen.route === "splash") {
     content = <SplashScreen onDone={routeAfterSplash} />;
-  } else if (screen.route === "landing") {
-    content = <LandingScreen onContinue={() => navigate("intro", null, "page-turn")} />;
   } else if (screen.route === "intro") {
     content = <IntroScreen onContinue={handleIntroComplete} />;
   } else if (screen.route === "register") {
@@ -493,7 +548,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell" data-screen={screen.route}>
+    <div className={`app-shell ${hasAppChrome ? "app-shell-authenticated" : "app-shell-public"}`} data-screen={screen.route}>
       {hasAppChrome && (
         <AppHeader
           title={pageTitles[screen.route] || "RE."}
