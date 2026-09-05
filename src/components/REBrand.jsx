@@ -1,48 +1,31 @@
-import { RE_ASSETS } from "../reBrand";
-
-export function RELogo({ stacked = false, className = "", markClassName = "" }) {
+export function RELogo({ className = "", markClassName = "h-9 w-auto", stacked = false }) {
   if (stacked) {
     return (
-      <div className={`re-logo-stacked ${className}`} aria-label="RE.">
-        <img src={RE_ASSETS.logoMark} alt="" className={markClassName || "h-[76px] w-auto"} />
-        <span className="re-wordmark">RE.</span>
+      <div className={`flex flex-col items-center ${className}`.trim()}>
+        <img src="/re-assets/logo_mark.png" alt="RE." className={`${markClassName} object-contain`} />
+        <img src="/re-assets/logo_lockup.png" alt="" aria-hidden="true" className="mt-2 h-8 w-auto object-contain" />
       </div>
     );
   }
+
   return (
-    <div className={`re-logo-lockup ${className}`} aria-label="RE.">
-      <img src={RE_ASSETS.logoMark} alt="" className={markClassName || "h-9 w-auto"} />
-      <span className="re-wordmark">RE.</span>
+    <div className={`inline-flex items-center ${className}`.trim()}>
+      <img src="/re-assets/logo_mark.png" alt="RE." className={`${markClassName} object-contain`} />
     </div>
   );
 }
 
-const stateAsset = {
-  idle: RE_ASSETS.sdIdle,
-  cheer: RE_ASSETS.mCheer,
-  sorry: RE_ASSETS.sdSorry,
-  loading: RE_ASSETS.sdLoading,
-  done: RE_ASSETS.sdDone,
-  guide: RE_ASSETS.sdGuide,
-  complete: RE_ASSETS.sdDoneP07,
-  stand: RE_ASSETS.charStand,
-};
+export function WaterBackground({ variant = "default" }) {
+  const asset = variant === "signup"
+    ? "/re-assets/signup_bg.jpg"
+    : variant === "splash"
+      ? "/re-assets/splash_bg.jpg"
+      : "/re-assets/bg_plate.jpg";
 
-export function RECharacter({ state = "idle", className = "", alt = "RE. 가이드 캐릭터" }) {
-  const src = stateAsset[state] || stateAsset.idle;
-  return <img src={src} alt={alt} className={`re-character re-character-${state} ${className}`} />;
-}
-
-export function WaterBackground({ variant = "splash", className = "" }) {
-  const src = variant === "signup" ? RE_ASSETS.signupBg : RE_ASSETS.splashBg;
   return (
-    <div className={`re-water-bg ${className}`} aria-hidden="true">
-      <img src={src} alt="" />
-      <div className="re-water-fade" />
-    </div>
+    <>
+      <img src={asset} alt="" aria-hidden="true" className="re-water-background" />
+      <div className="re-water-wash" aria-hidden="true" />
+    </>
   );
-}
-
-export function REEyebrow({ children, className = "" }) {
-  return <p className={`re-eyebrow ${className}`}>{children}</p>;
 }

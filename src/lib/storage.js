@@ -4,6 +4,7 @@ export const storageKeys = {
   subscriptions: `${KEY_PREFIX}:subscriptions`,
   profile: `${KEY_PREFIX}:profile`,
   onboardingComplete: `${KEY_PREFIX}:onboarding-complete`,
+  introSeen: `${KEY_PREFIX}:intro-seen`,
   savedAmount: `${KEY_PREFIX}:saved-amount`,
 };
 
@@ -24,5 +25,7 @@ export const clearStoredValue = (key) => {
   window.localStorage.removeItem(key);
 };
 
+// 이전 개발 버전에서 남아 있을 수 있는 seed 데이터만 마이그레이션 단계에서 제거합니다.
+// 새 운영 코드에서는 seed/mock 구독을 생성하지 않습니다.
 export const removeDemoSubscriptions = (items) =>
-  items.filter((subscription) => !String(subscription.subscriptionId || "").startsWith("seed-"));
+  (Array.isArray(items) ? items : []).filter((subscription) => !String(subscription.subscriptionId || "").startsWith("seed-"));
