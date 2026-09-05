@@ -1,0 +1,31 @@
+RE. V6 Final Reference Parity Patch
+===================================
+
+기준
+- 사용자가 2026-09-06에 제공한 최종 UI 이미지 7장을 기능별 Source of Truth로 사용.
+- 기존 V5 위에 덮어쓰는 교체 ZIP.
+- DB/Supabase 구조 변경 없음.
+- 운영 fake/mock subscription/promotion 추가 없음.
+
+핵심 변경
+1) Home greeting/summary를 최종 이미지의 크기·배치·정보 위계로 보정.
+2) Sidebar logo/active row/profile을 최종 이미지 형태로 보정.
+3) Home 내 구독 서비스: title/action → tabs + category/sort/search → 4열 compact cards 구조로 보정.
+4) Mini Calendar: 결제일 pastel circle + 월별 결제 일정 그룹 표시.
+5) Mini Calendar 월 변경 시 29/30/31 선택 날짜를 새 달의 말일로 clamp.
+6) Concierge: 최종 세로 배너 형태(상단 메시지 카드 / 캐릭터 / 오늘의 한마디 카드)로 보정.
+7) 기존 uniform black ServiceMark는 V6 final layer에서 neutral RE. tone으로 제거.
+8) 알려진 서비스는 service metadata/id/name/title 기반 tone만 사용하고 monogram 한 글자로 브랜드를 추정하지 않음.
+9) Mobile Home AppHeader에서 watercolor lockup + RE. 중복 노출 방지.
+10) 기존 V5/V4/정책 회귀 테스트를 최신 최종 UI 계약에 맞춰 갱신하고 V6 regression test 추가.
+
+서비스 아이콘 주의
+- 저장소에 공식 Netflix/YouTube/Spotify/Disney+ 로고 자산이 없으므로 가짜 공식 로고 이미지를 새로 만들지 않음.
+- 최종 이미지의 원형 크기/브랜드 인지 색상은 metadata-backed monogram으로 맞춤.
+- Netflix=dark/red, YouTube=red/white, Spotify=green/white, Disney+=blue/white 등.
+
+검증
+- patch 관련 source-contract tests: 32/32 PASS
+- serviceMarkToneKey 직접 테스트: custom Notion(monogram N) => default, Netflix(id/name) => netflix PASS
+- JSX delimiter balance(HomeScreen.jsx): PASS
+- 실제 사용자 로컬 전체 npm test/build는 ZIP 적용 후 다시 실행해야 함.

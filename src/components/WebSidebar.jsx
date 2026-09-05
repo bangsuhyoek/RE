@@ -35,7 +35,7 @@ export function WebSidebar({
   return (
     <aside className="re-web-sidebar" aria-label="데스크톱 주요 탐색">
       <div className="re-web-sidebar__brand">
-        <RELogo markClassName="h-[34px] w-auto" />
+        <RELogo size="sm" />
       </div>
 
       <nav className="re-web-sidebar__nav">
@@ -68,11 +68,12 @@ export function WebSidebar({
         </button>
 
         <div className="re-web-sidebar__profile">
-          <img src="/re-assets/sd/idle.png" alt="" className="re-web-sidebar__avatar" />
-          <div className="min-w-0">
+          <img src="/re-assets/char_stand.jpg" alt="" className="re-web-sidebar__avatar" />
+          <div className="min-w-0 flex-1">
             <strong>RE.</strong>
-            <span>{profile?.nickname ? `${profile.nickname}님과 함께` : "언제나, 너와 함께"}</span>
+            <span>언제나, 너와 함께.</span>
           </div>
+          <span className="re-web-sidebar__profile-close" aria-hidden="true">×</span>
         </div>
       </div>
     </aside>

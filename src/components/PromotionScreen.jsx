@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, BadgePercent, CircleDollarSign } from "lucide-react";
+import { ArrowRight, CircleDollarSign } from "lucide-react";
 import { Button, ServiceMark } from "./ui";
+import { RiveCharacter } from "./RiveCharacter";
 import { formatWon } from "../lib/dates";
+import { serviceMarkToneClass } from "../lib/serviceBrand";
 
 const filters = [
   { id: "all", label: "전체 혜택" },
@@ -34,26 +36,30 @@ export function PromotionScreen({ subscriptions, promotions = [], onOpenPromotio
   );
 
   return (
-    <main className="px-5 pb-28 pt-6">
-      <p className="re-eyebrow">BENEFITS</p>
-      <h1 className="mt-1 text-[24px] font-bold tracking-[-0.02em] text-[#1B2A8C]">맞춤 혜택 &amp; 프로모션</h1>
-      <p className="mt-2 text-[13px] leading-5 text-[#71717A]">등록한 구독과 연결되는 유효한 혜택만 보여드려요.</p>
+    <main className="re-benefit-page px-5 pb-28 pt-6">
+      <header className="re-section-heading re-benefit-heading">
+        <div>
+          <p className="re-eyebrow">BENEFITS</p>
+          <h1>맞춤 혜택 &amp; 프로모션</h1>
+          <p>등록한 구독과 연결되는 유효한 혜택만 보여드려요.</p>
+        </div>
+      </header>
 
       {eligible.length > 0 && (
-        <section className="re-summary-card mt-5 rounded-2xl bg-[#18181B] p-4 text-white">
-          <span className="text-[12px] font-medium text-white/70">현재 연결된 혜택 기준 예상 절약</span>
-          <strong className="mt-2 block text-[24px] font-bold text-white">{formatWon(totalPotentialSaving)}</strong>
-          <p className="mt-1 text-[11px] text-white/60">실제 적용 금액과 조건은 혜택 상세에서 다시 확인해 주세요.</p>
+        <section className="re-benefit-summary re-summary-card mt-5 rounded-2xl p-4">
+          <span>현재 연결된 혜택 기준 예상 절약</span>
+          <strong>{formatWon(totalPotentialSaving)}</strong>
+          <p>실제 적용 금액과 조건은 혜택 상세에서 다시 확인해 주세요.</p>
         </section>
       )}
 
-      <div className="mt-6 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="re-benefit-filters mt-6 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {filters.map((item) => (
           <button
             type="button"
             key={item.id}
             onClick={() => setFilter(item.id)}
-            className={`shrink-0 rounded-full border px-3 py-2 text-[12px] font-semibold transition-colors ${filter === item.id ? "border-black bg-black text-white" : "border-[#E4E4E7] bg-white text-[#71717A] hover:border-[#A1A1AA]"}`}
+            className={filter === item.id ? "is-active" : ""}
           >
             {item.label}
           </button>
@@ -61,23 +67,26 @@ export function PromotionScreen({ subscriptions, promotions = [], onOpenPromotio
       </div>
 
       {filtered.length > 0 ? (
-        <section className="mt-5 space-y-4">
+        <section className="re-benefit-grid mt-5">
           {filtered.map((promotion) => (
-            <article key={promotion.id} className="re-surface-card relative rounded-2xl border border-[#E4E4E7] bg-white p-4">
+            <article key={promotion.id} className="re-benefit-card re-surface-card relative rounded-2xl p-4">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-1.5"><span className="rounded-[4px] bg-[#F4F4F5] px-2 py-1 text-[11px] font-bold text-[#71717A]">{promotion.kind || "혜택"}</span><span className="rounded-[4px] bg-black px-2 py-1 text-[11px] font-bold text-white">내 구독 추천</span></div>
-                {Number.isFinite(Number(promotion.dday)) && <span className="rounded-[4px] border border-black px-2 py-1 text-[11px] font-bold">D-{promotion.dday}</span>}
+                <div className="flex items-center gap-1.5">
+                  <span className="re-benefit-chip">{promotion.kind || "혜택"}</span>
+                  <span className="re-benefit-chip is-recommended">내 구독 추천</span>
+                </div>
+                {Number.isFinite(Number(promotion.dday)) && <span className="re-benefit-dday">D-{promotion.dday}</span>}
               </div>
 
               <div className="mt-4 flex gap-3">
-                <ServiceMark monogram={promotion.monogram || promotion.title?.slice(0, 1)} className="h-11 w-11 rounded-xl text-[13px]" />
-                <div className="min-w-0 flex-1"><h2 className="text-[16px] font-semibold tracking-[-0.01em]">{promotion.title}</h2><p className="mt-1 text-[13px] leading-5 text-[#71717A]">{promotion.description}</p></div>
+                <ServiceMark monogram={promotion.monogram || promotion.title?.slice(0, 1)} className={`h-11 w-11 rounded-full text-[13px] ${serviceMarkToneClass(promotion)}`} />
+                <div className="min-w-0 flex-1"><h2>{promotion.title}</h2><p>{promotion.description}</p></div>
               </div>
 
               {(promotion.offerPrice !== undefined || promotion.saving !== undefined) && (
-                <div className="mt-4 flex items-end justify-between rounded-xl bg-[#FAFAFA] px-3.5 py-3">
-                  <div><span className="block text-[11px] text-[#71717A]">혜택가</span><strong className="mt-0.5 block text-[16px] font-bold text-black">{formatWon(promotion.offerPrice || 0)}</strong></div>
-                  <div className="text-right">{promotion.originalPrice !== undefined && <span className="block text-[11px] text-[#A1A1AA] line-through">{formatWon(promotion.originalPrice)}</span>}{promotion.saving !== undefined && <strong className="mt-0.5 block text-[13px] font-semibold text-black">{formatWon(promotion.saving)} 절약</strong>}</div>
+                <div className="re-benefit-price mt-4 flex items-end justify-between rounded-xl px-3.5 py-3">
+                  <div><span>혜택가</span><strong>{formatWon(promotion.offerPrice || 0)}</strong></div>
+                  <div className="text-right">{promotion.originalPrice !== undefined && <span className="line-through">{formatWon(promotion.originalPrice)}</span>}{promotion.saving !== undefined && <strong>{formatWon(promotion.saving)} 절약</strong>}</div>
                 </div>
               )}
 
@@ -86,17 +95,17 @@ export function PromotionScreen({ subscriptions, promotions = [], onOpenPromotio
           ))}
         </section>
       ) : (
-        <section className="re-surface-card mt-12 flex flex-col items-center rounded-[24px] border border-[#E4E4E7] bg-white px-6 py-10 text-center">
-          <span className="grid h-16 w-16 place-items-center rounded-[24px] bg-[#F4F4F5]"><BadgePercent size={26} /></span>
-          <h2 className="mt-5 text-[18px] font-semibold text-[#1B2A8C]">현재 연결된 혜택이 없어요</h2>
-          <p className="mt-2 max-w-[280px] text-[13px] leading-5 text-[#71717A]">실제 프로모션 데이터가 연결되면, 구독 중인 서비스와 일치하는 유효한 혜택만 여기에 표시돼요.</p>
+        <section className="re-benefit-empty re-surface-card mt-8 flex flex-col items-center rounded-[26px] px-6 py-10 text-center">
+          <RiveCharacter state="idle" className="re-benefit-empty__character" />
+          <h2>현재 연결된 혜택이 없어요</h2>
+          <p>실제 프로모션이 연결되면, 지금 구독 중인 서비스와 맞는 유효한 혜택만 보여드릴게요.</p>
           {filter !== "all" && <Button variant="secondary" size="compact" className="mt-4" onClick={() => setFilter("all")}>전체 혜택 보기</Button>}
         </section>
       )}
 
-      <section className="mt-6 flex gap-3 rounded-2xl border border-[#E4E4E7] bg-[#FAFAFA] p-4">
+      <section className="re-benefit-note mt-6 flex gap-3 rounded-2xl p-4">
         <CircleDollarSign className="mt-0.5 shrink-0" size={19} />
-        <p className="text-[12px] leading-5 text-[#71717A]">혜택이 표시되더라도 유효 기간, 가입 조건, 실제 결제 금액은 외부 공식 페이지에서 다시 확인해 주세요.</p>
+        <p>혜택이 표시되더라도 유효 기간, 가입 조건, 실제 결제 금액은 외부 공식 페이지에서 다시 확인해 주세요.</p>
       </section>
     </main>
   );

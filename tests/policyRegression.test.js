@@ -33,11 +33,22 @@ test("승인한 랜딩 이미지는 원본 비율 contain으로 표시하고 시
   assert.ok(entry.includes('re-reference-hotspot--hero-start'));
 });
 
-test("직접 등록은 단계형 Progressive Disclosure를 유지한다", () => {
+test("직접 등록은 같은 화면에서 조건 충족 시 다음 입력란을 자동 공개한다", () => {
   const source = read("src/components/AddModal.jsx");
-  for (const marker of ["MANUAL_STEPS", "manualStep", "nextManualStep", "previousManualStep", "다음 결제일은 언제인가요?"]) {
-    assert.ok(source.includes(marker), `직접 등록 단계 기능 누락: ${marker}`);
+  for (const marker of [
+    "manualReveal",
+    "revealLevelFor",
+    'data-manual-field="amount"',
+    'data-manual-field="billing-cycle"',
+    'data-manual-field="next-billing-date"',
+    'data-manual-field="optional"',
+    "조건을 충족하면 다음 입력란이 자동으로 열려요.",
+  ]) {
+    assert.ok(source.includes(marker), `직접 등록 Progressive Disclosure 누락: ${marker}`);
   }
+  assert.equal(source.includes("nextManualStep"), false);
+  assert.equal(source.includes("previousManualStep"), false);
+  assert.equal(source.includes("MANUAL_STEPS"), false);
 });
 
 test("해지 완료 CTA는 모든 확인 단계 이후에만 나타난다", () => {
@@ -59,15 +70,15 @@ test("해지 완료는 활성 구독 제거와 별도 이력 보존을 함께 �
 test("대시보드는 승인 시안의 주요 실제 기능 블록을 제공한다", () => {
   const source = read("src/components/HomeScreen.jsx");
   for (const marker of [
-    "이번 달 구독 예상액",
+    "이번 달 구독 총액",
     "구독 개수",
     "결제 예정",
-    "이번 달 줄인 금액",
+    "이번 달 절약 예정액",
     "결제 예정 구독",
     "내 구독 서비스",
     "무료체험",
     "해지됨",
-    "전체 일정 보기",
+    "re-mini-calendar__agenda",
   ]) {
     assert.ok(source.includes(marker), `대시보드 기능 누락: ${marker}`);
   }

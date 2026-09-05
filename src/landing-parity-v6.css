@@ -1,0 +1,623 @@
+/* RE. V6 final-reference parity layer.
+   Visual source of truth: the final feature crops supplied on 2026-09-06.
+   This layer intentionally loads after landing-parity-v5.css. */
+
+:root {
+  --re-v6-blue: #244b9b;
+  --re-v6-blue-soft: #ecf4ff;
+  --re-v6-text: #28498f;
+  --re-v6-muted: #8795ba;
+  --re-v6-line: rgba(211, 224, 242, .72);
+  --re-v6-glass: rgba(255, 255, 255, .86);
+}
+
+/* 1) No ServiceMark may fall back to the legacy black square.
+   Known V5 service tones carry !bg-* classes and are intentionally excluded. */
+.app-shell span[aria-hidden="true"][class*="bg-[#18181B]"]:not([class*="!bg-"]) {
+  background: #edf4ff !important;
+  color: #5f72b0 !important;
+  border-color: rgba(204, 220, 244, .78) !important;
+  box-shadow: 0 6px 16px rgba(67, 91, 154, .08) !important;
+}
+.re-push-banner span[aria-hidden="true"][class*="bg-[#18181B]"] {
+  background: rgba(255, 255, 255, .16) !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,.18) !important;
+}
+
+/* 3) Mobile Home has one complete logo lockup, never [lockup + RE.] twice. */
+@media (max-width: 1023px) {
+  .app-shell[data-screen="home"] > header.sticky img[alt="RE."] {
+    content: url("/re-assets/logo-lockup-watercolor.png") !important;
+    width: auto !important;
+    height: 34px !important;
+    object-fit: contain !important;
+  }
+  .app-shell[data-screen="home"] > header.sticky .text-\[17px\] {
+    display: none !important;
+  }
+}
+
+/* Sidebar — final crop: watercolor lockup, pale aqua/lavender active row, HQ portrait profile. */
+@media (min-width: 1024px) {
+  .re-web-sidebar {
+    width: 188px !important;
+    background:
+      linear-gradient(180deg, rgba(252,254,255,.94), rgba(247,251,255,.88)),
+      url("/re-assets/bg_plate.jpg") -28px calc(100% + 165px) / 255px auto no-repeat !important;
+  }
+  .re-web-sidebar__brand {
+    min-height: 98px !important;
+    padding: 16px 20px 13px !important;
+  }
+  .re-web-sidebar__brand .re-brand-logo {
+    height: 46px !important;
+    max-width: 138px !important;
+    filter: saturate(.9) drop-shadow(0 8px 16px rgba(63,91,150,.08)) !important;
+  }
+  .re-web-sidebar__nav {
+    gap: 5px !important;
+    padding: 0 10px !important;
+  }
+  .re-web-sidebar__item {
+    position: relative !important;
+    min-height: 48px !important;
+    gap: 11px !important;
+    border-radius: 12px !important;
+    padding: 0 14px !important;
+    font-size: 13px !important;
+    color: #5369a7 !important;
+  }
+  .re-web-sidebar__item.is-active {
+    border-color: rgba(138,190,215,.42) !important;
+    background: linear-gradient(100deg, rgba(126,225,215,.24), rgba(192,174,244,.30)) !important;
+    color: #294b98 !important;
+  }
+  .re-web-sidebar__item.is-active::before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 7px;
+    bottom: 7px;
+    width: 4px;
+    border-radius: 0 999px 999px 0;
+    background: #67d5ca;
+    box-shadow: 0 0 12px rgba(103,213,202,.28);
+  }
+  .re-web-sidebar__icon-wrap svg {
+    width: 19px !important;
+    height: 19px !important;
+  }
+  .re-web-sidebar__bottom {
+    padding: 0 10px 14px !important;
+  }
+  .re-web-sidebar__profile {
+    min-height: 68px !important;
+    gap: 10px !important;
+    border: 0 !important;
+    border-radius: 15px !important;
+    padding: 9px 8px !important;
+    background: rgba(255,255,255,.60) !important;
+    box-shadow: 0 8px 20px rgba(66,85,139,.04) !important;
+  }
+  .re-web-sidebar__avatar {
+    width: 48px !important;
+    height: 48px !important;
+    border: 2px solid rgba(190,211,239,.72) !important;
+    box-shadow: 0 5px 14px rgba(61,75,127,.08) !important;
+  }
+  .re-web-sidebar__profile strong {
+    color: #294691 !important;
+    font-size: 12px !important;
+  }
+  .re-web-sidebar__profile span:not(.re-web-sidebar__profile-close) {
+    color: #94a0bf !important;
+    font-size: 9px !important;
+  }
+  .re-web-sidebar__profile-close {
+    flex: 0 0 auto;
+    color: #bec8dc !important;
+    font-size: 21px !important;
+    font-weight: 300 !important;
+    line-height: 1 !important;
+  }
+}
+
+/* Home greeting and four summary cards — final crop proportions. */
+.re-dashboard-greeting {
+  border: 0 !important;
+  background: transparent !important;
+}
+.re-dashboard-greeting h1,
+.re-dashboard-greeting p,
+.re-dashboard-greeting__aside span,
+.re-dashboard-greeting__aside strong {
+  text-shadow: 0 1px 0 rgba(255,255,255,.65);
+}
+.re-dashboard-greeting__aside img {
+  border: 2px solid rgba(174,204,232,.66) !important;
+  box-shadow: 0 7px 20px rgba(68,83,143,.10) !important;
+}
+
+.re-dashboard-stat {
+  border-color: rgba(211,224,242,.70) !important;
+  border-radius: 20px !important;
+  background: linear-gradient(150deg, rgba(255,255,255,.92), rgba(251,253,255,.82)) !important;
+  box-shadow: 0 12px 30px rgba(61,80,139,.055) !important;
+}
+.re-dashboard-stat__icon {
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+.re-dashboard-stat--blue .re-dashboard-stat__icon { color: #79aaf4 !important; }
+.re-dashboard-stat--purple .re-dashboard-stat__icon { color: #bb8af1 !important; }
+.re-dashboard-stat--pink .re-dashboard-stat__icon { color: #ff7f92 !important; }
+.re-dashboard-stat--green .re-dashboard-stat__icon { color: #65c6a5 !important; }
+
+/* Subscription library — final crop has title/actions, tabs left, compact controls right, four horizontal cards. */
+.re-dashboard-section-head--subscriptions {
+  align-items: center !important;
+  margin-bottom: 13px !important;
+}
+.re-dashboard-section-head--subscriptions h2 {
+  font-size: 20px !important;
+  color: #294b98 !important;
+}
+.re-dashboard-add-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.re-dashboard-filter-jump {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(195,216,241,.78);
+  border-radius: 50%;
+  background: rgba(255,255,255,.74);
+  color: #7291c7;
+  box-shadow: 0 4px 12px rgba(62,84,147,.05);
+}
+.re-dashboard-add-actions .re-button {
+  min-height: 34px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 0 15px !important;
+  background: linear-gradient(100deg, rgba(219,240,255,.96), rgba(226,220,255,.96)) !important;
+  color: #6387c6 !important;
+  box-shadow: none !important;
+}
+.re-dashboard-library-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.re-dashboard-library-toolbar .re-dashboard-tabs {
+  margin: 0 !important;
+  flex: 0 1 auto;
+}
+.re-dashboard-library-toolbar .re-dashboard-tabs button {
+  min-height: 32px !important;
+  padding: 0 14px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  color: #8b98bb !important;
+}
+.re-dashboard-library-toolbar .re-dashboard-tabs button.is-active {
+  border-color: rgba(205,220,241,.8) !important;
+  background: rgba(255,255,255,.93) !important;
+  color: #294a94 !important;
+  box-shadow: 0 5px 14px rgba(68,89,150,.05) !important;
+}
+.re-dashboard-library-toolbar .re-dashboard-filters {
+  display: grid !important;
+  flex: 0 1 520px !important;
+  grid-template-columns: minmax(118px,.72fr) minmax(92px,.55fr) minmax(220px,1.55fr) !important;
+  gap: 9px !important;
+  margin: 0 !important;
+}
+.re-dashboard-library-toolbar .re-dashboard-filters label {
+  min-height: 36px !important;
+  border: 1px solid rgba(205,220,241,.76) !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,.74) !important;
+}
+.re-dashboard-library-toolbar .re-dashboard-filters select,
+.re-dashboard-library-toolbar .re-dashboard-filters input {
+  min-height: 34px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  font-size: 11px !important;
+}
+.re-dashboard-library-toolbar .re-dashboard-search {
+  padding-left: 13px !important;
+}
+
+.re-dashboard-subscription-grid {
+  align-items: stretch !important;
+}
+.re-subscription-grid-card {
+  position: relative !important;
+  overflow: hidden !important;
+  min-width: 0 !important;
+  border: 1px solid rgba(211,224,242,.74) !important;
+  border-radius: 16px !important;
+  background: rgba(255,255,255,.88) !important;
+  box-shadow: 0 9px 22px rgba(63,82,141,.045) !important;
+}
+.re-subscription-grid-card__body {
+  display: flex !important;
+  width: 100% !important;
+  min-height: 126px !important;
+  align-items: center !important;
+  gap: 13px !important;
+  padding: 18px 42px 17px 16px !important;
+  text-align: left !important;
+}
+.re-subscription-grid-card__mark {
+  width: 48px !important;
+  height: 48px !important;
+  flex: 0 0 48px !important;
+  border: 0 !important;
+  box-shadow: 0 6px 16px rgba(69,85,140,.08) !important;
+}
+.re-subscription-grid-card__copy {
+  display: block !important;
+  min-width: 0 !important;
+}
+.re-subscription-grid-card__copy strong {
+  display: block !important;
+  overflow: hidden !important;
+  color: #243f84 !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+.re-subscription-grid-card__copy > span {
+  display: block !important;
+  margin-top: 4px !important;
+  color: #7890bd !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+.re-subscription-grid-card__copy small {
+  display: block !important;
+  margin-top: 8px !important;
+  color: #a2adca !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+.re-subscription-grid-card__more {
+  position: absolute;
+  right: 9px;
+  top: 12px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 9px;
+  color: #6e84b6;
+}
+.re-subscription-grid-card__more:hover {
+  background: #f2f6fd;
+}
+
+/* Mini Calendar — large readable month, pastel due-date circles, monthly schedule directly below. */
+.re-mini-calendar {
+  overflow: hidden !important;
+  border-radius: 22px !important;
+  background: rgba(255,255,255,.83) !important;
+}
+.re-mini-calendar__head strong {
+  color: #2a4a93 !important;
+  font-weight: 800 !important;
+}
+.re-mini-calendar__head button {
+  color: #5579bd !important;
+}
+.re-mini-calendar__week span {
+  color: #8291b5 !important;
+  font-weight: 700 !important;
+}
+.re-mini-calendar__days button {
+  position: relative !important;
+  border-radius: 50% !important;
+  color: #314c8c !important;
+  font-weight: 700 !important;
+}
+.re-mini-calendar__days button.has-due {
+  background: #dff4f0 !important;
+}
+.re-mini-calendar__days button.has-due::after {
+  display: none !important;
+}
+.re-mini-calendar__days button.has-due[data-tone="netflix"] { background: #efd8ff !important; }
+.re-mini-calendar__days button.has-due[data-tone="youtube"] { background: #cfe4ff !important; }
+.re-mini-calendar__days button.has-due[data-tone="spotify"] { background: #d6f3eb !important; }
+.re-mini-calendar__days button.has-due[data-tone="disney"] { background: #dbe5ff !important; }
+.re-mini-calendar__days button.has-due[data-tone="tving"] { background: #f8dced !important; }
+.re-mini-calendar__days button.has-due[data-tone="coupang"] { background: #ffe7da !important; }
+.re-mini-calendar__days button.has-due[data-tone="default"] { background: #dbe9ff !important; }
+.re-mini-calendar__days button.is-selected {
+  color: #29498e !important;
+  box-shadow: 0 0 0 2px rgba(92,136,203,.17), inset 0 0 0 1px rgba(255,255,255,.72) !important;
+}
+.re-mini-calendar__agenda {
+  display: grid !important;
+  gap: 15px !important;
+  min-height: 0 !important;
+  border-top: 1px solid rgba(213,224,240,.70) !important;
+}
+.re-mini-calendar__agenda-group {
+  display: grid;
+  gap: 8px;
+}
+.re-mini-calendar__agenda-date {
+  color: #2b4a90 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+.re-mini-calendar__agenda-row {
+  display: flex !important;
+  width: 100% !important;
+  min-height: 34px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  border-radius: 10px !important;
+  padding: 2px 0 !important;
+  color: #29498e !important;
+  text-align: left !important;
+}
+.re-mini-calendar__agenda-row > span:last-child {
+  flex: 0 0 auto;
+  color: #2e4c8d !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+.re-mini-calendar__agenda-row strong {
+  color: #31519a !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+/* Concierge — final narrow vertical banner: top glass message, static high-res chibi art, quote card. */
+.re-concierge-card {
+  display: flex !important;
+  min-width: 0 !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  border-color: rgba(206,225,241,.72) !important;
+  background:
+    linear-gradient(180deg, rgba(230,244,255,.22), rgba(246,248,255,.22)),
+    url("/re-assets/bg_plate.jpg") 50% 55% / cover no-repeat !important;
+}
+.re-concierge-card__message,
+.re-concierge-card__quote {
+  position: relative;
+  z-index: 3;
+  border: 1px solid rgba(219,228,243,.70);
+  border-radius: 20px;
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 10px 24px rgba(58,76,135,.06);
+  backdrop-filter: blur(13px);
+}
+.re-concierge-card__message {
+  padding: 20px 18px 17px;
+}
+.re-concierge-card__message span,
+.re-concierge-card__message strong,
+.re-concierge-card__message em {
+  display: block;
+  color: #4762a4;
+  font-style: normal;
+}
+.re-concierge-card__message span {
+  font-size: 14px;
+  font-weight: 700;
+}
+.re-concierge-card__message strong {
+  margin-top: 3px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  line-height: 1.35;
+}
+.re-concierge-card__message em {
+  margin-top: 7px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+.re-concierge-card__character-wrap {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 270px;
+  margin: -8px -10px -10px;
+  overflow: hidden;
+}
+.re-concierge-card__character {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;
+  object-position: 50% 48% !important;
+  border-radius: 0 !important;
+  mix-blend-mode: normal !important;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 10%, #000 92%, transparent 100%) !important;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 10%, #000 92%, transparent 100%) !important;
+}
+.re-concierge-card__quote {
+  padding: 16px 17px 18px;
+}
+.re-concierge-card__quote strong {
+  display: block;
+  color: #6f82b2;
+  font-size: 12px;
+  font-weight: 800;
+}
+.re-concierge-card__quote p {
+  margin-top: 9px;
+  color: #526aa8;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+@media (min-width: 1280px) {
+  .re-dashboard-home {
+    grid-template-columns: minmax(0,1fr) minmax(500px,570px) !important;
+    gap: 18px !important;
+    padding: 20px 24px 34px !important;
+  }
+  .re-dashboard-greeting {
+    min-height: 92px !important;
+    padding: 3px 12px 13px !important;
+  }
+  .re-dashboard-greeting h1 {
+    font-size: clamp(27px,1.9vw,34px) !important;
+    line-height: 1.2 !important;
+  }
+  .re-dashboard-greeting p {
+    margin-top: 7px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+  }
+  .re-dashboard-greeting__aside {
+    min-width: 290px !important;
+    padding-right: 72px !important;
+  }
+  .re-dashboard-greeting__aside span,
+  .re-dashboard-greeting__aside strong {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+  .re-dashboard-greeting__aside img {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  .re-dashboard-stats {
+    gap: 14px !important;
+  }
+  .re-dashboard-stat {
+    min-height: 132px !important;
+    padding: 19px 21px !important;
+  }
+  .re-dashboard-stat > div > span:first-child {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+  }
+  .re-dashboard-stat strong {
+    margin-top: 7px !important;
+    font-size: clamp(27px,1.6vw,32px) !important;
+  }
+  .re-dashboard-stat small {
+    margin-top: 8px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+  }
+  .re-dashboard-stat__icon {
+    width: 52px !important;
+    height: 52px !important;
+  }
+  .re-dashboard-subscriptions {
+    padding: 18px 18px 20px !important;
+  }
+  .re-dashboard-subscription-grid {
+    grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+    gap: 12px !important;
+  }
+  .re-dashboard-right-column {
+    grid-template-columns: minmax(305px,338px) minmax(185px,220px) !important;
+    gap: 14px !important;
+  }
+  .re-mini-calendar,
+  .re-concierge-card {
+    min-height: 620px !important;
+  }
+  .re-mini-calendar {
+    padding: 20px 19px 18px !important;
+  }
+  .re-mini-calendar__head strong {
+    font-size: 18px !important;
+  }
+  .re-mini-calendar__week {
+    margin-top: 19px !important;
+    font-size: 10px !important;
+  }
+  .re-mini-calendar__days {
+    margin-top: 10px !important;
+    gap: 7px 4px !important;
+  }
+  .re-mini-calendar__days button {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    font-size: 11px !important;
+  }
+  .re-mini-calendar__agenda {
+    gap: 16px !important;
+    margin-top: 17px !important;
+    padding-top: 15px !important;
+  }
+  .re-concierge-card {
+    min-height: 620px !important;
+    padding: 18px 13px 15px !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .re-dashboard-home {
+    grid-template-columns: minmax(0,1fr) minmax(535px,610px) !important;
+    padding-right: 28px !important;
+  }
+  .re-dashboard-right-column {
+    grid-template-columns: minmax(325px,365px) minmax(195px,230px) !important;
+  }
+  .re-dashboard-subscription-grid {
+    gap: 15px !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .re-dashboard-library-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .re-dashboard-library-toolbar .re-dashboard-filters {
+    width: 100%;
+    flex-basis: auto !important;
+  }
+  .re-dashboard-subscription-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .re-dashboard-library-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .re-dashboard-library-toolbar .re-dashboard-filters {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .re-dashboard-library-toolbar .re-dashboard-search {
+    grid-column: 1 / -1;
+  }
+  .re-dashboard-subscription-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .re-subscription-grid-card__body {
+    min-height: 112px !important;
+  }
+  .re-dashboard-greeting__aside {
+    min-width: 230px !important;
+  }
+}
