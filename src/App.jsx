@@ -44,6 +44,7 @@ export default function App() {
   const initialRequested = useRef(readHash());
   const initialOnboardingComplete = readStoredValue(storageKeys.onboardingComplete, Boolean(storedProfile));
   const initialIntroSeen = readStoredValue(storageKeys.introSeen, false);
+  const initialRoute = initialRequested.current.route && initialRequested.current.route !== "landing" ? "splash" : "landing";
 
   const [profile, setProfile] = useState(storedProfile);
   const profileRef = useRef(storedProfile);
@@ -56,7 +57,7 @@ export default function App() {
   const [introSeen, setIntroSeen] = useState(initialIntroSeen);
   const introSeenRef = useRef(initialIntroSeen);
   const [savedAmount, setSavedAmount] = useState(() => readStoredValue(storageKeys.savedAmount, 0));
-  const [screen, setScreen] = useState({ route: "splash", id: null, params: new URLSearchParams() });
+  const [screen, setScreen] = useState({ route: initialRoute, id: null, params: new URLSearchParams() });
   const screenRef = useRef(screen);
   const [loginBackToIntro, setLoginBackToIntro] = useState(false);
   const [pageTurn, setPageTurn] = useState("");
@@ -73,6 +74,7 @@ export default function App() {
   const [notifications, setNotifications] = useState(() =>
     getStoredNotifications().filter((item) => !item?.isTest && !String(item?.subscriptionId || "").startsWith("seed-"))
   );
+  const notificationsRef = useRef(notifications);
   const [activeBanner, setActiveBanner] = useState(null);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [highlightCancelId, setHighlightCancelId] = useState(null);
@@ -93,6 +95,10 @@ export default function App() {
   useEffect(() => {
     screenRef.current = screen;
   }, [screen]);
+
+  useEffect(() => {
+    notificationsRef.current = notifications;
+  }, [notifications]);
 
   useEffect(() => () => {
     if (pageTurnTimerRef.current) window.clearTimeout(pageTurnTimerRef.current);
@@ -117,7 +123,7 @@ export default function App() {
     setLoginBackToIntro(false);
 
     if (!introSeenRef.current) {
-      navigate("landing");
+      navigate("intro");
       return;
     }
     if (!profileRef.current) {
@@ -163,24 +169,46 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  useEffect(() => window.scrollTo(0, 0), [screen.route, screen.id]);
-  useEffect(() => writeStoredValue(storageKeys.profile, profile), [profile]);
-  useEffect(() => writeStoredValue(storageKeys.subscriptions, subscriptions), [subscriptions]);
-  useEffect(() => writeStoredValue(storageKeys.onboardingComplete, onboardingComplete), [onboardingComplete]);
-  useEffect(() => writeStoredValue(storageKeys.introSeen, introSeen), [introSeen]);
-  useEffect(() => writeStoredValue(storageKeys.savedAmount, savedAmount), [savedAmount]);
-  useEffect(() => saveStoredNotifications(notifications), [notifications]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screen.route, screen.id]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.profile, profile);
+  }, [profile]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.subscriptions, subscriptions);
+  }, [subscriptions]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.onboardingComplete, onboardingComplete);
+  }, [onboardingComplete]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.introSeen, introSeen);
+  }, [introSeen]);
+
+  useEffect(() => {
+    writeStoredValue(storageKeys.savedAmount, savedAmount);
+  }, [savedAmount]);
+
+  useEffect(() => {
+    saveStoredNotifications(notifications);
+  }, [notifications]);
 
   useEffect(() => {
     if (!subscriptions.length) return;
     const generated = generateSubscriptionAlerts(subscriptions);
     if (!generated.length) return;
-    setNotifications((current) => {
-      const existingIds = new Set(current.map((item) => item.id));
-      const next = generated.filter((item) => !existingIds.has(item.id));
-      return next.length ? [...next, ...current] : current;
-    });
-  }, [subscriptions]);
+    const existingIds = new Set(notificationsRef.current.map((item) => item.id));
+    const next = generated.filter((item) => !existingIds.has(item.id));
+    if (!next.length) return;
+    const merged = [...next, ...notificationsRef.current];
+    notificationsRef.current = merged;
+    setNotifications(merged);
+    if (profileRef.current?.notificationsAllowed !== false) setActiveBanner(next[0]);
+  }, [screen.route, subscriptions]);
 
   useEffect(() => {
     if (screen.route !== "home") return;
@@ -224,7 +252,12 @@ export default function App() {
   };
 
   const completeLogin = (provider, nickname, guest = false) => {
-    const nextProfile = { nickname: nickname || "", provider, guest, notificationsAllowed: true };
+    const nextProfile = {
+      nickname: nickname || "",
+      provider,
+      guest,
+      notificationsAllowed: notificationPermission === "granted",
+    };
     profileRef.current = nextProfile;
     setProfile(nextProfile);
     setSubscriptions((current) => removeDemoSubscriptions(current));
@@ -412,11 +445,16 @@ export default function App() {
     const permission = await requestNotificationPermission();
     setNotificationPermission(permission);
     setProfile((current) => current ? { ...current, notificationsAllowed: permission === "granted" } : current);
-    notify(permission === "granted" ? "결제 전 알림을 켰어요." : "알림 권한이 허용되지 않았어요.");
+    notify(permission === "granted" ? "결제 전 알림을 켰어요." : permission === "unsupported" ? "이 브라우저에서는 기기 알림을 사용할 수 없어요." : "알림 권한이 허용되지 않았어요.");
   };
 
   const handleTogglePermissionFromHome = async () => {
-    if (profile?.notificationsAllowed === false) {
+    if (profile?.notificationsAllowed === false && notificationPermission === "granted") {
+      setProfile((current) => current ? { ...current, notificationsAllowed: true } : current);
+      notify("결제 전 알림을 켰어요.");
+      return;
+    }
+    if (notificationPermission !== "granted") {
       await handleRequestPermission();
       return;
     }
@@ -431,7 +469,7 @@ export default function App() {
   if (screen.route === "splash") {
     content = <SplashScreen onDone={routeAfterSplash} />;
   } else if (screen.route === "landing") {
-    content = <LandingScreen onContinue={() => navigate("intro", null, "page-turn")} />;
+    content = <LandingScreen onContinue={() => navigate("splash")} />;
   } else if (screen.route === "intro") {
     content = <IntroScreen onContinue={handleIntroComplete} />;
   } else if (screen.route === "register") {
@@ -452,7 +490,7 @@ export default function App() {
         subscriptions={subscriptions}
         promotions={promotionCatalog}
         profile={profile}
-        notificationDenied={profile?.notificationsAllowed === false}
+        notificationDenied={notificationPermission !== "granted" || profile?.notificationsAllowed === false}
         onOpenSubscription={openSubscription}
         onShowAll={() => navigate("subscriptions")}
         onOpenPromotion={handlePromotion}
@@ -555,8 +593,8 @@ export default function App() {
 function RenewalSheet({ subscription, onKeep, onCancel, onClose }) {
   return (
     <BottomSheet onClose={onClose} label="결제일 경과 구독 확인">
-      <div className="flex items-start gap-3"><ServiceMark monogram={subscription.monogram} className="h-11 w-11 rounded-xl text-[13px]" /><div><p className="re-eyebrow">RENEWAL CHECK</p><h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-[#1B2A8C]">이번 달에도 계속 이용하셨나요?</h2></div></div>
-      <p className="mt-4 text-[14px] leading-6 text-[#71717A]"><strong className="font-semibold text-black">{subscription.name}</strong>은 지난 결제일이 지났어요. 계속 이용했다면 다음 달에도 알림을 보내드릴게요.</p>
+      <div className="flex items-start gap-3"><ServiceMark monogram={subscription.monogram} className="h-11 w-11 rounded-xl text-[13px]" /><div><p className="re-eyebrow">RENEWAL CHECK</p><h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-[#1B2A8C]">이번 결제 주기에도 계속 이용하셨나요?</h2></div></div>
+      <p className="mt-4 text-[14px] leading-6 text-[#71717A]"><strong className="font-semibold text-black">{subscription.name}</strong>은 최근 결제일이 지났어요. 계속 이용했다면 다음 결제 주기에도 알림을 보내드릴게요.</p>
       <div className="mt-6 grid grid-cols-2 gap-3"><Button variant="secondary" onClick={onCancel}>해지했음</Button><Button onClick={onKeep}>계속 유지</Button></div>
       <button type="button" onClick={onClose} className="mx-auto mt-4 block text-[12px] text-[#71717A] underline underline-offset-4">나중에 확인하기</button>
     </BottomSheet>
