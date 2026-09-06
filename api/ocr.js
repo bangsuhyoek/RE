@@ -9,7 +9,15 @@ export const config = {
 const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
+const setCors = (response) => {
+  response.setHeader("Access-Control-Allow-Origin", "*");
+  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  response.setHeader("Vary", "Origin");
+};
+
 const send = (response, status, payload) => {
+  setCors(response);
   response.status(status).json(payload);
 };
 
@@ -88,8 +96,10 @@ const callGoogleVision = async ({ imageBase64, apiKey }) => {
 };
 
 export default async function handler(request, response) {
+  setCors(response);
+  if (request.method === "OPTIONS") return response.status(204).end();
   if (request.method !== "POST") {
-    response.setHeader("Allow", "POST");
+    response.setHeader("Allow", "POST, OPTIONS");
     return send(response, 405, { ok: false, code: "METHOD_NOT_ALLOWED", message: "POST 요청만 지원합니다." });
   }
 
