@@ -1,22 +1,23 @@
 import { useMemo, useState } from "react";
-import { Eye, EyeOff, LockKeyhole, Mail, UserRound } from "lucide-react";
-import { RELogo, WaterBackground } from "./REBrand";
+import { Eye, EyeOff, LockKeyhole, Smile, UserRound } from "lucide-react";
+import { RELogo } from "./REBrand";
 
+const FINAL_ASSET = "/re-assets/mobile-final";
 const idPattern = /^[a-z0-9_-]{5,20}$/;
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,16}$/;
 const nicknamePattern = /^[가-힣a-zA-Z]{3,10}$/;
 
 const SocialMark = ({ type }) => (
-  <span className={`re-mobile-social-mark re-mobile-social-mark--${type.toLowerCase()}`} aria-hidden="true">
-    {type === "Google" ? "G" : "N"}
+  <span className={`re-ref-social-mark re-ref-social-mark--${type.toLowerCase()}`} aria-hidden="true">
+    <img src={`${FINAL_ASSET}/social/${type === "Google" ? "google" : "naver"}.webp`} alt="" />
   </span>
 );
 
 function InertSocialButton({ type, suffix = "로그인" }) {
   return (
-    <button type="button" className="re-mobile-social-button is-inert" aria-disabled="true" title="현재 프로젝트에 실제 소셜 인증이 연결되어 있지 않아 동작을 추가하지 않았습니다.">
+    <button type="button" className="re-ref-social-button is-inert" aria-disabled="true" title="소셜 로그인은 준비 중이에요.">
       <SocialMark type={type} />
-      <strong>{type}로 {suffix}</strong>
+      <strong>{type === "Google" ? "Google" : "네이버"}로 {suffix}</strong>
       <span aria-hidden="true">›</span>
     </button>
   );
@@ -35,51 +36,45 @@ export function AuthLogin({ onSocial, onRegister }) {
   };
 
   return (
-    <main className="re-mobile-auth re-mobile-login">
-      <WaterBackground variant="signup" />
-      <section className="re-mobile-auth__hero re-mobile-auth__hero--login">
+    <main className="re-ref-entry re-ref-auth re-ref-login">
+      <div className="re-ref-floral-frame" aria-hidden="true" />
+      <section className="re-ref-auth__hero">
         <RELogo size="lg" />
-        <div>
-          <h1>다시 만나서<br />반가워요. <span aria-hidden="true">🌸</span></h1>
+        <div className="re-ref-auth__copy">
+          <h1>다시 만나서<br />반가워요. 🌸</h1>
           <p>오늘도,<br />더 좋은 나를 만들어가요.</p>
           <blockquote>“작은 변화가,<br />더 여유로운 내일을 만들어요.”<br />— RE.</blockquote>
         </div>
-        <img src="/re-assets/char_stand.jpg" alt="" aria-hidden="true" />
+        <div className="re-ref-character-window re-ref-character-window--login" aria-hidden="true">
+          <img src={`${FINAL_ASSET}/character-login.webp`} alt="" />
+        </div>
       </section>
 
-      <form className="re-mobile-auth-card" onSubmit={submit}>
-        <label className="re-mobile-auth-field">
+      <form className="re-ref-auth-card" onSubmit={submit}>
+        <label className="re-ref-auth-field">
           <span className="sr-only">아이디 또는 이메일</span>
-          <UserRound size={22} />
+          <UserRound size={20} />
           <input value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="username" placeholder="아이디 또는 이메일" />
         </label>
-
-        <label className="re-mobile-auth-field">
+        <label className="re-ref-auth-field">
           <span className="sr-only">비밀번호</span>
-          <LockKeyhole size={22} />
+          <LockKeyhole size={20} />
           <input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" placeholder="비밀번호" />
-          <button type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}>
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
+          <button type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
         </label>
-
-        <div className="re-mobile-auth-options">
+        <div className="re-ref-auth-options">
           <label><input type="checkbox" checked={keepSignedIn} onChange={(event) => setKeepSignedIn(event.target.checked)} /> 로그인 상태 유지</label>
           <button type="button" className="is-inert" aria-disabled="true">비밀번호 찾기 ›</button>
         </div>
-
-        <button type="submit" className="re-mobile-primary-button" disabled={!email.trim() || !password}>로그인 <span>→</span></button>
-
-        <div className="re-mobile-divider"><span />또는 다른 방법으로 로그인<span /></div>
+        <button type="submit" className="re-ref-primary" disabled={!email.trim() || !password}>로그인 <span>→</span></button>
+        <div className="re-ref-divider"><span />또는 다른 방법으로 로그인<span /></div>
         <InertSocialButton type="Google" />
         <InertSocialButton type="Naver" />
-
-        <button type="button" className="re-mobile-guest-button is-inert" aria-disabled="true">🍃 <strong>둘러보기</strong> <span>›</span></button>
-        <p className="re-mobile-inert-note">둘러보기 기능은 현재 구현되어 있지 않아 화면만 유지합니다.</p>
-
-        <p className="re-mobile-auth-switch">계정이 없으신가요? <button type="button" onClick={onRegister}>회원가입</button></p>
+        <button type="button" className="re-ref-guest-button is-inert" aria-disabled="true">🍃 <strong>둘러보기</strong> <span>›</span></button>
+        <p className="re-ref-inert-note">둘러보기는 준비 중이에요.</p>
+        <p className="re-ref-auth-switch">계정이 없으신가요? <button type="button" onClick={onRegister}>회원가입</button></p>
       </form>
-      <p className="re-mobile-auth-footer">지금도, 더 좋은 너를 향해.<br /><strong>RE.</strong></p>
+      <p className="re-ref-auth-footer">지금도, 더 좋은 너를 향해.<br /><strong>RE.</strong></p>
     </main>
   );
 }
@@ -104,51 +99,27 @@ export function AuthRegister({ onBack, onComplete }) {
     const nicknameOk = nicknamePattern.test(nickname);
     return { id, password: passwordOk, matching, nickname: nicknameOk };
   }, [accountId, nickname, password, passwordConfirm]);
-
   const canSubmit = validation.id && validation.password && validation.matching && validation.nickname;
 
   return (
-    <main className="re-mobile-auth re-mobile-register">
-      <WaterBackground variant="signup" />
-      <header className="re-mobile-register__brand"><RELogo size="md" /></header>
-      <section className="re-mobile-register__hero">
-        <div>
-          <h1>회원가입 <span aria-hidden="true">🌸</span></h1>
-          <p>RE.와 함께, 더 가벼운 오늘을 시작해요.</p>
-        </div>
-        <img src="/re-assets/char_stand.jpg" alt="" aria-hidden="true" />
+    <main className="re-ref-entry re-ref-auth re-ref-register">
+      <div className="re-ref-floral-frame" aria-hidden="true" />
+      <header className="re-ref-register__brand"><RELogo size="md" /></header>
+      <section className="re-ref-register__hero">
+        <div><h1>회원가입 🌸</h1><p>RE.와 함께, 더 가벼운 오늘을 시작해요.</p></div>
+        <div className="re-ref-character-window re-ref-character-window--register" aria-hidden="true"><img src={`${FINAL_ASSET}/character-register.webp`} alt="" /></div>
       </section>
 
-      <form className="re-mobile-register-card" onSubmit={(event) => { event.preventDefault(); if (canSubmit) onComplete({ accountId, nickname }); }}>
-        <label>
-          <strong>아이디</strong>
-          <span className="re-mobile-auth-field"><UserRound size={21} /><input value={accountId} onChange={(event) => setAccountId(event.target.value)} autoComplete="username" placeholder="아이디를 입력하세요." /></span>
-          <ValidationMessage valid={!accountId || validation.id} text={!accountId || validation.id ? "영문 소문자·숫자·_- 조합 5~20자" : "현재 입력 형식이 가입 조건과 맞지 않아요."} />
-        </label>
-
-        <label>
-          <strong>비밀번호</strong>
-          <span className="re-mobile-auth-field"><LockKeyhole size={21} /><input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" placeholder="비밀번호를 입력하세요." /><button type="button" onClick={() => setShowPassword((current) => !current)}>{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}</button></span>
-          <ValidationMessage valid={!password || validation.password} text={!password || validation.password ? "영문 대·소문자, 숫자, 특수문자 조합 8~16자" : "현재 입력 형식이 가입 조건과 맞지 않아요."} />
-        </label>
-
-        <label>
-          <strong>비밀번호 확인</strong>
-          <span className="re-mobile-auth-field"><LockKeyhole size={21} /><input type={showConfirm ? "text" : "password"} value={passwordConfirm} onChange={(event) => setPasswordConfirm(event.target.value)} autoComplete="new-password" placeholder="비밀번호를 다시 입력하세요." /><button type="button" onClick={() => setShowConfirm((current) => !current)}>{showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}</button></span>
-          <ValidationMessage valid={!passwordConfirm || validation.matching} text={!passwordConfirm || validation.matching ? "비밀번호가 일치해야 합니다." : "비밀번호가 일치하지 않아요."} />
-        </label>
-
-        <label>
-          <strong>닉네임</strong>
-          <span className="re-mobile-auth-field"><Mail size={21} /><input value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="닉네임을 입력하세요." /></span>
-          <ValidationMessage valid={!nickname || validation.nickname} text={!nickname || validation.nickname ? "한글 또는 영문 3~10자" : "현재 입력 형식이 가입 조건과 맞지 않아요."} />
-        </label>
-
-        <button type="submit" className="re-mobile-primary-button" disabled={!canSubmit}>가입하기</button>
-        <p className="re-mobile-terms">가입하면 RE.의 <span>이용약관</span>과 <span>개인정보처리방침</span>에 동의한 것으로 간주됩니다.</p>
-        <div className="re-mobile-divider"><span />또는 간편하게 가입하기<span /></div>
-        <div className="re-mobile-social-grid"><InertSocialButton type="Google" suffix="가입하기" /><InertSocialButton type="Naver" suffix="가입하기" /></div>
-        <p className="re-mobile-auth-switch">이미 계정이 있으신가요? <button type="button" onClick={onBack}>로그인 ›</button></p>
+      <form className="re-ref-register-card" onSubmit={(event) => { event.preventDefault(); if (canSubmit) onComplete({ accountId, nickname }); }}>
+        <label><strong>아이디</strong><span className="re-ref-auth-field"><UserRound size={19} /><input value={accountId} onChange={(event) => setAccountId(event.target.value)} autoComplete="username" placeholder="아이디를 입력하세요." /></span><ValidationMessage valid={!accountId || validation.id} text={!accountId || validation.id ? "영문 소문자·숫자·_- 조합 5~20자" : "현재 입력 형식이 가입 조건과 맞지 않아요."} /></label>
+        <label><strong>비밀번호</strong><span className="re-ref-auth-field"><LockKeyhole size={19} /><input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" placeholder="비밀번호를 입력하세요." /><button type="button" onClick={() => setShowPassword((current) => !current)}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></span><ValidationMessage valid={!password || validation.password} text={!password || validation.password ? "영문 대·소문자, 숫자, 특수문자 조합 8~16자" : "현재 입력 형식이 가입 조건과 맞지 않아요."} /></label>
+        <label><strong>비밀번호 확인</strong><span className="re-ref-auth-field"><LockKeyhole size={19} /><input type={showConfirm ? "text" : "password"} value={passwordConfirm} onChange={(event) => setPasswordConfirm(event.target.value)} autoComplete="new-password" placeholder="비밀번호를 다시 입력하세요." /><button type="button" onClick={() => setShowConfirm((current) => !current)}>{showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}</button></span><ValidationMessage valid={!passwordConfirm || validation.matching} text={!passwordConfirm || validation.matching ? "비밀번호가 일치해야 합니다." : "비밀번호가 일치하지 않아요."} /></label>
+        <label><strong>닉네임</strong><span className="re-ref-auth-field"><Smile size={19} /><input value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="닉네임을 입력하세요." /></span><ValidationMessage valid={!nickname || validation.nickname} text={!nickname || validation.nickname ? "한글 또는 영문 3~10자" : "현재 입력 형식이 가입 조건과 맞지 않아요."} /></label>
+        <button type="submit" className="re-ref-primary" disabled={!canSubmit}>가입하기</button>
+        <p className="re-ref-terms">가입하면 RE.의 <span>이용약관</span>과 <span>개인정보처리방침</span>에 동의한 것으로 간주됩니다.</p>
+        <div className="re-ref-divider"><span />또는 간편하게 가입하기<span /></div>
+        <div className="re-ref-social-grid"><InertSocialButton type="Google" suffix="가입하기" /><InertSocialButton type="Naver" suffix="가입하기" /></div>
+        <p className="re-ref-auth-switch">이미 계정이 있으신가요? <button type="button" onClick={onBack}>로그인 ›</button></p>
       </form>
     </main>
   );

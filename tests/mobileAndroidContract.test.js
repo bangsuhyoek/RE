@@ -12,11 +12,14 @@ test("Android package contract includes Capacitor, local notifications and Supab
   assert.ok(pkg.dependencies["@supabase/supabase-js"]);
 });
 
-test("final mobile css is loaded last", () => {
+test("final mobile reference css is loaded after the legacy mobile layer", () => {
   const source = read("src/main.jsx");
   assert.match(source, /import "\.\/mobile-final\.css";/);
-  const lastCss = source.lastIndexOf('import "./mobile-final.css";');
-  assert.ok(lastCss > source.lastIndexOf('import "./landing-parity-v6.css";'));
+  assert.match(source, /import "\.\/mobile-final-reference\.css";/);
+  const legacyMobile = source.lastIndexOf('import "./mobile-final.css";');
+  const finalReference = source.lastIndexOf('import "./mobile-final-reference.css";');
+  assert.ok(legacyMobile > source.lastIndexOf('import "./landing-parity-v6.css";'));
+  assert.ok(finalReference > legacyMobile);
 });
 
 test("unimplemented browse and social auth are not wired as fake working actions", () => {

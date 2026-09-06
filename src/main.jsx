@@ -9,6 +9,7 @@ import "./landing-parity-v2.css";
 import "./landing-parity-v5.css";
 import "./landing-parity-v6.css";
 import "./mobile-final.css";
+import "./mobile-final-reference.css";
 
 installApiBaseFetchBridge();
 
