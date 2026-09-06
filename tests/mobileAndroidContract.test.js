@@ -12,14 +12,22 @@ test("Android package contract includes Capacitor, local notifications and Supab
   assert.ok(pkg.dependencies["@supabase/supabase-js"]);
 });
 
-test("final mobile reference css is loaded after the legacy mobile layer", () => {
+test("mobile runtime loads only shared/mobile/final-reference CSS in one direction", () => {
   const source = read("src/main.jsx");
-  assert.match(source, /import "\.\/mobile-final\.css";/);
-  assert.match(source, /import "\.\/mobile-final-reference\.css";/);
-  const legacyMobile = source.lastIndexOf('import "./mobile-final.css";');
-  const finalReference = source.lastIndexOf('import "./mobile-final-reference.css";');
-  assert.ok(legacyMobile > source.lastIndexOf('import "./landing-parity-v6.css";'));
-  assert.ok(finalReference > legacyMobile);
+  const shared = source.indexOf('import "./mobile-shared.css";');
+  const mobile = source.indexOf('import "./mobile-final.css";');
+  const reference = source.indexOf('import "./mobile-final-reference.css";');
+  assert.ok(shared >= 0 && mobile > shared && reference > mobile);
+  for (const retired of [
+    "web-theme.css",
+    "dashboard-theme.css",
+    "final-theme.css",
+    "landing-parity-v2.css",
+    "landing-parity-v5.css",
+    "landing-parity-v6.css",
+  ]) {
+    assert.equal(source.includes(retired), false, `retired runtime CSS import remains: ${retired}`);
+  }
 });
 
 test("unimplemented browse and social auth are not wired as fake working actions", () => {
@@ -32,8 +40,6 @@ test("unimplemented browse and social auth are not wired as fake working actions
 test("database migration only covers already implemented persisted domains", () => {
   const sql = read("supabase/migrations/202609060001_mobile_existing_features.sql");
 
-  // The team Supabase already owns public.subscriptions. Preserve it and only
-  // extend it with the client metadata required by the mobile app.
   for (const table of ["profiles", "cancellation_history", "notifications"]) {
     assert.match(sql, new RegExp(`create table if not exists public\\.${table}`));
   }

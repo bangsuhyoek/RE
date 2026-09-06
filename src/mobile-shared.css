@@ -1,0 +1,285 @@
+/* RE. mobile-only shared policy
+   Purpose: shared primitives used by the final mobile app, onboarding and bottom sheets.
+   Desktop/web layout policies were intentionally retired; this file must not introduce
+   min-width desktop breakpoints or widen the app beyond the approved 390px canvas. */
+
+:root {
+  --re-mobile-ink: #29438f;
+  --re-mobile-muted: #7180ae;
+  --re-mobile-border: rgba(208, 224, 242, .86);
+  --re-mobile-surface: rgba(255, 255, 255, .90);
+  --re-mobile-shadow: 0 10px 28px rgba(65, 110, 179, .10);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: #edf3f8;
+}
+
+/* One runtime shell policy: browser preview and native app use the same 390px canvas. */
+.app-shell.re-mobile-final-shell {
+  width: min(100%, 390px) !important;
+  max-width: 390px !important;
+  min-height: 100dvh;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: #f5faff !important;
+  box-shadow: 0 0 32px rgba(57, 91, 148, .08);
+}
+
+.app-shell.re-mobile-final-shell > .re-page-transition {
+  width: 100% !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Shared RE. lockup sizing. The artwork itself is the single source of truth. */
+.re-brand-logo {
+  display: block;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.re-brand-logo--xs { width: 70px; }
+.re-brand-logo--sm { width: 92px; }
+.re-brand-logo--md { width: 126px; }
+.re-brand-logo--lg { width: 154px; }
+.re-brand-logo--xl { width: 196px; }
+.re-brand-logo.is-stacked { width: 130px; }
+
+/* Shared buttons/fields used by AddModal, CancelModal and onboarding. */
+.re-button.bg-black {
+  border: 1px solid rgba(255,255,255,.76) !important;
+  background: linear-gradient(100deg, #79d3cd 0%, #83c9e8 50%, #a985ed 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 0 rgba(92,102,189,.14), 0 10px 22px rgba(100,124,198,.16) !important;
+}
+
+.re-button.bg-black:hover {
+  background: linear-gradient(100deg, #6bcac4 0%, #77bee0 50%, #9e79e4 100%) !important;
+}
+
+.re-button.bg-white {
+  border-color: var(--re-mobile-border) !important;
+  background: rgba(255,255,255,.90) !important;
+  color: var(--re-mobile-ink) !important;
+  box-shadow: 0 3px 0 rgba(83,104,174,.06), 0 9px 20px rgba(67,88,154,.06) !important;
+}
+
+[role="switch"].bg-black {
+  background: linear-gradient(90deg, #75d6d0, #b994f4) !important;
+}
+
+.re-field,
+.app-shell.re-mobile-final-shell input:not([type="checkbox"]):not([type="radio"]),
+.app-shell.re-mobile-final-shell select,
+.app-shell.re-mobile-final-shell textarea {
+  border-color: var(--re-mobile-border);
+}
+
+.re-surface-card,
+.re-settings-card {
+  border-color: var(--re-mobile-border) !important;
+  background: var(--re-mobile-surface) !important;
+  box-shadow: var(--re-mobile-shadow) !important;
+}
+
+/* BottomSheet remains a mobile bottom sheet even when previewed on a wide desktop browser. */
+.sheet-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1000 !important;
+  background: rgba(52, 64, 118, .28) !important;
+}
+
+.sheet-slide-up {
+  position: fixed !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  z-index: 1001 !important;
+  width: min(100%, 390px) !important;
+  max-width: 390px !important;
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  margin: 0 auto !important;
+  border-color: rgba(255,255,255,.92) !important;
+  background: linear-gradient(160deg, rgba(255,255,255,.98), rgba(246,251,255,.96)) !important;
+  color: var(--re-mobile-ink);
+  box-shadow: 0 -18px 58px rgba(43,54,111,.16) !important;
+}
+
+.sheet-slide-up .bg-black {
+  border-color: transparent !important;
+  background: linear-gradient(110deg, #7fbfb7, #8ab9d4 48%, #a99bdd) !important;
+  color: #fff !important;
+}
+
+.sheet-slide-up .border-black {
+  border-color: rgba(129,174,205,.68) !important;
+  color: var(--re-mobile-ink) !important;
+}
+
+/* Onboarding: keep the same mobile canvas at every browser width. */
+.re-onboarding {
+  width: min(100%, 390px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: #f7fbff;
+}
+
+.re-onboarding > .relative.z-10 {
+  width: 100%;
+  max-width: 390px !important;
+}
+
+.re-onboarding .re-water-background--onboarding {
+  position: fixed;
+  inset: 0;
+  width: min(100%, 390px);
+  height: 100%;
+  margin: auto;
+  object-fit: cover;
+  object-position: center 44%;
+  opacity: .22;
+  filter: blur(10px) saturate(.72) brightness(1.12);
+  transform: scale(1.02);
+}
+
+.re-onboarding .re-water-wash--onboarding {
+  position: fixed;
+  inset: 0;
+  width: min(100%, 390px);
+  margin: auto;
+  background:
+    linear-gradient(180deg, rgba(252,254,255,.72), rgba(250,253,255,.90)),
+    radial-gradient(circle at 12% 18%, rgba(210,239,233,.28), transparent 34%),
+    radial-gradient(circle at 86% 28%, rgba(228,218,244,.28), transparent 35%);
+}
+
+.re-onboarding [aria-label="구독 서비스 선택"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.re-onboarding-service {
+  border-color: var(--re-mobile-border);
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 8px 22px rgba(71,92,157,.055);
+  backdrop-filter: blur(12px);
+}
+
+.re-onboarding-service.is-selected {
+  border-color: rgba(139,189,203,.92);
+  background: linear-gradient(135deg, rgba(226,247,242,.95), rgba(241,235,252,.92));
+  box-shadow: 0 10px 26px rgba(95,119,178,.09);
+}
+
+.re-onboarding-service__check {
+  background: linear-gradient(135deg, #84c7bd, #a8a6dc);
+}
+
+.re-onboarding-footer {
+  width: min(100%, 390px) !important;
+  max-width: 390px !important;
+}
+
+/* Same-page progressive disclosure used by manual subscription registration. */
+.re-progressive-form,
+.re-manual-progressive {
+  scroll-margin-top: 24px;
+}
+
+.re-progressive-field,
+.re-manual-field {
+  transform-origin: top center;
+}
+
+.re-manual-progressive {
+  border-top: 1px solid rgba(216,229,243,.76);
+  padding-top: 16px;
+}
+
+.re-manual-progressive__intro {
+  margin-bottom: 16px;
+  border: 1px solid rgba(207,224,240,.76);
+  border-radius: 17px;
+  padding: 13px 14px;
+  background: linear-gradient(130deg, rgba(237,249,246,.84), rgba(243,239,252,.80));
+}
+
+.re-manual-progressive__intro span,
+.re-manual-progressive__intro strong {
+  display: block;
+}
+
+.re-manual-progressive__intro span {
+  color: #8290b7;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.re-manual-progressive__intro strong {
+  margin-top: 4px;
+  color: var(--re-mobile-ink);
+  font-size: 13px;
+}
+
+.re-manual-progressive__intro p {
+  margin-top: 4px;
+  color: #8290b7;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.re-manual-field + .re-manual-field {
+  margin-top: 16px;
+}
+
+.re-cycle-choice {
+  border-color: #d8e5f3;
+  background: rgba(255,255,255,.92);
+  color: var(--re-mobile-muted);
+  box-shadow: 0 7px 18px rgba(72,92,155,.045);
+}
+
+.re-cycle-choice.is-selected {
+  border-color: rgba(135,190,199,.88);
+  background: linear-gradient(120deg, rgba(126,205,194,.26), rgba(180,159,225,.28));
+  color: var(--re-mobile-ink);
+  box-shadow: 0 9px 22px rgba(83,107,171,.09);
+}
+
+.re-manual-trial {
+  border-color: #d8e5f3;
+  background: rgba(255,255,255,.90);
+}
+
+.re-manual-summary {
+  border: 1px solid rgba(214,227,242,.84);
+  background: rgba(246,250,254,.88);
+  color: var(--re-mobile-muted);
+}
+
+.re-add-tabs {
+  border: 1px solid rgba(211,225,241,.80);
+  background: rgba(239,246,252,.74);
+}
+
+.re-add-tabs button {
+  color: #7b88b2;
+}
+
+.re-add-tabs button.is-active {
+  background: rgba(255,255,255,.96);
+  color: var(--re-mobile-ink);
+  box-shadow: 0 5px 14px rgba(70,91,155,.08);
+}
