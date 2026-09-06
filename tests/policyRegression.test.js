@@ -8,8 +8,7 @@ test("운영 프론트엔드에서 cancel_pending 상태를 다시 사용하지 
   const files = [
     "src/App.jsx",
     "src/components/CancelModal.jsx",
-    "src/components/SubscriptionScreens.jsx",
-    "src/components/HomeScreen.jsx",
+    "src/components/MobileFinalScreens.jsx",
     "src/data/subscriptionData.js",
   ];
   for (const file of files) {
@@ -23,14 +22,15 @@ test("App의 저장 effect는 값을 cleanup으로 반환하지 않는다", () =
   assert.equal(source.includes("useEffect(() => saveStoredNotifications"), false);
 });
 
-test("승인한 랜딩 이미지는 원본 비율 contain으로 표시하고 시작 CTA는 Splash를 거친다", () => {
+test("승인한 모바일 시작 화면은 최종 자산을 사용하고 Landing 시작은 Splash를 거친다", () => {
   const app = read("src/App.jsx");
-  const entry = read("src/components/EntryScreens.jsx");
-  const theme = read("src/dashboard-theme.css");
-  assert.ok(app.includes('<LandingScreen onContinue={() => navigate("splash")} onLogin='));
-  assert.ok(entry.includes('/re-assets/web/landing-page-reference.png'));
-  assert.match(theme, /\.re-reference-landing__image[\s\S]*?object-fit:\s*contain;/);
-  assert.ok(entry.includes('re-reference-hotspot--hero-start'));
+  const entry = read("src/components/MobileEntryScreens.jsx");
+  const reference = read("src/mobile-final-reference.css");
+  assert.ok(app.includes('<LandingScreen onContinue={() => navigate("splash")}'));
+  assert.ok(entry.includes("splash-final.webp"));
+  assert.ok(entry.includes("brand-intro-final.webp"));
+  assert.ok(entry.includes("re-ref-static-landing__tap"));
+  assert.match(reference, /\.re-ref-static-landing\s*\{[\s\S]*?min-height:\s*100dvh/);
 });
 
 test("직접 등록은 같은 화면에서 조건 충족 시 다음 입력란을 자동 공개한다", () => {
@@ -67,24 +67,24 @@ test("해지 완료는 활성 구독 제거와 별도 이력 보존을 함께 �
   assert.ok(app.includes("current.filter((subscription) => subscription.subscriptionId !== subscriptionId)"));
 });
 
-test("대시보드는 승인 시안의 주요 실제 기능 블록을 제공한다", () => {
-  const source = read("src/components/HomeScreen.jsx");
+test("홈 화면은 승인 시안의 주요 실제 기능 블록을 현재 모바일 화면에서 제공한다", () => {
+  const source = read("src/components/MobileFinalScreens.jsx");
   for (const marker of [
     "이번 달 구독 총액",
     "구독 개수",
     "결제 예정",
     "이번 달 절약 예정액",
-    "결제 예정 구독",
+    "다가오는 결제",
     "내 구독 서비스",
-    "무료체험",
-    "해지됨",
-    "re-mini-calendar__agenda",
+    "HomeMiniCalendar",
+    "DailyBanner",
   ]) {
-    assert.ok(source.includes(marker), `대시보드 기능 누락: ${marker}`);
+    assert.ok(source.includes(marker), `모바일 홈 기능 누락: ${marker}`);
   }
 });
 
-test("버튼 표면 효과는 버튼 자체를 기준으로 배치된다", () => {
-  const source = read("src/web-theme.css");
-  assert.match(source, /\.re-button\s*\{[\s\S]*?position:\s*relative;/);
+test("버튼 표면 효과는 공용 모바일 베이스에서 버튼 자체를 기준으로 배치된다", () => {
+  const source = read("src/index.css");
+  assert.match(source, /\.re-button\s*\{\s*position:\s*relative;\s*\}/);
+  assert.match(source, /\.re-button::before\s*\{/);
 });
