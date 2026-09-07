@@ -1,6 +1,7 @@
+import { getApiEndpoint } from "../lib/apiBase";
 import { useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, FileImage, LoaderCircle, MessageSquareText, ScanLine, UploadCloud } from "lucide-react";
-import { BottomSheet, Button, SegmentedControl } from "./ui";
+import { BottomSheet, Button, SegmentedControl, PaymentIcon, PAYMENT_PRESETS } from "./ui";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -19,7 +20,7 @@ const callRecognitionApi = async (payload) => {
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), 35_000);
   try {
-    const response = await fetch("/api/ocr", {
+    const response = await fetch(getApiEndpoint("/api/ocr"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -188,7 +189,25 @@ export function AddModal({ catalog, onClose, onAdd }) {
             <label className="block text-[12px] font-semibold text-[#6B7684]">서비스명<input value={form.name} onChange={(event) => update("name", event.target.value)} className={inputClass(!form.name)} placeholder="서비스명을 입력해 주세요" /></label>
             <label className="block text-[12px] font-semibold text-[#6B7684]">요금제<input value={form.plan} onChange={(event) => update("plan", event.target.value)} className={inputClass(!form.plan)} placeholder="확인된 요금제를 입력해 주세요" /></label>
             <div className="grid grid-cols-2 gap-3"><label className="block text-[12px] font-medium text-[#71717A]">결제 금액<input type="number" min="1" value={form.amount} onChange={(event) => update("amount", event.target.value)} className={inputClass(!Number(form.amount))} placeholder="0" /></label><label className="block text-[12px] font-medium text-[#71717A]">결제일<input type="number" min="1" max="31" value={form.dueDay} onChange={(event) => update("dueDay", event.target.value)} className={inputClass(!Number(form.dueDay))} placeholder="1~31" /></label></div>
-            <div className="grid grid-cols-2 gap-3"><label className="block text-[12px] font-medium text-[#71717A]">결제 주기<select value={form.billingCycle} onChange={(event) => update("billingCycle", event.target.value)} className={inputClass(false)}><option>매월</option><option>매년</option></select></label><label className="block text-[12px] font-medium text-[#71717A]">결제 수단<input value={form.paymentMethod} onChange={(event) => update("paymentMethod", event.target.value)} className={inputClass(false)} placeholder="선택 입력" /></label></div>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block text-[12px] font-medium text-[#71717A]">결제 주기<select value={form.billingCycle} onChange={(event) => update("billingCycle", event.target.value)} className={inputClass(false)}><option>매월</option><option>매년</option></select></label>
+              <label className="block text-[12px] font-medium text-[#71717A]">결제 수단
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
+                    <PaymentIcon method={form.paymentMethod} size={15} />
+                  </span>
+                  <input value={form.paymentMethod} onChange={(event) => update("paymentMethod", event.target.value)} className={`${inputClass(false)} pl-8.5`} placeholder="선택 입력" />
+                </div>
+              </label>
+            </div>
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
+              {PAYMENT_PRESETS.slice(0, 5).map((preset) => (
+                <button key={preset} type="button" onClick={() => update("paymentMethod", preset)} className="inline-flex items-center gap-1 rounded-lg border border-[#E5E8EB] bg-[#F9FAFB] px-2 py-1 text-[11px] font-medium text-[#4E5968] hover:border-[#191F28] hover:text-[#191F28] active:scale-95 transition-all">
+                  <PaymentIcon method={preset} size={12} />
+                  <span>{preset}</span>
+                </button>
+              ))}
+            </div>
           </div>
           {error && <p className="mt-2 text-[12px] leading-5 text-[#FF4D4D]">{error}</p>}
           <p className="mt-3 text-[11px] leading-4 text-[#8B95A1]">이미지는 OCR 처리에만 사용되며 SubMate에는 원본과 OCR 원문을 저장하지 않습니다. 확인한 구독 정보만 저장합니다.</p>
@@ -198,3 +217,5 @@ export function AddModal({ catalog, onClose, onAdd }) {
     </BottomSheet>
   );
 }
+
+

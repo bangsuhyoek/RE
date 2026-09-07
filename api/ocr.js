@@ -88,8 +88,21 @@ const callGoogleVision = async ({ imageBase64, apiKey }) => {
 };
 
 export default async function handler(request, response) {
+  // Support Cross-Origin Requests from mobile Capacitor apps (e.g. capacitor://localhost, http://localhost)
+  response.setHeader("Access-Control-Allow-Origin", "*");
+  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (request.method === "OPTIONS") {
+    if (typeof response.status === "function") {
+      return response.status(204).end();
+    }
+    response.statusCode = 204;
+    return response.end();
+  }
+
   if (request.method !== "POST") {
-    response.setHeader("Allow", "POST");
+    response.setHeader("Allow", "POST, OPTIONS");
     return send(response, 405, { ok: false, code: "METHOD_NOT_ALLOWED", message: "POST 요청만 지원합니다." });
   }
 
@@ -141,3 +154,5 @@ export default async function handler(request, response) {
     });
   }
 }
+
+

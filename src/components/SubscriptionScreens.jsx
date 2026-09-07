@@ -1,6 +1,6 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, CreditCard, FilterX, RefreshCw, Search, Send, Settings2, SlidersHorizontal } from "lucide-react";
-import { Button, Chip, DDayBadge, IconButton, ServiceMark, SubscriptionCard, ToggleSwitch } from "./ui";
+import { Button, Chip, DDayBadge, IconButton, ServiceMark, SubscriptionCard, ToggleSwitch, PaymentIcon, PaymentMethodBadge, PAYMENT_PRESETS } from "./ui";
 import { dateForDueDay, daysUntilCharge, formatBillingDate, formatKoreanMonth, formatWon, getCalendarDays, getLastDate } from "../lib/dates";
 
 const categories = ["전체", "OTT", "음악", "쇼핑", "생산성"];
@@ -144,7 +144,7 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
         <div className="h-px bg-[#F2F4F6]" />
         <DetailField label="결제 주기" value={subscription.billingCycle || "매월"} />
         <div className="h-px bg-[#F2F4F6]" />
-        <DetailField label="결제 수단" value={subscription.paymentMethod || "직접 관리"} />
+        <DetailField label="결제 수단" value={<PaymentMethodBadge method={subscription.paymentMethod || "직접 관리"} size={16} />} />
       </section>
 
       {editing && (
@@ -153,7 +153,25 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
           <div className="space-y-3">
             <label className="block text-[12px] font-semibold text-[#6B7684]">요금제<input className="mt-1.5 w-full rounded-xl border border-[#E5E8EB] bg-white px-3.5 py-2.5 text-[14px] text-[#191F28] outline-none transition-colors focus:border-[#191F28]" value={draft.plan} onChange={(event) => setDraft((value) => ({ ...value, plan: event.target.value }))} /></label>
             <div className="grid grid-cols-2 gap-3"><label className="block text-[12px] font-semibold text-[#6B7684]">월 금액<input className="mt-1.5 w-full rounded-xl border border-[#E5E8EB] bg-white px-3.5 py-2.5 text-[14px] text-[#191F28] outline-none transition-colors focus:border-[#191F28]" type="number" min="0" value={draft.amount} onChange={(event) => setDraft((value) => ({ ...value, amount: event.target.value }))} /></label><label className="block text-[12px] font-semibold text-[#6B7684]">결제일<input className="mt-1.5 w-full rounded-xl border border-[#E5E8EB] bg-white px-3.5 py-2.5 text-[14px] text-[#191F28] outline-none transition-colors focus:border-[#191F28]" type="number" min="1" max="31" value={draft.dueDay} onChange={(event) => setDraft((value) => ({ ...value, dueDay: event.target.value }))} /></label></div>
-            <label className="block text-[12px] font-semibold text-[#6B7684]">결제 수단<input className="mt-1.5 w-full rounded-xl border border-[#E5E8EB] bg-white px-3.5 py-2.5 text-[14px] text-[#191F28] outline-none transition-colors focus:border-[#191F28]" value={draft.paymentMethod} onChange={(event) => setDraft((value) => ({ ...value, paymentMethod: event.target.value }))} /></label>
+            <div>
+              <label className="block text-[12px] font-semibold text-[#6B7684]">
+                결제 수단
+                <div className="relative mt-1.5">
+                  <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2">
+                    <PaymentIcon method={draft.paymentMethod} size={16} />
+                  </span>
+                  <input className="w-full rounded-xl border border-[#E5E8EB] bg-white pl-9 pr-3.5 py-2.5 text-[14px] text-[#191F28] outline-none transition-colors focus:border-[#191F28]" value={draft.paymentMethod} onChange={(event) => setDraft((value) => ({ ...value, paymentMethod: event.target.value }))} placeholder="예: 카카오페이, 신한카드 • 4412" />
+                </div>
+              </label>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {PAYMENT_PRESETS.map((preset) => (
+                  <button key={preset} type="button" onClick={() => setDraft((v) => ({ ...v, paymentMethod: preset }))} className="inline-flex items-center gap-1 rounded-lg border border-[#E5E8EB] bg-white px-2 py-1 text-[11px] font-medium text-[#4E5968] hover:border-[#191F28] hover:text-[#191F28] active:scale-95 transition-all">
+                    <PaymentIcon method={preset} size={12} />
+                    <span>{preset}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="mt-5 grid grid-cols-2 gap-2.5"><Button variant="secondary" size="default" onClick={() => setEditing(false)}>취소</Button><Button size="default" onClick={save}>저장</Button></div>
         </section>

@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bell, BellRing, Check, ChevronRight, Sparkles, X, Trash2, Send } from "lucide-react";
 import { BottomSheet, Button, ServiceMark } from "./ui";
 import { formatWon } from "../lib/dates";
@@ -6,20 +6,75 @@ import { formatWon } from "../lib/dates";
 /**
  * Floating push notification banner (simulates iOS/Android push notification banner)
  */
-export function PushNotificationBanner({ notification, onClose, onOpenDetail }) {
+export function PushNotificationBanner({ notification, onClose, onOpenDetail, duration = 8000 }) {
+  const [isExiting, setIsExiting] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [remainingTime, setRemainingTime] = useState(duration);
+
+  const startTimeRef = useRef(Date.now());
+  const timerRef = useRef(null);
+  const notifKey = notification?.id || notification?.title || "";
+
   useEffect(() => {
-    if (!notification) return;
-    const timer = setTimeout(() => {
+    if (!notification) {
+      setIsExiting(false);
+      setIsPaused(false);
+      return;
+    }
+    setRemainingTime(duration);
+    setIsPaused(false);
+    setIsExiting(false);
+    startTimeRef.current = Date.now();
+  }, [notifKey, duration]);
+
+  const handleClose = () => {
+    if (isExiting) return;
+    setIsExiting(true);
+    setTimeout(() => {
       onClose();
-    }, 8000);
-    return () => clearTimeout(timer);
-  }, [notification, onClose]);
+      setIsExiting(false);
+    }, 240);
+  };
+
+  useEffect(() => {
+    if (!notification || isPaused || isExiting) return;
+
+    startTimeRef.current = Date.now();
+    timerRef.current = setTimeout(() => {
+      handleClose();
+    }, remainingTime);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [notification, isPaused, remainingTime, isExiting]);
+
+  const handleMouseEnter = () => {
+    if (isExiting) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    const elapsed = Date.now() - startTimeRef.current;
+    setRemainingTime((prev) => Math.max(0, prev - elapsed));
+    setIsPaused(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (isExiting) return;
+    setIsPaused(false);
+  };
 
   if (!notification) return null;
 
   return (
-    <div className="fixed top-3 inset-x-0 mx-auto z-50 w-[calc(100%-1.5rem)] max-w-[396px] push-banner-enter">
-      <div className="rounded-2xl border border-black/10 bg-[#18181B]/95 p-3.5 text-white shadow-2xl backdrop-blur-md">
+    <div
+      role="status"
+      aria-live="polite"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`fixed top-3 inset-x-0 mx-auto z-50 w-[calc(100%-1.5rem)] max-w-[396px] ${
+        isExiting ? "push-banner-exit" : "push-banner-enter"
+      }`}
+    >
+      <div className="overflow-hidden rounded-2xl border border-black/10 bg-[#18181B]/95 p-3.5 text-white shadow-2xl backdrop-blur-md">
         {/* Banner Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
@@ -32,7 +87,7 @@ export function PushNotificationBanner({ notification, onClose, onOpenDetail }) 
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="grid h-5 w-5 place-items-center rounded-full text-white/60 transition-colors hover:bg-white/10 hover:text-white"
             aria-label="알림 닫기"
           >
@@ -79,6 +134,18 @@ export function PushNotificationBanner({ notification, onClose, onOpenDetail }) 
             <span className="flex items-center gap-0.5 text-[10px] font-semibold text-white">
               웹사이트에서 해지하기 <ChevronRight size={12} />
             </span>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mt-2.5 h-[2px] w-full overflow-hidden rounded-full bg-white/10">
+            <div
+              key={notifKey}
+              className="h-full bg-white/40 origin-left"
+              style={{
+                animation: `toast-shrink ${duration}ms linear forwards`,
+                animationPlayState: isPaused ? "paused" : "running",
+              }}
+            />
           </div>
         </div>
       </div>

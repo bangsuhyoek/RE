@@ -7,9 +7,16 @@
     "dev": "vite",
     "test": "node --test tests/*.test.js",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cap:sync": "cap sync",
+    "cap:open:android": "cap open android",
+    "cap:build": "vite build && cap sync"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.1",
+    "@capacitor/local-notifications": "^8.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "lucide-react": "^0.468.0",
@@ -18,5 +25,9 @@
     "react-dom": "^18.3.1",
     "tailwindcss": "^3.4.16",
     "vite": "^6.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.1"
   }
 }
+

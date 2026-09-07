@@ -1,0 +1,18 @@
+{
+  "appId": "com.submate.app",
+  "appName": "SubMate",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#3182F6"
+    }
+  }
+}

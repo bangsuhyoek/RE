@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   BellOff,
@@ -11,6 +11,9 @@ import {
   X,
 } from "lucide-react";
 import { daysUntilCharge, formatBillingDate, formatWon } from "../lib/dates";
+import { PaymentIcon, PaymentMethodBadge, PAYMENT_PRESETS } from "./PaymentMethod";
+
+export { PaymentIcon, PaymentMethodBadge, PAYMENT_PRESETS };
 
 const cx = (...classes) => classes.filter(Boolean).join(" ");
 
@@ -332,7 +335,11 @@ function SubscriptionCardBody({ subscription, onOpen, detail = false }) {
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[15px] font-bold text-[#191F28] tracking-tight">{subscription.name}</span>
         <span className="mt-0.5 block truncate text-[13px] font-medium text-[#6B7684]">{subscription.plan} · {formatBillingDate(subscription)}</span>
-        {detail && <span className="mt-1 block truncate text-[11px] font-medium text-[#8B95A1]">{subscription.paymentMethod || "결제수단 미등록"}</span>}
+        {detail && (
+          <span className="mt-1 block truncate text-[11px] font-medium text-[#8B95A1]">
+            <PaymentMethodBadge method={subscription.paymentMethod} size={14} />
+          </span>
+        )}
       </span>
       <span className="flex shrink-0 flex-col items-end gap-1.5">
         <DDayBadge subscription={subscription} />
@@ -391,14 +398,99 @@ export function SubscriptionCard({ subscription, onOpen, onCancel, onMute, swipa
   );
 }
 
-export function Toast({ toast, onClose }) {
-  if (!toast) return null;
+export function Toast({ toast, onClose, duration = 3500 }) {
+  const message = typeof toast === "object" && toast !== null ? toast.message : toast;
+  const initialDuration = (typeof toast === "object" && toast?.duration) || duration;
+  const toastKey = (typeof toast === "object" && toast?.id) || message;
+
+  const [isExiting, setIsExiting] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [remainingTime, setRemainingTime] = useState(initialDuration);
+
+  const startTimeRef = useRef(Date.now());
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (!message) {
+      setIsExiting(false);
+      setIsPaused(false);
+      return;
+    }
+    setRemainingTime(initialDuration);
+    setIsPaused(false);
+    setIsExiting(false);
+    startTimeRef.current = Date.now();
+  }, [toastKey, initialDuration]);
+
+  const handleClose = () => {
+    if (isExiting) return;
+    setIsExiting(true);
+    setTimeout(() => {
+      onClose();
+      setIsExiting(false);
+    }, 180);
+  };
+
+  useEffect(() => {
+    if (!message || isPaused || isExiting) return;
+
+    startTimeRef.current = Date.now();
+    timerRef.current = setTimeout(() => {
+      handleClose();
+    }, remainingTime);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [message, isPaused, remainingTime, isExiting]);
+
+  const handleMouseEnter = () => {
+    if (isExiting) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    const elapsed = Date.now() - startTimeRef.current;
+    setRemainingTime((prev) => Math.max(0, prev - elapsed));
+    setIsPaused(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (isExiting) return;
+    setIsPaused(false);
+  };
+
+  if (!message) return null;
+
   return (
-    <div className="toast-animate fixed bottom-20 left-1/2 z-50 flex w-[calc(100%-2.5rem)] max-w-[380px] -translate-x-1/2 items-center justify-between gap-3 rounded-2xl bg-[#18181B] px-4 py-3.5 text-white shadow-xl">
-      <p className="text-[13px] font-medium leading-5">{toast}</p>
-      <button type="button" onClick={onClose} className="rounded-lg p-1 text-[#A1A1AA] hover:text-white" aria-label="알림 닫기">
-        <X size={16} />
-      </button>
+    <div
+      role="status"
+      aria-live="polite"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`fixed bottom-20 left-1/2 z-50 flex w-[calc(100%-2.5rem)] max-w-[380px] -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-[#18181B] text-white shadow-xl ${
+        isExiting ? "toast-exit" : "toast-enter"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+        <p className="text-[13px] font-medium leading-5">{message}</p>
+        <button
+          type="button"
+          onClick={handleClose}
+          className="rounded-lg p-1 text-[#A1A1AA] hover:text-white transition-colors"
+          aria-label="알림 닫기"
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      <div className="h-[2px] w-full bg-white/10">
+        <div
+          key={toastKey}
+          className="h-full bg-blue-400/80 origin-left"
+          style={{
+            animation: `toast-shrink ${initialDuration}ms linear forwards`,
+            animationPlayState: isPaused ? "paused" : "running",
+          }}
+        />
+      </div>
     </div>
   );
 }

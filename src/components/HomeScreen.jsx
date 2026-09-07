@@ -159,7 +159,12 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
         </div>
         <div className="space-y-3">
           {upcoming.map((subscription) => (
-            <SubscriptionCard key={subscription.subscriptionId} subscription={subscription} onOpen={() => onOpenSubscription(subscription.subscriptionId)} />
+            <SubscriptionCard
+              key={subscription.subscriptionId}
+              subscription={subscription}
+              detail
+              onOpen={() => onOpenSubscription(subscription.subscriptionId)}
+            />
           ))}
         </div>
       </section>

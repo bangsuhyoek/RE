@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { Capacitor } from "@capacitor/core";
+import { App as CapApp } from "@capacitor/app";
 import { Bell, ChevronRight, X } from "lucide-react";
 import { AuthLogin, AuthRegister } from "./components/AuthScreens";
 import { AddModal } from "./components/AddModal";
@@ -19,6 +21,7 @@ import {
   saveStoredNotifications,
   requestNotificationPermission,
   sendBrowserNotification,
+  sendAppNotification,
 } from "./lib/notifications";
 
 const readHash = () => {
@@ -64,7 +67,7 @@ export default function App() {
   const [cancelTarget, setCancelTarget] = useState(null);
   const [renewalTarget, setRenewalTarget] = useState(null);
   const [completedCancelId, setCompletedCancelId] = useState(null);
-  const [toast, setToast] = useState("");
+  const [toast, setToast] = useState(null);
 
   // Notification states
   const [notifications, setNotifications] = useState(() => {
@@ -179,7 +182,9 @@ export default function App() {
     else window.location.hash = hash;
   };
 
-  const notify = (message) => setToast(message);
+  const notify = (message, duration = 3500) => {
+    setToast({ message, duration, id: Date.now() });
+  };
 
   const handleTriggerTestNotification = (targetSub = null) => {
     const sub = targetSub || subscriptions.find((s) => s.id === "spotify") || subscriptions.find((s) => s.id === "netflix") || subscriptions[0];
@@ -190,7 +195,7 @@ export default function App() {
     const alertItem = createTestNotification(sub, "auto");
     setNotifications((current) => [alertItem, ...current]);
     setActiveBanner(alertItem);
-    sendBrowserNotification(alertItem.title, { body: alertItem.message });
+    sendAppNotification(alertItem.title, { body: alertItem.message });
     notify(`${alertItem.badge} 알림을 화면에 띄웠어요.`);
   };
 
@@ -454,7 +459,7 @@ export default function App() {
           onRequestPermission={handleRequestPermission}
         />
       )}
-      <Toast toast={toast} onClose={() => setToast("")} />
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }
@@ -469,3 +474,5 @@ function RenewalSheet({ subscription, onKeep, onCancel, onClose }) {
     </BottomSheet>
   );
 }
+
+

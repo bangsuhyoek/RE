@@ -1,3 +1,5 @@
+import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from "@capacitor/local-notifications";
 import { daysUntilCharge, formatWon } from "./dates.js";
 import { readStoredValue, writeStoredValue, storageKeys } from "./storage.js";
 
@@ -136,8 +138,27 @@ export function createTestNotification(subscription, forcedType = "auto") {
 /**
  * Request browser Web Notification permission
  */
+/**
+ * Unified notification permission requester for both Web & Native (Capacitor)
+ */
 export async function requestNotificationPermission() {
-  if (typeof window === "undefined" || !("Notification" in window)) {
+  if (typeof window === "undefined") {
+    return "unsupported";
+  }
+
+  // Native App (Android / iOS)
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const status = await LocalNotifications.requestPermissions();
+      return status.display === "granted" ? "granted" : "denied";
+    } catch (e) {
+      console.warn("Native notification permission request failed:", e);
+      return "denied";
+    }
+  }
+
+  // Web Browser
+  if (!("Notification" in window)) {
     return "unsupported";
   }
   try {
@@ -169,5 +190,37 @@ export function sendBrowserNotification(title, options = {}) {
   }
   return false;
 }
+
+/**
+ * Unified notification sender for both Web and Native (Capacitor)
+ */
+export async function sendAppNotification(title, options = {}) {
+  if (typeof window === "undefined") return false;
+
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const notifId = Math.floor(Math.random() * 1000000) + 1;
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: notifId,
+            title,
+            body: options.body || options.message || "",
+            schedule: options.at ? { at: options.at } : undefined,
+            extra: options.extra || {},
+          },
+        ],
+      });
+      return true;
+    } catch (err) {
+      console.warn("LocalNotifications.schedule error:", err);
+      return false;
+    }
+  }
+
+  return sendBrowserNotification(title, options);
+}
+
+
 
 
