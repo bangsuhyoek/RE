@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, BellRing, Check, ChevronRight, Sparkles, X, Trash2, Send } from "lucide-react";
 import { BottomSheet, Button, ServiceMark } from "./ui";
 import { formatWon } from "../lib/dates";
@@ -6,14 +6,29 @@ import { formatWon } from "../lib/dates";
 /**
  * Floating push notification banner (simulates iOS/Android push notification banner)
  */
-export function PushNotificationBanner({ notification, onClose, onOpenDetail, duration = 8000 }) {
+export function PushNotificationBanner({ notification, onClose, onOpenDetail, duration = 6000 }) {
   const [isExiting, setIsExiting] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [remainingTime, setRemainingTime] = useState(duration);
 
   const startTimeRef = useRef(Date.now());
+  const remainingTimeRef = useRef(duration);
   const timerRef = useRef(null);
+  const hardTimeoutRef = useRef(null);
+  const exitTimerRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   const notifKey = notification?.id || notification?.title || "";
+
+  const handleClose = useCallback(() => {
+    setIsExiting((curr) => {
+      if (curr) return curr;
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = setTimeout(() => {
+        onCloseRef.current?.();
+      }, 240);
+      return true;
+    });
+  }, []);
 
   useEffect(() => {
     if (!notification) {
@@ -21,45 +36,49 @@ export function PushNotificationBanner({ notification, onClose, onOpenDetail, du
       setIsPaused(false);
       return;
     }
-    setRemainingTime(duration);
-    setIsPaused(false);
     setIsExiting(false);
+    setIsPaused(false);
     startTimeRef.current = Date.now();
-  }, [notifKey, duration]);
+    remainingTimeRef.current = duration;
 
-  const handleClose = () => {
-    if (isExiting) return;
-    setIsExiting(true);
-    setTimeout(() => {
-      onClose();
-      setIsExiting(false);
-    }, 240);
-  };
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (hardTimeoutRef.current) clearTimeout(hardTimeoutRef.current);
+    if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
 
-  useEffect(() => {
-    if (!notification || isPaused || isExiting) return;
-
-    startTimeRef.current = Date.now();
     timerRef.current = setTimeout(() => {
       handleClose();
-    }, remainingTime);
+    }, duration);
+
+    // Hard ceiling timeout (at most 7000ms): guarantees banner always disappears within 5~7 seconds
+    hardTimeoutRef.current = setTimeout(() => {
+      handleClose();
+    }, Math.min(Math.max(duration + 1000, 5000), 7000));
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (hardTimeoutRef.current) clearTimeout(hardTimeoutRef.current);
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
     };
-  }, [notification, isPaused, remainingTime, isExiting]);
+  }, [notifKey, duration, notification, handleClose]);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = (e) => {
     if (isExiting) return;
+    if (e?.pointerType === "touch") return;
     if (timerRef.current) clearTimeout(timerRef.current);
     const elapsed = Date.now() - startTimeRef.current;
-    setRemainingTime((prev) => Math.max(0, prev - elapsed));
+    remainingTimeRef.current = Math.max(0, remainingTimeRef.current - elapsed);
     setIsPaused(true);
   };
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = (e) => {
     if (isExiting) return;
+    if (e?.pointerType === "touch") return;
     setIsPaused(false);
+    startTimeRef.current = Date.now();
+    const remaining = remainingTimeRef.current > 0 ? remainingTimeRef.current : 500;
+    timerRef.current = setTimeout(() => {
+      handleClose();
+    }, remaining);
   };
 
   if (!notification) return null;

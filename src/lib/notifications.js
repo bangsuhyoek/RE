@@ -5,6 +5,7 @@ import { readStoredValue, writeStoredValue, storageKeys } from "./storage.js";
 
 export const NOTIFICATION_STORAGE_KEY = "submate-mvp:notifications";
 export const NOTIFICATION_SETTINGS_KEY = "submate-mvp:notification-settings";
+export const DEFAULT_NOTIFICATION_DURATION = 6000; // 5~7초 사이 자동 사라짐 (6초)
 
 export function getStoredNotifications() {
   return readStoredValue(NOTIFICATION_STORAGE_KEY, []);
@@ -256,5 +257,4 @@ export async function sendAppNotification(title, options = {}) {
 
   return sendBrowserNotification(title, options);
 }
-
 

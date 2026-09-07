@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   BellOff,
@@ -411,17 +411,32 @@ export function SubscriptionCard({ subscription, onOpen, onCancel, onMute, swipa
   );
 }
 
-export function Toast({ toast, onClose, duration = 3500 }) {
+export function Toast({ toast, onClose, duration = 6000 }) {
   const message = typeof toast === "object" && toast !== null ? toast.message : toast;
   const initialDuration = (typeof toast === "object" && toast?.duration) || duration;
   const toastKey = (typeof toast === "object" && toast?.id) || message;
 
   const [isExiting, setIsExiting] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [remainingTime, setRemainingTime] = useState(initialDuration);
 
   const startTimeRef = useRef(Date.now());
+  const remainingTimeRef = useRef(initialDuration);
   const timerRef = useRef(null);
+  const hardTimeoutRef = useRef(null);
+  const exitTimerRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  const handleClose = useCallback(() => {
+    setIsExiting((curr) => {
+      if (curr) return curr;
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = setTimeout(() => {
+        onCloseRef.current?.();
+      }, 180);
+      return true;
+    });
+  }, []);
 
   useEffect(() => {
     if (!message) {
@@ -429,45 +444,49 @@ export function Toast({ toast, onClose, duration = 3500 }) {
       setIsPaused(false);
       return;
     }
-    setRemainingTime(initialDuration);
-    setIsPaused(false);
     setIsExiting(false);
+    setIsPaused(false);
     startTimeRef.current = Date.now();
-  }, [toastKey, initialDuration]);
+    remainingTimeRef.current = initialDuration;
 
-  const handleClose = () => {
-    if (isExiting) return;
-    setIsExiting(true);
-    setTimeout(() => {
-      onClose();
-      setIsExiting(false);
-    }, 180);
-  };
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (hardTimeoutRef.current) clearTimeout(hardTimeoutRef.current);
+    if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
 
-  useEffect(() => {
-    if (!message || isPaused || isExiting) return;
-
-    startTimeRef.current = Date.now();
     timerRef.current = setTimeout(() => {
       handleClose();
-    }, remainingTime);
+    }, initialDuration);
+
+    // Hard ceiling timeout (at most 7000ms): guarantees toast always disappears within 5~7 seconds
+    hardTimeoutRef.current = setTimeout(() => {
+      handleClose();
+    }, Math.min(Math.max(initialDuration + 1000, 5000), 7000));
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (hardTimeoutRef.current) clearTimeout(hardTimeoutRef.current);
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
     };
-  }, [message, isPaused, remainingTime, isExiting]);
+  }, [toastKey, initialDuration, message, handleClose]);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = (e) => {
     if (isExiting) return;
+    if (e?.pointerType === "touch") return;
     if (timerRef.current) clearTimeout(timerRef.current);
     const elapsed = Date.now() - startTimeRef.current;
-    setRemainingTime((prev) => Math.max(0, prev - elapsed));
+    remainingTimeRef.current = Math.max(0, remainingTimeRef.current - elapsed);
     setIsPaused(true);
   };
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = (e) => {
     if (isExiting) return;
+    if (e?.pointerType === "touch") return;
     setIsPaused(false);
+    startTimeRef.current = Date.now();
+    const remaining = remainingTimeRef.current > 0 ? remainingTimeRef.current : 500;
+    timerRef.current = setTimeout(() => {
+      handleClose();
+    }, remaining);
   };
 
   if (!message) return null;

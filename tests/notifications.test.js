@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   generateSubscriptionAlerts,
   createTestNotification,
+  DEFAULT_NOTIFICATION_DURATION,
 } from "../src/lib/notifications.js";
 
 test("D-1 알림 대상 구독에 대해 알림 객체를 정상 생성한다", () => {
@@ -46,4 +47,10 @@ test("createTestNotification은 올바른 테스트 알림 아이템을 생성�
   assert.equal(testItem.isTest, true);
   assert.equal(testItem.badge, "D-3");
   assert.equal(testItem.serviceName, "Netflix");
+});
+
+test("알림바 지속 시간은 5~7초(5000ms~7000ms) 사이에 위치한다", () => {
+  assert.ok(DEFAULT_NOTIFICATION_DURATION >= 5000, "5초 이상이어야 함");
+  assert.ok(DEFAULT_NOTIFICATION_DURATION <= 7000, "7초 이하여야 함");
+  assert.equal(DEFAULT_NOTIFICATION_DURATION, 6000);
 });

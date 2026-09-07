@@ -24,7 +24,7 @@ export default function App() {
   const [addInitialMode, setAddInitialMode] = useState("manual");
   const [toast, setToast] = useState(null);
 
-  const notify = useCallback((message, duration = 3500) => {
+  const notify = useCallback((message, duration = 6000) => {
     setToast({ message, duration, id: Date.now() });
   }, []);
 
