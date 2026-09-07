@@ -35,17 +35,7 @@ export default function App() {
     setHighlightCancelId,
     hasAppChrome,
     pageTitle,
-  } = useNavigation({
-    onHashParamAction: (next) => {
-      if (next.params?.get("banner") === "1") {
-        const generated = generateSubscriptionAlerts(subscriptions.length ? subscriptions : createMockSubscriptions());
-        setActiveBanner(generated[0] || null);
-      }
-      if (next.params?.get("notifications") === "1") {
-        setNotificationCenterOpen(true);
-      }
-    },
-  });
+  } = useNavigation();
 
   // Subscriptions domain state
   const {
@@ -88,6 +78,17 @@ export default function App() {
     markAllRead,
     clearAll,
   } = useNotificationManager({ subscriptions });
+
+  // Handle URL query actions (?banner=1, ?notifications=1)
+  useEffect(() => {
+    if (screen.params?.get("banner") === "1") {
+      const generated = generateSubscriptionAlerts(subscriptions.length ? subscriptions : createMockSubscriptions());
+      setActiveBanner(generated[0] || null);
+    }
+    if (screen.params?.get("notifications") === "1") {
+      setNotificationCenterOpen(true);
+    }
+  }, [screen, subscriptions, setActiveBanner, setNotificationCenterOpen]);
 
   // Hardware back button support for Android (Capacitor)
   useEffect(() => {

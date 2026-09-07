@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 
@@ -49,6 +49,9 @@ export function useNavigation({ initialRoute = "home", onHashParamAction } = {})
     }
   }, []);
 
+  const actionRef = useRef(onHashParamAction);
+  actionRef.current = onHashParamAction;
+
   useEffect(() => {
     const onHashChange = () => {
       const next = readHash();
@@ -58,14 +61,14 @@ export function useNavigation({ initialRoute = "home", onHashParamAction } = {})
         setHighlightCancelId(next.id || "seed-spotify");
       }
 
-      if (onHashParamAction) {
-        onHashParamAction(next);
+      if (actionRef.current) {
+        actionRef.current(next);
       }
     };
 
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
-  }, [onHashParamAction]);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
