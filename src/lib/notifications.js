@@ -1,50 +1,31 @@
-import { Capacitor } from "@capacitor/core";
-import { LocalNotifications } from "@capacitor/local-notifications";
-import { daysUntilCharge, formatWon, getNextChargeDate } from "./dates.js";
-import { readStoredValue, writeStoredValue } from "./storage.js";
+import { daysUntilCharge, formatWon } from "./dates.js";
+import { readStoredValue, writeStoredValue, storageKeys } from "./storage.js";
 
 export const NOTIFICATION_STORAGE_KEY = "submate-mvp:notifications";
 export const NOTIFICATION_SETTINGS_KEY = "submate-mvp:notification-settings";
 
-const toDateKey = (date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-
-const isNative = () => Capacitor.isNativePlatform();
-
-const notificationId = (value) => {
-  const text = String(value || "RE.");
-  let hash = 2166136261;
-  for (let index = 0; index < text.length; index += 1) {
-    hash ^= text.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return Math.abs(hash % 2147483000) + 1;
-};
-
 export function getStoredNotifications() {
-  const stored = readStoredValue(NOTIFICATION_STORAGE_KEY, []);
-  return Array.isArray(stored) ? stored : [];
+  return readStoredValue(NOTIFICATION_STORAGE_KEY, []);
 }
 
 export function saveStoredNotifications(list) {
-  writeStoredValue(NOTIFICATION_STORAGE_KEY, Array.isArray(list) ? list : []);
+  writeStoredValue(NOTIFICATION_STORAGE_KEY, list);
 }
 
-/** Generate alert items only from the user's real stored subscriptions. */
+/**
+ * Generate alert items for subscriptions based on D-3, D-1, and TODAY rules
+ */
 export function generateSubscriptionAlerts(subscriptions, referenceDate = new Date()) {
   const alerts = [];
 
-  for (const sub of Array.isArray(subscriptions) ? subscriptions : []) {
-    if (!sub?.subscriptionId) continue;
+  for (const sub of subscriptions) {
     const days = daysUntilCharge(sub, referenceDate);
-    const nextChargeDate = getNextChargeDate(sub, referenceDate);
-    const occurrenceKey = toDateKey(nextChargeDate);
     const isTrial = Boolean(sub.isTrial || sub.status === "trial");
-    const timestamp = new Date(referenceDate).toISOString();
 
+    // D-1 Alert
     if (days === 1 && sub.alertD1) {
       alerts.push({
-        id: `alert-${sub.subscriptionId}-${occurrenceKey}-d1`,
+        id: `alert-${sub.subscriptionId}-d1`,
         subscriptionId: sub.subscriptionId,
         serviceName: sub.name,
         amount: sub.amount,
@@ -53,17 +34,22 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
         category: sub.category || "기타",
         type: isTrial ? "trial_d1" : "billing_d1",
         badge: isTrial ? "TRIAL D-1" : "D-1",
-        title: isTrial ? `[체험 만료 D-1] ${sub.name} 무료체험 종료` : `[결제 D-1] ${sub.name} 결제 예정`,
-        message: isTrial ? `내일 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.` : `내일 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
-        timestamp,
+        title: isTrial
+          ? `[체험 만료 D-1] ${sub.name} 무료체험 종료`
+          : `[결제 D-1] ${sub.name} 결제 예정`,
+        message: isTrial
+          ? `내일 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
+          : `내일 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
+        timestamp: new Date().toISOString(),
         daysUntil: 1,
         read: false,
       });
     }
 
+    // D-3 Alert
     if (days === 3 && sub.alertD3) {
       alerts.push({
-        id: `alert-${sub.subscriptionId}-${occurrenceKey}-d3`,
+        id: `alert-${sub.subscriptionId}-d3`,
         subscriptionId: sub.subscriptionId,
         serviceName: sub.name,
         amount: sub.amount,
@@ -74,15 +60,16 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
         badge: "D-3",
         title: `[결제 D-3] ${sub.name} 결제 예정`,
         message: `3일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
-        timestamp,
+        timestamp: new Date().toISOString(),
         daysUntil: 3,
         read: false,
       });
     }
 
+    // TODAY Alert
     if (days === 0) {
       alerts.push({
-        id: `alert-${sub.subscriptionId}-${occurrenceKey}-today`,
+        id: `alert-${sub.subscriptionId}-today`,
         subscriptionId: sub.subscriptionId,
         serviceName: sub.name,
         amount: sub.amount,
@@ -93,7 +80,7 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
         badge: "TODAY",
         title: `[결제일] ${sub.name} 오늘 결제일`,
         message: `오늘 ${sub.name} ${formatWon(sub.amount)}이 결제됩니다.`,
-        timestamp,
+        timestamp: new Date().toISOString(),
         daysUntil: 0,
         read: false,
       });
@@ -103,108 +90,84 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
   return alerts;
 }
 
-export async function getNotificationPermission() {
-  if (isNative()) {
-    try {
-      const result = await LocalNotifications.checkPermissions();
-      if (result.display === "granted") return "granted";
-      if (result.display === "denied") return "denied";
-      return "default";
-    } catch {
-      return "unsupported";
-    }
+/**
+ * Creates a single test notification for a given subscription
+ */
+export function createTestNotification(subscription, forcedType = "auto") {
+  const isTrial = Boolean(subscription.isTrial || subscription.status === "trial");
+  const type = forcedType === "auto" ? (isTrial ? "trial_d1" : "billing_d3") : forcedType;
+
+  let badge = "D-3";
+  let title = `[결제 D-3] ${subscription.name} 결제 예정`;
+  let message = `3일 뒤 ${subscription.name} ${formatWon(subscription.amount)}이 결제될 예정입니다.`;
+  let daysUntil = 3;
+
+  if (type === "trial_d1") {
+    badge = "TRIAL D-1";
+    title = `[체험 만료 D-1] ${subscription.name} 무료체험 종료`;
+    message = `내일 ${subscription.name} 무료체험이 종료되고 ${formatWon(subscription.amount)}이 결제됩니다.`;
+    daysUntil = 1;
+  } else if (type === "billing_d1") {
+    badge = "D-1";
+    title = `[결제 D-1] ${subscription.name} 결제 예정`;
+    message = `내일 ${subscription.name} ${formatWon(subscription.amount)}이 결제될 예정입니다.`;
+    daysUntil = 1;
   }
 
-  if (typeof window !== "undefined" && "Notification" in window) return Notification.permission;
-  return "unsupported";
+  return {
+    id: `test-alert-${subscription.subscriptionId || subscription.id}-${Date.now()}`,
+    subscriptionId: subscription.subscriptionId || subscription.id,
+    serviceName: subscription.name,
+    amount: subscription.amount,
+    plan: subscription.plan,
+    monogram: subscription.monogram || subscription.name?.slice(0, 1) || "S",
+    category: subscription.category || "기타",
+    type,
+    badge,
+    title,
+    message,
+    timestamp: new Date().toISOString(),
+    daysUntil,
+    read: false,
+    isTest: true,
+  };
 }
 
+/**
+ * Request browser Web Notification permission
+ */
 export async function requestNotificationPermission() {
-  if (isNative()) {
-    try {
-      const current = await LocalNotifications.checkPermissions();
-      const result = current.display === "granted" ? current : await LocalNotifications.requestPermissions();
-      if (result.display === "granted") return "granted";
-      if (result.display === "denied") return "denied";
-      return "default";
-    } catch {
-      return "unsupported";
-    }
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return "unsupported";
   }
-
-  if (typeof window === "undefined" || !("Notification" in window)) return "unsupported";
   try {
-    return await Notification.requestPermission();
+    const permission = await Notification.requestPermission();
+    return permission;
   } catch {
     return "denied";
   }
 }
 
-const atNineAM = (date) => {
-  const next = new Date(date);
-  next.setHours(9, 0, 0, 0);
-  return next;
-};
-
-const subtractDays = (date, days) => {
-  const next = new Date(date);
-  next.setDate(next.getDate() - days);
-  return next;
-};
-
-export async function syncNativeSubscriptionNotifications(subscriptions, referenceDate = new Date()) {
-  if (!isNative()) return { skipped: true, reason: "web" };
-
-  const permission = await getNotificationPermission();
-  if (permission !== "granted") return { skipped: true, reason: "permission" };
-
-  try {
-    const pending = await LocalNotifications.getPending();
-    const ours = (pending.notifications || []).filter((item) => item?.extra?.reSource === "billing-schedule");
-    if (ours.length) {
-      await LocalNotifications.cancel({ notifications: ours.map((item) => ({ id: item.id })) });
-    }
-
-    const now = new Date(referenceDate);
-    const scheduled = [];
-
-    for (const sub of Array.isArray(subscriptions) ? subscriptions : []) {
-      if (!sub?.subscriptionId || sub.status === "cancelled") continue;
-      const nextCharge = getNextChargeDate(sub, now);
-      const occurrenceKey = toDateKey(nextCharge);
-      const isTrial = Boolean(sub.isTrial || sub.status === "trial");
-
-      const candidates = [
-        sub.alertD3 ? { days: 3, badge: "D-3" } : null,
-        sub.alertD1 ? { days: 1, badge: "D-1" } : null,
-      ].filter(Boolean);
-
-      for (const candidate of candidates) {
-        const when = atNineAM(subtractDays(nextCharge, candidate.days));
-        if (when.getTime() <= now.getTime()) continue;
-        const key = `${sub.subscriptionId}-${occurrenceKey}-${candidate.badge}`;
-        scheduled.push({
-          id: notificationId(key),
-          title: isTrial && candidate.days === 1
-            ? `${sub.name} 무료체험 종료 D-1`
-            : `${sub.name} 결제 ${candidate.badge}`,
-          body: isTrial && candidate.days === 1
-            ? `내일 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제될 예정입니다.`
-            : `${candidate.days}일 뒤 ${formatWon(sub.amount)}이 결제될 예정입니다.`,
-          schedule: { at: when, allowWhileIdle: true },
-          extra: {
-            reSource: "billing-schedule",
-            subscriptionId: sub.subscriptionId,
-            badge: candidate.badge,
-          },
-        });
-      }
-    }
-
-    if (scheduled.length) await LocalNotifications.schedule({ notifications: scheduled });
-    return { skipped: false, count: scheduled.length };
-  } catch (error) {
-    console.warn("RE. native notification sync skipped:", error?.message || error);
-    return { skipped: true, reason: "native-error" };
+/**
+ * Send native browser Notification if supported and allowed
+ */
+export function sendBrowserNotification(title, options = {}) {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return false;
   }
+  if (Notification.permission === "granted") {
+    try {
+      new Notification(title, {
+        icon: "/favicon.ico",
+        badge: "/favicon.ico",
+        ...options,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
 }
+
+

@@ -1,391 +1,167 @@
 import { useMemo, useState } from "react";
-import {
-  ArrowRight,
-  BarChart3,
-  BellRing,
-  ChevronLeft,
-  ChevronRight,
-  Layers3,
-  Leaf,
-  MoreVertical,
-  Search,
-  SlidersHorizontal,
-  Sparkles,
-} from "lucide-react";
-import { Button, DDayBadge, ServiceMark } from "./ui";
-import { RiveCharacter } from "./RiveCharacter";
-import { serviceMarkToneClass, serviceMarkToneKey } from "../lib/serviceBrand";
-import {
-  daysUntilCharge,
-  formatBillingDate,
-  formatKoreanMonth,
-  formatWon,
-  getCalendarDays,
-  getChargeDateInMonth,
-  monthlyEquivalentAmount,
-  monthlyEquivalentTotal,
-} from "../lib/dates";
+import { ArrowRight, BellRing, ChevronLeft, ChevronRight, Inbox, ReceiptText, ScanLine, Send, Sparkles } from "lucide-react";
+import { Button, SubscriptionCard } from "./ui";
+import { daysUntilCharge, formatWon } from "../lib/dates";
 
-const currentMonthKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-
-
-
-function StatCard({ label, value, detail, icon, accent = "blue" }) {
+function SummaryCard({ subscriptions }) {
+  const [annual, setAnnual] = useState(false);
+  const monthly = subscriptions.reduce((sum, subscription) => sum + subscription.amount, 0);
+  const displayAmount = annual ? monthly * 12 : monthly;
   return (
-    <article className={`re-dashboard-stat re-dashboard-stat--${accent}`}>
-      <div>
-        <span>{label}</span>
-        <strong>{value}</strong>
-        <small>{detail}</small>
+    <button type="button" onClick={() => setAnnual((value) => !value)} className="card-press w-full rounded-[24px] bg-[#18181B] p-5 text-left text-white" aria-label="월간 및 연간 지출 전환">
+      <span className="block text-[13px] font-medium text-white/65">{annual ? "연간 환산 지출액" : "이번 달 총 결제 예정"}</span>
+      <span className="mt-2 block text-[28px] font-bold tracking-tight text-white">{formatWon(displayAmount)}</span>
+      <span className="mt-1 flex items-center gap-1 text-[12px] text-[#A1A1AA]">탭하면 {annual ? "월간" : "연간"} 지출로 전환</span>
+      <div className="mt-4 grid grid-cols-2 gap-4 border-t border-[#27272A] pt-3.5">
+        <span>
+          <span className="block text-[11px] text-[#71717A]">활성 구독</span>
+          <strong className="mt-1 block text-[16px] font-semibold text-white">{subscriptions.length}개</strong>
+        </span>
+        <span>
+          <span className="block text-[11px] text-[#71717A]">연간 환산</span>
+          <strong className="mt-1 block text-[16px] font-semibold text-white">{formatWon(monthly * 12)}</strong>
+        </span>
       </div>
-      <span className="re-dashboard-stat__icon" aria-hidden="true">{icon}</span>
-    </article>
-  );
-}
-
-function CompactSubscription({ subscription, onOpen }) {
-  return (
-    <button type="button" className="re-upcoming-card" onClick={() => onOpen(subscription.subscriptionId)}>
-      <ServiceMark monogram={subscription.monogram || subscription.name?.slice(0, 1)} className={`h-10 w-10 rounded-full text-[11px] ${serviceMarkToneClass(subscription)}`} />
-      <span className="min-w-0 flex-1">
-        <strong>{subscription.name}</strong>
-        <span>{formatWon(subscription.amount)} · {formatBillingDate(subscription)}</span>
-      </span>
-      <DDayBadge subscription={subscription} />
     </button>
   );
 }
 
-function SubscriptionGridCard({ subscription, onOpen }) {
-  const id = subscription.subscriptionId;
+function PromotionCarousel({ promotions, onOpen, onExplore }) {
+  const [index, setIndex] = useState(0);
+  const items = promotions.slice(0, 4);
+  if (!items.length) return null;
+  const promo = items[index];
+  const typeLabels = ["01 더 저렴한 대체", "02 무료 · 이벤트", "03 연간 · 학생 할인", "04 통신사 결합"];
+  const next = () => setIndex((value) => (value + 1) % items.length);
+  const previous = () => setIndex((value) => (value + items.length - 1) % items.length);
   return (
-    <article className="re-subscription-grid-card">
-      <button type="button" className="re-subscription-grid-card__body" onClick={() => onOpen(id)}>
-        <ServiceMark monogram={subscription.monogram || subscription.name?.slice(0, 1)} className={`re-subscription-grid-card__mark h-12 w-12 rounded-full text-[14px] ${serviceMarkToneClass(subscription)}`} />
-        <span className="re-subscription-grid-card__copy">
-          <strong>{subscription.name}</strong>
-          <span>{formatWon(subscription.amount)} / {subscription.billingCycle === "매년" ? "년" : "월"}</span>
-          <small>다음 결제 {formatBillingDate(subscription)}</small>
-        </span>
-      </button>
-      <button type="button" className="re-subscription-grid-card__more" onClick={() => onOpen(id)} aria-label={`${subscription.name} 상세 보기`}>
-        <MoreVertical size={18} />
-      </button>
-    </article>
-  );
-}
-
-function CancelledGridCard({ item }) {
-  const cancelledDate = item.cancelledAt ? new Date(item.cancelledAt) : null;
-  const dateLabel = cancelledDate && !Number.isNaN(cancelledDate.getTime())
-    ? `${cancelledDate.getMonth() + 1}월 ${cancelledDate.getDate()}일 해지`
-    : "해지 완료";
-
-  return (
-    <article className="re-subscription-grid-card is-cancelled">
-      <span className="flex items-center gap-3">
-        <ServiceMark monogram={item.monogram || item.name?.slice(0, 1)} className={`h-11 w-11 rounded-full text-[12px] ${serviceMarkToneClass(item)}`} />
-        <span className="min-w-0 text-left">
-          <strong className="block truncate">{item.name}</strong>
-          <span className="mt-0.5 block truncate">{formatWon(item.amount)} / {item.billingCycle === "매년" ? "년" : "월"}</span>
-        </span>
-      </span>
-      <span className="mt-3 block text-left text-[12px] text-[#7C89B8]">{dateLabel}</span>
-    </article>
-  );
-}
-
-function MiniCalendar({ subscriptions }) {
-  const [date, setDate] = useState(() => new Date());
-  const [selectedDay, setSelectedDay] = useState(() => new Date().getDate());
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const days = useMemo(() => getCalendarDays(year, month), [year, month]);
-
-  const duesByDay = useMemo(() => {
-    const map = new Map();
-    for (const subscription of subscriptions) {
-      const charge = getChargeDateInMonth(subscription, year, month);
-      if (!charge) continue;
-      const day = charge.getDate();
-      const list = map.get(day) || [];
-      list.push(subscription);
-      map.set(day, list);
-    }
-    return map;
-  }, [month, subscriptions, year]);
-
-  const selectedDues = duesByDay.get(selectedDay) || [];
-  const agendaGroups = useMemo(() => {
-    const all = [...duesByDay.entries()].sort((a, b) => a[0] - b[0]);
-    if (!all.length) return [];
-    if (!selectedDues.length) return all.slice(0, 2);
-    const selected = all.find(([day]) => day === selectedDay);
-    const remainder = all.filter(([day]) => day !== selectedDay);
-    return [selected, ...remainder].filter(Boolean).slice(0, 2);
-  }, [duesByDay, selectedDay, selectedDues.length]);
-
-  const moveMonth = (delta) => {
-    const nextDate = new Date(year, month + delta, 1);
-    const lastDay = new Date(nextDate.getFullYear(), nextDate.getMonth() + 1, 0).getDate();
-    setDate(nextDate);
-    setSelectedDay((current) => Math.min(current, lastDay));
-  };
-
-  const weekday = ["일", "월", "화", "수", "목", "금", "토"];
-  const agendaLabel = (day) => `${month + 1}월 ${day}일 (${weekday[new Date(year, month, day).getDay()]})`;
-
-  return (
-    <section className="re-mini-calendar re-dashboard-panel">
-      <div className="re-mini-calendar__head">
-        <strong>{formatKoreanMonth(date)}</strong>
+    <section className="mt-8">
+      <div className="mb-3 flex items-end justify-between">
         <div>
-          <button type="button" aria-label="이전 달" onClick={() => moveMonth(-1)}><ChevronLeft size={18} /></button>
-          <button type="button" aria-label="다음 달" onClick={() => moveMonth(1)}><ChevronRight size={18} /></button>
+          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">Smart alternative</p>
+          <h2 className="mt-1 text-[18px] font-semibold tracking-[-0.01em]">더 아낄 수 있는 선택</h2>
         </div>
+        <button type="button" onClick={onExplore} className="flex items-center gap-0.5 text-[13px] font-medium text-[#71717A] hover:text-black">전체보기 <ChevronRight size={15} /></button>
       </div>
-      <div className="re-mini-calendar__week"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
-      <div className="re-mini-calendar__days">
-        {days.map((day, index) => day ? (
+      <article className="overflow-hidden rounded-2xl border border-[#E4E4E7] bg-[#FAFAFA]">
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-4">
+            <span className="rounded-[4px] bg-black px-2 py-1 text-[11px] font-bold text-white">{typeLabels[index] || "추천 혜택"}</span>
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#18181B] text-[13px] font-bold text-white">{promo.monogram || promo.title.slice(0, 1)}</span>
+          </div>
+          <h3 className="mt-5 text-[18px] font-semibold tracking-[-0.02em]">{promo.title}</h3>
+          <p className="mt-2 min-h-10 text-[13px] leading-5 text-[#71717A]">{promo.description}</p>
+          <div className="mt-4 flex items-end justify-between">
+            <span>
+              <span className="block text-[11px] text-[#71717A]">예상 절약</span>
+              <strong className="mt-0.5 block text-[17px]">{formatWon(promo.saving)}</strong>
+            </span>
+            <Button size="compact" onClick={() => onOpen(promo)}>혜택 보기 <ArrowRight size={15} /></Button>
+          </div>
+        </div>
+        <div className="flex items-center justify-between border-t border-[#E4E4E7] bg-white px-4 py-3">
+          <div className="flex gap-1.5" aria-label="추천 단계">
+            {items.map((item, dotIndex) => <span key={item.id} className={`h-1.5 rounded-full transition-all ${dotIndex === index ? "w-5 bg-black" : "w-1.5 bg-[#E4E4E7]"}`} />)}
+          </div>
+          <div className="flex gap-1">
+            <button type="button" onClick={previous} className="grid h-7 w-7 place-items-center rounded-lg text-[#71717A] hover:bg-[#F4F4F5] hover:text-black" aria-label="이전 추천"><ChevronLeft size={16} /></button>
+            <button type="button" onClick={next} className="grid h-7 w-7 place-items-center rounded-lg text-[#71717A] hover:bg-[#F4F4F5] hover:text-black" aria-label="다음 추천"><ChevronRight size={16} /></button>
+          </div>
+        </div>
+      </article>
+    </section>
+  );
+}
+
+function EmptyState({ onAdd, onScan }) {
+  return (
+    <section className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-center px-5 text-center">
+      <span className="grid h-16 w-16 place-items-center rounded-[24px] bg-[#F4F4F5] text-black"><Inbox size={28} strokeWidth={1.5} /></span>
+      <h1 className="mt-6 text-[22px] font-bold tracking-[-0.02em]">등록된 구독 서비스가 없습니다</h1>
+      <p className="mt-3 max-w-[280px] text-[14px] leading-6 text-[#71717A]">하단의 + 버튼이나 아래 버튼으로 구독을 추가해보세요.</p>
+      <div className="mt-8 w-full space-y-3">
+        <Button className="w-full" onClick={onAdd}><ReceiptText size={18} />첫 구독 서비스 등록하기</Button>
+        <Button className="w-full" variant="secondary" onClick={onScan}><ScanLine size={18} />영수증 AI 스캔하기</Button>
+      </div>
+      <div className="mt-8 flex items-center gap-2 rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-3 text-left">
+        <Sparkles size={17} />
+        <p className="text-[12px] leading-5 text-[#71717A]">구독을 등록하면 내 사용 패턴에 맞는 프로모션을 추천해드려요.</p>
+      </div>
+    </section>
+  );
+}
+
+export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTriggerTestNotification }) {
+  const upcoming = useMemo(() => [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b)).slice(0, 3), [subscriptions]);
+
+  if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onAdd} />;
+
+  return (
+    <main className="px-5 pb-28 pt-6">
+      <p className="text-[13px] font-medium text-[#71717A]">{profile?.nickname || "민수"}님, 이번 달</p>
+      <h1 className="mt-1 text-[24px] font-bold tracking-[-0.02em]">고정지출을 확인하세요</h1>
+      {notificationDenied ? (
+        <button
+          type="button"
+          onClick={onToggleNotificationPermission}
+          className="mt-5 flex w-full items-center justify-between rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-3 text-left transition-colors hover:bg-[#F4F4F5]"
+        >
+          <div className="flex items-center gap-3">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-white shadow-sm text-black">
+              <Sparkles size={16} />
+            </span>
+            <div>
+              <strong className="block text-[13px]">결제 전 알림이 꺼져 있어요</strong>
+              <span className="mt-0.5 block text-[12px] text-[#71717A]">탭하여 알림을 켜고 D-3, D-1에 미리 안내받으세요.</span>
+            </div>
+          </div>
+          <span className="rounded-lg bg-black px-2.5 py-1 text-[11px] font-bold text-white">
+            켜기
+          </span>
+        </button>
+      ) : (
+        <div className="mt-5 flex w-full items-center justify-between rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-black text-white">
+              <BellRing size={14} />
+            </span>
+            <div>
+              <strong className="block text-[12px] font-semibold text-black">사전 결제 스마트 알림 활성화</strong>
+              <span className="block text-[11px] text-[#71717A]">D-3, D-1 결제 및 무료체험 종료 안내</span>
+            </div>
+          </div>
           <button
-            key={day}
             type="button"
-            data-tone={duesByDay.has(day) ? serviceMarkToneKey(duesByDay.get(day)?.[0]) : undefined}
-            className={`${selectedDay === day ? "is-selected" : ""} ${duesByDay.has(day) ? "has-due" : ""}`}
-            onClick={() => setSelectedDay(day)}
+            onClick={onTriggerTestNotification}
+            className="flex items-center gap-1 rounded-lg border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-black shadow-xs hover:bg-[#F4F4F5] active:scale-95 transition-transform"
           >
-            {day}
+            <Send size={11} />
+            알림 테스트
           </button>
-        ) : <span key={`empty-${index}`} />)}
-      </div>
+        </div>
+      )}
+      <div className="mt-5"><SummaryCard subscriptions={subscriptions} /></div>
 
-      <div className="re-mini-calendar__agenda">
-        {agendaGroups.length ? agendaGroups.map(([day, items]) => (
-          <section key={day} className="re-mini-calendar__agenda-group">
-            <strong className="re-mini-calendar__agenda-date">{agendaLabel(day)}</strong>
-            {items.slice(0, 2).map((subscription) => (
-              <button type="button" key={subscription.subscriptionId} className="re-mini-calendar__agenda-row" onClick={() => setSelectedDay(day)}>
-                <span className="flex min-w-0 items-center gap-2.5">
-                  <ServiceMark monogram={subscription.monogram || subscription.name?.slice(0, 1)} className={`h-7 w-7 rounded-full text-[9px] ${serviceMarkToneClass(subscription)}`} />
-                  <strong className="truncate">{subscription.name}</strong>
-                </span>
-                <span>{formatWon(subscription.amount)}</span>
-              </button>
-            ))}
-          </section>
-        )) : <p>이번 달에는 예정된 결제가 없어요.</p>}
-      </div>
-    </section>
-  );
-}
-
-function ConciergePanel() {
-  return (
-    <section className="re-concierge-card re-dashboard-panel" aria-label="RE. 컨시어지">
-      <div className="re-concierge-card__message">
-        <span>지금도,</span>
-        <strong>더 좋은 너를 향해.</strong>
-        <em>RE.</em>
-      </div>
-
-      <div className="re-concierge-card__character-wrap" aria-hidden="true">
-        <img className="re-concierge-card__character re-character-hq" src="/re-assets/sd/idle.png" alt="" />
-      </div>
-
-      <div className="re-concierge-card__quote">
-        <strong><span aria-hidden="true">💡</span> 오늘의 한마디</strong>
-        <p>작은 구독 정리가<br />큰 여유를 만들어줘요.</p>
-      </div>
-    </section>
-  );
-}
-
-export function HomeScreen({
-  subscriptions,
-  cancellationHistory = [],
-  promotions,
-  notificationDenied,
-  onOpenSubscription,
-  onShowAll,
-  onOpenPromotion,
-  onExplorePromotions,
-  onAdd,
-  onToggleNotificationPermission,
-}) {
-  const [status, setStatus] = useState("all");
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("전체");
-  const [sort, setSort] = useState("due");
-
-  const upcoming = useMemo(
-    () => [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b)).slice(0, 3),
-    [subscriptions]
-  );
-  const dueSoon = useMemo(() => subscriptions.filter((subscription) => daysUntilCharge(subscription) <= 3), [subscriptions]);
-  const savedThisMonth = useMemo(() => {
-    const key = currentMonthKey();
-    return cancellationHistory
-      .filter((item) => String(item.cancelledAt || "").slice(0, 7) === key)
-      .reduce((sum, item) => sum + monthlyEquivalentAmount(item), 0);
-  }, [cancellationHistory]);
-
-  const categories = useMemo(
-    () => ["전체", ...new Set([...subscriptions, ...cancellationHistory].map((item) => item.category).filter(Boolean))],
-    [cancellationHistory, subscriptions]
-  );
-
-  const visibleSubscriptions = useMemo(() => {
-    if (status === "cancelled") return [];
-    const normalized = query.trim().toLowerCase();
-    return subscriptions
-      .filter((item) => status === "all" || (status === "active" ? item.status === "active" : item.status === "trial"))
-      .filter((item) => category === "전체" || item.category === category)
-      .filter((item) => !normalized || `${item.name} ${item.plan || ""}`.toLowerCase().includes(normalized))
-      .sort((left, right) => {
-        if (sort === "amount") return Number(right.amount || 0) - Number(left.amount || 0);
-        if (sort === "recent") return new Date(right.createdAt || 0) - new Date(left.createdAt || 0);
-        return daysUntilCharge(left) - daysUntilCharge(right);
-      });
-  }, [category, query, sort, status, subscriptions]);
-
-  const visibleHistory = useMemo(() => {
-    if (status !== "cancelled") return [];
-    const normalized = query.trim().toLowerCase();
-    return [...cancellationHistory]
-      .filter((item) => category === "전체" || item.category === category)
-      .filter((item) => !normalized || `${item.name} ${item.plan || ""}`.toLowerCase().includes(normalized))
-      .sort((a, b) => new Date(b.cancelledAt || 0) - new Date(a.cancelledAt || 0));
-  }, [cancellationHistory, category, query, status]);
-
-  const primaryPromotion = useMemo(() => {
-    const ownedIds = new Set(subscriptions.map((item) => item.id));
-    return (promotions || []).find((promotion) => promotion.sourceServiceIds?.some((id) => ownedIds.has(id))) || null;
-  }, [promotions, subscriptions]);
-
-  return (
-    <main className="re-dashboard-home">
-      <div className="re-dashboard-main-column">
-        <header className="re-dashboard-greeting">
+      <section className="mt-8">
+        <div className="mb-3 flex items-end justify-between">
           <div>
-            <h1>좋은 하루예요. <span aria-hidden="true">🌸</span></h1>
-            <p>오늘도 더 가벼운 일상을 만들어봐요.</p>
+            <p className="mb-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">Upcoming</p>
+            <h2 className="text-[17px] font-bold tracking-[-0.01em]">결제 임박 (최대 3개)</h2>
           </div>
-
-          <div className="re-dashboard-greeting__aside">
-            <span>작은 변화가,</span>
-            <strong>더 여유로운 내일을 만들어요.</strong>
-            <img className="re-character-hq" src="/re-assets/char_stand.jpg" alt="" />
-          </div>
-        </header>
-
-        <section className="re-dashboard-stats" aria-label="구독 요약">
-          <StatCard label="이번 달 구독 총액" value={formatWon(monthlyEquivalentTotal(subscriptions))} detail="현재 등록된 구독 기준" icon={<BarChart3 size={30} />} accent="blue" />
-          <StatCard label="구독 개수" value={`${subscriptions.length}개`} detail={`${subscriptions.filter((item) => item.status === "active").length}개 활성 구독`} icon={<Layers3 size={30} />} accent="purple" />
-          <StatCard label="결제 예정" value={`${dueSoon.length}개`} detail="D-3, D-1" icon={<BellRing size={30} />} accent="pink" />
-          <StatCard label="이번 달 절약 예정액" value={formatWon(savedThisMonth)} detail={savedThisMonth > 0 ? "지금도 잘하고 있어요!" : "아직 줄인 금액이 없어요"} icon={<Leaf size={30} />} accent="green" />
-        </section>
-
-        {notificationDenied && (
-          <button type="button" onClick={onToggleNotificationPermission} className="re-notification-reminder">
-            <span><BellRing size={16} /> 결제 전 알림이 꺼져 있어요.</span>
-            <strong>알림 확인</strong>
-          </button>
-        )}
-
-        <section className="re-dashboard-upcoming re-dashboard-panel">
-          <div className="re-dashboard-section-head">
-            <h2>결제 예정 구독</h2>
-            <button type="button" onClick={onShowAll}>전체 보기 <ArrowRight size={14} /></button>
-          </div>
-
-          <div className="re-dashboard-upcoming__body">
-            <div className="re-dashboard-upcoming__list">
-              {upcoming.length ? upcoming.map((subscription) => (
-                <CompactSubscription key={subscription.subscriptionId} subscription={subscription} onOpen={onOpenSubscription} />
-              )) : <div className="re-dashboard-empty-inline">다가오는 결제가 아직 없어요.</div>}
-            </div>
-
-            <article className="re-dashboard-guide-banner">
-              <div>
-                <span>{primaryPromotion ? "혜택을 하나 찾았어요." : "불필요한 구독,"}</span>
-                <strong>{primaryPromotion ? primaryPromotion.title : "이제는 안녕."}</strong>
-                <p>{primaryPromotion ? primaryPromotion.description : "지금 필요한 구독만 남겨보세요."}</p>
-                <button type="button" onClick={() => primaryPromotion ? onOpenPromotion(primaryPromotion) : onShowAll()}>
-                  {primaryPromotion ? "혜택 확인하기" : "구독 정리하러 가기"} <ArrowRight size={13} />
-                </button>
-              </div>
-              <img className="re-character-hq" src="/re-assets/hero.jpg" alt="" />
-            </article>
-          </div>
-        </section>
-
-        <section className="re-dashboard-subscriptions re-dashboard-panel">
-          <div className="re-dashboard-section-head re-dashboard-section-head--subscriptions">
-            <h2>내 구독 서비스</h2>
-            <div className="re-dashboard-add-actions">
-              <button type="button" className="re-dashboard-filter-jump" onClick={() => document.getElementById("re-home-category-filter")?.focus()} aria-label="구독 필터로 이동"><SlidersHorizontal size={17} /></button>
-              <Button size="compact" variant="secondary" onClick={onAdd}>+ 구독 추가</Button>
-            </div>
-          </div>
-
-          <div className="re-dashboard-library-toolbar">
-            <div className="re-dashboard-tabs" role="tablist" aria-label="구독 상태 필터">
-              <button type="button" className={status === "all" ? "is-active" : ""} onClick={() => setStatus("all")}>전체 ({subscriptions.length})</button>
-              <button type="button" className={status === "active" ? "is-active" : ""} onClick={() => setStatus("active")}>활성 ({subscriptions.filter((item) => item.status === "active").length})</button>
-              <button type="button" className={status === "trial" ? "is-active" : ""} onClick={() => setStatus("trial")}>무료체험 ({subscriptions.filter((item) => item.status === "trial").length})</button>
-              <button type="button" className={status === "cancelled" ? "is-active" : ""} onClick={() => setStatus("cancelled")}>해지됨 ({cancellationHistory.length})</button>
-            </div>
-
-            <div className="re-dashboard-filters">
-              <label>
-                <span className="sr-only">카테고리</span>
-                <select id="re-home-category-filter" value={category} onChange={(event) => setCategory(event.target.value)}>
-                  {categories.map((item) => <option key={item} value={item}>{item === "전체" ? "카테고리" : item}</option>)}
-                </select>
-              </label>
-
-              <label>
-                <span className="sr-only">정렬</span>
-                <select value={sort} onChange={(event) => setSort(event.target.value)} disabled={status === "cancelled"}>
-                  <option value="due">정렬</option>
-                  <option value="amount">금액 높은순</option>
-                  <option value="recent">최근 등록순</option>
-                </select>
-              </label>
-
-              <label className="re-dashboard-search">
-                <Search size={17} />
-                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="검색..." />
-              </label>
-            </div>
-          </div>
-
-          <div className="re-dashboard-subscription-grid">
-            {status === "cancelled"
-              ? visibleHistory.map((item) => <CancelledGridCard key={item.historyId || `${item.subscriptionId}-${item.cancelledAt}`} item={item} />)
-              : visibleSubscriptions.map((subscription) => <SubscriptionGridCard key={subscription.subscriptionId} subscription={subscription} onOpen={onOpenSubscription} />)}
-          </div>
-
-          {((status === "cancelled" && !visibleHistory.length) || (status !== "cancelled" && !visibleSubscriptions.length)) && (
-            <div className="re-dashboard-empty-state">
-              <RiveCharacter state="idle" className="re-dashboard-empty-state__character" />
-              <strong>{status === "cancelled" ? "해지 완료 기록이 없어요." : "조건에 맞는 구독이 없어요."}</strong>
-              <p>{status === "cancelled" ? "해지가 완료되면 활성 목록에서는 즉시 제거되고 이 기록에만 남아요." : "구독을 추가하거나 필터 조건을 바꿔보세요."}</p>
-              {status !== "cancelled" && <Button size="compact" onClick={onAdd}>구독 추가하기</Button>}
-            </div>
+          {subscriptions.length > 3 && (
+            <button type="button" onClick={onShowAll} className="flex items-center gap-0.5 text-[12px] font-medium text-[#71717A] hover:text-black">
+              전체보기 <ChevronRight size={15} />
+            </button>
           )}
-        </section>
-      </div>
+        </div>
+        <div className="space-y-3">
+          {upcoming.map((subscription) => (
+            <SubscriptionCard key={subscription.subscriptionId} subscription={subscription} onOpen={() => onOpenSubscription(subscription.subscriptionId)} />
+          ))}
+        </div>
+      </section>
 
-      <aside className="re-dashboard-right-column">
-        <MiniCalendar subscriptions={subscriptions} />
-        <ConciergePanel />
-        {promotions?.length > 0 && (
-          <button type="button" className="re-dashboard-benefit-link" onClick={onExplorePromotions}>
-            <Sparkles size={16} /> 구독 혜택 전체 보기 <ArrowRight size={14} />
-          </button>
-        )}
-      </aside>
+      <PromotionCarousel promotions={promotions} onOpen={onOpenPromotion} onExplore={onExplorePromotions} />
     </main>
   );
 }
