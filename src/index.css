@@ -4,8 +4,8 @@
 
 :root {
   font-family: Pretendard, Inter, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
-  color: #000000;
-  background: #f4f4f5;
+  color: #191F28;
+  background: #F2F4F6;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -16,14 +16,15 @@
 
 html {
   min-width: 320px;
-  background: #f4f4f5;
+  background: #F2F4F6;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #f4f4f5;
+  background: #F2F4F6;
+  color: #191F28;
 }
 
 button,
@@ -38,7 +39,7 @@ input:focus-visible,
 textarea:focus-visible:not(.no-focus-ring),
 select:focus-visible,
 a:focus-visible {
-  outline: 2px solid #000000;
+  outline: 2px solid #191F28;
   outline-offset: 2px;
 }
 
@@ -62,8 +63,8 @@ button {
   max-width: 420px;
   margin: 0 auto;
   overflow-x: hidden;
-  border-left: 1px solid #e4e4e7;
-  border-right: 1px solid #e4e4e7;
+  border-left: 1px solid #E5E8EB;
+  border-right: 1px solid #E5E8EB;
   background: #ffffff;
 }
 

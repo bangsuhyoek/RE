@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, BadgePercent, CircleDollarSign, ExternalLink, Sparkles, TrendingDown } from "lucide-react";
-import { Button, ServiceMark } from "./ui";
+import { Button, Chip, ServiceMark } from "./ui";
 import { formatWon } from "../lib/dates";
 
 const filters = [
@@ -66,16 +66,13 @@ export function PromotionScreen({ subscriptions, promotions, onOpenPromotion }) 
       {/* 탭 필터 */}
       <div className="mt-6 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {filters.map((item) => (
-          <button
-            type="button"
+          <Chip
             key={item.id}
+            selected={filter === item.id}
             onClick={() => setFilter(item.id)}
-            className={`shrink-0 rounded-full border px-3 py-2 text-[12px] font-semibold transition-colors ${
-              filter === item.id ? "border-black bg-black text-white" : "border-[#E4E4E7] bg-white text-[#71717A] hover:border-[#A1A1AA]"
-            }`}
           >
             {item.label}
-          </button>
+          </Chip>
         ))}
       </div>
 
