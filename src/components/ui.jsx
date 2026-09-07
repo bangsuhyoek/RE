@@ -365,47 +365,129 @@ function SubscriptionCardBody({ subscription, onOpen, detail = false }) {
 export function SubscriptionCard({ subscription, onOpen, onCancel, onMute, swipable = false, detail = false }) {
   const [revealed, setRevealed] = useState(false);
   const [dragX, setDragX] = useState(0);
+  const [isDraggingState, setIsDraggingState] = useState(false);
   const startX = useRef(null);
+  const startY = useRef(null);
+  const isDragging = useRef(false);
+  const capturedElement = useRef(null);
 
   if (!swipable) return <SubscriptionCardBody subscription={subscription} onOpen={onOpen} detail={detail} />;
 
   const handlePointerDown = (event) => {
+    if (event.button !== undefined && event.button !== 0) return;
     startX.current = event.clientX;
-    event.currentTarget.setPointerCapture?.(event.pointerId);
+    startY.current = event.clientY;
+    isDragging.current = false;
   };
+
   const handlePointerMove = (event) => {
     if (startX.current === null) return;
-    setDragX(Math.max(-120, Math.min(0, event.clientX - startX.current)));
+    const deltaX = event.clientX - startX.current;
+    const deltaY = event.clientY - (startY.current ?? event.clientY);
+
+    if (!isDragging.current) {
+      if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        isDragging.current = true;
+        setIsDraggingState(true);
+        capturedElement.current = event.currentTarget;
+        try {
+          event.currentTarget.setPointerCapture?.(event.pointerId);
+        } catch (_) {}
+      }
+    }
+
+    if (isDragging.current) {
+      const base = revealed ? -120 : 0;
+      const nextX = Math.max(-120, Math.min(0, base + deltaX));
+      setDragX(nextX);
+    }
   };
-  const handlePointerEnd = () => {
-    if (startX.current === null) return;
-    setRevealed(dragX < -55 || revealed);
+  const handlePointerEnd = (event) => {
+    if (capturedElement.current) {
+      try {
+        capturedElement.current.releasePointerCapture?.(event.pointerId);
+      } catch (_) {}
+      capturedElement.current = null;
+    }
+
+    if (isDragging.current) {
+      if (revealed) {
+        setRevealed(dragX < -70);
+      } else {
+        setRevealed(dragX < -50);
+      }
+      setDragX(0);
+      setIsDraggingState(false);
+      startX.current = null;
+      startY.current = null;
+      setTimeout(() => {
+        isDragging.current = false;
+      }, 100);
+      return;
+    }
+
     setDragX(0);
+    setIsDraggingState(false);
     startX.current = null;
+    startY.current = null;
   };
-  const translate = revealed ? -120 : dragX;
+
+  const handleCardClick = (event) => {
+    if (isDragging.current) {
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+      return;
+    }
+    if (revealed) {
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+      setRevealed(false);
+      return;
+    }
+    onOpen?.();
+  };
+
+  const currentTranslate = isDraggingState ? dragX : (revealed ? -120 : 0);
 
   return (
     <div className="relative overflow-hidden rounded-2xl">
       <div className="absolute inset-y-0 right-0 flex w-[120px] overflow-hidden rounded-r-2xl" aria-hidden={!revealed}>
-        <button type="button" tabIndex={revealed ? 0 : -1} onClick={onCancel} className="flex w-1/2 flex-col items-center justify-center gap-1 bg-[#FF4D4D] text-[11px] font-bold text-white transition-opacity active:opacity-90">
+        <button
+          type="button"
+          tabIndex={revealed ? 0 : -1}
+          onClick={(e) => {
+            e.stopPropagation();
+            setRevealed(false);
+            onCancel?.();
+          }}
+          className="flex w-1/2 flex-col items-center justify-center gap-1 bg-[#FF4D4D] text-[11px] font-bold text-white transition-opacity active:opacity-90 cursor-pointer"
+        >
           <X size={16} />
           해지
         </button>
-        <button type="button" tabIndex={revealed ? 0 : -1} onClick={onMute} className="flex w-1/2 flex-col items-center justify-center gap-1 bg-[#6B7684] text-[11px] font-bold text-white transition-opacity active:opacity-90">
+        <button
+          type="button"
+          tabIndex={revealed ? 0 : -1}
+          onClick={(e) => {
+            e.stopPropagation();
+            setRevealed(false);
+            onMute?.();
+          }}
+          className="flex w-1/2 flex-col items-center justify-center gap-1 bg-[#6B7684] text-[11px] font-bold text-white transition-opacity active:opacity-90 cursor-pointer"
+        >
           <BellOff size={16} />
           알림 끄기
         </button>
       </div>
       <div
-        className="relative touch-pan-y transition-transform duration-[240ms] ease-[cubic-bezier(0.32,0.72,0,1)]"
-        style={{ transform: `translateX(${translate}px)` }}
+        className={"relative touch-pan-y " + (isDraggingState ? "transition-none" : "transition-transform duration-[240ms] ease-[cubic-bezier(0.32,0.72,0,1)]")}
+        style={{ transform: "translateX(" + currentTranslate + "px)" }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerEnd}
         onPointerCancel={handlePointerEnd}
       >
-        <SubscriptionCardBody subscription={subscription} onOpen={onOpen} detail={detail} />
+        <SubscriptionCardBody subscription={subscription} onOpen={handleCardClick} detail={detail} />
       </div>
     </div>
   );

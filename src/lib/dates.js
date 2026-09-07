@@ -34,7 +34,12 @@ export const formatBillingDate = (subscription, reference = new Date()) => {
   return `${date.getMonth() + 1}월 ${date.getDate()}일`;
 };
 
-export const formatKoreanMonth = (year, monthIndex) => `${year}년 ${monthIndex + 1}월`;
+export const formatKoreanMonth = (yearOrDate, monthIndex) => {
+  if (yearOrDate instanceof Date) {
+    return `${yearOrDate.getFullYear()}년 ${yearOrDate.getMonth() + 1}월`;
+  }
+  return `${yearOrDate}년 ${Number(monthIndex) + 1}월`;
+};
 
 export const getCalendarDays = (year, monthIndex) => {
   const firstWeekday = new Date(year, monthIndex, 1).getDay();

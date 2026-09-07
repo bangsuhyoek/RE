@@ -35,7 +35,7 @@ export function CalendarScreen({ subscriptions, onOpen }) {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">Billing calendar</p>
-          <h1 className="mt-1 text-[22px] font-extrabold tracking-tight text-[#191F28]">{formatKoreanMonth(date)}</h1>
+          <h1 className="mt-1 text-[22px] font-extrabold tracking-tight text-[#191F28]">{formatKoreanMonth(year, month)}</h1>
         </div>
         <div className="flex gap-1">
           <IconButton variant="weak" size="medium" onClick={prevMonth} aria-label="이전 달"><ChevronLeft size={16} /></IconButton>
