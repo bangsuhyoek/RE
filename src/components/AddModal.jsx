@@ -1,4 +1,5 @@
-import { getApiEndpoint } from "../lib/apiBase";
+import { API_BASE_URL, getApiEndpoint, isNativePlatform } from "../lib/apiBase";
+import { recognizeDirectly, isDirectGeminiAvailable } from "../lib/geminiOcr";
 import { useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, FileImage, LoaderCircle, MessageSquareText, ScanLine, UploadCloud } from "lucide-react";
 import { BottomSheet, Button, SegmentedControl, PaymentIcon, PAYMENT_PRESETS } from "./ui";
@@ -17,6 +18,21 @@ const readImageAsBase64 = (file) => new Promise((resolve, reject) => {
 });
 
 const callRecognitionApi = async (payload) => {
+  // 1. 문자(SMS)는 네트워크 없이 로컬 파서로 즉시 처리
+  if (payload?.text) {
+    return recognizeDirectly(payload);
+  }
+
+  // 2. 백엔드 URL이 없거나 모바일 네이티브 환경에서 백엔드 미지정 시 직접 호출
+  if (!API_BASE_URL) {
+    if (isDirectGeminiAvailable()) {
+      return recognizeDirectly(payload);
+    }
+    throw new Error(
+      "AI 영수증 인식을 위해 백엔드 서버 주소(VITE_API_BASE_URL) 또는 GEMINI_API_KEY 설정이 필요합니다."
+    );
+  }
+
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), 35_000);
   try {
@@ -31,10 +47,27 @@ const callRecognitionApi = async (payload) => {
     try {
       result = await response.json();
     } catch {
-      throw new Error("OCR API를 실행하지 못했습니다. 로컬에서는 Vercel 개발 서버로 실행해 주세요.");
+      if (isDirectGeminiAvailable()) {
+        return await recognizeDirectly(payload);
+      }
+      throw new Error("서버 응답을 처리하지 못했습니다. 백엔드 서버 상태를 확인해 주세요.");
     }
     if (!response.ok || !result.ok) throw new Error(result.message || "결제 정보를 인식하지 못했습니다.");
     return result;
+  } catch (error) {
+    // 백엔드 연결 실패 시 직접 호출 가능한 경우 Fallback
+    if (isDirectGeminiAvailable() && (error.name === "AbortError" || (error instanceof TypeError && error.message?.includes("fetch")))) {
+      return recognizeDirectly(payload);
+    }
+    if (error.name === "AbortError") {
+      throw new Error("요청 시간이 초과되었습니다. 네트워크 상태를 확인한 후 다시 시도해 주세요.");
+    }
+    if (error instanceof TypeError && error.message && error.message.includes("fetch")) {
+      throw new Error(
+        "AI 서버에 연결할 수 없습니다. 인터넷 연결 및 백엔드 서버 주소를 확인해 주세요."
+      );
+    }
+    throw error;
   } finally {
     window.clearTimeout(timer);
   }

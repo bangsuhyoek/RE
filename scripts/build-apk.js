@@ -7,6 +7,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const androidDir = path.join(rootDir, "android");
 
+// .env.local 및 환경변수 점검
+const envLocalPath = path.join(rootDir, ".env.local");
+let configuredApiBaseUrl = process.env.VITE_API_BASE_URL;
+if (!configuredApiBaseUrl && fs.existsSync(envLocalPath)) {
+  const envContent = fs.readFileSync(envLocalPath, "utf8");
+  const match = envContent.match(/^VITE_API_BASE_URL=(.+)$/m);
+  if (match) configuredApiBaseUrl = match[1].trim();
+}
+
+if (!configuredApiBaseUrl) {
+  console.warn("\n⚠️  [주의] VITE_API_BASE_URL이 설정되지 않았습니다!");
+  console.warn("   모바일 앱에서 AI(OCR) API를 사용하려면 배포된 백엔드 URL이 필요합니다.");
+  console.warn("   (예: .env.local 파일에 VITE_API_BASE_URL=https://submate.vercel.app 등록)\n");
+} else {
+  console.log(`\n🌐 백엔드 API 주소 연결 확인: ${configuredApiBaseUrl}\n`);
+}
+
 console.log("🚀 [1/4] 웹 정적 에셋 빌드 중 (pnpm build)...");
 execSync("pnpm run build", { cwd: rootDir, stdio: "inherit" });
 

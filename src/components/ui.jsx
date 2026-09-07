@@ -273,7 +273,7 @@ export function AppHeader({ title, onBack, rightSlot = null }) {
 
 export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
   return (
-    <nav className="fixed bottom-0 left-1/2 z-30 flex h-16 w-full max-w-[420px] -translate-x-1/2 items-center justify-around border-x border-t border-[#F2F4F6] bg-white/95 px-2 pb-1 pt-1 backdrop-blur-md shadow-[0_-1px_3px_rgba(0,0,0,0.02)]" aria-label="주요 탐색">
+    <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-16 w-full max-w-[420px] -translate-x-1/2 items-center justify-around border-x border-t border-[#F2F4F6] bg-white/95 px-2 pb-[max(0.25rem,env(safe-area-inset-bottom,0px))] pt-1 backdrop-blur-md shadow-[0_-1px_3px_rgba(0,0,0,0.02)]" aria-label="주요 탐색">
       <button
         type="button"
         onClick={() => onNavigate("home")}

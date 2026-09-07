@@ -26,6 +26,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -73,6 +76,19 @@ public class CancelBrowserActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cancel_browser);
+
+        View rootLayout = findViewById(R.id.rootLayout);
+        if (rootLayout != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, windowInsets) -> {
+                Insets systemBars = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
+                );
+                Insets ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
+                int bottomPadding = Math.max(systemBars.bottom, ime.bottom);
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, bottomPadding);
+                return WindowInsetsCompat.CONSUMED;
+            });
+        }
 
         String serviceName = getIntent().getStringExtra("serviceName");
         String cancelUrl = getIntent().getStringExtra("cancelUrl");

@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
-import { Check, CheckCircle2, ExternalLink, ShieldCheck } from "lucide-react";
+import { Check, CheckCircle2, ExternalLink, ShieldCheck, Layers, Sparkles } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import { App } from "@capacitor/app";
 import { BottomSheet, Button, ServiceMark } from "./ui";
 import { formatWon } from "../lib/dates";
 import { CancelBrowserModal } from "./CancelBrowserModal";
-import { openCancelBrowser } from "../lib/cancelBrowser";
+import {
+  openCancelBrowser,
+  checkOverlayPermission,
+  requestOverlayPermission,
+  startFloatingGuide,
+  stopFloatingGuide,
+} from "../lib/cancelBrowser";
 
 const baseSteps = [
   "서비스 계정으로 로그인하기",
@@ -15,6 +23,8 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
   const [checked, setChecked] = useState([false, false, false]);
   const [celebrating, setCelebrating] = useState(false);
   const [showBrowserModal, setShowBrowserModal] = useState(false);
+  const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
+  const [cancelSessionActive, setCancelSessionActive] = useState(false);
 
   useEffect(() => {
     if (!celebrating) return undefined;
@@ -22,8 +32,47 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
     return () => window.clearTimeout(timer);
   }, [celebrating, onClose]);
 
+  useEffect(() => {
+    let listenerPromise;
+    if (Capacitor.isNativePlatform()) {
+      listenerPromise = App.addListener("appStateChange", (state) => {
+        if (state.isActive && cancelSessionActive) {
+          onToast?.("해지를 완료하셨다면 아래 '해지 완료했습니다' 버튼을 눌러주세요.");
+        }
+      });
+    }
+    return () => {
+      listenerPromise?.then((h) => h.remove());
+    };
+  }, [cancelSessionActive, onToast]);
+
   const goToCancel = async () => {
     if (!subscription.cancelUrl) return;
+
+    if (Capacitor.isNativePlatform()) {
+      const hasPermission = await checkOverlayPermission();
+      if (hasPermission) {
+        onToast?.("화면에 미니 해지 가이드 버블을 띄웠어요.");
+        setCancelSessionActive(true);
+        await startFloatingGuide(
+          {
+            serviceId: subscription.id,
+            serviceName: subscription.name,
+            cancelUrl: subscription.cancelUrl,
+            guideSteps: subscription.guideSteps,
+          },
+          () => {
+            complete();
+          }
+        );
+        setChecked((current) => [true, ...current.slice(1)]);
+        return;
+      } else {
+        setShowPermissionPrompt(true);
+        return;
+      }
+    }
+
     const res = await openCancelBrowser({
       serviceId: subscription.id,
       serviceName: subscription.name,
@@ -46,7 +95,36 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
     setChecked((current) => [true, ...current.slice(1)]);
   };
 
+  const proceedWithoutOverlay = async () => {
+    setShowPermissionPrompt(false);
+    setCancelSessionActive(true);
+    const res = await openCancelBrowser({
+      serviceId: subscription.id,
+      serviceName: subscription.name,
+      cancelUrl: subscription.cancelUrl,
+      guideSteps: subscription.guideSteps,
+    });
+    if (res?.action === "COMPLETED") {
+      complete();
+      return;
+    }
+    if (res?.action === "FALLBACK_WEB") {
+      setShowBrowserModal(true);
+      return;
+    }
+    window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
+    onToast?.(`${subscription.name} 해지 페이지를 브라우저에서 열었어요.`);
+    setChecked((current) => [true, ...current.slice(1)]);
+  };
+
+  const handleRequestPermission = async () => {
+    setShowPermissionPrompt(false);
+    await requestOverlayPermission();
+    onToast?.("권한을 켠 후 다시 [해지 페이지로 바로 이동]을 눌러주세요.");
+  };
+
   const complete = () => {
+    stopFloatingGuide();
     onComplete(subscription);
     setCelebrating(true);
   };
@@ -59,6 +137,42 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
           <h2 className="mt-5 text-[22px] font-extrabold tracking-tight text-[#191F28]">월 {formatWon(subscription.amount)}<br />절약 성공!</h2>
           <p className="mt-2.5 text-[14px] leading-relaxed text-[#6B7684]">{subscription.name}을 구독 목록에서 정리했어요. 절약한 금액은 다음 달에도 이어서 확인할 수 있어요.</p>
           {promotion && <p className="mt-4 rounded-2xl border border-[#FFE8CC] bg-[#FFF9F2] px-3.5 py-2.5 text-[12px] font-medium text-[#FF6F0F]">다음으로 {promotion.title} 혜택을 확인해 보세요.</p>}
+        </div>
+      </BottomSheet>
+    );
+  }
+
+  if (showPermissionPrompt) {
+    return (
+      <BottomSheet onClose={() => setShowPermissionPrompt(false)} label="플로팅 가이드 안내">
+        <div className="flex flex-col items-center px-1 pb-4 pt-2 text-center">
+          <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#EFF6FF] text-[#3182F6] shadow-2xs mb-3">
+            <Layers size={28} />
+          </span>
+          <h3 className="text-[18px] font-bold tracking-tight text-[#191F28]">
+            화면 위에 가이드를 띄울까요?
+          </h3>
+          <p className="mt-2 text-[13px] leading-relaxed text-[#6B7684] max-w-[280px]">
+            공식 사이트에서 로그인 및 해지하는 동안, 화면 구석에 단계별 팁이 담긴 <span className="font-semibold text-[#191F28]">미니 버블</span>을 띄워 드려요.
+          </p>
+          <div className="mt-4 w-full rounded-xl bg-[#F9FAFB] p-3.5 text-left border border-[#E5E8EB]">
+            <p className="text-[12px] font-bold text-[#191F28] flex items-center gap-1.5">
+              <Sparkles size={14} className="text-[#3182F6]" /> '다른 앱 위에 표시' 권한 필요
+            </p>
+            <p className="mt-1 text-[11px] text-[#8B95A1] leading-relaxed">
+              설정 화면으로 이동하여 SubMate 권한을 켜주시면 즉시 플로팅 가이드가 활성화됩니다.
+            </p>
+          </div>
+          <Button size="large" fullWidth className="mt-5" onClick={handleRequestPermission}>
+            권한 설정하고 가이드 띄우기
+          </Button>
+          <button
+            type="button"
+            onClick={proceedWithoutOverlay}
+            className="mt-3.5 text-[12px] font-semibold text-[#6B7684] hover:text-[#191F28] active:scale-95 transition-all"
+          >
+            권한 없이 일반 브라우저로 이동하기
+          </button>
         </div>
       </BottomSheet>
     );
