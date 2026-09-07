@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Send, Settings2 } from "lucide-react";
+import { Send, Settings2, X, Camera } from "lucide-react";
 import { Button, DDayBadge, ServiceMark, ToggleSwitch, PaymentIcon, PaymentMethodBadge, PAYMENT_PRESETS } from "./ui";
 import { formatBillingDate, formatWon } from "../lib/dates";
 
@@ -14,11 +14,13 @@ function DetailField({ label, value }) {
 
 export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel, onBack, promotion, onTriggerNotification, highlightCancel }) {
   const [editing, setEditing] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState(null);
   const [draft, setDraft] = useState(() => ({
     plan: subscription?.plan || "기본 플랜",
     amount: subscription?.amount || 0,
     dueDay: subscription?.dueDay || 1,
-    paymentMethod: subscription?.paymentMethod || "등록 안 됨"
+    paymentMethod: subscription?.paymentMethod || "등록 안 됨",
+    memo: subscription?.memo || "",
   }));
 
   if (!subscription) {
@@ -44,7 +46,11 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
   return (
     <main className="px-5 pb-36 pt-6">
       <section className="flex items-center gap-4">
-        <ServiceMark monogram={monogram} className="h-14 w-14 rounded-2xl text-[17px] shadow-2xs" />
+        <ServiceMark
+          monogram={monogram}
+          image={subscription.image || subscription.attachments?.[0]}
+          className="h-14 w-14 rounded-2xl text-[17px] shadow-2xs"
+        />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h1 className="truncate text-[22px] font-extrabold tracking-tight text-[#191F28]">{subscription.name}</h1>
@@ -62,7 +68,44 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
         <DetailField label="결제 주기" value={subscription.billingCycle || "매월"} />
         <div className="h-px bg-[#F2F4F6]" />
         <DetailField label="결제 수단" value={<PaymentMethodBadge method={subscription.paymentMethod || "직접 관리"} size={16} />} />
+        {subscription.category && (
+          <>
+            <div className="h-px bg-[#F2F4F6]" />
+            <DetailField label="카테고리" value={subscription.category} />
+          </>
+        )}
+        {subscription.memo && (
+          <>
+            <div className="h-px bg-[#F2F4F6]" />
+            <DetailField label="메모" value={subscription.memo} />
+          </>
+        )}
       </section>
+
+      {subscription.attachments && subscription.attachments.length > 0 && (
+        <section className="mt-5 rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[15px] font-bold text-[#191F28]">첨부 사진 ({subscription.attachments.length})</h2>
+            <span className="text-[12px] font-medium text-[#8B95A1]">영수증 / 결제 화면</span>
+          </div>
+          <div className="mt-3 flex gap-2.5 overflow-x-auto py-1">
+            {subscription.attachments.map((photo, index) => (
+              <div
+                key={index}
+                className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-[#E5E8EB] bg-[#F2F4F6] cursor-pointer active:scale-95 transition-transform"
+                onClick={() => setPreviewPhoto(photo)}
+              >
+                <img src={photo} alt="" className="h-full w-full object-cover" />
+                {index === 0 && (
+                  <span className="absolute bottom-0 inset-x-0 bg-black/60 py-0.5 text-center text-[10px] font-medium text-white backdrop-blur-xs">
+                    대표 사진
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {editing && (
         <section className="field-enter mt-4 rounded-2xl border border-[#191F28] bg-[#F9FAFB] p-5 shadow-sm">
@@ -103,6 +146,18 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
                   </button>
                 ))}
               </div>
+            </div>
+            <div>
+              <label className="block text-[12px] font-semibold text-[#6B7684]">
+                메모
+                <textarea
+                  className="mt-1.5 w-full resize-none rounded-xl border border-[#E5E8EB] bg-white p-3 text-[14px] text-[#191F28] outline-none transition-colors focus:border-[#191F28]"
+                  rows={2}
+                  value={draft.memo}
+                  onChange={(event) => setDraft((value) => ({ ...value, memo: event.target.value }))}
+                  placeholder="메모를 입력해 주세요"
+                />
+              </label>
             </div>
           </div>
           <div className="mt-5 grid grid-cols-2 gap-2.5">
@@ -156,6 +211,24 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
         <Button size="large" fullWidth className={highlightCancel ? "cancel-highlight" : ""} onClick={() => onStartCancel(subscription.subscriptionId, promotion)}>웹사이트에서 다이렉트 해지하기</Button>
         <Button size="large" fullWidth variant="secondary" onClick={() => setEditing((value) => !value)}>{editing ? "수정 닫기" : "구독 정보 수정"}</Button>
       </div>
+
+      {previewPhoto && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-xs"
+          onClick={() => setPreviewPhoto(null)}
+        >
+          <div className="relative max-h-[85vh] max-w-full overflow-hidden rounded-2xl bg-black" onClick={(e) => e.stopPropagation()}>
+            <img src={previewPhoto} alt="첨부 사진 원본" className="max-h-[80vh] w-auto object-contain rounded-xl" />
+            <button
+              type="button"
+              onClick={() => setPreviewPhoto(null)}
+              className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

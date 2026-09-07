@@ -94,10 +94,10 @@ function EmptyState({ onAdd, onScan }) {
   );
 }
 
-export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTriggerTestNotification }) {
+export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onScan, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTriggerTestNotification }) {
   const upcoming = useMemo(() => [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b)).slice(0, 3), [subscriptions]);
 
-  if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onAdd} />;
+  if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onScan || onAdd} />;
 
   return (
     <main className="px-5 pb-28 pt-6">

@@ -16,6 +16,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), localOcrApiPlugin()],
+    server: {
+      host: "127.0.0.1",
+      port: 3000,
+    },
     define: {
       "import.meta.env.VITE_GEMINI_API_KEY": JSON.stringify(geminiKey),
       "import.meta.env.VITE_GEMINI_MODEL": JSON.stringify(geminiModel),

@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   BellOff,
   CalendarDays,
+  Camera,
   CreditCard,
   Home,
   Plus,
@@ -25,7 +26,16 @@ export function LogoMark({ className = "" }) {
   );
 }
 
-export function ServiceMark({ monogram, className = "" }) {
+export function ServiceMark({ monogram, image = null, className = "" }) {
+  if (image) {
+    return (
+      <img
+        src={image}
+        alt=""
+        className={cx("h-11 w-11 shrink-0 rounded-2xl object-cover border border-[#E5E8EB]", className)}
+      />
+    );
+  }
   const display = (monogram && monogram.trim()) ? monogram.trim().slice(0, 2).toUpperCase() : "S";
   return (
     <span className={cx("grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#F2F4F6] text-sm font-bold text-[#191F28] border border-[#E5E8EB]", className)} aria-hidden="true">
@@ -331,7 +341,10 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
 function SubscriptionCardBody({ subscription, onOpen, detail = false }) {
   return (
     <button type="button" onClick={onOpen} className="card-press flex w-full items-center gap-3.5 rounded-2xl border border-[#E5E8EB] bg-white p-4 text-left shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all hover:border-[#D1D6DB] active:scale-[0.98] cursor-pointer">
-      <ServiceMark monogram={subscription.monogram || subscription.name?.slice(0, 1)} />
+      <ServiceMark
+        monogram={subscription.monogram || subscription.name?.slice(0, 1)}
+        image={subscription.image || subscription.attachments?.[0]}
+      />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[15px] font-bold text-[#191F28] tracking-tight">{subscription.name}</span>
         <span className="mt-0.5 block truncate text-[13px] font-medium text-[#6B7684]">{subscription.plan} · {formatBillingDate(subscription)}</span>
@@ -499,15 +512,129 @@ export function BottomSheet({ children, onClose, label }) {
   return (
     <div className="sheet-backdrop fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={onClose}>
       <div
-        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[420px] rounded-t-[24px] border-t border-[#F2F4F6] bg-white px-5 pb-9 pt-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
+        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[420px] max-h-[92vh] flex flex-col rounded-t-[24px] border-t border-[#F2F4F6] bg-white px-5 pb-8 pt-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label={label}
       >
-        <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-[#D1D6DB]" />
-        {children}
+        <div className="mx-auto mb-3 h-1 w-9 shrink-0 rounded-full bg-[#D1D6DB]" />
+        <div className="overflow-y-auto flex-1 overscroll-contain pb-safe pr-0.5">
+          {children}
+        </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * SEED Attachment Input Component
+ * Inspired by Daangn Seed Design (attachment-input / attachment-input-trigger / attachment-input-item)
+ * Displays an 80x80px camera trigger button with count badge (e.g. 3/10) and horizontal thumbnail list.
+ */
+export function AttachmentInput({
+  files = [],
+  maxFiles = 10,
+  onChange,
+  onRemove,
+  disabled = false,
+  className = "",
+}) {
+  const fileInputRef = useRef(null);
+
+  return (
+    <div className={cx("flex items-center gap-2.5 overflow-x-auto py-1", className)}>
+      <button
+        type="button"
+        disabled={disabled || files.length >= maxFiles}
+        onClick={() => fileInputRef.current?.click()}
+        className={cx(
+          "relative flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl border border-[#E5E8EB] bg-[#F7F8F9] transition-all",
+          files.length >= maxFiles || disabled
+            ? "cursor-not-allowed opacity-40"
+            : "cursor-pointer hover:border-[#191F28] hover:bg-[#F2F4F6] active:scale-[0.96]"
+        )}
+        aria-label={`사진 첨부하기 (${files.length}/${maxFiles})`}
+      >
+        <Camera size={24} className="text-[#868B94]" />
+        <div className="text-[12px] leading-tight select-none">
+          <strong className={cx("font-bold", files.length > 0 ? "text-[#212124]" : "text-[#868B94]")}>
+            {files.length}
+          </strong>
+          <span className="text-[#868B94]">/{maxFiles}</span>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          className="hidden"
+          onChange={onChange}
+        />
+      </button>
+
+      {files.map((fileUrl, index) => (
+        <div
+          key={index}
+          className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-[#E5E8EB] bg-[#F2F4F6]"
+        >
+          <img src={fileUrl} alt={`첨부 사진 ${index + 1}`} className="h-full w-full object-cover" />
+          {index === 0 && (
+            <span className="absolute bottom-0 inset-x-0 bg-black/60 py-0.5 text-center text-[10px] font-medium text-white backdrop-blur-xs select-none">
+              대표 사진
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove?.(index);
+            }}
+            className="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-[#E5E8EB] bg-white text-[#212124] shadow-xs transition-transform hover:bg-[#F2F4F6] active:scale-90"
+            aria-label={`첨부 사진 ${index + 1} 삭제`}
+          >
+            <X size={11} />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * SEED Action Chip Component
+ * For category selection, filter chips, and interactive tags.
+ */
+export function ActionChip({
+  children,
+  selected = false,
+  onClick,
+  prefixIcon = null,
+  className = "",
+  disabled = false,
+  size = "medium",
+}) {
+  const sizes = {
+    small: "min-h-[28px] px-2.5 text-[12px]",
+    medium: "min-h-[34px] px-3.5 text-[13px]",
+  };
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={cx(
+        "inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-all active:scale-[0.96] select-none shrink-0 cursor-pointer",
+        sizes[size] || sizes.medium,
+        selected
+          ? "bg-[#212124] text-white shadow-xs"
+          : "border border-[#E5E8EB] bg-[#F7F8F9] text-[#4E5968] hover:border-[#D1D6DB] hover:bg-white",
+        disabled && "opacity-40 cursor-not-allowed pointer-events-none",
+        className
+      )}
+    >
+      {prefixIcon && <span className="inline-flex shrink-0">{prefixIcon}</span>}
+      <span>{children}</span>
+    </button>
   );
 }

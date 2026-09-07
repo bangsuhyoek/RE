@@ -21,6 +21,7 @@ import { useNotificationManager } from "./hooks/useNotificationManager";
 
 export default function App() {
   const [addOpen, setAddOpen] = useState(false);
+  const [addInitialMode, setAddInitialMode] = useState("manual");
   const [toast, setToast] = useState(null);
 
   const notify = useCallback((message, duration = 3500) => {
@@ -199,7 +200,8 @@ export default function App() {
         onShowAll={() => navigate("subscriptions")}
         onOpenPromotion={handlePromotion}
         onExplorePromotions={() => navigate("promotions")}
-        onAdd={() => setAddOpen(true)}
+        onAdd={() => { setAddInitialMode("manual"); setAddOpen(true); }}
+        onScan={() => { setAddInitialMode("ai"); setAddOpen(true); }}
         onStartOnboarding={() => navigate("onboarding")}
         onToggleNotificationPermission={() =>
           handleTogglePermissionFromHome(
@@ -217,7 +219,7 @@ export default function App() {
       <SubscriptionListScreen
         subscriptions={subscriptions}
         onOpen={(id) => navigate("detail", id)}
-        onAdd={() => setAddOpen(true)}
+        onAdd={() => { setAddInitialMode("manual"); setAddOpen(true); }}
         onStartCancel={startCancellation}
         onMute={(id) => muteSubscription(id, notify)}
         onRefresh={() => notify("최신 구독 목록을 확인했어요.")}
@@ -281,12 +283,13 @@ export default function App() {
             setHighlightCancelId(null);
             navigate(targetRoute);
           }}
-          onOpenAdd={() => setAddOpen(true)}
+          onOpenAdd={() => { setAddInitialMode("manual"); setAddOpen(true); }}
         />
       )}
       {addOpen && (
         <AddModal
           catalog={serviceCatalog}
+          initialMode={addInitialMode}
           onClose={() => setAddOpen(false)}
           onAdd={(data) => handleAddSubscription(data, notify)}
         />
