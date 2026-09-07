@@ -94,9 +94,9 @@ const inputClass = (missing) =>
     missing ? "border-[#FF4D4D] bg-[#FFF5F5]" : "border-[#E5E8EB] focus:bg-white"
   }`;
 
-export function AddModal({ catalog = [], initialMode = "manual", onClose, onAdd }) {
+export function AddModal({ catalog = [], initialMode = "manual", initialData = null, onClose, onAdd }) {
   // Main mode: "manual" (수동 직접 입력) or "ai" (AI 영수증/문자 인식)
-  const [mainMode, setMainMode] = useState(initialMode);
+  const [mainMode, setMainMode] = useState(initialMode === "quick-detect" ? "manual" : initialMode);
 
   // Manual Form State
   const [manualForm, setManualForm] = useState({
@@ -293,6 +293,17 @@ export function AddModal({ catalog = [], initialMode = "manual", onClose, onAdd 
       {/* 1. 수동 직접 입력 모드 (흑백 모노크롬, 사진 블록 제거, 빠른 선택 시 요금제/금액 비움) */}
       {mainMode === "manual" && (
         <section className="mt-5 space-y-4">
+          {initialData?.autoDetected && (
+            <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-800">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white font-bold text-[13px] shadow-sm">
+                ⚡
+              </span>
+              <div className="flex-1">
+                <p className="font-semibold text-emerald-900">결제 알림에서 자동 감지된 구독 정보입니다</p>
+                <p className="mt-0.5 text-[11px] text-emerald-700/80">내용을 확인하고 하단의 등록 완료 버튼을 눌러주세요.</p>
+              </div>
+            </div>
+          )}
           {/* Popular Services Quick Presets */}
           {catalog.length > 0 && (
             <div>

@@ -22,6 +22,7 @@ import { useNotificationManager } from "./hooks/useNotificationManager";
 export default function App() {
   const [addOpen, setAddOpen] = useState(false);
   const [addInitialMode, setAddInitialMode] = useState("manual");
+  const [quickAddData, setQuickAddData] = useState(null);
   const [toast, setToast] = useState(null);
 
   const notify = useCallback((message, duration = 6000) => {
@@ -37,6 +38,53 @@ export default function App() {
     hasAppChrome,
     pageTitle,
   } = useNavigation();
+
+
+  // Deep link listener (실시간 결제 감지 알림 탭 시 수신)
+  useEffect(() => {
+    const handleUrl = (event) => {
+      const rawUrl = event?.url;
+      if (!rawUrl) return;
+      try {
+        const parsed = new URL(rawUrl);
+        if (parsed.protocol === "submate:" && (parsed.hostname === "quick-add" || parsed.pathname.includes("quick-add"))) {
+          const params = parsed.searchParams;
+          const detected = {
+            name: params.get("name") || "",
+            amount: Number(params.get("amount")) || 0,
+            plan: params.get("plan") || "",
+            paymentMethod: params.get("method") || "카드",
+            category: params.get("category") || "기타",
+            serviceId: params.get("serviceId") || "",
+            dueDay: new Date().getDate(),
+            billingCycle: "매월",
+            autoDetected: true,
+          };
+          setQuickAddData(detected);
+          setAddInitialMode("quick-detect");
+          setAddOpen(true);
+        }
+      } catch (err) {
+        console.warn("Failed to parse deep link URL:", rawUrl, err);
+      }
+    };
+
+    let sub;
+    if (CapApp && typeof CapApp.addListener === "function") {
+      sub = CapApp.addListener("appUrlOpen", handleUrl);
+      if (typeof CapApp.getLaunchUrl === "function") {
+        CapApp.getLaunchUrl().then((launch) => {
+          if (launch?.url) handleUrl(launch);
+        });
+      }
+    }
+
+    return () => {
+      if (sub && typeof sub.then === "function") {
+        sub.then((handle) => handle?.remove?.());
+      }
+    };
+  }, []);
 
   // Subscriptions domain state
   const {
@@ -290,8 +338,15 @@ export default function App() {
         <AddModal
           catalog={serviceCatalog}
           initialMode={addInitialMode}
-          onClose={() => setAddOpen(false)}
-          onAdd={(data) => handleAddSubscription(data, notify)}
+          initialData={quickAddData}
+          onClose={() => {
+            setAddOpen(false);
+            setQuickAddData(null);
+          }}
+          onAdd={(data) => {
+            handleAddSubscription(data, notify);
+            setQuickAddData(null);
+          }}
         />
       )}
       {cancelSubscription && (
