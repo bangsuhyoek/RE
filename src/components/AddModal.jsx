@@ -1,6 +1,6 @@
 import { API_BASE_URL, getApiEndpoint, isNativePlatform } from "../lib/apiBase";
 import { recognizeDirectly, isDirectGeminiAvailable } from "../lib/geminiOcr";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -99,19 +99,38 @@ export function AddModal({ catalog = [], initialMode = "manual", initialData = n
   const [mainMode, setMainMode] = useState(initialMode === "quick-detect" ? "manual" : initialMode);
 
   // Manual Form State
-  const [manualForm, setManualForm] = useState({
-    name: "",
-    category: "OTT",
-    plan: "",
-    amount: "",
-    dueDay: new Date().getDate(),
-    billingCycle: "매월",
-    paymentMethod: "신용카드",
-    isTrial: false,
-    memo: "",
-    monogram: "",
-    cancelUrl: "",
-  });
+  const [manualForm, setManualForm] = useState(() => ({
+    name: initialData?.name || "",
+    category: initialData?.category || "OTT",
+    plan: initialData?.plan || "",
+    amount: initialData?.amount ? String(initialData.amount) : "",
+    dueDay: initialData?.dueDay || new Date().getDate(),
+    billingCycle: initialData?.billingCycle || "매월",
+    paymentMethod: initialData?.paymentMethod || "신용카드",
+    isTrial: Boolean(initialData?.isTrial),
+    memo: initialData?.memo || "",
+    monogram: initialData?.monogram || "",
+    cancelUrl: initialData?.cancelUrl || "",
+  }));
+
+  useEffect(() => {
+    if (initialData) {
+      setManualForm((curr) => ({
+        ...curr,
+        name: initialData.name ?? curr.name,
+        category: initialData.category || curr.category || "OTT",
+        plan: initialData.plan ?? curr.plan,
+        amount: initialData.amount ? String(initialData.amount) : curr.amount,
+        dueDay: initialData.dueDay || curr.dueDay || new Date().getDate(),
+        billingCycle: initialData.billingCycle || curr.billingCycle || "매월",
+        paymentMethod: initialData.paymentMethod || curr.paymentMethod || "신용카드",
+        isTrial: initialData.isTrial !== undefined ? Boolean(initialData.isTrial) : curr.isTrial,
+        memo: initialData.memo !== undefined ? initialData.memo : curr.memo,
+        monogram: initialData.monogram || curr.monogram,
+        cancelUrl: initialData.cancelUrl || curr.cancelUrl,
+      }));
+    }
+  }, [initialData]);
 
   // AI OCR Form State
   const [aiTab, setAiTab] = useState("image");

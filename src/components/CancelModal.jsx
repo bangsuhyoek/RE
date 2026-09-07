@@ -28,9 +28,12 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
 
   useEffect(() => {
     if (!celebrating) return undefined;
-    const timer = window.setTimeout(onClose, 1800);
+    const timer = window.setTimeout(() => {
+      onComplete?.(subscription.subscriptionId, subscription.amount);
+      onClose();
+    }, 1800);
     return () => window.clearTimeout(timer);
-  }, [celebrating, onClose]);
+  }, [celebrating, onClose, onComplete, subscription.subscriptionId, subscription.amount]);
 
   useEffect(() => {
     let listenerPromise;
@@ -125,13 +128,18 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
 
   const complete = () => {
     stopFloatingGuide();
-    onComplete(subscription);
     setCelebrating(true);
   };
 
   if (celebrating) {
     return (
-      <BottomSheet onClose={onClose} label="해지 완료">
+      <BottomSheet
+        onClose={() => {
+          onComplete?.(subscription.subscriptionId, subscription.amount);
+          onClose();
+        }}
+        label="해지 완료"
+      >
         <div className="flex flex-col items-center px-2 pb-5 pt-3 text-center">
           <span className="grid h-16 w-16 place-items-center rounded-3xl bg-[#191F28] text-white shadow-md"><CheckCircle2 size={31} /></span>
           <h2 className="mt-5 text-[22px] font-extrabold tracking-tight text-[#191F28]">월 {formatWon(subscription.amount)}<br />절약 성공!</h2>

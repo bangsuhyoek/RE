@@ -154,11 +154,17 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
   }, []);
 
   const finishCancellation = useCallback((subscriptionId, saved, onComplete) => {
-    const target = subscriptions.find((subscription) => subscription.subscriptionId === subscriptionId);
+    const subId = typeof subscriptionId === "object" && subscriptionId !== null
+      ? (subscriptionId.subscriptionId || subscriptionId.id)
+      : subscriptionId;
+    const target = subscriptions.find((subscription) =>
+      subscription.subscriptionId === subId || subscription.id === subId
+    );
     if (!target) return;
-    setSubscriptions((current) => current.filter((subscription) => subscription.subscriptionId !== subscriptionId));
-    setSavedAmount((amount) => amount + (saved || target.amount));
-    setCompletedCancelId(subscriptionId);
+    const finalSaved = saved ?? (typeof subscriptionId === "object" ? subscriptionId.amount : target.amount);
+    setSubscriptions((current) => current.filter((subscription) => subscription.subscriptionId !== target.subscriptionId));
+    setSavedAmount((amount) => amount + (finalSaved || target.amount));
+    setCompletedCancelId(target.subscriptionId);
     setCancelTarget(null);
     onComplete?.();
   }, [subscriptions]);

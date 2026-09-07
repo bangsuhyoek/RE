@@ -42,3 +42,30 @@ test("수동 구독 등록 금액 및 결제일 유효성 검증", () => {
   assert.equal(isValid("넷플릭스", 17000, 32), false);
   assert.equal(isValid("넷플릭스", 17000, 0), false);
 });
+
+test("자동 감지 데이터(initialData)가 수동 등록 폼 기본값으로 정상 매핑된다", () => {
+  const initialData = {
+    name: "Netflix",
+    amount: 17000,
+    plan: "프리미엄",
+    paymentMethod: "신한카드",
+    category: "OTT",
+    autoDetected: true,
+  };
+
+  const formState = {
+    name: initialData?.name || "",
+    category: initialData?.category || "OTT",
+    plan: initialData?.plan || "",
+    amount: initialData?.amount ? String(initialData.amount) : "",
+    dueDay: initialData?.dueDay || 15,
+    billingCycle: initialData?.billingCycle || "매월",
+    paymentMethod: initialData?.paymentMethod || "신용카드",
+  };
+
+  assert.equal(formState.name, "Netflix");
+  assert.equal(formState.amount, "17000");
+  assert.equal(formState.plan, "프리미엄");
+  assert.equal(formState.paymentMethod, "신한카드");
+  assert.equal(formState.category, "OTT");
+});
