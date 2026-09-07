@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "cap:sync": "cap sync",
     "cap:open:android": "cap open android",
-    "cap:build": "vite build && cap sync"
+    "cap:build": "vite build && cap sync",
+    "build:apk": "node scripts/build-apk.js"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
