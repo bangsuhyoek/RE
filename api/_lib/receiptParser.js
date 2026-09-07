@@ -44,16 +44,16 @@ export const receiptServiceCatalog = [
     id: "disney",
     name: "Disney+",
     aliases: ["disney+", "disney plus", "disneyplus", "디즈니+", "디즈니 플러스", "디즈니플러스"],
-    plans: [{ name: "스탠다드", aliases: ["standard", "스탠다드"], amount: 9900, billingCycle: "매월" }],
+  plans: [{ name: "스탠다드", aliases: ["standard", "스탠다드"], amount: 9900, billingCycle: "매월" }],
   },
 ];
 
-const compact = (value = "") => value.toLowerCase().replace(/[\s._:/\\()[\]{}-]+/g, "");
-const normalizedLines = (text) => text.replace(/\r/g, "").split("\n").map((line) => line.trim()).filter(Boolean);
+export const compact = (value = "") => String(value || "").toLowerCase().replace(/[\s._:/\\()[\]{}-]+/g, "");
+export const normalizedLines = (text) => String(text || "").replace(/\r/g, "").split("\n").map((line) => line.trim()).filter(Boolean);
 
-const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export const escapeRegExp = (value) => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const findLabeledValue = (lines, labels) => {
+export const findLabeledValue = (lines, labels) => {
   const pattern = new RegExp(`^(?:${labels.map(escapeRegExp).join("|")})\\s*[:：-]?\\s*(.*)$`, "i");
   for (let index = 0; index < lines.length; index += 1) {
     const match = lines[index].match(pattern);
@@ -64,7 +64,7 @@ const findLabeledValue = (lines, labels) => {
   return "";
 };
 
-const detectService = (text, lines) => {
+export const detectService = (text, lines) => {
   const labeled = findLabeledValue(lines, ["서비스명", "서비스", "상품명", "구독명", "가맹점명", "가맹점", "판매자", "상호명"]);
   const candidates = labeled ? [labeled, text] : [text];
 
@@ -83,12 +83,13 @@ const detectService = (text, lines) => {
   return { service: null, source: "missing" };
 };
 
-const toAmount = (value) => {
+export const toAmount = (value) => {
+  if (value === null || value === undefined) return null;
   const number = Number(String(value).replace(/[^0-9]/g, ""));
   return Number.isFinite(number) && number >= 1000 && number <= 2_000_000 ? number : null;
 };
 
-const collectAmounts = (text) => {
+export const collectAmounts = (text) => {
   const amounts = [];
   const labeledPattern = /(?:결제\s*금액|승인\s*금액|청구\s*금액|이용\s*금액|최종\s*금액|합계|총액)\s*[:：-]?\s*(?:krw|₩|￦)?\s*([0-9][0-9,]{2,})\s*(?:원|krw)?/gi;
   const wonPattern = /(?:krw|₩|￦)?\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,7})\s*(?:원|krw)/gi;
@@ -104,7 +105,7 @@ const collectAmounts = (text) => {
   return amounts.filter((entry, index, list) => list.findIndex((item) => item.amount === entry.amount) === index);
 };
 
-const selectAmount = (text, service) => {
+export const selectAmount = (text, service) => {
   const amounts = collectAmounts(text);
   const labeled = amounts.find((entry) => entry.source === "labeled-amount");
   if (labeled) return labeled;
@@ -120,18 +121,20 @@ const selectAmount = (text, service) => {
   return { amount: null, source: "missing" };
 };
 
-const parseDayFromValue = (value) => {
-  const fullDate = value.match(/(?:20\d{2}\s*[./-]\s*)?(\d{1,2})\s*[./-]\s*(\d{1,2})/);
+export const parseDayFromValue = (value) => {
+  if (!value) return null;
+  const str = String(value);
+  const fullDate = str.match(/(?:20\d{2}\s*[./-]\s*)?(\d{1,2})\s*[./-]\s*(\d{1,2})/);
   if (fullDate) {
     const day = Number(fullDate[2]);
     return day >= 1 && day <= 31 ? day : null;
   }
-  const koreanDate = value.match(/(?:\d{4}\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/);
+  const koreanDate = str.match(/(?:\d{4}\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/);
   if (koreanDate) {
     const day = Number(koreanDate[2]);
     return day >= 1 && day <= 31 ? day : null;
   }
-  const dayOnly = value.match(/(\d{1,2})\s*일/);
+  const dayOnly = str.match(/(?:매월\s*)?(\d{1,2})\s*일/);
   if (dayOnly) {
     const day = Number(dayOnly[1]);
     return day >= 1 && day <= 31 ? day : null;
@@ -139,7 +142,7 @@ const parseDayFromValue = (value) => {
   return null;
 };
 
-const detectDueDay = (text, lines) => {
+export const detectDueDay = (text, lines) => {
   const nextPayment = findLabeledValue(lines, ["다음 결제일", "다음결제일", "결제 예정일", "결제예정일", "자동 결제일", "자동결제일", "갱신일", "청구 예정일"]);
   const nextDay = parseDayFromValue(nextPayment);
   if (nextDay) return { dueDay: nextDay, source: "next-payment-date" };
@@ -153,26 +156,29 @@ const detectDueDay = (text, lines) => {
   return { dueDay: null, source: "missing" };
 };
 
-const detectPaymentMethod = (text, lines) => {
-  const labeled = findLabeledValue(lines, ["결제 수단", "결제수단", "지불 수단", "지불수단", "카드명", "카드"]);
+export const detectPaymentMethod = (text, lines) => {
+  const labeled = findLabeledValue(lines, ["결제 수단", "결제수단", "지불 수단", "지불수단", "카드명", "카드", "결제방법"]);
   if (labeled) return { paymentMethod: labeled, source: "labeled-text" };
 
-  const payMatch = text.match(/(?:네이버페이|카카오페이|토스페이|삼성페이|애플페이|google\s*pay|paypal)/i);
-  if (payMatch) return { paymentMethod: payMatch[0], source: "payment-alias" };
+  const payMatch = text.match(/(?:네이버페이|카카오페이|토스페이|삼성페이|애플페이|kb\s*pay|페이코|payco|ssg\s*pay|스마일페이|sk\s*pay|l\.?pay|google\s*pay|paypal)/i);
+  if (payMatch) return { paymentMethod: payMatch[0].replace(/\s+/g, " "), source: "payment-alias" };
 
-  const cardMatch = text.match(/(신한|국민|KB국민|현대|삼성|롯데|하나|우리|농협|NH|BC|비씨)\s*카드[^0-9]*(?:\*+|-)?\s*(\d{4})?/i);
-  if (cardMatch) return { paymentMethod: `${cardMatch[1]}카드${cardMatch[2] ? ` • ${cardMatch[2]}` : ""}`, source: "card-alias" };
+  const cardMatch = text.match(/(신한|국민|KB국민|현대|삼성|롯데|하나|우리|농협|NH농협|NH|BC|비씨)\s*카드[^0-9]*(?:[*•]+|-)?\s*(\d{4})?/i);
+  if (cardMatch) {
+    const cardName = cardMatch[1].endsWith("카드") ? cardMatch[1] : cardMatch[1] + "카드";
+    return { paymentMethod: cardName + (cardMatch[2] ? " • " + cardMatch[2] : ""), source: "card-alias" };
+  }
   return { paymentMethod: "", source: "missing" };
 };
 
-const detectBillingCycle = (text, plan) => {
+export const detectBillingCycle = (text, plan) => {
   if (/(?:연간|연 결제|12\s*개월|1\s*년|yearly|annual)/i.test(text)) return { billingCycle: "매년", source: "explicit-cycle" };
   if (/(?:매월|월간|월 결제|1\s*개월|monthly)/i.test(text)) return { billingCycle: "매월", source: "explicit-cycle" };
   if (plan?.billingCycle) return { billingCycle: plan.billingCycle, source: "catalog-inference" };
   return { billingCycle: "매월", source: "default-needs-review" };
 };
 
-const detectPlan = (text, lines, service, amount) => {
+export const detectPlan = (text, lines, service, amount) => {
   if (!service) return { plan: "", source: "missing", matchedPlan: null };
 
   const labeled = findLabeledValue(lines, ["요금제", "플랜", "요금 상품", "요금상품", "이용권", "멤버십", "상품명"]);

@@ -141,6 +141,41 @@ export function createTestNotification(subscription, forcedType = "auto") {
 /**
  * Unified notification permission requester for both Web & Native (Capacitor)
  */
+export async function checkNotificationPermission() {
+  if (typeof window === "undefined") {
+    return "unsupported";
+  }
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const status = await LocalNotifications.checkPermissions();
+      return status.display === "granted" ? "granted" : status.display === "denied" ? "denied" : "default";
+    } catch {
+      return "denied";
+    }
+  }
+  if (!("Notification" in window)) {
+    return "unsupported";
+  }
+  return Notification.permission;
+}
+
+export async function initAndroidNotificationChannel() {
+  if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android") {
+    try {
+      await LocalNotifications.createChannel({
+        id: "submate-billing-channel",
+        name: "SubMate 결제 알림",
+        description: "구독 결제일 사전 알림 및 갱신 안내",
+        importance: 4,
+        visibility: 1,
+        vibration: true,
+      });
+    } catch (e) {
+      console.warn("Failed to create Android notification channel:", e);
+    }
+  }
+}
+
 export async function requestNotificationPermission() {
   if (typeof window === "undefined") {
     return "unsupported";
@@ -206,6 +241,7 @@ export async function sendAppNotification(title, options = {}) {
             id: notifId,
             title,
             body: options.body || options.message || "",
+            channelId: "submate-billing-channel",
             schedule: options.at ? { at: options.at } : undefined,
             extra: options.extra || {},
           },
@@ -220,7 +256,5 @@ export async function sendAppNotification(title, options = {}) {
 
   return sendBrowserNotification(title, options);
 }
-
-
 
 

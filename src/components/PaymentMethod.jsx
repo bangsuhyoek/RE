@@ -64,6 +64,22 @@ export function PaymentIcon({ method, brand, size = 16, className = "" }) {
         </svg>
       );
 
+    case "payco":
+      return (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className={cx("shrink-0 select-none", className)}
+          aria-label="PAYCO"
+        >
+          <rect width="16" height="16" rx="4" fill="#FA2828" />
+          <text x="8" y="11" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontWeight="bold" fontFamily="sans-serif">P</text>
+        </svg>
+      );
+
     case "paypal":
       return (
         <svg

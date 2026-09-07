@@ -59,3 +59,14 @@ test("텍스트가 없으면 인식 실패를 반환한다", () => {
   assert.equal(result.ok, false);
   assert.equal(result.code, "NO_TEXT");
 });
+
+test("다양한 간편결제 및 카드 번호 마스킹 패턴을 인식한다", () => {
+  const resultKb = parseReceiptText("서비스: YouTube\n금액: 14,900원\n결제수단: KB Pay\n다음 결제일: 2026.10.05");
+  assert.equal(resultKb.data.paymentMethod, "KB Pay");
+  assert.equal(resultKb.data.dueDay, 5);
+
+  const resultCard = parseReceiptText("Netflix 17,000원 현대카드 **** 1234 매월 25일");
+  assert.equal(resultCard.data.paymentMethod, "현대카드 • 1234");
+  assert.equal(resultCard.data.dueDay, 25);
+  assert.equal(resultCard.data.plan, "프리미엄");
+});

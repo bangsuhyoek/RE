@@ -2,6 +2,7 @@ export const PAYMENT_PRESETS = [
   "카카오페이",
   "네이버페이",
   "토스페이",
+  "PAYCO",
   "PayPal",
   "Apple Pay",
   "신한카드",
@@ -26,6 +27,9 @@ export function getPaymentMethodInfo(method = "") {
   }
   if (/토스|toss/.test(normalized)) {
     return { brand: "tosspay", name: "토스페이", fullLabel: raw, isRegistered: true };
+  }
+  if (/payco|페이코/.test(normalized)) {
+    return { brand: "payco", name: "PAYCO", fullLabel: raw, isRegistered: true };
   }
   if (/paypal|페이팔/.test(normalized)) {
     return { brand: "paypal", name: "PayPal", fullLabel: raw, isRegistered: true };
