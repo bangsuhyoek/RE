@@ -15,6 +15,32 @@ export const serviceCatalog = [
     dueDay: 15,
     paymentMethod: "신한카드 • 4412",
     cancelUrl: "https://www.netflix.com/cancelplan",
+    guideSteps: [
+      {
+        stepNumber: 1,
+        title: "로그인",
+        description: "넷플릭스 계정으로 로그인해 주세요.",
+        imageUrl: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 2,
+        title: "계정 선택",
+        description: "우측 상단 프로필 > [계정] 메뉴로 들어갑니다.",
+        imageUrl: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 3,
+        title: "멤버십 해지",
+        description: "스크롤을 내려 [멤버십 해지]를 터치하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 4,
+        title: "해지 완료",
+        description: "혜택 유지 제안을 넘기고 [해지 완료]를 누르면 끝!",
+        imageUrl: "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=320&auto=format&fit=crop&q=80",
+      },
+    ],
   },
   {
     id: "youtube",
@@ -26,6 +52,32 @@ export const serviceCatalog = [
     dueDay: 22,
     paymentMethod: "카카오페이",
     cancelUrl: "https://www.youtube.com/paid_memberships",
+    guideSteps: [
+      {
+        stepNumber: 1,
+        title: "프로필",
+        description: "우측 상단 내 프로필 아이콘을 터치하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 2,
+        title: "구매 항목",
+        description: "[구매 항목 및 멤버십] 메뉴를 선택합니다.",
+        imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 3,
+        title: "멤버십 관리",
+        description: "활성 멤버십에서 [관리] 또는 [비활성화]를 누르세요.",
+        imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 4,
+        title: "그대로 취소",
+        description: "'일시중지' 대신 하단 [그대로 취소]를 선택하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=320&auto=format&fit=crop&q=80",
+      },
+    ],
   },
   {
     id: "coupang",
@@ -37,6 +89,32 @@ export const serviceCatalog = [
     dueDay: 28,
     paymentMethod: "현대카드 • 1298",
     cancelUrl: "https://www.coupang.com/np/membership/benefit",
+    guideSteps: [
+      {
+        stepNumber: 1,
+        title: "마이쿠팡",
+        description: "하단 탭에서 [마이쿠팡] 메뉴를 터치하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1556742049-0a67e5572293?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 2,
+        title: "와우 멤버십",
+        description: "[와우 멤버십] 관리 메뉴로 진입하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 3,
+        title: "해지 신청",
+        description: "페이지 맨 아래로 스크롤하여 [해지하기]를 누르세요.",
+        imageUrl: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 4,
+        title: "혜택 포기",
+        description: "반복되는 방어 화면에서 [혜택 포기하고 해지]를 누르세요.",
+        imageUrl: "https://images.unsplash.com/photo-1556740758-90de374c12ad?w=320&auto=format&fit=crop&q=80",
+      },
+    ],
   },
   {
     id: "spotify",
@@ -49,6 +127,26 @@ export const serviceCatalog = [
     paymentMethod: "토스페이",
     cancelUrl: "https://www.spotify.com/account/subscription/",
     isTrial: true,
+    guideSteps: [
+      {
+        stepNumber: 1,
+        title: "계정 로그인",
+        description: "스포티파이 웹사이트에서 계정으로 로그인하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 2,
+        title: "요금제 변경",
+        description: "이용 중인 요금제 섹션의 [요금제 변경]을 누르세요.",
+        imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 3,
+        title: "Free 취소",
+        description: "스크롤을 맨 아래로 내려 [Spotify Free로 취소]를 누르세요.",
+        imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=320&auto=format&fit=crop&q=80",
+      },
+    ],
   },
   {
     id: "chatgpt",
@@ -60,6 +158,26 @@ export const serviceCatalog = [
     dueDay: 5,
     paymentMethod: "KB국민카드 • 8831",
     cancelUrl: "https://chatgpt.com/#settings",
+    guideSteps: [
+      {
+        stepNumber: 1,
+        title: "설정 메뉴",
+        description: "좌측 하단 프로필 > [Settings] 메뉴를 누르세요.",
+        imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 2,
+        title: "구독 관리",
+        description: "[Subscription] 탭에서 [Manage]를 클릭합니다.",
+        imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 3,
+        title: "플랜 취소",
+        description: "Stripe 결제창에서 [플랜 취소]를 선택하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=320&auto=format&fit=crop&q=80",
+      },
+    ],
   },
   {
     id: "tving",
@@ -71,6 +189,26 @@ export const serviceCatalog = [
     dueDay: 10,
     paymentMethod: "네이버페이",
     cancelUrl: "https://www.tving.com/",
+    guideSteps: [
+      {
+        stepNumber: 1,
+        title: "MY 메뉴",
+        description: "우측 상단 프로필 [MY] 메뉴로 이동합니다.",
+        imageUrl: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 2,
+        title: "이용권/캐시",
+        description: "[이용권/캐시 내역] > [정기결제 관리]를 선택하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 3,
+        title: "해지 신청",
+        description: "하단 [자동결제 해지 신청]을 누르면 완료됩니다.",
+        imageUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=320&auto=format&fit=crop&q=80",
+      },
+    ],
   },
   {
     id: "disney",
@@ -82,6 +220,26 @@ export const serviceCatalog = [
     dueDay: 18,
     paymentMethod: "삼성카드 • 3701",
     cancelUrl: "https://www.disneyplus.com/ko-kr/account",
+    guideSteps: [
+      {
+        stepNumber: 1,
+        title: "로그인",
+        description: "디즈니+ 공식 사이트에서 계정으로 로그인합니다.",
+        imageUrl: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 2,
+        title: "계정 선택",
+        description: "우측 상단 프로필 > [계정] 메뉴를 선택하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 3,
+        title: "멤버십 취소",
+        description: "구독 중인 요금제를 누르고 [멤버십 취소]를 진행하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=320&auto=format&fit=crop&q=80",
+      },
+    ],
   },
   {
     id: "millie",
@@ -93,6 +251,26 @@ export const serviceCatalog = [
     dueDay: 12,
     paymentMethod: "카카오페이",
     cancelUrl: "https://www.millie.co.kr/v3/customer/faq",
+    guideSteps: [
+      {
+        stepNumber: 1,
+        title: "관리 이동",
+        description: "하단 메뉴 [관리] 탭으로 이동합니다.",
+        imageUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 2,
+        title: "구독 관리",
+        description: "[구독 관리] > [결제 예정 내역]을 확인하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 3,
+        title: "해지 신청",
+        description: "하단 [해지 신청]을 누르고 최종 확인을 완료하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=320&auto=format&fit=crop&q=80",
+      },
+    ],
   },
   {
     id: "adobe",
@@ -104,6 +282,26 @@ export const serviceCatalog = [
     dueDay: 8,
     paymentMethod: "신한카드 • 4412",
     cancelUrl: "https://account.adobe.com/plans",
+    guideSteps: [
+      {
+        stepNumber: 1,
+        title: "계정 로그인",
+        description: "account.adobe.com에 Adobe 계정으로 로그인합니다.",
+        imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 2,
+        title: "플랜 관리",
+        description: "내 플랜 카드에서 [플랜 관리]를 선택하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=320&auto=format&fit=crop&q=80",
+      },
+      {
+        stepNumber: 3,
+        title: "플랜 취소",
+        description: "[플랜 취소] 버튼을 클릭하여 해지 절차를 완료하세요.",
+        imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=320&auto=format&fit=crop&q=80",
+      },
+    ],
   },
 ];
 

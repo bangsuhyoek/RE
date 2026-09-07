@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Check, CheckCircle2, ExternalLink, ShieldCheck } from "lucide-react";
 import { BottomSheet, Button, ServiceMark } from "./ui";
 import { formatWon } from "../lib/dates";
+import { CancelBrowserModal } from "./CancelBrowserModal";
+import { openCancelBrowser } from "../lib/cancelBrowser";
 
 const baseSteps = [
   "서비스 계정으로 로그인하기",
@@ -12,6 +14,7 @@ const baseSteps = [
 export function CancelModal({ subscription, promotion, onClose, onComplete, onToast }) {
   const [checked, setChecked] = useState([false, false, false]);
   const [celebrating, setCelebrating] = useState(false);
+  const [showBrowserModal, setShowBrowserModal] = useState(false);
 
   useEffect(() => {
     if (!celebrating) return undefined;
@@ -19,8 +22,25 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
     return () => window.clearTimeout(timer);
   }, [celebrating, onClose]);
 
-  const goToCancel = () => {
+  const goToCancel = async () => {
     if (!subscription.cancelUrl) return;
+    const res = await openCancelBrowser({
+      serviceId: subscription.id,
+      serviceName: subscription.name,
+      cancelUrl: subscription.cancelUrl,
+      guideSteps: subscription.guideSteps,
+    });
+
+    if (res?.action === "COMPLETED") {
+      complete();
+      return;
+    }
+
+    if (res.action === "FALLBACK_WEB") {
+      setShowBrowserModal(true);
+      return;
+    }
+
     window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
     onToast(`${subscription.name} 해지 페이지를 새 탭에서 열었어요.`);
     setChecked((current) => [true, ...current.slice(1)]);
@@ -41,6 +61,19 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
           {promotion && <p className="mt-4 rounded-2xl border border-[#FFE8CC] bg-[#FFF9F2] px-3.5 py-2.5 text-[12px] font-medium text-[#FF6F0F]">다음으로 {promotion.title} 혜택을 확인해 보세요.</p>}
         </div>
       </BottomSheet>
+    );
+  }
+
+  if (showBrowserModal) {
+    return (
+      <CancelBrowserModal
+        subscription={subscription}
+        onClose={() => {
+          setShowBrowserModal(false);
+          onToast("해지 화면을 닫았어요. 해지를 완료하셨다면 아래 완료 버튼을 눌러주세요.");
+        }}
+        onComplete={complete}
+      />
     );
   }
 

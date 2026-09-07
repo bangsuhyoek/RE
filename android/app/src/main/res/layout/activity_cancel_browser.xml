@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <!-- 상단 헤더 툴바 (약 7%, 52dp) -->
+    <LinearLayout
+        android:id="@+id/topHeader"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="#FFFFFF"
+        android:elevation="2dp">
+
+        <!-- 자물쇠 / 보안 안내 -->
+        <TextView
+            android:id="@+id/tvLockIcon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:gravity="center"
+            android:text="🔒"
+            android:textSize="14sp"
+            android:background="#F2F4F6" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvServiceName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="서비스 이름"
+                android:textColor="#191F28"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:singleLine="true" />
+
+            <TextView
+                android:id="@+id/tvServiceUrl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="https://..."
+                android:textColor="#8B95A1"
+                android:textSize="11sp"
+                android:singleLine="true" />
+        </LinearLayout>
+
+        <!-- 해지 완료 버튼 -->
+        <TextView
+            android:id="@+id/btnComplete"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="해지 완료"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:layout_marginEnd="6dp"
+            android:background="#191F28"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- 닫기 (X) 버튼 -->
+        <TextView
+            android:id="@+id/btnClose"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:gravity="center"
+            android:text="✕"
+            android:textColor="#4E5968"
+            android:textSize="18sp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackgroundBorderless" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E5E8EB" />
+
+    <!-- 중앙 네이티브 웹뷰 (약 73%) -->
+    <WebView
+        android:id="@+id/webViewCancel"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="73" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E5E8EB" />
+
+    <!-- 하단 연속 이미지 가이드 도크 (전체 화면의 20%, weight 20) -->
+    <LinearLayout
+        android:id="@+id/bottomGuideDock"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="20"
+        android:minHeight="148dp"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="10dp"
+        android:background="#FFFFFF"
+        android:elevation="6dp">
+
+        <!-- 단계 번호 배지 및 한 줄 설명 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:id="@+id/tvStepBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1/4단계"
+                android:textColor="#3182F6"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:background="#EFF6FF" />
+
+            <TextView
+                android:id="@+id/tvStepDescription"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="가이드 설명이 여기에 표시됩니다."
+                android:textColor="#191F28"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:ellipsize="end" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="스와이프"
+                android:textColor="#8B95A1"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- 연속 이미지 가로 스와이프 리스트 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvGuideSteps"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:overScrollMode="never" />
+    </LinearLayout>
+
+</LinearLayout>
