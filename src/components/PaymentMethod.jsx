@@ -406,57 +406,225 @@ export function PaymentMethodBadge({
 }
 
 /**
- * Toss-style Payment Method Picker Bottom Sheet Modal
+ * Toss-style Circular Brand Logo for 3-Column Financial Grid
+ */
+export function BrandCircleIcon({ brand, size = 48, className = "" }) {
+  switch (brand) {
+    case "kakaopay":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#FEE500] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.55} height={size * 0.55} viewBox="0 0 24 24" fill="none">
+            <path d="M12 4C6.5 4 2 7.6 2 12c0 2.8 1.9 5.3 4.8 6.7L5.6 23l5.3-2.8c.4.1.7.1 1.1.1 5.5 0 10-3.6 10-8s-4.5-8-10-8z" fill="#191919" />
+            <circle cx="12" cy="12" r="2" fill="#FEE500" />
+          </svg>
+        </div>
+      );
+    case "naverpay":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#03C75A] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.45} height={size * 0.45} viewBox="0 0 24 24" fill="none">
+            <path d="M4 4h5.2l5.6 8.8V4H20v16h-5.2L9.2 11.2V20H4V4z" fill="#FFFFFF" />
+          </svg>
+        </div>
+      );
+    case "tosspay":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#0064FF] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none">
+            <path d="M18.5 10.5a5.5 5.5 0 0 0-5.3-3.4 5.5 5.5 0 0 0-5.5 5.5c0 2.5 1.7 4.7 4.2 5.3a1.1 1.1 0 0 0 1.3-.7 1.1 1.1 0 0 0-.7-1.3c-1.7-.4-2.8-1.9-2.8-3.3a3.5 3.5 0 0 1 3.5-3.5 3.5 3.5 0 0 1 3.4 2.7 1.1 1.1 0 0 0 1.3.8 1.1 1.1 0 0 0 .8-1.3c-.1-.3-.2-.5-.2-.8z" fill="#FFFFFF" />
+          </svg>
+        </div>
+      );
+    case "applepay":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#000000] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.48} height={size * 0.48} viewBox="0 0 24 24" fill="none">
+            <path d="M14.5 6.8c.4-.6.8-1.4.6-2.2-.8 0-1.7.5-2.2 1.2-.4.5-.8 1.4-.6 2.2.9.1 1.8-.4 2.2-1.2zm1.4 5.6c0-2.2 1.8-3.2 1.9-3.3-1-1.5-2.6-1.7-3.1-1.7-1.3-.1-2.5.8-3.2.8-.7 0-1.7-.8-2.8-.8-1.4 0-2.8.9-3.5 2.3-1.6 2.7-.4 6.8 1.1 9 1 .7 1.7 1.5 2.7 1.5 1.1 0 1.7-.8 3-.8 1.3 0 1.7.8 3 .8 1.2 0 2-.8 2.8-2.1.8-1.2 1.2-2.5 1.2-2.6-.1 0-2.1-.8-2.1-3.7z" fill="#FFFFFF" />
+          </svg>
+        </div>
+      );
+    case "payco":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#FA2828] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.45} height={size * 0.45} viewBox="0 0 24 24" fill="none">
+            <path d="M7 4h6.5c3.2 0 5.5 2.2 5.5 5.2s-2.3 5.2-5.5 5.2H10.5V20H7V4zm3.5 7.2h3c1.3 0 2.2-.8 2.2-2s-.9-2-2.2-2h-3v4z" fill="#FFFFFF" />
+          </svg>
+        </div>
+      );
+    case "paypal":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#003087] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none">
+            <path d="M7 4h5.5c2.7 0 4.6 1.6 4.2 4.3-.4 2.5-2.5 4.1-5 4.1H9.3l-1.3 8.6H5.2L7 4z" fill="#0079C1" />
+            <path d="M9.8 6.2h5.5c2.7 0 4.6 1.6 4.2 4.3-.4 2.5-2.5 4.1-5 4.1h-2.4l-1.3 8.6H8l1.8-17z" fill="#FFFFFF" opacity="0.95" />
+          </svg>
+        </div>
+      );
+    case "hyundai":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#191F28] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.45} height={size * 0.45} viewBox="0 0 24 24" fill="none">
+            <rect x="5" y="4" width="3.2" height="16" rx="1.6" fill="#FFFFFF" />
+            <rect x="15.8" y="4" width="3.2" height="16" rx="1.6" fill="#FFFFFF" />
+            <rect x="5" y="10.4" width="14" height="3.2" fill="#FFFFFF" />
+          </svg>
+        </div>
+      );
+    case "shinhan":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#0046FF] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.48} height={size * 0.48} viewBox="0 0 24 24" fill="none">
+            <path d="M12 4c-4.4 0-7 2.5-7 5.5 0 3 2.5 4.5 6 5.5s5 2 5 4.5c0 2.5-2.5 4.5-6 4.5s-6-2-6.5-5" stroke="#FFFFFF" strokeWidth="2.8" strokeLinecap="round" fill="none" />
+          </svg>
+        </div>
+      );
+    case "kb":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#FFBC00] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.48} height={size * 0.48} viewBox="0 0 24 24" fill="none">
+            <polygon points="12,3 15,9.2 21.8,9.7 16.6,14.3 18.2,21 12,17.4 5.8,21 7.4,14.3 2.2,9.7 9,9.2" fill="#4B433F" />
+          </svg>
+        </div>
+      );
+    case "samsung":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#0C4DA2] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none">
+            <ellipse cx="12" cy="12" rx="10" ry="6" stroke="#5EA4FF" strokeWidth="2.2" fill="none" transform="rotate(-15 12 12)" />
+            <circle cx="12" cy="12" r="3" fill="#FFFFFF" />
+          </svg>
+        </div>
+      );
+    case "lotte":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#ED1C24] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.45} height={size * 0.45} viewBox="0 0 24 24" fill="none">
+            <path d="M7 5v12h10" stroke="#FFFFFF" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          </svg>
+        </div>
+      );
+    case "woori":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#007BC8] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="8" stroke="#8FD4FF" strokeWidth="2.5" fill="none" />
+            <circle cx="12" cy="12" r="3.5" fill="#FFFFFF" />
+          </svg>
+        </div>
+      );
+    case "hana":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#008485] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.48} height={size * 0.48} viewBox="0 0 24 24" fill="none">
+            <polygon points="12,3 21,12 12,21 3,12" stroke="#FFFFFF" strokeWidth="2.6" strokeLinejoin="round" fill="none" />
+          </svg>
+        </div>
+      );
+    case "nh":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#005BAC] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.48} height={size * 0.48} viewBox="0 0 24 24" fill="none">
+            <path d="M5 5v14h4l6-14v14" stroke="#FFFFFF" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          </svg>
+        </div>
+      );
+    case "bc":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#E60012] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.48} height={size * 0.48} viewBox="0 0 24 24" fill="none">
+            <circle cx="8.5" cy="12" r="5" fill="#FFFFFF" opacity="0.9" />
+            <circle cx="15.5" cy="12" r="5" fill="#FFFFFF" opacity="0.9" />
+          </svg>
+        </div>
+      );
+    case "bank":
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#F2F4F6] border border-[#D1D6DB] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.48} height={size * 0.48} viewBox="0 0 24 24" fill="none">
+            <path d="M12 4L3 8.5V10h18V8.5L12 4zM5.5 12v5h2v-5h-2zm5.5 0v5h2v-5h-2zm5.5 0v5h2v-5h-2zM3 18.5v2h18v-2H3z" fill="#4E5968" />
+          </svg>
+        </div>
+      );
+    case "card":
+    default:
+      return (
+        <div
+          style={{ width: size, height: size }}
+          className={cx("grid place-items-center rounded-full bg-[#4B5563] shrink-0 shadow-xs", className)}
+        >
+          <svg width={size * 0.48} height={size * 0.48} viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="6" width="18" height="12" rx="2" stroke="#FFFFFF" strokeWidth="1.8" fill="none" />
+            <line x1="3" y1="10" x2="21" y2="10" stroke="#FFFFFF" strokeWidth="1.6" />
+            <rect x="6" y="13.5" width="4" height="2" rx="0.5" fill="#FFFFFF" />
+          </svg>
+        </div>
+      );
+  }
+}
+
+/**
+ * Toss-style Financial Institution Selector Bottom Sheet Modal
  */
 export function PaymentMethodPickerModal({
   isOpen,
   onClose,
   value = "",
   onSelect,
-  subscriptions = [],
 }) {
-  const [mode, setMode] = useState("select"); // "select" | "card_digits" | "custom_input"
-  const [selectedCard, setSelectedCard] = useState(null);
-  const [digits, setDigits] = useState("");
+  const [tab, setTab] = useState("card"); // "card" | "simple"
+  const [isCustom, setIsCustom] = useState(false);
   const [customText, setCustomText] = useState("");
 
-  // Extract previously used unique payment methods from user's subscriptions
-  const myMethods = useMemo(() => {
-    if (!Array.isArray(subscriptions) || subscriptions.length === 0) return [];
-    const seen = new Set();
-    const result = [];
-    for (const sub of subscriptions) {
-      const raw = String(sub?.paymentMethod || "").trim();
-      if (!raw) continue;
-      const info = getPaymentMethodInfo(raw);
-      if (info.isRegistered && !seen.has(raw)) {
-        seen.add(raw);
-        result.push({ raw, info });
-      }
-    }
-    return result;
-  }, [subscriptions]);
-
-  const handleCardClick = (card) => {
-    setSelectedCard(card);
-    // If current value belongs to this card and has last 4 digits, prefill them
-    const currentInfo = getPaymentMethodInfo(value);
-    if (currentInfo.name === card.name && currentInfo.last4) {
-      setDigits(currentInfo.last4);
-    } else {
-      setDigits("");
-    }
-    setMode("card_digits");
-  };
-
-  const handleFinishCard = (includeDigits = true) => {
-    if (!selectedCard) return;
-    const cleanDigits = digits.trim().replace(/\D/g, "");
-    if (includeDigits && cleanDigits) {
-      onSelect(selectedCard.name + " • " + cleanDigits);
-    } else {
-      onSelect(selectedCard.name);
-    }
+  const handleSelect = (methodName) => {
+    onSelect(methodName);
     resetAndClose();
   };
 
@@ -469,9 +637,7 @@ export function PaymentMethodPickerModal({
   };
 
   const resetAndClose = () => {
-    setMode("select");
-    setSelectedCard(null);
-    setDigits("");
+    setIsCustom(false);
     setCustomText("");
     onClose();
   };
@@ -481,23 +647,23 @@ export function PaymentMethodPickerModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4 animate-in fade-in duration-200">
       <div
-        className="w-full max-w-[480px] rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl transition-all max-h-[85vh] flex flex-col overflow-hidden"
+        className="w-full max-w-[440px] rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl transition-all max-h-[85vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#F2F4F6] px-5 py-4">
           <div className="flex items-center gap-2">
-            {mode !== "select" && (
+            {isCustom && (
               <button
                 type="button"
-                onClick={() => setMode("select")}
+                onClick={() => setIsCustom(false)}
                 className="grid h-8 w-8 place-items-center rounded-full text-[#4E5968] hover:bg-[#F2F4F6] active:scale-95 transition-all -ml-1.5"
               >
                 <ArrowLeft size={18} />
               </button>
             )}
             <h3 className="text-[17px] font-bold text-[#191F28]">
-              {mode === "card_digits" ? "카드 번호 입력" : mode === "custom_input" ? "직접 입력" : "결제 수단 선택"}
+              {isCustom ? "직접 입력" : "결제 수단 선택"}
             </h3>
           </div>
           <button
@@ -509,112 +675,86 @@ export function PaymentMethodPickerModal({
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          {mode === "select" && (
-            <div className="space-y-6">
-              {/* 1. 내가 사용 중인 수단 (스마트 추천) */}
-              {myMethods.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-2.5">
-                    <span className="text-[12px] font-semibold text-[#868B94]">내가 사용 중인 수단</span>
-                    <span className="text-[11px] text-[#B0B8C1]">탭하면 바로 적용</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {myMethods.map(({ raw, info }) => {
-                      const isCurrent = value.trim() === raw;
-                      return (
-                        <button
-                          key={raw}
-                          type="button"
-                          onClick={() => {
-                            onSelect(raw);
-                            resetAndClose();
-                          }}
-                          className={cx(
-                            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[13px] font-medium transition-all active:scale-95",
-                            isCurrent
-                              ? "border-[#191F28] bg-[#191F28] text-white shadow-sm"
-                              : "border-[#E5E8EB] bg-[#F9FAFB] text-[#333D4B] hover:border-[#B0B8C1] hover:bg-white"
-                          )}
-                        >
-                          <PaymentIcon brand={info.brand} size={15} />
-                          <span>{raw}</span>
-                          {isCurrent && <Check size={14} className="text-white" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+        {/* Tab Header (Toss Style Segment) */}
+        {!isCustom && (
+          <div className="flex border-b border-[#F2F4F6] px-5 pt-1">
+            <button
+              type="button"
+              onClick={() => setTab("card")}
+              className={cx(
+                "flex-1 pb-3 pt-2 text-[14px] font-bold transition-all relative",
+                tab === "card"
+                  ? "text-[#191F28]"
+                  : "text-[#8B95A1] hover:text-[#4E5968]"
               )}
+            >
+              카드사
+              {tab === "card" && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#191F28] rounded-full" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("simple")}
+              className={cx(
+                "flex-1 pb-3 pt-2 text-[14px] font-bold transition-all relative",
+                tab === "simple"
+                  ? "text-[#191F28]"
+                  : "text-[#8B95A1] hover:text-[#4E5968]"
+              )}
+            >
+              간편결제 · 계좌
+              {tab === "simple" && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#191F28] rounded-full" />
+              )}
+            </button>
+          </div>
+        )}
 
-              {/* 2. 간편결제 */}
-              <div>
-                <span className="block text-[12px] font-semibold text-[#868B94] mb-2.5">간편결제</span>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {SIMPLE_PAY_METHODS.map((item) => {
-                    const isSelected = value.trim() === item.name;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          onSelect(item.name);
-                          resetAndClose();
-                        }}
+        {/* Modal Body: 3-column Toss-style Financial Grid */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {!isCustom ? (
+            <div className="space-y-5">
+              <div className="grid grid-cols-3 gap-y-4 gap-x-2">
+                {(tab === "card" ? CARD_COMPANIES : SIMPLE_PAY_METHODS).map((item) => {
+                  const isSelected = value.startsWith(item.name) || value === item.name;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleSelect(item.name)}
+                      className="group flex flex-col items-center justify-center p-2.5 rounded-2xl hover:bg-[#F9FAFB] active:scale-95 transition-all relative"
+                    >
+                      <div className="relative">
+                        <BrandCircleIcon brand={item.id} size={48} />
+                        {isSelected && (
+                          <span className="absolute -top-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-[#191F28] text-white ring-2 ring-white">
+                            <Check size={12} strokeWidth={3} />
+                          </span>
+                        )}
+                      </div>
+                      <span
                         className={cx(
-                          "flex items-center gap-2.5 rounded-xl border p-3 text-left transition-all active:scale-[0.98]",
-                          isSelected
-                            ? "border-[#191F28] bg-[#F7F8F9] ring-1 ring-[#191F28]"
-                            : "border-[#E5E8EB] bg-white hover:border-[#B0B8C1] hover:bg-[#F9FAFB]"
+                          "mt-2 text-[13px] tracking-tight truncate max-w-[90px] text-center",
+                          isSelected ? "font-bold text-[#191F28]" : "font-medium text-[#333D4B] group-hover:text-[#191F28]"
                         )}
                       >
-                        <PaymentIcon brand={item.id} size={18} />
-                        <span className="text-[13px] font-semibold text-[#191F28] truncate">{item.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                        {item.shortName || item.name}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* 3. 신용 / 체크카드 */}
-              <div>
-                <span className="block text-[12px] font-semibold text-[#868B94] mb-2.5">신용 / 체크카드</span>
-                <div className="grid grid-cols-2 gap-2">
-                  {CARD_COMPANIES.map((card) => {
-                    const isSelected = value.startsWith(card.name);
-                    return (
-                      <button
-                        key={card.id}
-                        type="button"
-                        onClick={() => handleCardClick(card)}
-                        className={cx(
-                          "flex items-center justify-between rounded-xl border p-3 text-left transition-all active:scale-[0.98]",
-                          isSelected
-                            ? "border-[#191F28] bg-[#F7F8F9] ring-1 ring-[#191F28]"
-                            : "border-[#E5E8EB] bg-white hover:border-[#B0B8C1] hover:bg-[#F9FAFB]"
-                        )}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <PaymentIcon brand={card.id} size={18} />
-                          <span className="text-[13px] font-semibold text-[#191F28] truncate">{card.name}</span>
-                        </div>
-                        <ChevronRight size={14} className="text-[#B0B8C1] shrink-0" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 4. 기타 / 직접 입력 & 미등록 옵션 */}
-              <div className="pt-2 border-t border-[#F2F4F6] flex flex-col gap-2">
+              {/* Bottom Actions */}
+              <div className="pt-3 border-t border-[#F2F4F6] flex flex-col gap-2">
                 <button
                   type="button"
-                  onClick={() => setMode("custom_input")}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] py-3 text-[13px] font-semibold text-[#4E5968] hover:bg-white hover:border-[#B0B8C1] active:scale-[0.99] transition-all"
+                  onClick={() => setIsCustom(true)}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] py-2.5 text-[13px] font-semibold text-[#4E5968] hover:bg-white hover:border-[#B0B8C1] active:scale-[0.99] transition-all"
                 >
-                  <Plus size={15} />
-                  <span>직접 입력하기 (계좌이체, 해외카드 등)</span>
+                  <Plus size={14} />
+                  <span>직접 입력하기</span>
                 </button>
                 <button
                   type="button"
@@ -622,75 +762,13 @@ export function PaymentMethodPickerModal({
                     onSelect("");
                     resetAndClose();
                   }}
-                  className="w-full py-2 text-[12px] font-medium text-[#8B95A1] hover:text-[#4E5968] transition-colors"
+                  className="w-full py-1.5 text-[12px] font-medium text-[#8B95A1] hover:text-[#4E5968] transition-colors"
                 >
                   결제수단 없이 등록 (미등록)
                 </button>
               </div>
             </div>
-          )}
-
-          {/* Mode: 카드 뒷 4자리 입력 */}
-          {mode === "card_digits" && selectedCard && (
-            <div className="py-2 text-center space-y-5">
-              <div className="inline-flex flex-col items-center">
-                <div className="shadow-md rounded-lg overflow-hidden">
-                  <PaymentIcon brand={selectedCard.id} size={36} />
-                </div>
-                <h4 className="mt-3 text-[18px] font-bold text-[#191F28]">{selectedCard.name}</h4>
-                <p className="mt-1 text-[13px] text-[#8B95A1]">
-                  카드 뒷 4자리를 입력하면 어떤 카드인지 쉽게 구분할 수 있어요.
-                </p>
-              </div>
-
-              <div className="max-w-[200px] mx-auto">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#868B94] mb-1.5">
-                  카드 뒷 4자리 (선택)
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="\d*"
-                  maxLength={4}
-                  autoFocus
-                  value={digits}
-                  onChange={(e) => setDigits(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  placeholder="1234"
-                  className="w-full text-center text-[22px] font-bold tracking-[0.25em] rounded-xl border border-[#D1D6DB] py-2.5 outline-none focus:border-[#191F28] transition-colors"
-                />
-              </div>
-
-              {/* 미리보기 */}
-              <div className="rounded-xl bg-[#F7F8F9] p-3 text-[13px] text-[#4E5968]">
-                <span className="text-[#8B95A1]">저장 형태: </span>
-                <span className="font-semibold text-[#191F28]">
-                  {selectedCard.name + (digits ? " • " + digits : "")}
-                </span>
-              </div>
-
-              <div className="pt-2 flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleFinishCard(true)}
-                  className="w-full rounded-xl bg-[#191F28] py-3.5 text-[14px] font-semibold text-white shadow-sm hover:bg-[#333D4B] active:scale-[0.99] transition-all"
-                >
-                  {digits.length > 0 ? "입력한 번호로 선택 완료" : "뒷자리 없이 선택 완료"}
-                </button>
-                {digits.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => handleFinishCard(false)}
-                    className="w-full py-2 text-[12px] font-medium text-[#8B95A1] hover:text-[#4E5968] transition-colors"
-                  >
-                    뒷자리 제외하고 카드사명만 저장
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Mode: 직접 입력 */}
-          {mode === "custom_input" && (
+          ) : (
             <div className="py-2 space-y-4">
               <div>
                 <label className="block text-[13px] font-semibold text-[#191F28] mb-1.5">
@@ -701,7 +779,7 @@ export function PaymentMethodPickerModal({
                   autoFocus
                   value={customText}
                   onChange={(e) => setCustomText(e.target.value)}
-                  placeholder="예: 우리 법인카드 • 9901, 계좌이체, 외환카드"
+                  placeholder="예: 법인카드, 외환카드, 계좌이체"
                   className="w-full rounded-xl border border-[#D1D6DB] px-3.5 py-3 text-[14px] text-[#191F28] outline-none focus:border-[#191F28] transition-colors"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -711,7 +789,7 @@ export function PaymentMethodPickerModal({
                   }}
                 />
                 <p className="mt-1.5 text-[12px] text-[#8B95A1]">
-                  카드명, 간편결제명, 계좌번호 등 원하시는 방식으로 자유롭게 기재하세요.
+                  이용 중인 결제수단을 자유롭게 입력하세요.
                 </p>
               </div>
 
@@ -719,7 +797,7 @@ export function PaymentMethodPickerModal({
                 type="button"
                 onClick={handleFinishCustom}
                 disabled={!customText.trim()}
-                className="w-full rounded-xl bg-[#191F28] py-3.5 text-[14px] font-semibold text-white shadow-sm hover:bg-[#333D4B] active:scale-[0.99] disabled:opacity-50 transition-all"
+                className="w-full rounded-xl bg-[#191F28] py-3 text-[14px] font-semibold text-white shadow-sm hover:bg-[#333D4B] active:scale-[0.99] disabled:opacity-50 transition-all"
               >
                 적용하기
               </button>
@@ -737,7 +815,6 @@ export function PaymentMethodPickerModal({
 export function PaymentMethodTriggerField({
   value = "",
   onChange,
-  subscriptions = [],
   className = "",
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -795,8 +872,8 @@ export function PaymentMethodTriggerField({
         onClose={() => setIsOpen(false)}
         value={value}
         onSelect={(newMethod) => onChange(newMethod)}
-        subscriptions={subscriptions}
       />
     </div>
   );
 }
+
