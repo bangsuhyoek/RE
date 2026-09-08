@@ -102,14 +102,14 @@ export function BrandCircleIcon({ brand, size = 48, className = "" }) {
     <div
       style={{ width: size, height: size }}
       className={cx(
-        "grid place-items-center rounded-full shrink-0 shadow-2xs overflow-hidden transition-transform group-hover:scale-105",
+        "grid place-items-center rounded-2xl bg-[#F7F8F9] border border-[#E5E8EB] p-1 shrink-0 shadow-2xs overflow-hidden transition-transform group-hover:scale-105",
         className
       )}
     >
       <img
         src={imgSrc}
         alt={brand}
-        className="h-full w-full object-contain pointer-events-none select-none"
+        className="h-full w-full object-contain pointer-events-none select-none rounded-xl"
         loading="lazy"
       />
     </div>
