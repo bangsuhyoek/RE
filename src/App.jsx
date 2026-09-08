@@ -186,6 +186,14 @@ export default function App() {
     }
   }, [screen, subscriptions, setActiveBanner, setNotificationCenterOpen]);
 
+  // Route guard: unauthenticated users must stay on auth screens unless guest param is present
+  useEffect(() => {
+    const isGuestParam = screen.params?.get("guest") === "1";
+    if (!profile && !isGuestParam && screen.route !== "login" && screen.route !== "register") {
+      navigate("login");
+    }
+  }, [profile, screen.route, screen.params, navigate]);
+
   // Hardware back button support for Android (Capacitor)
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -205,6 +213,8 @@ export default function App() {
       } else if (screen.route === "detail") {
         setHighlightCancelId(null);
         navigate("subscriptions");
+      } else if (screen.route === "register") {
+        navigate("login");
       } else if (screen.route !== "home" && screen.route !== "login") {
         navigate("home");
       } else {

@@ -15,14 +15,14 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
   const [notifications, setNotifications] = useState(() => {
     const stored = getStoredNotifications();
     if (stored.length > 0) return stored;
-    return generateSubscriptionAlerts(createMockSubscriptions());
+    return subscriptions.length > 0 ? generateSubscriptionAlerts(subscriptions) : [];
   });
 
   const [activeBanner, setActiveBanner] = useState(() => {
     const initial = readHash();
     if (initial.params?.get("banner") === "1") {
-      const mockSubs = createMockSubscriptions();
-      const alerts = generateSubscriptionAlerts(mockSubs);
+      const targetSubs = subscriptions.length ? subscriptions : createMockSubscriptions();
+      const alerts = generateSubscriptionAlerts(targetSubs);
       return alerts[0] || null;
     }
     return null;
@@ -46,7 +46,9 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
   }, []);
 
   useEffect(() => {
-    saveStoredNotifications(notifications);
+    if (notifications.length > 0) {
+      saveStoredNotifications(notifications);
+    }
   }, [notifications]);
 
   // Auto-generate alerts when subscriptions update

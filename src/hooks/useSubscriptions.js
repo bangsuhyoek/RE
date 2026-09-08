@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { createMockSubscriptions, serviceCatalog } from "../data/subscriptionData";
 import { getMonthKey, isPastDueThisCycle } from "../lib/dates";
-import { readStoredValue, removeDemoSubscriptions, storageKeys, writeStoredValue } from "../lib/storage";
+import { clearStoredValue, readStoredValue, removeDemoSubscriptions, storageKeys, writeStoredValue } from "../lib/storage";
 import { readHash } from "./useNavigation";
 
 export const createSubscription = (service, index = 0) => ({
@@ -18,13 +18,8 @@ export const createSubscription = (service, index = 0) => ({
 export function useSubscriptions({ currentRoute = "home" } = {}) {
   const storedProfile = useMemo(() => readStoredValue(storageKeys.profile, null), []);
   const initialHash = useMemo(() => readHash(), []);
-  const isGuestOrDirect = !storedProfile && (
-    initialHash.route === "home" ||
-    initialHash.route === "detail" ||
-    initialHash.route === "subscriptions" ||
-    initialHash.params?.get("guest") === "1"
-  );
-  const effectiveProfile = storedProfile || (isGuestOrDirect ? { nickname: "민수", provider: "Guest", guest: true, notificationsAllowed: true } : null);
+  const isGuestParam = !storedProfile && initialHash.params?.get("guest") === "1";
+  const effectiveProfile = storedProfile || (isGuestParam ? { nickname: "민수", provider: "Guest", guest: true, notificationsAllowed: true } : null);
 
   const [profile, setProfile] = useState(effectiveProfile);
   const [subscriptions, setSubscriptions] = useState(() => {
@@ -32,10 +27,10 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     if (Array.isArray(saved) && saved.length > 0) {
       return effectiveProfile?.guest ? saved : removeDemoSubscriptions(saved);
     }
-    return effectiveProfile?.guest || isGuestOrDirect ? createMockSubscriptions() : [];
+    return effectiveProfile?.guest || isGuestParam ? createMockSubscriptions() : [];
   });
 
-  const [onboardingComplete, setOnboardingComplete] = useState(() => readStoredValue(storageKeys.onboardingComplete, true));
+  const [onboardingComplete, setOnboardingComplete] = useState(() => readStoredValue(storageKeys.onboardingComplete, false));
   const [savedAmount, setSavedAmount] = useState(() => readStoredValue(storageKeys.savedAmount, 0));
   const [selectedOnboarding, setSelectedOnboarding] = useState([]);
   const [cancelTarget, setCancelTarget] = useState(null);
@@ -44,12 +39,18 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
 
   // Storage sync
   useEffect(() => {
-    writeStoredValue(storageKeys.profile, profile);
+    if (profile) {
+      writeStoredValue(storageKeys.profile, profile);
+    } else {
+      clearStoredValue(storageKeys.profile);
+    }
   }, [profile]);
 
   useEffect(() => {
-    writeStoredValue(storageKeys.subscriptions, subscriptions);
-  }, [subscriptions]);
+    if (profile) {
+      writeStoredValue(storageKeys.subscriptions, subscriptions);
+    }
+  }, [subscriptions, profile]);
 
   useEffect(() => {
     writeStoredValue(storageKeys.onboardingComplete, onboardingComplete);
