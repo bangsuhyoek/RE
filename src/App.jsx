@@ -21,8 +21,10 @@ import { generateSubscriptionAlerts } from "./lib/notifications";
 import { useNavigation } from "./hooks/useNavigation";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
+import { ReAppContainer } from "./components/re/ReTheme";
 
 export default function App() {
+  const [useReTheme, setUseReTheme] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [addInitialMode, setAddInitialMode] = useState("manual");
   const [quickAddData, setQuickAddData] = useState(null);
@@ -348,8 +350,47 @@ export default function App() {
     content = <AuthLogin onGuest={() => completeLogin("Guest", "민수", true)} onSocial={(provider, nickname) => completeLogin(provider, nickname)} onRegister={() => navigate("register")} />;
   }
 
+  if (useReTheme) {
+    return (
+      <>
+        <ReAppContainer
+          onSwitchClassic={() => setUseReTheme(false)}
+          subscriptions={subscriptions}
+          onAddSubscription={() => {
+            setAddInitialMode("manual");
+            setAddOpen(true);
+          }}
+        />
+        {addOpen && (
+          <AddModal
+            catalog={serviceCatalog}
+            subscriptions={subscriptions}
+            initialMode={addInitialMode}
+            initialData={quickAddData}
+            onClose={() => {
+              setAddOpen(false);
+              setQuickAddData(null);
+            }}
+            onAdd={(data) => {
+              handleAddSubscription(data, notify);
+              setQuickAddData(null);
+            }}
+          />
+        )}
+        <Toast toast={toast} onClose={() => setToast(null)} />
+      </>
+    );
+  }
+
   return (
     <div className="app-shell" data-screen={screen.route} data-hash={typeof window !== "undefined" ? window.location.hash : ""}>
+      <button
+        type="button"
+        onClick={() => setUseReTheme(true)}
+        className="fixed top-3 left-3 z-50 px-3 py-1 rounded-full bg-gradient-to-r from-sky-400 to-indigo-500 text-white text-[11px] font-bold shadow-lg flex items-center gap-1 hover:opacity-95"
+      >
+        ✨ RE. 리플래쉬 테마
+      </button>
       {hasAppChrome && (
         <AppHeader
           title={pageTitle}
