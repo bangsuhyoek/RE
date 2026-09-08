@@ -44,14 +44,11 @@ function ReHeader({ onOpenNotifications, unreadCount = 2 }) {
         <img
           src="/assets/re/slices/logo_crop.png"
           alt="RE."
-          className="h-8 object-contain"
+          className="h-7 object-contain"
           onError={(e) => {
             e.target.style.display = 'none';
           }}
         />
-        <div className="flex items-center gap-1">
-          <span className="text-[20px] font-black tracking-tight text-sky-600">RE.</span>
-        </div>
       </div>
       <button
         type="button"
