@@ -94,7 +94,7 @@ function EmptyState({ onAdd, onScan }) {
   );
 }
 
-export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onScan, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTriggerTestNotification }) {
+export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onScan, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTriggerTestNotification, onTestPaymentDetection, onRequestPaymentCapture, onOpenTerms }) {
   const upcoming = useMemo(() => [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b)).slice(0, 3), [subscriptions]);
 
   if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onScan || onAdd} />;
@@ -143,6 +143,39 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
           </button>
         </div>
       )}
+      {/* 실시간 결제 감지 안내 및 체험 카드 */}
+      <div className="mt-3 flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5 shadow-2xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white font-bold text-sm shadow-xs">
+            ⚡
+          </span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <strong className="text-[13px] font-bold text-emerald-950">실시간 결제 감지</strong>
+              <span className="rounded bg-emerald-200/80 px-1.5 py-0.2 text-[9px] font-bold text-emerald-800">Beta</span>
+            </div>
+            <p className="mt-0.5 text-[11px] text-emerald-700/80 truncate">
+              웹/앱에서 카드 결제 시 알림을 감지해 바로 등록해드려요.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+          <button
+            type="button"
+            onClick={onTestPaymentDetection}
+            className="rounded-lg border border-emerald-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-emerald-900 shadow-2xs hover:bg-emerald-50 active:scale-95 transition-all"
+          >
+            체험
+          </button>
+          <button
+            type="button"
+            onClick={onRequestPaymentCapture}
+            className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-2xs hover:bg-emerald-700 active:scale-95 transition-all"
+          >
+            설정
+          </button>
+        </div>
+      </div>
       <div className="mt-5"><SummaryCard subscriptions={subscriptions} /></div>
 
       <section className="mt-8">
@@ -170,6 +203,25 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
       </section>
 
       <PromotionCarousel promotions={promotions} onOpen={onOpenPromotion} onExplore={onExplorePromotions} />
+      {/* Legal & Terms Footer */}
+      <footer className="mt-12 border-t border-[#F2F4F6] pt-6 pb-2 text-center">
+        <div className="flex items-center justify-center gap-2.5 text-[11px] text-[#8B95A1]">
+          <button type="button" onClick={() => onOpenTerms?.("terms")} className="hover:text-[#191F28] hover:underline">
+            서비스 이용약관
+          </button>
+          <span>·</span>
+          <button type="button" onClick={() => onOpenTerms?.("privacy")} className="hover:text-[#191F28] hover:underline">
+            개인정보 처리방침
+          </button>
+          <span>·</span>
+          <button type="button" onClick={() => onOpenTerms?.("permissions")} className="hover:text-[#191F28] hover:underline">
+            권한 사전 고지
+          </button>
+        </div>
+        <p className="mt-2 text-[10px] text-[#B0B8C1]">
+          © 2026 SubMate. 구독 관리 및 실시간 결제 감지 서비스
+        </p>
+      </footer>
     </main>
   );
 }

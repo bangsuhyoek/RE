@@ -4,6 +4,9 @@ import { App as CapApp } from "@capacitor/app";
 import { Bell } from "lucide-react";
 import { AuthLogin, AuthRegister } from "./components/AuthScreens";
 import { AddModal } from "./components/AddModal";
+import { TermsModal } from "./components/TermsModal";
+import { requestPaymentCapturePermission, simulatePaymentDetection } from "./lib/paymentCapture";
+import { isNativePlatform } from "./lib/platform";
 import { CancelModal } from "./components/CancelModal";
 import { HomeScreen } from "./components/HomeScreen";
 import { OnboardingScreen } from "./components/OnboardingScreen";
@@ -23,6 +26,8 @@ export default function App() {
   const [addOpen, setAddOpen] = useState(false);
   const [addInitialMode, setAddInitialMode] = useState("manual");
   const [quickAddData, setQuickAddData] = useState(null);
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [termsTab, setTermsTab] = useState("terms");
   const [toast, setToast] = useState(null);
 
   const notify = useCallback((message, duration = 6000) => {
@@ -85,6 +90,48 @@ export default function App() {
       }
     };
   }, []);
+
+
+  const handleOpenTerms = (tab = "terms") => {
+    setTermsTab(tab);
+    setTermsOpen(true);
+  };
+
+  const handleRequestPaymentCapture = async () => {
+    if (isNativePlatform()) {
+      await requestPaymentCapturePermission();
+      notify("시스템 설정에서 SubMate '알림 접근 허용'을 켜주세요.");
+    } else {
+      handleOpenTerms("permissions");
+      notify("웹 환경입니다. 앱 접근 권한 안내 문서를 표시합니다.");
+    }
+  };
+
+  const handleTestPaymentDetection = async () => {
+    if (isNativePlatform()) {
+      await simulatePaymentDetection({
+        package: "com.shcard.smartpay",
+        title: "[신한카드] 결제승인",
+        body: "넷플릭스 17,000원(일시불) 정상승인",
+      });
+      notify("⚡ 넷플릭스 17,000원 결제 알림이 발송되었습니다!");
+    } else {
+      setQuickAddData({
+        name: "Netflix",
+        amount: 17000,
+        plan: "프리미엄",
+        paymentMethod: "신한카드",
+        category: "OTT",
+        serviceId: "netflix",
+        dueDay: new Date().getDate(),
+        billingCycle: "매월",
+        autoDetected: true,
+      });
+      setAddInitialMode("quick-detect");
+      setAddOpen(true);
+      notify("⚡ 넷플릭스 17,000원 결제가 감지되었습니다! (체험 시뮬레이션)");
+    }
+  };
 
   // Subscriptions domain state
   const {
@@ -260,6 +307,9 @@ export default function App() {
         }
         onOpenNotificationCenter={() => setNotificationCenterOpen(true)}
         onTriggerTestNotification={() => handleTriggerTestNotification(null, notify)}
+        onTestPaymentDetection={handleTestPaymentDetection}
+        onRequestPaymentCapture={handleRequestPaymentCapture}
+        onOpenTerms={handleOpenTerms}
       />
     );
   } else if (screen.route === "subscriptions") {
@@ -395,6 +445,15 @@ export default function App() {
               notify
             )
           }
+          onTestPaymentDetection={handleTestPaymentDetection}
+          onRequestPaymentCapture={handleRequestPaymentCapture}
+          onOpenTerms={handleOpenTerms}
+        />
+      )}
+      {termsOpen && (
+        <TermsModal
+          initialTab={termsTab}
+          onClose={() => setTermsOpen(false)}
         />
       )}
       <Toast toast={toast} onClose={() => setToast(null)} />
