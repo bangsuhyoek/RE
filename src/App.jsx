@@ -13,7 +13,7 @@ import { OnboardingScreen } from "./components/OnboardingScreen";
 import { PromotionScreen } from "./components/PromotionScreen";
 import { RenewalSheet } from "./components/RenewalSheet";
 import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from "./components/SubscriptionScreens";
-import { PushNotificationBanner, NotificationCenterModal } from "./components/NotificationComponents";
+import { NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
 import { createMockSubscriptions, promotionCatalog, serviceCatalog } from "./data/subscriptionData";
 import { removeDemoSubscriptions } from "./lib/storage";
@@ -175,16 +175,12 @@ export default function App() {
     clearAll,
   } = useNotificationManager({ subscriptions });
 
-  // Handle URL query actions (?banner=1, ?notifications=1)
+  // Handle URL query actions (?notifications=1)
   useEffect(() => {
-    if (screen.params?.get("banner") === "1") {
-      const generated = generateSubscriptionAlerts(subscriptions.length ? subscriptions : createMockSubscriptions());
-      setActiveBanner(generated[0] || null);
-    }
     if (screen.params?.get("notifications") === "1") {
       setNotificationCenterOpen(true);
     }
-  }, [screen, subscriptions, setActiveBanner, setNotificationCenterOpen]);
+  }, [screen, setNotificationCenterOpen]);
 
   // Route guard: unauthenticated users must stay on auth screens unless guest param is present
   useEffect(() => {
@@ -208,8 +204,6 @@ export default function App() {
         closeCancellation();
       } else if (renewalTarget) {
         setRenewalTarget(null);
-      } else if (activeBanner) {
-        setActiveBanner(null);
       } else if (screen.route === "detail") {
         setHighlightCancelId(null);
         navigate("subscriptions");
@@ -232,14 +226,12 @@ export default function App() {
     addOpen,
     cancelTarget,
     renewalTarget,
-    activeBanner,
     screen.route,
     closeCancellation,
     navigate,
     setHighlightCancelId,
     setNotificationCenterOpen,
     setRenewalTarget,
-    setActiveBanner,
   ]);
 
   const selectedSubscription = useMemo(
@@ -316,7 +308,6 @@ export default function App() {
           )
         }
         onOpenNotificationCenter={() => setNotificationCenterOpen(true)}
-        onTriggerTestNotification={() => handleTriggerTestNotification(null, notify)}
         onTestPaymentDetection={handleTestPaymentDetection}
         onRequestPaymentCapture={handleRequestPaymentCapture}
         onOpenTerms={handleOpenTerms}
@@ -428,14 +419,6 @@ export default function App() {
           onClose={() => setRenewalTarget(null)}
         />
       )}
-      <PushNotificationBanner
-        notification={activeBanner}
-        onClose={() => setActiveBanner(null)}
-        onOpenDetail={(subId) => handleOpenDetailFromNotification(subId, (id) => {
-          setHighlightCancelId(id);
-          navigate("detail", id);
-        })}
-      />
       {notificationCenterOpen && (
         <NotificationCenterModal
           notifications={notifications}

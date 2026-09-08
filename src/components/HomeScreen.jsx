@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, BellRing, ChevronLeft, ChevronRight, Inbox, ReceiptText, ScanLine, Send, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Inbox, ReceiptText, ScanLine, Sparkles } from "lucide-react";
 import { Button, IconButton, SubscriptionCard } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 
@@ -94,7 +94,7 @@ function EmptyState({ onAdd, onScan }) {
   );
 }
 
-export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onScan, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTriggerTestNotification, onTestPaymentDetection, onRequestPaymentCapture, onOpenTerms }) {
+export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onScan, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTestPaymentDetection, onRequestPaymentCapture, onOpenTerms }) {
   const upcoming = useMemo(() => [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b)).slice(0, 3), [subscriptions]);
 
   if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onScan || onAdd} />;
@@ -103,7 +103,7 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
     <main className="px-5 pb-28 pt-6">
       <p className="text-[13px] font-semibold text-[#8B95A1]">{profile?.nickname || "민수"}님, 이번 달</p>
       <h1 className="mt-0.5 text-[24px] font-extrabold tracking-tight text-[#191F28]">고정지출을 확인하세요</h1>
-      {notificationDenied ? (
+      {notificationDenied && (
         <button
           type="button"
           onClick={onToggleNotificationPermission}
@@ -122,29 +122,9 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
             켜기
           </span>
         </button>
-      ) : (
-        <div className="mt-5 flex w-full items-center justify-between rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#F2F4F6] text-[#191F28]">
-              <BellRing size={16} />
-            </span>
-            <div>
-              <strong className="block text-[13px] font-bold text-[#191F28]">사전 결제 스마트 알림 활성화</strong>
-              <span className="block text-[11px] font-medium text-[#8B95A1]">D-3, D-1 결제 및 무료체험 종료 안내</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onTriggerTestNotification}
-            className="flex items-center gap-1.5 rounded-lg border border-[#E5E8EB] bg-[#F9FAFB] px-3 py-1.5 text-[12px] font-semibold text-[#333D4B] shadow-2xs hover:bg-[#F2F4F6] active:scale-95 transition-all"
-          >
-            <Send size={12} className="text-[#6B7684]" />
-            알림 테스트
-          </button>
-        </div>
       )}
       {/* 실시간 결제 감지 안내 및 체험 카드 */}
-      <div className="mt-3 flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5 shadow-2xs">
+      <div className={`flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5 shadow-2xs ${notificationDenied ? "mt-3" : "mt-5"}`}>
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white font-bold text-sm shadow-xs">
             ⚡
