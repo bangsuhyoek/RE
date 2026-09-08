@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
+  ChevronDown,
   FileImage,
   LoaderCircle,
   MessageSquareText,
@@ -91,7 +92,7 @@ const callRecognitionApi = async (payload) => {
 const CATEGORIES = ["OTT", "음악", "쇼핑", "생산성", "도서", "클라우드", "게임", "기타"];
 
 const inputClass = (missing) =>
-  `mt-1.5 w-full rounded-xl border bg-white px-3.5 py-2.5 text-[14px] text-[#191F28] outline-none transition-colors focus:border-[#191F28] ${
+  `w-full rounded-xl border bg-white px-3.5 py-3 text-[14px] text-[#191F28] outline-none transition-colors focus:border-[#191F28] ${
     missing ? "border-[#FF4D4D] bg-[#FFF5F5]" : "border-[#E5E8EB] focus:bg-white"
   }`;
 
@@ -197,7 +198,7 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
       memo: manualForm.memo.trim(),
     };
     const added = onAdd(payload);
-    if (added) onClose();
+    if (added !== false) onClose();
   };
 
   // 2. AI Mode Handlers
@@ -270,7 +271,7 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
       return;
     }
     const added = onAdd({ ...aiForm, amount, dueDay });
-    if (added) onClose();
+    if (added !== false) onClose();
   };
 
   return (
@@ -328,7 +329,7 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
           {catalog.length > 0 && (
             <div>
               <span className="block text-[12px] font-semibold text-[#868B94]">자주 찾는 구독 빠른 선택</span>
-              <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1">
+              <div className="mt-2 flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
                 {catalog.slice(0, 8).map((preset) => {
                   const isSelected = manualForm.name.toLowerCase() === preset.name.toLowerCase();
                   return (
@@ -342,7 +343,9 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
                           : "border-[#E5E8EB] bg-[#F7F8F9] text-[#4E5968] hover:border-[#D1D6DB] hover:bg-white"
                       }`}
                     >
-                      <span className="grid h-4 w-4 place-items-center rounded-full bg-white/20 text-[10px] font-bold">
+                      <span className={`grid h-4.5 w-4.5 place-items-center rounded-full text-[10px] font-bold ${
+                        isSelected ? "bg-white/20 text-white" : "bg-[#E5E8EB] text-[#191F28]"
+                      }`}>
                         {preset.monogram || preset.name.slice(0, 1)}
                       </span>
                       <span>{preset.name}</span>
@@ -358,22 +361,23 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
             {/* 서비스명 */}
             <div>
               <label className="block text-[13px] font-semibold text-[#191F28]">
-                서비스명 <span className="text-[#191F28]">*</span>
+                서비스명 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
               </label>
               <div className="relative mt-1.5 flex items-center">
                 <input
                   value={manualForm.name}
                   onChange={(e) => updateManual("name", e.target.value)}
-                  className={inputClass(!manualForm.name && error)}
+                  className={`${inputClass(!manualForm.name && error)} pr-10`}
                   placeholder="예: 넷플릭스, 유튜브 프리미엄, 쿠팡 와우"
                 />
                 {manualForm.name && (
                   <button
                     type="button"
                     onClick={() => updateManual("name", "")}
-                    className="absolute right-3 grid h-5 w-5 place-items-center rounded-full bg-[#E5E8EB] text-[#868B94] hover:text-[#191F28]"
+                    className="absolute right-3 grid h-6 w-6 place-items-center rounded-full bg-[#F2F4F6] text-[#868B94] hover:bg-[#E5E8EB] hover:text-[#191F28] transition-all active:scale-95"
+                    aria-label="서비스명 지우기"
                   >
-                    <X size={12} />
+                    <X size={13} />
                   </button>
                 )}
               </div>
@@ -381,7 +385,7 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
 
             {/* 카테고리 선택 */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#191F28]">카테고리</label>
+              <label className="block text-[13px] font-semibold text-[#191F28] mb-1.5">카테고리</label>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {CATEGORIES.map((cat) => (
                   <ActionChip
@@ -398,30 +402,35 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
 
             {/* 요금제 */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#191F28]">요금제 / 플랜</label>
-              <input
-                value={manualForm.plan}
-                onChange={(e) => updateManual("plan", e.target.value)}
-                className={inputClass(false)}
-                placeholder="예: 프리미엄, 스탠다드, 개인 멤버십"
-              />
+              <label className="block text-[13px] font-semibold text-[#191F28]">
+                요금제 / 플랜 <span className="text-[12px] font-normal text-[#868B94]">(선택)</span>
+              </label>
+              <div className="mt-1.5">
+                <input
+                  value={manualForm.plan}
+                  onChange={(e) => updateManual("plan", e.target.value)}
+                  className={inputClass(false)}
+                  placeholder="예: 프리미엄, 스탠다드, 개인 멤버십"
+                />
+              </div>
             </div>
 
             {/* 결제 금액 (+1000 등 버튼 제거) */}
             <div>
               <label className="block text-[13px] font-semibold text-[#191F28]">
-                결제 금액 <span className="text-[#191F28]">*</span>
+                결제 금액 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
               </label>
               <div className="relative mt-1.5">
                 <input
                   type="number"
                   min="0"
+                  inputMode="numeric"
                   value={manualForm.amount}
                   onChange={(e) => updateManual("amount", e.target.value)}
                   className={`${inputClass(!Number(manualForm.amount) && error)} pr-10`}
                   placeholder="0"
                 />
-                <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] font-semibold text-[#868B94]">
+                <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] font-bold text-[#4E5968]">
                   원
                 </span>
               </div>
@@ -431,30 +440,34 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-[13px] font-semibold text-[#191F28]">결제 주기</label>
-                <select
-                  value={manualForm.billingCycle}
-                  onChange={(e) => updateManual("billingCycle", e.target.value)}
-                  className={inputClass(false)}
-                >
-                  <option>매월</option>
-                  <option>매년</option>
-                </select>
+                <div className="relative mt-1.5">
+                  <select
+                    value={manualForm.billingCycle}
+                    onChange={(e) => updateManual("billingCycle", e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-[#E5E8EB] bg-white px-3.5 py-3 pr-8 text-[14px] font-medium text-[#191F28] outline-none transition-colors focus:border-[#191F28]"
+                  >
+                    <option value="매월">매월</option>
+                    <option value="매년">매년</option>
+                  </select>
+                  <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8B95A1]" />
+                </div>
               </div>
               <div>
                 <label className="block text-[13px] font-semibold text-[#191F28]">
-                  결제일 <span className="text-[#191F28]">*</span>
+                  결제일 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
                 </label>
                 <div className="relative mt-1.5">
                   <input
                     type="number"
                     min="1"
                     max="31"
+                    inputMode="numeric"
                     value={manualForm.dueDay}
                     onChange={(e) => updateManual("dueDay", e.target.value)}
-                    className={`${inputClass((!manualForm.dueDay || manualForm.dueDay < 1 || manualForm.dueDay > 31) && error)} pr-8`}
+                    className={`${inputClass((!manualForm.dueDay || manualForm.dueDay < 1 || manualForm.dueDay > 31) && error)} pr-9`}
                     placeholder="1~31"
                   />
-                  <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] font-semibold text-[#868B94]">
+                  <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] font-bold text-[#4E5968]">
                     일
                   </span>
                 </div>
@@ -463,7 +476,9 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
 
             {/* 결제 수단 */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#191F28] mb-1.5">결제 수단</label>
+              <label className="block text-[13px] font-semibold text-[#191F28] mb-1.5">
+                결제 수단 <span className="text-[12px] font-normal text-[#868B94]">(선택)</span>
+              </label>
               <PaymentMethodTriggerField
                 value={manualForm.paymentMethod}
                 onChange={(val) => updateManual("paymentMethod", val)}
@@ -486,13 +501,15 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
 
             {/* 메모 / 비고 */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#191F28]">메모 (선택)</label>
+              <label className="block text-[13px] font-semibold text-[#191F28]">
+                메모 <span className="text-[12px] font-normal text-[#868B94]">(선택)</span>
+              </label>
               <textarea
                 value={manualForm.memo}
                 onChange={(e) => updateManual("memo", e.target.value)}
                 placeholder="예: 3개월 프로모션 적용 중, 가족과 계정 공유"
                 rows={2}
-                className="mt-1.5 w-full resize-none rounded-xl border border-[#E5E8EB] bg-white p-3 text-[14px] text-[#191F28] outline-none placeholder:text-[#868B94] focus:border-[#191F28] transition-colors"
+                className="mt-1.5 w-full resize-none rounded-xl border border-[#E5E8EB] bg-white p-3.5 text-[14px] text-[#191F28] outline-none placeholder:text-[#8B95A1] focus:border-[#191F28] transition-colors"
               />
             </div>
           </div>

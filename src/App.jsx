@@ -397,8 +397,9 @@ export default function App() {
             setQuickAddData(null);
           }}
           onAdd={(data) => {
-            handleAddSubscription(data, notify);
+            const result = handleAddSubscription(data, notify);
             setQuickAddData(null);
+            return result;
           }}
         />
       )}
@@ -413,7 +414,7 @@ export default function App() {
           onToast={notify}
         />
       )}
-      {renewalSubscription && (
+      {renewalSubscription && !addOpen && !cancelSubscription && !notificationCenterOpen && !termsOpen && (
         <RenewalSheet
           subscription={renewalSubscription}
           onKeep={() => handleRenewal(true, notify)}

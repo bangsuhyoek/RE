@@ -151,7 +151,7 @@ export function PaymentMethodPickerModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4 animate-in fade-in duration-200">
       <div
         className="w-full max-w-[440px] rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl transition-all max-h-[85vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -218,7 +218,7 @@ export function PaymentMethodPickerModal({
         )}
 
         {/* Modal Body: 3-column Toss-style Financial Grid */}
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="flex-1 overflow-y-auto no-scrollbar px-5 py-4">
           {!isCustom ? (
             <div className="space-y-5">
               <div className="grid grid-cols-3 gap-y-4 gap-x-2">

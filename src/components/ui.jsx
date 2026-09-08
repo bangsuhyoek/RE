@@ -632,7 +632,7 @@ export function BottomSheet({ children, onClose, label }) {
         aria-label={label}
       >
         <div className="mx-auto mb-3 h-1 w-9 shrink-0 rounded-full bg-[#D1D6DB]" />
-        <div className="overflow-y-auto flex-1 overscroll-contain pb-safe pr-0.5">
+        <div className="overflow-y-auto no-scrollbar flex-1 overscroll-contain pb-safe pr-0.5">
           {children}
         </div>
       </div>
