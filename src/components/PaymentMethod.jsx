@@ -102,7 +102,7 @@ export function BrandCircleIcon({ brand, size = 48, className = "" }) {
     <div
       style={{ width: size, height: size }}
       className={cx(
-        "grid place-items-center rounded-full bg-white border border-[#E5E8EB] p-2.5 shrink-0 shadow-xs overflow-hidden transition-transform group-hover:scale-105",
+        "grid place-items-center rounded-full shrink-0 shadow-2xs overflow-hidden transition-transform group-hover:scale-105",
         className
       )}
     >
