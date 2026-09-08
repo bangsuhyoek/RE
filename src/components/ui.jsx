@@ -12,9 +12,21 @@ import {
   X,
 } from "lucide-react";
 import { daysUntilCharge, formatBillingDate, formatWon } from "../lib/dates";
-import { PaymentIcon, PaymentMethodBadge, PAYMENT_PRESETS } from "./PaymentMethod";
+import {
+  PaymentIcon,
+  PaymentMethodBadge,
+  PAYMENT_PRESETS,
+  PaymentMethodTriggerField,
+  PaymentMethodPickerModal,
+} from "./PaymentMethod";
 
-export { PaymentIcon, PaymentMethodBadge, PAYMENT_PRESETS };
+export {
+  PaymentIcon,
+  PaymentMethodBadge,
+  PAYMENT_PRESETS,
+  PaymentMethodTriggerField,
+  PaymentMethodPickerModal,
+};
 
 const cx = (...classes) => classes.filter(Boolean).join(" ");
 

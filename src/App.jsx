@@ -332,6 +332,7 @@ export default function App() {
     content = (
       <SubscriptionDetailScreen
         subscription={selectedSubscription}
+        subscriptions={subscriptions}
         onUpdate={(id, update) => updateSubscription(id, update, notify)}
         onStartCancel={startCancellation}
         onBack={() => {
@@ -388,6 +389,7 @@ export default function App() {
       {addOpen && (
         <AddModal
           catalog={serviceCatalog}
+          subscriptions={subscriptions}
           initialMode={addInitialMode}
           initialData={quickAddData}
           onClose={() => {

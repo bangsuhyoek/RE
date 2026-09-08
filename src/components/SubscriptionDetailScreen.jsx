@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { Send, Settings2, X, Camera } from "lucide-react";
-import { Button, DDayBadge, ServiceMark, ToggleSwitch, PaymentIcon, PaymentMethodBadge, PAYMENT_PRESETS } from "./ui";
+import {
+  Button,
+  DDayBadge,
+  ServiceMark,
+  ToggleSwitch,
+  PaymentIcon,
+  PaymentMethodBadge,
+  PAYMENT_PRESETS,
+  PaymentMethodTriggerField,
+} from "./ui";
 import { formatBillingDate, formatWon } from "../lib/dates";
 
 function DetailField({ label, value }) {
@@ -12,14 +21,14 @@ function DetailField({ label, value }) {
   );
 }
 
-export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel, onBack, promotion, onTriggerNotification, highlightCancel }) {
+export function SubscriptionDetailScreen({ subscription, subscriptions = [], onUpdate, onStartCancel, onBack, promotion, onTriggerNotification, highlightCancel }) {
   const [editing, setEditing] = useState(false);
   const [previewPhoto, setPreviewPhoto] = useState(null);
   const [draft, setDraft] = useState(() => ({
     plan: subscription?.plan || "기본 플랜",
     amount: subscription?.amount || 0,
     dueDay: subscription?.dueDay || 1,
-    paymentMethod: subscription?.paymentMethod || "등록 안 됨",
+    paymentMethod: subscription?.paymentMethod === "등록 안 됨" ? "" : (subscription?.paymentMethod || ""),
     memo: subscription?.memo || "",
   }));
 
@@ -129,23 +138,14 @@ export function SubscriptionDetailScreen({ subscription, onUpdate, onStartCancel
               </label>
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-[#6B7684]">
+              <label className="block text-[12px] font-semibold text-[#6B7684] mb-1.5">
                 결제 수단
-                <div className="relative mt-1.5">
-                  <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2">
-                    <PaymentIcon method={draft.paymentMethod} size={16} />
-                  </span>
-                  <input className="w-full rounded-xl border border-[#E5E8EB] bg-white pl-9 pr-3.5 py-2.5 text-[14px] text-[#191F28] outline-none transition-colors focus:border-[#191F28]" value={draft.paymentMethod} onChange={(event) => setDraft((value) => ({ ...value, paymentMethod: event.target.value }))} placeholder="예: 카카오페이, 신한카드 • 4412" />
-                </div>
               </label>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {PAYMENT_PRESETS.map((preset) => (
-                  <button key={preset} type="button" onClick={() => setDraft((v) => ({ ...v, paymentMethod: preset }))} className="inline-flex items-center gap-1 rounded-lg border border-[#E5E8EB] bg-white px-2 py-1 text-[11px] font-medium text-[#4E5968] hover:border-[#191F28] hover:text-[#191F28] active:scale-95 transition-all">
-                    <PaymentIcon method={preset} size={12} />
-                    <span>{preset}</span>
-                  </button>
-                ))}
-              </div>
+              <PaymentMethodTriggerField
+                value={draft.paymentMethod}
+                onChange={(val) => setDraft((v) => ({ ...v, paymentMethod: val }))}
+                subscriptions={subscriptions}
+              />
             </div>
             <div>
               <label className="block text-[12px] font-semibold text-[#6B7684]">

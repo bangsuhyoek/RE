@@ -19,6 +19,7 @@ import {
   ActionChip,
   PaymentIcon,
   PAYMENT_PRESETS,
+  PaymentMethodTriggerField,
   ToggleSwitch,
 } from "./ui";
 
@@ -94,7 +95,7 @@ const inputClass = (missing) =>
     missing ? "border-[#FF4D4D] bg-[#FFF5F5]" : "border-[#E5E8EB] focus:bg-white"
   }`;
 
-export function AddModal({ catalog = [], initialMode = "manual", initialData = null, onClose, onAdd }) {
+export function AddModal({ catalog = [], subscriptions = [], initialMode = "manual", initialData = null, onClose, onAdd }) {
   // Main mode: "manual" (수동 직접 입력) or "ai" (AI 영수증/문자 인식)
   const [mainMode, setMainMode] = useState(initialMode === "quick-detect" ? "manual" : initialMode);
 
@@ -106,7 +107,7 @@ export function AddModal({ catalog = [], initialMode = "manual", initialData = n
     amount: initialData?.amount ? String(initialData.amount) : "",
     dueDay: initialData?.dueDay || new Date().getDate(),
     billingCycle: initialData?.billingCycle || "매월",
-    paymentMethod: initialData?.paymentMethod || "신용카드",
+    paymentMethod: initialData?.paymentMethod || "",
     isTrial: Boolean(initialData?.isTrial),
     memo: initialData?.memo || "",
     monogram: initialData?.monogram || "",
@@ -123,7 +124,7 @@ export function AddModal({ catalog = [], initialMode = "manual", initialData = n
         amount: initialData.amount ? String(initialData.amount) : curr.amount,
         dueDay: initialData.dueDay || curr.dueDay || new Date().getDate(),
         billingCycle: initialData.billingCycle || curr.billingCycle || "매월",
-        paymentMethod: initialData.paymentMethod || curr.paymentMethod || "신용카드",
+        paymentMethod: initialData.paymentMethod !== undefined ? initialData.paymentMethod : (curr.paymentMethod || ""),
         isTrial: initialData.isTrial !== undefined ? Boolean(initialData.isTrial) : curr.isTrial,
         memo: initialData.memo !== undefined ? initialData.memo : curr.memo,
         monogram: initialData.monogram || curr.monogram,
@@ -148,7 +149,7 @@ export function AddModal({ catalog = [], initialMode = "manual", initialData = n
     setError("");
   };
 
-  // 자주 찾는 구독 빠른 선택: 요금제와 결제 금액은 채우지 않고 서비스명, 카테고리, 결제수단 등 기본 정보만 채움
+  // 자주 찾는 구독 빠른 선택: 요금제와 결제 금액은 채우지 않고 서비스명, 카테고리 등 기본 정보만 채움 (결제수단은 사용자 기존값 유지)
   const applyPreset = (service) => {
     setManualForm((curr) => ({
       ...curr,
@@ -159,7 +160,7 @@ export function AddModal({ catalog = [], initialMode = "manual", initialData = n
       dueDay: curr.dueDay || new Date().getDate(),
       monogram: service.monogram || service.name.slice(0, 1).toUpperCase(),
       cancelUrl: service.cancelUrl || "",
-      paymentMethod: service.paymentMethod || curr.paymentMethod || "신용카드",
+      paymentMethod: curr.paymentMethod || "",
     }));
     setError("");
   };
@@ -192,7 +193,7 @@ export function AddModal({ catalog = [], initialMode = "manual", initialData = n
       monogram: manualForm.monogram || matched?.monogram || manualForm.name.trim().slice(0, 1).toUpperCase(),
       cancelUrl: manualForm.cancelUrl || matched?.cancelUrl || "https://google.com",
       category: manualForm.category || matched?.category || "기타",
-      paymentMethod: manualForm.paymentMethod.trim() || "신용카드",
+      paymentMethod: manualForm.paymentMethod.trim(),
       memo: manualForm.memo.trim(),
     };
     const added = onAdd(payload);
@@ -462,32 +463,12 @@ export function AddModal({ catalog = [], initialMode = "manual", initialData = n
 
             {/* 결제 수단 */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#191F28]">결제 수단</label>
-              <div className="relative mt-1.5">
-                <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2">
-                  <PaymentIcon method={manualForm.paymentMethod} size={16} />
-                </span>
-                <input
-                  value={manualForm.paymentMethod}
-                  onChange={(e) => updateManual("paymentMethod", e.target.value)}
-                  className={`${inputClass(false)} pl-9`}
-                  placeholder="선택 또는 직접 입력"
-                />
-              </div>
-              {/* Payment Presets */}
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {PAYMENT_PRESETS.map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => updateManual("paymentMethod", preset)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-[#E5E8EB] bg-[#F7F8F9] px-2 py-1 text-[11px] font-medium text-[#4E5968] hover:border-[#191F28] hover:bg-white active:scale-95 transition-all"
-                  >
-                    <PaymentIcon method={preset} size={12} />
-                    <span>{preset}</span>
-                  </button>
-                ))}
-              </div>
+              <label className="block text-[13px] font-semibold text-[#191F28] mb-1.5">결제 수단</label>
+              <PaymentMethodTriggerField
+                value={manualForm.paymentMethod}
+                onChange={(val) => updateManual("paymentMethod", val)}
+                subscriptions={subscriptions}
+              />
             </div>
 
             {/* 무료 체험 여부 토글 */}
@@ -695,33 +676,16 @@ export function AddModal({ catalog = [], initialMode = "manual", initialData = n
                       <option>매년</option>
                     </select>
                   </label>
-                  <label className="block text-[12px] font-medium text-[#71717A]">
-                    결제 수단
-                    <div className="relative">
-                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
-                        <PaymentIcon method={aiForm.paymentMethod} size={15} />
-                      </span>
-                      <input
-                        value={aiForm.paymentMethod}
-                        onChange={(event) => setAiForm((curr) => ({ ...curr, paymentMethod: event.target.value }))}
-                        className={`${inputClass(false)} pl-8.5`}
-                        placeholder="선택 입력"
-                      />
-                    </div>
-                  </label>
                 </div>
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  {PAYMENT_PRESETS.slice(0, 5).map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setAiForm((curr) => ({ ...curr, paymentMethod: preset }))}
-                      className="inline-flex items-center gap-1 rounded-lg border border-[#E5E8EB] bg-[#F9FAFB] px-2 py-1 text-[11px] font-medium text-[#4E5968] hover:border-[#191F28] hover:text-[#191F28] active:scale-95 transition-all"
-                    >
-                      <PaymentIcon method={preset} size={12} />
-                      <span>{preset}</span>
-                    </button>
-                  ))}
+                <div className="mt-3">
+                  <label className="block text-[12px] font-medium text-[#71717A] mb-1.5">
+                    결제 수단
+                  </label>
+                  <PaymentMethodTriggerField
+                    value={aiForm.paymentMethod}
+                    onChange={(val) => setAiForm((curr) => ({ ...curr, paymentMethod: val }))}
+                    subscriptions={subscriptions}
+                  />
                 </div>
               </div>
               {error && <p className="mt-2 text-[12px] leading-5 text-[#FF4D4D]">{error}</p>}
