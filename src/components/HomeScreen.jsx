@@ -94,7 +94,7 @@ function EmptyState({ onAdd, onScan }) {
   );
 }
 
-export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onScan, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTestPaymentDetection, onRequestPaymentCapture, onOpenTerms }) {
+export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onScan, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTestPaymentDetection, onRequestPaymentCapture, onOpenTerms, onLogout }) {
   const upcoming = useMemo(() => [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b)).slice(0, 3), [subscriptions]);
 
   if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onScan || onAdd} />;
@@ -197,6 +197,14 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
           <button type="button" onClick={() => onOpenTerms?.("permissions")} className="hover:text-[#191F28] hover:underline">
             권한 사전 고지
           </button>
+          {onLogout && (
+            <>
+              <span>·</span>
+              <button type="button" onClick={onLogout} className="hover:text-[#E11D48] hover:underline text-[#71717A]">
+                로그아웃
+              </button>
+            </>
+          )}
         </div>
         <p className="mt-2 text-[10px] text-[#B0B8C1]">
           © 2026 SubMate. 구독 관리 및 실시간 결제 감지 서비스
@@ -205,3 +213,5 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
     </main>
   );
 }
+
+

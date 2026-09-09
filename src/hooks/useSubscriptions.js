@@ -3,6 +3,7 @@ import { createMockSubscriptions, serviceCatalog } from "../data/subscriptionDat
 import { getMonthKey, isPastDueThisCycle } from "../lib/dates";
 import { clearStoredValue, readStoredValue, removeDemoSubscriptions, storageKeys, writeStoredValue } from "../lib/storage";
 import { readHash } from "./useNavigation";
+import { upsertDbSubscription, deleteDbSubscription, fetchUserSubscriptions } from "../lib/supabase";
 
 export const createSubscription = (service, index = 0) => ({
   ...service,
@@ -59,6 +60,20 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
   useEffect(() => {
     writeStoredValue(storageKeys.savedAmount, savedAmount);
   }, [savedAmount]);
+
+  
+  // Sync subscriptions from Supabase if logged in
+  useEffect(() => {
+    if (!profile?.user_id) return;
+    let active = true;
+    fetchUserSubscriptions(profile.user_id).then((cloudSubs) => {
+      if (active && Array.isArray(cloudSubs) && cloudSubs.length > 0) {
+        setSubscriptions(cloudSubs);
+        setOnboardingComplete(true);
+      }
+    });
+    return () => { active = false; };
+  }, [profile?.user_id]);
 
   // Check past-due renewal for current month on home route
   useEffect(() => {
@@ -127,7 +142,11 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
   const updateSubscription = useCallback((subscriptionId, update, notify) => {
     setSubscriptions((current) =>
       current.map((subscription) =>
-        subscription.subscriptionId === subscriptionId ? { ...subscription, ...update } : subscription
+        subscription.subscriptionId === subscriptionId ? (() => {
+        const updated = { ...subscription, ...update };
+        if (profile?.user_id) { upsertDbSubscription(profile.user_id, updated); }
+        return updated;
+      })() : subscription
       )
     );
     notify?.("구독 정보를 저장했어요.");
@@ -164,6 +183,7 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     if (!target) return;
     const finalSaved = saved ?? (typeof subscriptionId === "object" ? subscriptionId.amount : target.amount);
     setSubscriptions((current) => current.filter((subscription) => subscription.subscriptionId !== target.subscriptionId));
+    if (profile?.user_id) { deleteDbSubscription(profile.user_id, target.subscriptionId); }
     setSavedAmount((amount) => amount + (finalSaved || target.amount));
     setCompletedCancelId(target.subscriptionId);
     setCancelTarget(null);
@@ -219,3 +239,5 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     muteSubscription,
   };
 }
+
+

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
+import { Browser } from "@capacitor/browser";
 import { Bell } from "lucide-react";
 import { AuthLogin, AuthRegister } from "./components/AuthScreens";
 import { AddModal } from "./components/AddModal";
@@ -21,6 +22,7 @@ import { generateSubscriptionAlerts } from "./lib/notifications";
 import { useNavigation } from "./hooks/useNavigation";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
+import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubscription } from "./lib/supabase";
 
 export default function App() {
   const [addOpen, setAddOpen] = useState(false);
@@ -52,6 +54,25 @@ export default function App() {
       if (!rawUrl) return;
       try {
         const parsed = new URL(rawUrl);
+        if (rawUrl.includes("auth/callback") || rawUrl.includes("access_token=") || rawUrl.includes("code=")) {
+          Browser.close().catch(() => {});
+          if (rawUrl.includes("code=")) {
+            const code = parsed.searchParams.get("code");
+            if (code && supabase) {
+              supabase.auth.exchangeCodeForSession(code).catch(console.error);
+            }
+          } else if (rawUrl.includes("#")) {
+            const hash = rawUrl.substring(rawUrl.indexOf("#") + 1);
+            const params = new URLSearchParams(hash);
+            const accessToken = params.get("access_token");
+            const refreshToken = params.get("refresh_token");
+            if (accessToken && refreshToken && supabase) {
+              supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).catch(console.error);
+            }
+          }
+          return;
+        }
+
         if (parsed.protocol === "submate:" && (parsed.hostname === "quick-add" || parsed.pathname.includes("quick-add"))) {
           const params = parsed.searchParams;
           const detected = {
@@ -175,6 +196,54 @@ export default function App() {
     clearAll,
   } = useNotificationManager({ subscriptions });
 
+  
+  // Supabase Auth session & state change listener
+  useEffect(() => {
+    if (!supabase) return;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const user = session.user;
+        const nickname = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "사용자";
+        setProfile((prev) => ({
+          ...(prev || {}),
+          user_id: user.id,
+          nickname: prev?.nickname || nickname,
+          email: user.email,
+          provider: "Google",
+          guest: false,
+          notificationsAllowed: prev?.notificationsAllowed ?? true,
+        }));
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        const user = session.user;
+        const nickname = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "사용자";
+        setProfile({
+          user_id: user.id,
+          nickname,
+          email: user.email,
+          provider: "Google",
+          guest: false,
+          notificationsAllowed: true,
+        });
+        setOnboardingComplete(true);
+        navigate("home");
+        notify(`${nickname}님, 구글 계정으로 로그인되었어요!`);
+      } else if (event === "SIGNED_OUT") {
+        setProfile(null);
+        setSubscriptions([]);
+        navigate("login");
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [navigate, notify, setOnboardingComplete, setProfile, setSubscriptions]);
+
   // Handle URL query actions (?notifications=1)
   useEffect(() => {
     if (screen.params?.get("notifications") === "1") {
@@ -239,6 +308,35 @@ export default function App() {
     [getSubscriptionById, screen.id]
   );
 
+  
+  const handleSocialLogin = async (provider, defaultName) => {
+    if (provider === "Google" && isSupabaseConfigured) {
+      try {
+        notify("구글 로그인 화면으로 이동합니다...");
+        const { error } = await signInWithGoogle();
+        if (error) throw error;
+        return;
+      } catch (err) {
+        console.error("Google sign in error:", err);
+        notify(err.message || "구글 로그인 중 오류가 발생했습니다.");
+        return;
+      }
+    }
+    completeLogin(provider, defaultName);
+  };
+
+  const handleLogout = async () => {
+    if (isSupabaseConfigured && profile?.user_id) {
+      await signOut();
+      notify("로그아웃되었습니다.");
+    } else {
+      setProfile(null);
+      setSubscriptions([]);
+      navigate("login");
+      notify("로그아웃되었습니다.");
+    }
+  };
+
   const completeLogin = (provider, nickname, guest = false) => {
     setProfile({ nickname: nickname || "민수", provider, guest, notificationsAllowed: true });
     if (guest) {
@@ -259,6 +357,9 @@ export default function App() {
     const picked = serviceCatalog.filter((service) => selectedOnboarding.includes(service.id));
     const created = picked.map(createSubscription);
     setSubscriptions(created);
+    if (profile?.user_id) {
+      created.forEach((sub) => upsertDbSubscription(profile.user_id, sub));
+    }
     setOnboardingComplete(true);
     setNotifications(generateSubscriptionAlerts(created));
     navigate("home");
@@ -345,7 +446,7 @@ export default function App() {
       />
     );
   } else {
-    content = <AuthLogin onGuest={() => completeLogin("Guest", "민수", true)} onSocial={(provider, nickname) => completeLogin(provider, nickname)} onRegister={() => navigate("register")} />;
+    content = <AuthLogin onGuest={() => completeLogin("Guest", "민수", true)} onSocial={handleSocialLogin} onRegister={() => navigate("register")} />;
   }
 
   return (
@@ -456,3 +557,7 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
