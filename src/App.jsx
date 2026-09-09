@@ -5,6 +5,7 @@ import { Browser } from "@capacitor/browser";
 import { Bell } from "lucide-react";
 import { AuthLogin, AuthRegister } from "./components/AuthScreens";
 import { AddModal } from "./components/AddModal";
+import { AccountModal } from "./components/AccountModal";
 import { TermsModal } from "./components/TermsModal";
 import { requestPaymentCapturePermission, simulatePaymentDetection } from "./lib/paymentCapture";
 import { isNativePlatform } from "./lib/platform";
@@ -17,7 +18,7 @@ import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from
 import { NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
 import { createMockSubscriptions, promotionCatalog, serviceCatalog } from "./data/subscriptionData";
-import { removeDemoSubscriptions } from "./lib/storage";
+import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser } from "./lib/storage";
 import { generateSubscriptionAlerts } from "./lib/notifications";
 import { useNavigation } from "./hooks/useNavigation";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
@@ -28,6 +29,7 @@ export default function App() {
   const [addOpen, setAddOpen] = useState(false);
   const [addInitialMode, setAddInitialMode] = useState("manual");
   const [quickAddData, setQuickAddData] = useState(null);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [termsTab, setTermsTab] = useState("terms");
   const [toast, setToast] = useState(null);
@@ -265,7 +267,9 @@ export default function App() {
 
     let listenerHandle = null;
     CapApp.addListener("backButton", () => {
-      if (notificationCenterOpen) {
+      if (accountOpen) {
+        setAccountOpen(false);
+      } else if (notificationCenterOpen) {
         setNotificationCenterOpen(false);
       } else if (addOpen) {
         setAddOpen(false);
@@ -291,6 +295,7 @@ export default function App() {
       listenerHandle?.remove();
     };
   }, [
+    accountOpen,
     notificationCenterOpen,
     addOpen,
     cancelTarget,
@@ -325,7 +330,27 @@ export default function App() {
     completeLogin(provider, defaultName);
   };
 
+  const handleIdLogin = ({ accountId, password }) => {
+    const user = findUser(accountId);
+    if (!user) {
+      return { error: "존재하지 않는 아이디입니다." };
+    }
+    if (user.password !== password) {
+      return { error: "비밀번호가 일치하지 않습니다." };
+    }
+    completeLogin("SubMate", user.nickname || accountId);
+    notify(`${user.nickname || accountId}님, 환영합니다!`);
+    return { success: true };
+  };
+
+  const handleRegisterComplete = ({ accountId, password, nickname }) => {
+    saveUser({ accountId, password, nickname });
+    completeLogin("SubMate", nickname);
+    notify(`${nickname}님, 회원가입이 완료되었어요!`);
+  };
+
   const handleLogout = async () => {
+    setAccountOpen(false);
     if (isSupabaseConfigured && profile?.user_id) {
       await signOut();
       notify("로그아웃되었습니다.");
@@ -335,6 +360,14 @@ export default function App() {
       navigate("login");
       notify("로그아웃되었습니다.");
     }
+  };
+
+  const handleUpdateNickname = (newNickname) => {
+    setProfile((prev) => ({
+      ...(prev || {}),
+      nickname: newNickname,
+    }));
+    notify(`${newNickname}으로 닉네임이 변경되었어요!`);
   };
 
   const completeLogin = (provider, nickname, guest = false) => {
@@ -384,7 +417,13 @@ export default function App() {
 
   let content;
   if (screen.route === "register") {
-    content = <AuthRegister onBack={() => navigate("login")} onComplete={({ nickname }) => completeLogin("SubMate", nickname)} />;
+    content = (
+      <AuthRegister
+        onBack={() => navigate("login")}
+        onComplete={handleRegisterComplete}
+        existingUsers={getStoredUsers()}
+      />
+    );
   } else if (screen.route === "onboarding") {
     content = <OnboardingScreen catalog={serviceCatalog} selectedIds={selectedOnboarding} onToggle={(id) => setSelectedOnboarding((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id])} onFinish={handleOnboardingFinish} onSkip={handleOnboardingSkip} />;
   } else if (screen.route === "home") {
@@ -413,6 +452,7 @@ export default function App() {
         onRequestPaymentCapture={handleRequestPaymentCapture}
         onOpenTerms={handleOpenTerms}
         onLogout={handleLogout}
+        onOpenAccount={() => setAccountOpen(true)}
       />
     );
   } else if (screen.route === "subscriptions") {
@@ -447,7 +487,14 @@ export default function App() {
       />
     );
   } else {
-    content = <AuthLogin onGuest={() => completeLogin("Guest", "체험 사용자", true)} onSocial={handleSocialLogin} onRegister={() => navigate("register")} />;
+    content = (
+      <AuthLogin
+        onGuest={() => completeLogin("Guest", "체험 사용자", true)}
+        onSocial={handleSocialLogin}
+        onLogin={handleIdLogin}
+        onRegister={() => navigate("register")}
+      />
+    );
   }
 
   return (
@@ -554,12 +601,18 @@ export default function App() {
           onClose={() => setTermsOpen(false)}
         />
       )}
+      {accountOpen && (
+        <AccountModal
+          profile={profile}
+          onClose={() => setAccountOpen(false)}
+          onUpdateNickname={handleUpdateNickname}
+          onLogout={handleLogout}
+        />
+      )}
       <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }
-
-
 
 
 

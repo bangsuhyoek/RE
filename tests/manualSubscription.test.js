@@ -25,11 +25,12 @@ test("수동 구독 등록 페이로드가 유효하게 구성되고 저장된�
   assert.equal(manualData.memo, "가족 공유 계정");
 });
 
-test("수동 구독 등록 금액 및 결제일 유효성 검증", () => {
+test("수동 구독 등록 금액(0원 포함) 및 결제일 유효성 검증", () => {
   const isValid = (name, amount, dueDay, paymentMethod = "신한카드") => {
     if (!name || !name.trim()) return false;
-    const numAmount = Number(amount);
-    if (!numAmount || numAmount <= 0) return false;
+    const strAmount = String(amount ?? "").trim();
+    const numAmount = Number(strAmount);
+    if (strAmount === "" || isNaN(numAmount) || numAmount < 0) return false;
     const numDueDay = Number(dueDay);
     if (!numDueDay || numDueDay < 1 || numDueDay > 31) return false;
     if (!paymentMethod || !paymentMethod.trim()) return false;
@@ -37,13 +38,48 @@ test("수동 구독 등록 금액 및 결제일 유효성 검증", () => {
   };
 
   assert.equal(isValid("넷플릭스", 17000, 15), true);
+  assert.equal(isValid("유튜브 프리미엄 (무료체험)", 0, 15), true);
+  assert.equal(isValid("유튜브 프리미엄 (무료체험)", "0", 15), true);
   assert.equal(isValid("넷플릭스", 17000, 15, ""), false);
   assert.equal(isValid("넷플릭스", 17000, 15, "   "), false);
   assert.equal(isValid("", 17000, 15), false);
-  assert.equal(isValid("넷플릭스", 0, 15), false);
+  assert.equal(isValid("넷플릭스", "", 15), false);
   assert.equal(isValid("넷플릭스", -1000, 15), false);
   assert.equal(isValid("넷플릭스", 17000, 32), false);
   assert.equal(isValid("넷플릭스", 17000, 0), false);
+});
+
+test("무료체험 설정 시 금액이 자동으로 0원으로 설정되고 0원이 정상 인식된다", () => {
+  let form = {
+    name: "쿠팡 와우",
+    amount: "",
+    isTrial: false,
+  };
+
+  // 무료 체험 ON
+  const onTrialToggle = (checked) => {
+    form = {
+      ...form,
+      isTrial: checked,
+      amount: checked ? "0" : (form.amount === "0" ? "" : form.amount),
+    };
+  };
+
+  onTrialToggle(true);
+  assert.equal(form.isTrial, true);
+  assert.equal(form.amount, "0");
+
+  // 0원 인식 유효성 검사
+  const trimmed = String(form.amount).trim();
+  const num = Number(trimmed);
+  const isInvalid = trimmed === "" || isNaN(num) || num < 0;
+  assert.equal(isInvalid, false);
+  assert.equal(num, 0);
+
+  // 무료 체험 OFF
+  onTrialToggle(false);
+  assert.equal(form.isTrial, false);
+  assert.equal(form.amount, "");
 });
 
 test("자동 감지 데이터(initialData)가 수동 등록 폼 기본값으로 정상 매핑된다", () => {

@@ -171,8 +171,9 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
       setError("서비스명을 입력해 주세요.");
       return;
     }
-    const amountNum = Number(manualForm.amount);
-    if (!amountNum || amountNum <= 0) {
+    const trimmedAmount = String(manualForm.amount ?? "").trim();
+    const amountNum = Number(trimmedAmount);
+    if (trimmedAmount === "" || isNaN(amountNum) || amountNum < 0) {
       setError("결제 금액을 올바르게 입력해 주세요.");
       return;
     }
@@ -423,7 +424,7 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
               </div>
             </div>
 
-            {/* 결제 금액 (+1000 등 버튼 제거) */}
+            {/* 결제 금액 */}
             <div>
               <label className="block text-[13px] font-semibold text-[#191F28]">
                 결제 금액 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
@@ -435,7 +436,12 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
                   inputMode="numeric"
                   value={manualForm.amount}
                   onChange={(e) => updateManual("amount", e.target.value)}
-                  className={`${inputClass(!Number(manualForm.amount) && error)} pr-10`}
+                  className={`${inputClass(
+                    (String(manualForm.amount ?? "").trim() === "" ||
+                      isNaN(Number(manualForm.amount)) ||
+                      Number(manualForm.amount) < 0) &&
+                      Boolean(error)
+                  )} pr-10`}
                   placeholder="0"
                 />
                 <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] font-bold text-[#4E5968]">
@@ -506,7 +512,14 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
               </div>
               <ToggleSwitch
                 checked={manualForm.isTrial}
-                onChange={(checked) => updateManual("isTrial", checked)}
+                onChange={(checked) => {
+                  setManualForm((curr) => ({
+                    ...curr,
+                    isTrial: checked,
+                    amount: checked ? "0" : (curr.amount === "0" ? "" : curr.amount),
+                  }));
+                  setError("");
+                }}
                 label="무료 체험 여부"
               />
             </div>

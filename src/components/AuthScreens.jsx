@@ -1,66 +1,136 @@
 import { useMemo, useState } from "react";
-import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff, LockKeyhole, Mail, UserRound } from "lucide-react";
+import { AlertCircle, CheckCircle2, Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
 import { Button, LogoMark } from "./ui";
 
 const fieldBase = "w-full rounded-xl border border-[#E4E4E7] bg-white px-4 py-3.5 text-[15px] outline-none transition-colors placeholder:text-[#A1A1AA] focus:border-black";
 
-export function AuthLogin({ onGuest, onSocial, onRegister }) {
-  const [email, setEmail] = useState("");
+function GoogleIcon({ className = "h-5 w-5 shrink-0" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24">
+      <path
+        fill="#4285F4"
+        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.32 7.31 24 12 24z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.68 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+      />
+    </svg>
+  );
+}
+
+export function AuthLogin({ onGuest, onSocial, onRegister, onLogin }) {
+  const [accountId, setAccountId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
-  const handleEmailLogin = (event) => {
+  const handleIdLogin = (event) => {
     event.preventDefault();
-    if (!email || !password) return;
-    onSocial("이메일", email.split("@")[0] || "사용자");
+    if (!accountId.trim() || !password) return;
+    setLoginError("");
+    if (onLogin) {
+      const result = onLogin({ accountId: accountId.trim(), password });
+      if (result && result.error) {
+        setLoginError(result.error);
+      }
+    } else {
+      onSocial("아이디", accountId.trim());
+    }
   };
 
   return (
     <main className="flex min-h-screen flex-col px-5 pb-8 pt-10">
-      <div className="mb-12">
+      <div className="mb-10">
         <LogoMark className="mb-6 h-11 w-11 rounded-2xl text-base" />
         <p className="mb-2 text-[13px] font-medium text-[#71717A]">구독을 내 편으로</p>
         <h1 className="text-3xl font-bold tracking-[-0.03em]">구독 관리의<br />가장 쉬운 시작</h1>
         <p className="mt-4 max-w-[290px] text-[15px] leading-6 text-[#71717A]">결제 전에 알리고, 해지는 빠르게. SubMate가 매달의 고정지출을 정리해드려요.</p>
       </div>
 
-      <div className="space-y-3">
-        <Button className="w-full" onClick={() => onSocial("Apple", "사용자")}>
-          Apple로 계속하기
-          <ArrowRight size={17} />
-        </Button>
-        <Button variant="secondary" className="w-full" onClick={() => onSocial("Google", "사용자")}>
-          <span className="grid h-5 w-5 place-items-center rounded-full border border-black text-[10px] font-bold">G</span>
-          Google로 계속하기
-        </Button>
-      </div>
-
-      <div className="my-7 flex items-center gap-3 text-[11px] text-[#A1A1AA]">
-        <span className="h-px flex-1 bg-[#E4E4E7]" />
-        또는 이메일로 로그인
-        <span className="h-px flex-1 bg-[#E4E4E7]" />
-      </div>
-
-      <form className="space-y-3" onSubmit={handleEmailLogin}>
+      {/* 메인 폼: 아이디 비밀번호 로그인 */}
+      <form className="space-y-3" onSubmit={handleIdLogin}>
         <label className="block">
-          <span className="sr-only">이메일</span>
+          <span className="sr-only">아이디</span>
           <span className="relative block">
-            <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#71717A]" size={18} />
-            <input className={`${fieldBase} pl-11`} type="email" placeholder="이메일" value={email} onChange={(event) => setEmail(event.target.value)} />
+            <UserRound className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#71717A]" size={18} />
+            <input
+              className={`${fieldBase} pl-11`}
+              type="text"
+              autoComplete="username"
+              placeholder="아이디"
+              value={accountId}
+              onChange={(event) => {
+                setAccountId(event.target.value);
+                setLoginError("");
+              }}
+            />
           </span>
         </label>
         <label className="block">
           <span className="sr-only">비밀번호</span>
           <span className="relative block">
             <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#71717A]" size={18} />
-            <input className={`${fieldBase} pl-11 pr-11`} type={showPassword ? "text" : "password"} placeholder="비밀번호" value={password} onChange={(event) => setPassword(event.target.value)} />
-            <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-[#71717A] hover:text-black" aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}>
+            <input
+              className={`${fieldBase} pl-11 pr-11`}
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              placeholder="비밀번호"
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setLoginError("");
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-[#71717A] hover:text-black"
+              aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+            >
               {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
           </span>
         </label>
-        <Button className="w-full" type="submit" disabled={!email || !password}>이메일로 로그인</Button>
+
+        {loginError && (
+          <p className="flex items-center gap-1.5 text-[12px] text-[#EF4444] pt-0.5">
+            <AlertCircle size={14} />
+            {loginError}
+          </p>
+        )}
+
+        <Button className="w-full" type="submit" disabled={!accountId.trim() || !password}>
+          로그인
+        </Button>
       </form>
+
+      {/* 구분선 */}
+      <div className="my-6 flex items-center gap-3 text-[11px] text-[#A1A1AA]">
+        <span className="h-px flex-1 bg-[#E4E4E7]" />
+        또는
+        <span className="h-px flex-1 bg-[#E4E4E7]" />
+      </div>
+
+      {/* 아이디 비밀번호 로그인 아래 구글 아이디 로그인 (애플 로그인 제거) */}
+      <div>
+        <Button
+          variant="secondary"
+          className="w-full flex items-center justify-center gap-2.5"
+          onClick={() => onSocial("Google", "사용자")}
+        >
+          <GoogleIcon />
+          <span>Google 아이디로 로그인</span>
+        </Button>
+      </div>
 
       <div className="mt-auto pt-8 text-center text-[13px]">
         <button type="button" onClick={onRegister} className="font-semibold text-black underline underline-offset-4">회원가입</button>
@@ -82,7 +152,7 @@ function ValidationHint({ valid, error, success }) {
   );
 }
 
-export function AuthRegister({ onBack, onComplete }) {
+export function AuthRegister({ onBack, onComplete, existingUsers = [] }) {
   const [accountId, setAccountId] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -92,7 +162,8 @@ export function AuthRegister({ onBack, onComplete }) {
 
   const validation = useMemo(() => {
     const idFormat = /^[a-z0-9_-]{5,20}$/.test(accountId);
-    const idDuplicate = ["submate", "admin", "testuser"].includes(accountId.toLowerCase());
+    const existingIds = (existingUsers || []).map((u) => u.accountId?.toLowerCase());
+    const idDuplicate = ["submate", "admin", "testuser", ...existingIds].includes(accountId.toLowerCase());
     const passwordFormat = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,16}$/.test(password);
     const matching = Boolean(password) && password === passwordConfirm;
     const nicknameFormat = /^[가-힣a-zA-Z]{3,10}$/.test(nickname);
@@ -106,7 +177,7 @@ export function AuthRegister({ onBack, onComplete }) {
       nickname: nicknameFormat,
       nicknameError: nickname && !nicknameFormat ? "닉네임은 한/영 3~10자로 입력해 주세요." : "",
     };
-  }, [accountId, nickname, password, passwordConfirm]);
+  }, [accountId, existingUsers, nickname, password, passwordConfirm]);
 
   const canSubmit = validation.id && validation.password && validation.matching && validation.nickname;
 
@@ -117,7 +188,7 @@ export function AuthRegister({ onBack, onComplete }) {
       <h1 className="mt-2 text-3xl font-bold tracking-[-0.03em]">SubMate 시작하기</h1>
       <p className="mt-3 text-[14px] leading-6 text-[#71717A]">한 단계씩 확인하며 안전하게 계정을 만들어요.</p>
 
-      <form className="mt-9 space-y-5" onSubmit={(event) => { event.preventDefault(); if (canSubmit) onComplete({ accountId, nickname }); }}>
+      <form className="mt-9 space-y-5" onSubmit={(event) => { event.preventDefault(); if (canSubmit) onComplete({ accountId, password, nickname }); }}>
         <label className="block">
           <span className="mb-2 block text-[13px] font-semibold">아이디</span>
           <span className="relative block">

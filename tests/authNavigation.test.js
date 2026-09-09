@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readHash } from "../src/hooks/useNavigation.js";
-import { readStoredValue, storageKeys } from "../src/lib/storage.js";
+import { readStoredValue, storageKeys, saveUser, findUser, getStoredUsers } from "../src/lib/storage.js";
 import { createMockSubscriptions } from "../src/data/subscriptionData.js";
 
 test("URL 해시가 없거나 비어있을 때 readHash는 빈 문자열 라우트를 반환한다", () => {
@@ -126,4 +126,43 @@ test("게스트(둘러보기) 사용자는 저장되어 있더라도 기본 화�
   const guestProfile = { nickname: "체험 사용자", provider: "Guest", guest: true };
   const defaultRoute = (!guestProfile || guestProfile.guest || guestProfile.provider === "Guest") ? "login" : "home";
   assert.equal(defaultRoute, "login");
+});
+
+test("회원가입 계정 저장 및 아이디/비밀번호 로그인 인증 검증", () => {
+  const mockStorage = new Map();
+  global.window = {
+    localStorage: {
+      getItem: (k) => (mockStorage.has(k) ? mockStorage.get(k) : null),
+      setItem: (k, v) => mockStorage.set(k, String(v)),
+      removeItem: (k) => mockStorage.delete(k),
+    },
+  };
+
+  // 신규 회원 가입
+  saveUser({
+    accountId: "submateuser",
+    password: "Password123!",
+    nickname: "섭메이트",
+  });
+
+  const users = getStoredUsers();
+  assert.equal(users.length, 1);
+  assert.equal(users[0].accountId, "submateuser");
+  assert.equal(users[0].nickname, "섭메이트");
+
+  // 아이디 찾기 검증
+  const user = findUser("submateuser");
+  assert.notEqual(user, null);
+  assert.equal(user.password, "Password123!");
+
+  // 대소문자 무관 아이디 찾기 검증
+  const userUpper = findUser("SUBMATEUSER");
+  assert.notEqual(userUpper, null);
+
+  // 비밀번호 불일치 검증
+  assert.notEqual(user.password, "WrongPassword!");
+
+  // 존재하지 않는 아이디 검증
+  const notFound = findUser("ghostuser");
+  assert.equal(notFound, null);
 });
