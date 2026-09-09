@@ -130,7 +130,7 @@ export default function App() {
   const handleRequestPaymentCapture = async () => {
     if (isNativePlatform()) {
       await requestPaymentCapturePermission();
-      notify("시스템 설정에서 SubMate '알림 접근 허용'을 켜주세요.");
+      notify("시스템 설정에서 꾸독 '알림 접근 허용'을 켜주세요.");
     } else {
       handleOpenTerms("permissions");
       notify("웹 환경입니다. 앱 접근 권한 안내 문서를 표시합니다.");
@@ -367,14 +367,14 @@ export default function App() {
     if (user.password !== password) {
       return { error: "비밀번호가 일치하지 않습니다." };
     }
-    completeLogin("SubMate", user.nickname || accountId);
+    completeLogin("꾸독", user.nickname || accountId);
     notify(`${user.nickname || accountId}님, 환영합니다!`);
     return { success: true };
   };
 
   const handleRegisterComplete = ({ accountId, password, nickname }) => {
     saveUser({ accountId, password, nickname });
-    completeLogin("SubMate", nickname);
+    completeLogin("꾸독", nickname);
     notify(`${nickname}님, 회원가입이 완료되었어요!`);
   };
 
@@ -421,9 +421,11 @@ export default function App() {
     navigate("onboarding");
   };
 
-  const handleOnboardingFinish = () => {
-    const picked = serviceCatalog.filter((service) => selectedOnboarding.includes(service.id));
-    const created = picked.map(createSubscription);
+  const handleOnboardingFinish = (customItems) => {
+    const itemsToCreate = Array.isArray(customItems) && customItems.length > 0
+      ? customItems
+      : serviceCatalog.filter((service) => selectedOnboarding.includes(service.id));
+    const created = itemsToCreate.map((item, idx) => createSubscription(item, idx));
     setSubscriptions(created);
     if (profile?.user_id) {
       created.forEach((sub) => upsertDbSubscription(profile.user_id, sub));
@@ -431,7 +433,7 @@ export default function App() {
     setOnboardingComplete(true);
     setNotifications(generateSubscriptionAlerts(created));
     navigate("home");
-    notify(`${picked.length}개 구독을 추가했어요.`);
+    notify(`${created.length}개 구독을 추가했어요.`);
   };
 
   const handleOnboardingSkip = () => {

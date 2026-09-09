@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <rect width="800" height="450" fill="#0A0A0A"/>
+  <g transform="translate(250, 160)">
+    <circle cx="60" cy="65" r="42" fill="#FF153C"/>
+    <path d="M130 25h32v80h-32zM110 25h72v24h-72z" fill="#FFFFFF"/>
+    <text x="210" y="88" fill="#FFFFFF" font-size="56" font-weight="900" font-family="Pretendard, system-ui, sans-serif" letter-spacing="-1">TVING</text>
+  </g>
+</svg>

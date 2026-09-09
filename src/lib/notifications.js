@@ -165,7 +165,7 @@ export async function initAndroidNotificationChannel() {
     try {
       await LocalNotifications.createChannel({
         id: "submate-billing-channel",
-        name: "SubMate 결제 알림",
+        name: "꾸독 결제 알림",
         description: "구독 결제일 사전 알림 및 갱신 안내",
         importance: 4,
         visibility: 1,

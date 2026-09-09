@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { FilterX, RefreshCw, Search, SlidersHorizontal } from "lucide-react";
-import { Button, Chip, IconButton, SubscriptionCard } from "./ui";
+import { Button, Chip, IconButton, SubscriptionCard, CATEGORY_PHILOSOPHY } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 
 const categories = ["전체", "OTT", "음악", "쇼핑", "생산성", "도서", "클라우드", "게임", "기타"];
@@ -39,8 +39,38 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
       </div>
 
       <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {categories.map((item) => <Chip key={item} selected={category === item} onClick={() => setCategory(item)}>{item}</Chip>)}
+        {categories.map((item) => {
+          const isSelected = category === item;
+          const info = CATEGORY_PHILOSOPHY[item];
+          const activeClass = isSelected ? (info?.chipActive || "bg-surface-inverse text-white") : "";
+          return (
+            <Chip
+              key={item}
+              selected={isSelected}
+              className={activeClass}
+              onClick={() => setCategory(item)}
+            >
+              {info && <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSelected ? "bg-white/80" : info.dot}`} />}
+              <span>{item}</span>
+            </Chip>
+          );
+        })}
       </div>
+
+      {category !== "전체" && CATEGORY_PHILOSOPHY[category] && (
+        <div className="mt-3 flex items-start gap-2.5 rounded-2xl border border-border-subtle bg-surface-default p-3.5 shadow-2xs">
+          <span className={`mt-1 h-2 w-2 rounded-full shrink-0 ${CATEGORY_PHILOSOPHY[category].dot}`} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[13px] font-bold text-fg-primary">{CATEGORY_PHILOSOPHY[category].label}</span>
+              <span className="text-[12px] font-semibold text-fg-brand">· {CATEGORY_PHILOSOPHY[category].theme}</span>
+            </div>
+            <p className="mt-0.5 text-[11px] text-fg-muted leading-relaxed">
+              {CATEGORY_PHILOSOPHY[category].desc}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 flex gap-2">
         <label className="relative flex-1">

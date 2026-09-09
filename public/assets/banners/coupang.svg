@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <rect width="800" height="450" fill="#081426"/>
+  <g transform="translate(260, 160)">
+    <text x="0" y="70" fill="#FFFFFF" font-size="56" font-weight="900" font-family="Pretendard, system-ui, sans-serif" letter-spacing="-1.5">coupang</text>
+    <rect x="235" y="18" width="84" height="40" rx="10" fill="#FF2E4C"/>
+    <text x="277" y="46" fill="#FFFFFF" font-size="20" font-weight="900" text-anchor="middle" font-family="Pretendard, system-ui, sans-serif">WOW</text>
+  </g>
+</svg>

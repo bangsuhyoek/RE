@@ -2,10 +2,10 @@ import { useState } from "react";
 import { BottomSheet, SegmentedControl } from "./ui";
 import { FileText, Shield, KeyRound, X } from "lucide-react";
 
-const TERMS_TEXT = `# SubMate 서비스 이용약관 (요약 및 전문)
+const TERMS_TEXT = `# 꾸독 서비스 이용약관 (요약 및 전문)
 
 제1조 (목적)
-본 약관은 "SubMate"(이하 "회사")가 제공하는 구독 관리, 결제 알림 감지, 해지 보조 및 관련 제반 서비스의 이용 조건 및 절차를 규정합니다.
+본 약관은 "꾸독"(이하 "회사")가 제공하는 구독 관리, 결제 알림 감지, 해지 보조 및 관련 제반 서비스의 이용 조건 및 절차를 규정합니다.
 
 제2조 (서비스의 내용)
 1. 구독 지출 종합 관리: 월간/연간 지출 통계 및 캘린더 분석
@@ -19,7 +19,7 @@ const TERMS_TEXT = `# SubMate 서비스 이용약관 (요약 및 전문)
 2. 해지 절차 변경 면책: 외부 업체의 화면 변경에 따라 해지 경로가 상이할 수 있으며, 최종 해지 확인 책임은 회원 본인에게 있습니다.
 3. 자동 감지/AI 오차 면책: 결제 알림 감지 및 AI OCR 결과는 통신 및 서식에 따라 오차가 있을 수 있으므로, 최종 저장 전 회원 본인이 내용을 확인해야 합니다.`;
 
-const PRIVACY_TEXT = `# SubMate 개인정보 처리방침 (요약 및 전문)
+const PRIVACY_TEXT = `# 꾸독 개인정보 처리방침 (요약 및 전문)
 
 1. 수집하는 개인정보 항목
 • 회원 가입(필수): 아이디, 이메일, 닉네임, 암호화된 비밀번호
@@ -54,7 +54,7 @@ export function TermsModal({ initialTab = "terms", onClose }) {
   const [currentTab, setCurrentTab] = useState(initialTab);
 
   return (
-    <BottomSheet onClose={onClose} label="SubMate 약관 및 정책">
+    <BottomSheet onClose={onClose} label="꾸독 약관 및 정책">
       <div className="pb-2">
         <div className="flex items-center justify-between pb-3 border-b border-[#E4E4E7]">
           <div className="flex items-center gap-2">
@@ -63,7 +63,7 @@ export function TermsModal({ initialTab = "terms", onClose }) {
             </div>
             <div>
               <h2 className="text-[16px] font-bold text-[#191F28]">약관 및 정책</h2>
-              <p className="text-[11px] text-[#71717A]">SubMate의 이용약관 및 개인정보 보호정책</p>
+              <p className="text-[11px] text-[#71717A]">꾸독의 이용약관 및 개인정보 보호정책</p>
             </div>
           </div>
           <button

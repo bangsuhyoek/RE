@@ -9,7 +9,7 @@ export const createSubscription = (service, index = 0) => ({
   ...service,
   subscriptionId: `onboard-${service.id}-${Date.now()}-${index}`,
   createdAt: new Date().toISOString(),
-  billingCycle: "매월",
+  billingCycle: service.billingCycle || "매월",
   status: service.isTrial ? "trial" : "active",
   alertD3: service.id === "netflix" || service.id === "chatgpt",
   alertD1: service.id === "youtube" || service.id === "spotify",

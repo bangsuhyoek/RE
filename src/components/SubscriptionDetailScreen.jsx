@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Send, Settings2, X, Camera, Trash2 } from "lucide-react";
 import {
   Button,
+  CategoryBadge,
+  CATEGORY_PHILOSOPHY,
   DDayBadge,
   ServiceMark,
   ToggleSwitch,
@@ -84,7 +86,14 @@ export function SubscriptionDetailScreen({ subscription, subscriptions = [], onU
         {subscription.category && (
           <>
             <div className="h-px bg-[#F2F4F6]" />
-            <DetailField label="카테고리" value={subscription.category} />
+            <div>
+              <DetailField label="카테고리" value={<CategoryBadge category={subscription.category} showPhilosophy />} />
+              {CATEGORY_PHILOSOPHY[subscription.category] && (
+                <p className="pb-3 text-[11px] text-fg-muted leading-relaxed">
+                  {CATEGORY_PHILOSOPHY[subscription.category].desc}
+                </p>
+              )}
+            </div>
           </>
         )}
         {subscription.memo && (

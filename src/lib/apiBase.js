@@ -20,7 +20,7 @@ export function getApiEndpoint(path) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   if (!API_BASE_URL) {
     if (isNativePlatform()) {
-      console.warn("[SubMate] 모바일 앱 환경에서 VITE_API_BASE_URL이 비어 있습니다. 배포된 백엔드 서버 URL이 필요합니다.");
+      console.warn("[꾸독] 모바일 앱 환경에서 VITE_API_BASE_URL이 비어 있습니다. 배포된 백엔드 서버 URL이 필요합니다.");
     }
     return normalizedPath;
   }

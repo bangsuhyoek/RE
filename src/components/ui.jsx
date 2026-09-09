@@ -30,28 +30,227 @@ export {
 
 const cx = (...classes) => classes.filter(Boolean).join(" ");
 
-export function LogoMark({ className = "" }) {
+export function LogoMark() {
+  return null;
+}
+
+/**
+ * SubMate x SEED Design System Category Philosophy
+ * 지출 카테고리별 고유한 삶의 가치와 철학을 부여하고,
+ * 유칼립투스 그로브 100색 매트릭스와 엄격한 접근성 페어링 규칙으로 설계된 토큰 맵.
+ */
+export const CATEGORY_PHILOSOPHY = {
+  OTT: {
+    label: "OTT",
+    theme: "몰입과 휴식",
+    desc: "지친 일상을 비우고 온전히 빠져드는 스크린의 여유",
+    style: "bg-palette-indigo-50 text-palette-indigo-700 border-palette-indigo-200",
+    chipActive: "bg-palette-indigo-700 text-white border-palette-indigo-700",
+    dot: "bg-palette-indigo-500",
+  },
+  음악: {
+    label: "음악",
+    theme: "감성과 리듬",
+    desc: "하루의 틈새를 채우는 나만의 감각적인 선율과 비트",
+    style: "bg-palette-pink-50 text-palette-pink-700 border-palette-pink-200",
+    chipActive: "bg-palette-pink-700 text-white border-palette-pink-700",
+    dot: "bg-palette-pink-500",
+  },
+  생산성: {
+    label: "생산성",
+    theme: "명료함과 지적 성장",
+    desc: "인지 부하를 덜고 지속 가능한 일과 성장을 돕는 도구",
+    style: "bg-palette-eucalyptus-green-50 text-palette-eucalyptus-green-700 border-palette-eucalyptus-green-200",
+    chipActive: "bg-palette-eucalyptus-green-700 text-white border-palette-eucalyptus-green-700",
+    dot: "bg-palette-eucalyptus-green-500",
+  },
+  쇼핑: {
+    label: "쇼핑",
+    theme: "실속과 풍요",
+    desc: "일상의 수고를 덜고 매월 확실한 가치와 절약을 회수하는 스마트함",
+    style: "bg-palette-eucalyptus-sage-50 text-palette-eucalyptus-sage-800 border-palette-eucalyptus-sage-300",
+    chipActive: "bg-palette-eucalyptus-sage-800 text-white border-palette-eucalyptus-sage-800",
+    dot: "bg-palette-eucalyptus-sage-600",
+  },
+  도서: {
+    label: "도서",
+    theme: "사색과 지식 축적",
+    desc: "소음을 걷어내고 내면의 시야를 넓히는 차분한 지식의 축적",
+    style: "bg-palette-amber-50 text-palette-amber-800 border-palette-amber-200",
+    chipActive: "bg-palette-amber-700 text-white border-palette-amber-700",
+    dot: "bg-palette-amber-600",
+  },
+  클라우드: {
+    label: "클라우드",
+    theme: "투명한 신뢰",
+    desc: "기록과 자산을 소리 없이 안전하게 지탱하는 인프라",
+    style: "bg-palette-blue-50 text-palette-blue-700 border-palette-blue-200",
+    chipActive: "bg-palette-blue-700 text-white border-palette-blue-700",
+    dot: "bg-palette-blue-500",
+  },
+  게임: {
+    label: "게임",
+    theme: "유희와 성취",
+    desc: "기분 좋은 긴장감과 상상력이 깨어나는 즐거운 도전",
+    style: "bg-palette-purple-50 text-palette-purple-700 border-palette-purple-200",
+    chipActive: "bg-palette-purple-700 text-white border-palette-purple-700",
+    dot: "bg-palette-purple-500",
+  },
+  유틸리티: {
+    label: "유틸리티",
+    theme: "일상의 기반",
+    desc: "생활의 마찰을 줄여주는 없어서는 안 될 기본 편의",
+    style: "bg-palette-teal-50 text-palette-teal-700 border-palette-teal-200",
+    chipActive: "bg-palette-teal-700 text-white border-palette-teal-700",
+    dot: "bg-palette-teal-500",
+  },
+  기타: {
+    label: "기타",
+    theme: "취향의 발견",
+    desc: "나만의 고유한 라이프스타일을 완성하는 특별한 경험",
+    style: "bg-surface-subtle text-fg-secondary border-border-subtle",
+    chipActive: "bg-surface-inverse text-fg-inverse border-surface-inverse",
+    dot: "bg-fg-muted",
+  },
+};
+
+export const CATEGORY_PALETTE_STYLES = Object.fromEntries(
+  Object.entries(CATEGORY_PHILOSOPHY).map(([k, v]) => [k, v.style])
+);
+
+export const SERVICE_IMAGES = {
+  netflix: "/assets/services/netflix.svg",
+  youtube: "/assets/services/youtube.svg",
+  coupang: "/assets/services/coupang.svg",
+  spotify: "/assets/services/spotify.svg",
+  chatgpt: "/assets/services/chatgpt.svg",
+  tving: "/assets/services/tving.svg",
+  disney: "/assets/services/disney.svg",
+  millie: "/assets/services/millie.svg",
+  adobe: "/assets/services/adobe.svg",
+  watcha: "/assets/services/watcha.svg",
+  flo: "/assets/services/flo.svg",
+  naver: "/assets/services/naver.svg",
+};
+
+export function ServiceMark({
+  serviceId,
+  name,
+  monogram,
+  image = null,
+  category = null,
+  brandColor,
+  brandBg,
+  brandText,
+  className = "",
+}) {
+  const cleanName = (name || "").toLowerCase().trim();
+  const cleanId = (serviceId || "").toLowerCase().trim();
+  const resolvedImage =
+    image ||
+    (cleanId && SERVICE_IMAGES[cleanId]) ||
+    (cleanName && (
+      SERVICE_IMAGES[cleanName] ||
+      (cleanName.includes("netflix") || cleanName.includes("넷플") ? SERVICE_IMAGES.netflix : null) ||
+      (cleanName.includes("youtube") || cleanName.includes("유튜브") ? SERVICE_IMAGES.youtube : null) ||
+      (cleanName.includes("coupang") || cleanName.includes("쿠팡") ? SERVICE_IMAGES.coupang : null) ||
+      (cleanName.includes("spotify") || cleanName.includes("스포티") ? SERVICE_IMAGES.spotify : null) ||
+      (cleanName.includes("chatgpt") || cleanName.includes("gpt") ? SERVICE_IMAGES.chatgpt : null) ||
+      (cleanName.includes("tving") || cleanName.includes("티빙") ? SERVICE_IMAGES.tving : null) ||
+      (cleanName.includes("disney") || cleanName.includes("디즈니") ? SERVICE_IMAGES.disney : null) ||
+      (cleanName.includes("millie") || cleanName.includes("밀리") ? SERVICE_IMAGES.millie : null) ||
+      (cleanName.includes("adobe") || cleanName.includes("어도비") ? SERVICE_IMAGES.adobe : null) ||
+      (cleanName.includes("watcha") || cleanName.includes("왓챠") ? SERVICE_IMAGES.watcha : null) ||
+      (cleanName.includes("flo") || cleanName.includes("플로") ? SERVICE_IMAGES.flo : null) ||
+      (cleanName.includes("naver") || cleanName.includes("네이버") ? SERVICE_IMAGES.naver : null)
+    ));
+
+  if (resolvedImage) {
+    return (
+      <span className={cx("inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border-subtle bg-surface-default p-2 shadow-2xs overflow-hidden", className)}>
+        <img
+          src={resolvedImage}
+          alt=""
+          className="h-full w-full object-contain rounded-xl select-none pointer-events-none"
+        />
+      </span>
+    );
+  }
+  const display = (monogram && monogram.trim()) ? monogram.trim().slice(0, 2).toUpperCase() : "S";
+  const info = (category && CATEGORY_PHILOSOPHY[category]) || CATEGORY_PHILOSOPHY.기타;
+  const catStyle = info.style;
+  const customStyle = (brandBg || brandText || brandColor) ? {
+    backgroundColor: brandBg || (brandColor ? `${brandColor}18` : undefined),
+    color: brandText || brandColor || undefined,
+    borderColor: brandColor ? `${brandColor}35` : undefined,
+  } : undefined;
+
   return (
-    <span className={cx("grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#191F28] text-sm font-bold text-white shadow-sm", className)} aria-hidden="true">
-      S
+    <span
+      style={customStyle}
+      className={cx(
+        "grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-sm font-bold border transition-colors",
+        !customStyle && catStyle,
+        className
+      )}
+      title={info.theme}
+      aria-hidden="true"
+    >
+      {display}
     </span>
   );
 }
 
-export function ServiceMark({ monogram, image = null, className = "" }) {
+export function BrandServiceMark({ monogram, image = null, category = null, brandColor, brandBg, brandText, className = "" }) {
   if (image) {
     return (
       <img
         src={image}
         alt=""
-        className={cx("h-11 w-11 shrink-0 rounded-2xl object-cover border border-[#E5E8EB]", className)}
+        className={cx("h-11 w-11 shrink-0 rounded-2xl object-cover border border-border-subtle", className)}
       />
     );
   }
   const display = (monogram && monogram.trim()) ? monogram.trim().slice(0, 2).toUpperCase() : "S";
+  const info = (category && CATEGORY_PHILOSOPHY[category]) || CATEGORY_PHILOSOPHY.기타;
+  const catStyle = info.style;
+  const customStyle = (brandBg || brandText || brandColor) ? {
+    backgroundColor: brandBg || (brandColor ? `${brandColor}18` : undefined),
+    color: brandText || brandColor || undefined,
+    borderColor: brandColor ? `${brandColor}35` : undefined,
+  } : undefined;
+
   return (
-    <span className={cx("grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#F2F4F6] text-sm font-bold text-[#191F28] border border-[#E5E8EB]", className)} aria-hidden="true">
+    <span
+      style={customStyle}
+      className={cx(
+        "grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-sm font-bold border transition-colors",
+        !customStyle && catStyle,
+        className
+      )}
+      title={info.theme}
+      aria-hidden="true"
+    >
       {display}
+    </span>
+  );
+}
+
+export function CategoryBadge({ category, showPhilosophy = false, className = "" }) {
+  if (!category) return null;
+  const info = CATEGORY_PHILOSOPHY[category] || CATEGORY_PHILOSOPHY.기타;
+  return (
+    <span
+      className={cx(
+        "inline-flex items-center gap-1 rounded-[5px] border px-1.5 py-0.5 text-[10px] font-bold tracking-tight transition-colors select-none",
+        info.style,
+        className
+      )}
+      title={info.desc}
+    >
+      <span className={cx("h-1.5 w-1.5 rounded-full shrink-0", info.dot)} aria-hidden="true" />
+      <span>{info.label}</span>
+      {showPhilosophy && <span className="opacity-75 font-medium">· {info.theme}</span>}
     </span>
   );
 }
@@ -75,17 +274,17 @@ export function Button({
   ...props
 }) {
   const variants = {
-    primary: "bg-[#191F28] text-white hover:bg-[#2C3440] active:bg-[#384252] shadow-sm",
-    "neutral-solid": "bg-[#191F28] text-white hover:bg-[#2C3440] active:bg-[#384252] shadow-sm",
-    secondary: "bg-[#F2F4F6] text-[#333D4B] hover:bg-[#E5E8EB] active:bg-[#D1D6DB]",
-    "neutral-weak": "bg-[#F2F4F6] text-[#333D4B] hover:bg-[#E5E8EB] active:bg-[#D1D6DB]",
-    outline: "border border-[#E5E8EB] bg-white text-[#333D4B] hover:bg-[#F9FAFB] active:bg-[#F2F4F6]",
-    "neutral-outline": "border border-[#E5E8EB] bg-white text-[#333D4B] hover:bg-[#F9FAFB] active:bg-[#F2F4F6]",
-    brand: "bg-[#FF6F0F] text-white hover:bg-[#E85E00] active:bg-[#D25400] shadow-sm",
-    "brand-solid": "bg-[#FF6F0F] text-white hover:bg-[#E85E00] active:bg-[#D25400] shadow-sm",
-    danger: "bg-[#FF4D4D] text-white hover:bg-[#E53935] active:bg-[#CC2E2E]",
-    "critical-solid": "bg-[#FF4D4D] text-white hover:bg-[#E53935] active:bg-[#CC2E2E]",
-    ghost: "text-[#4E5968] hover:bg-[#F2F4F6] hover:text-[#191F28] active:bg-[#E5E8EB]",
+    primary: "bg-surface-inverse text-fg-inverse hover:bg-palette-gray-800 active:bg-palette-gray-700 shadow-sm",
+    "neutral-solid": "bg-surface-inverse text-fg-inverse hover:bg-palette-gray-800 active:bg-palette-gray-700 shadow-sm",
+    secondary: "bg-surface-subtle text-fg-secondary hover:bg-border-subtle active:bg-border-default",
+    "neutral-weak": "bg-surface-subtle text-fg-secondary hover:bg-border-subtle active:bg-border-default",
+    outline: "border border-border-subtle bg-surface-default text-fg-secondary hover:bg-surface-inset active:bg-surface-subtle",
+    "neutral-outline": "border border-border-subtle bg-surface-default text-fg-secondary hover:bg-surface-inset active:bg-surface-subtle",
+    brand: "bg-surface-brand text-fg-inverse hover:bg-surface-brand-hover active:bg-surface-brand-active shadow-sm",
+    "brand-solid": "bg-surface-brand text-fg-inverse hover:bg-surface-brand-hover active:bg-surface-brand-active shadow-sm",
+    danger: "bg-palette-red-500 text-fg-inverse hover:bg-palette-red-600 active:bg-palette-red-700",
+    "critical-solid": "bg-palette-red-500 text-fg-inverse hover:bg-palette-red-600 active:bg-palette-red-700",
+    ghost: "text-fg-tertiary hover:bg-surface-subtle hover:text-fg-primary active:bg-border-subtle",
   };
   const sizes = {
     large: "min-h-[52px] rounded-2xl px-5 text-[16px] font-bold tracking-tight",
@@ -139,10 +338,10 @@ export function IconButton({
   ...props
 }) {
   const variants = {
-    ghost: "text-[#4E5968] hover:bg-[#F2F4F6] hover:text-[#191F28] active:bg-[#E5E8EB]",
-    weak: "bg-[#F2F4F6] text-[#333D4B] hover:bg-[#E5E8EB] active:bg-[#D1D6DB]",
-    outline: "border border-[#E5E8EB] bg-white text-[#333D4B] hover:bg-[#F9FAFB] active:bg-[#F2F4F6]",
-    solid: "bg-[#191F28] text-white hover:bg-[#2C3440] active:bg-[#384252]",
+    ghost: "text-fg-tertiary hover:bg-surface-subtle hover:text-fg-primary active:bg-border-subtle",
+    weak: "bg-surface-subtle text-fg-secondary hover:bg-border-subtle active:bg-border-default",
+    outline: "border border-border-subtle bg-surface-default text-fg-secondary hover:bg-surface-inset active:bg-surface-subtle",
+    solid: "bg-surface-inverse text-fg-inverse hover:bg-palette-gray-800 active:bg-palette-gray-700",
   };
   const sizes = {
     large: "h-11 w-11 rounded-xl",
@@ -154,7 +353,7 @@ export function IconButton({
       type={type}
       disabled={disabled}
       className={cx(
-        "grid place-items-center select-none transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.94] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#191F28]",
+        "grid place-items-center select-none transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.94] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus",
         disabled ? "cursor-not-allowed opacity-40 pointer-events-none" : "cursor-pointer",
         variants[variant] || variants.ghost,
         sizes[size] || sizes.medium,
@@ -186,8 +385,8 @@ export function Chip({
       className={cx(
         "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-semibold tracking-tight transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.96]",
         selected
-          ? "bg-[#191F28] text-white shadow-sm"
-          : "bg-[#F2F4F6] text-[#4E5968] hover:bg-[#E5E8EB] hover:text-[#191F28] active:bg-[#D1D6DB]",
+          ? "bg-surface-inverse text-fg-inverse shadow-sm"
+          : "bg-surface-subtle text-fg-tertiary hover:bg-border-subtle hover:text-fg-primary active:bg-border-default",
         disabled && "cursor-not-allowed opacity-40 pointer-events-none",
         className,
       )}
@@ -209,7 +408,7 @@ export function SegmentedControl({
   className = "",
 }) {
   return (
-    <div className={cx("flex items-center gap-1 rounded-xl bg-[#F2F4F6] p-1", className)} role="tablist">
+    <div className={cx("flex items-center gap-1 rounded-xl bg-surface-subtle p-1", className)} role="tablist">
       {options.map((option) => {
         const isSelected = option.value === value;
         return (
@@ -222,8 +421,8 @@ export function SegmentedControl({
             className={cx(
               "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-[13px] font-semibold tracking-tight transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)]",
               isSelected
-                ? "bg-white text-[#191F28] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
-                : "text-[#8B95A1] hover:text-[#4E5968] active:scale-[0.98]",
+                ? "bg-surface-default text-fg-primary shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                : "text-fg-subtle hover:text-fg-tertiary active:scale-[0.98]",
             )}
           >
             {option.icon && <span className="shrink-0">{option.icon}</span>}
@@ -238,15 +437,27 @@ export function SegmentedControl({
 export function DDayBadge({ subscription }) {
   const days = daysUntilCharge(subscription);
   if (subscription.isTrial || subscription.status === "trial") {
-    return <span className="rounded-[6px] border border-[#FFE8CC] bg-[#FFF4E6] px-2 py-0.5 text-[11px] font-bold tracking-tight text-[#E85E00]">TRIAL D-{days}</span>;
+    return (
+      <span className="rounded-[6px] border border-status-trial-border bg-status-trial-bg px-2 py-0.5 text-[11px] font-bold tracking-tight text-status-trial-fg">
+        TRIAL D-{days}
+      </span>
+    );
   }
   if (days === 0) {
-    return <span className="today-pulse rounded-[6px] bg-[#FF4D4D] px-2 py-0.5 text-[11px] font-bold tracking-tight text-white shadow-sm">TODAY</span>;
+    return (
+      <span className="today-pulse rounded-[6px] bg-status-today-bg px-2 py-0.5 text-[11px] font-bold tracking-tight text-status-today-fg shadow-sm">
+        TODAY
+      </span>
+    );
   }
   if (days <= 3) {
-    return <span className="rounded-[6px] border border-[#FFD8D8] bg-[#FFF0F0] px-2 py-0.5 text-[11px] font-bold tracking-tight text-[#E03E3E]">D-{days}</span>;
+    return (
+      <span className="rounded-[6px] border border-status-urgent-border bg-status-urgent-bg px-2 py-0.5 text-[11px] font-bold tracking-tight text-status-urgent-fg">
+        D-{days}
+      </span>
+    );
   }
-  return <span className="rounded-[6px] bg-[#F2F4F6] px-2 py-0.5 text-[11px] font-semibold tracking-tight text-[#6B7684]">D-{days}</span>;
+  return <span className="rounded-[6px] bg-surface-subtle px-2 py-0.5 text-[11px] font-semibold tracking-tight text-fg-muted">D-{days}</span>;
 }
 
 export function ToggleSwitch({ checked, onChange, label }) {
@@ -258,8 +469,8 @@ export function ToggleSwitch({ checked, onChange, label }) {
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cx(
-        "relative inline-flex h-7 w-12 shrink-0 cursor-pointer select-none rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#191F28] active:scale-[0.97]",
-        checked ? "bg-[#191F28]" : "bg-[#E5E8EB]",
+        "relative inline-flex h-7 w-12 shrink-0 cursor-pointer select-none rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus active:scale-[0.97]",
+        checked ? "bg-surface-inverse" : "bg-border-subtle",
       )}
     >
       <span
@@ -275,16 +486,14 @@ export function ToggleSwitch({ checked, onChange, label }) {
 
 export function AppHeader({ title, onBack, rightSlot = null }) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-[#F2F4F6] bg-white/95 px-5 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border-subtle bg-surface-default/95 px-5 backdrop-blur-md">
       <div className="flex items-center gap-2">
-        {onBack ? (
+        {onBack && (
           <IconButton onClick={onBack} aria-label="뒤로가기" size="medium">
-            <ArrowLeft size={20} className="text-[#333D4B]" />
+            <ArrowLeft size={20} className="text-fg-secondary" />
           </IconButton>
-        ) : (
-          <LogoMark />
         )}
-        <span className="text-[17px] font-bold tracking-tight text-[#191F28]">{title}</span>
+        <span className="text-[17px] font-bold tracking-tight text-fg-primary">{title}</span>
       </div>
       <div className="flex items-center gap-2">
         {rightSlot}
@@ -295,11 +504,11 @@ export function AppHeader({ title, onBack, rightSlot = null }) {
 
 export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
   return (
-    <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-16 w-full max-w-[420px] -translate-x-1/2 items-center justify-around border-x border-t border-[#F2F4F6] bg-white/95 px-2 pb-[max(0.25rem,env(safe-area-inset-bottom,0px))] pt-1 backdrop-blur-md shadow-[0_-1px_3px_rgba(0,0,0,0.02)]" aria-label="주요 탐색">
+    <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-16 w-full max-w-[420px] -translate-x-1/2 items-center justify-around border-x border-t border-border-subtle bg-surface-default/95 px-2 pb-[max(0.25rem,env(safe-area-inset-bottom,0px))] pt-1 backdrop-blur-md shadow-[0_-1px_3px_rgba(0,0,0,0.02)]" aria-label="주요 탐색">
       <button
         type="button"
         onClick={() => onNavigate("home")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "home" ? "font-bold text-[#191F28]" : "font-medium text-[#8B95A1] hover:text-[#4E5968]")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "home" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
         aria-current={route === "home" ? "page" : undefined}
       >
         <Home size={20} strokeWidth={route === "home" ? 2.5 : 1.75} />
@@ -309,7 +518,7 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
       <button
         type="button"
         onClick={() => onNavigate("subscriptions")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", (route === "subscriptions" || route === "detail") ? "font-bold text-[#191F28]" : "font-medium text-[#8B95A1] hover:text-[#4E5968]")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", (route === "subscriptions" || route === "detail") ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
         aria-current={(route === "subscriptions" || route === "detail") ? "page" : undefined}
       >
         <CreditCard size={20} strokeWidth={(route === "subscriptions" || route === "detail") ? 2.5 : 1.75} />
@@ -320,7 +529,7 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
         <button
           type="button"
           onClick={onOpenAdd}
-          className="grid h-11 w-11 place-items-center rounded-full bg-[#191F28] text-white shadow-[0_4px_12px_rgba(25,31,40,0.2)] transition-all duration-150 active:scale-95 hover:bg-[#2C3440]"
+          className="grid h-11 w-11 place-items-center rounded-full bg-surface-inverse text-fg-inverse shadow-[0_4px_12px_rgba(25,31,40,0.2)] transition-all duration-150 active:scale-95 hover:bg-palette-gray-800"
           aria-label="새 구독 추가"
         >
           <Plus size={22} strokeWidth={2.5} />
@@ -330,7 +539,7 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
       <button
         type="button"
         onClick={() => onNavigate("calendar")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "calendar" ? "font-bold text-[#191F28]" : "font-medium text-[#8B95A1] hover:text-[#4E5968]")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "calendar" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
         aria-current={route === "calendar" ? "page" : undefined}
       >
         <CalendarDays size={20} strokeWidth={route === "calendar" ? 2.5 : 1.75} />
@@ -340,7 +549,7 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
       <button
         type="button"
         onClick={() => onNavigate("promotions")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "promotions" ? "font-bold text-[#191F28]" : "font-medium text-[#8B95A1] hover:text-[#4E5968]")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "promotions" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
         aria-current={route === "promotions" ? "page" : undefined}
       >
         <Sparkles size={20} strokeWidth={route === "promotions" ? 2.5 : 1.75} />
@@ -352,23 +561,31 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
 
 function SubscriptionCardBody({ subscription, onOpen, detail = false }) {
   return (
-    <button type="button" onClick={onOpen} className="card-press flex w-full items-center gap-3.5 rounded-2xl border border-[#E5E8EB] bg-white p-4 text-left shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all hover:border-[#D1D6DB] active:scale-[0.98] cursor-pointer">
+    <button type="button" onClick={onOpen} className="card-press flex w-full items-center gap-3.5 rounded-2xl border border-border-subtle bg-surface-default p-4 text-left shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all hover:border-border-default active:scale-[0.98] cursor-pointer">
       <ServiceMark
+        serviceId={subscription.id}
+        name={subscription.name}
         monogram={subscription.monogram || subscription.name?.slice(0, 1)}
         image={subscription.image || subscription.attachments?.[0]}
+        category={subscription.category}
       />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-bold text-[#191F28] tracking-tight">{subscription.name}</span>
-        <span className="mt-0.5 block truncate text-[13px] font-medium text-[#6B7684]">{subscription.plan} · {formatBillingDate(subscription)}</span>
+        <span className="flex items-center gap-1.5 min-w-0">
+          <span className="truncate text-[15px] font-bold text-fg-primary tracking-tight">{subscription.name}</span>
+          <CategoryBadge category={subscription.category} />
+        </span>
+        <span className="mt-0.5 flex items-center gap-1.5 truncate text-[13px] font-medium text-fg-muted">
+          <span>{subscription.plan} · {formatBillingDate(subscription)}</span>
+        </span>
         {detail && (
-          <span className="mt-1 block truncate text-[11px] font-medium text-[#8B95A1]">
+          <span className="mt-1 block truncate text-[11px] font-medium text-fg-subtle">
             <PaymentMethodBadge method={subscription.paymentMethod} size={14} />
           </span>
         )}
       </span>
       <span className="flex shrink-0 flex-col items-end gap-1.5">
         <DDayBadge subscription={subscription} />
-        <span className="text-[15px] font-bold tracking-tight text-[#191F28]">{formatWon(subscription.amount)}</span>
+        <span className="text-[15px] font-bold tracking-tight text-fg-primary">{formatWon(subscription.amount)}</span>
       </span>
     </button>
   );

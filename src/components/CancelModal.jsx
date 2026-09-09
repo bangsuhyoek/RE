@@ -173,7 +173,7 @@ export function CancelModal({ subscription: rawSub, promotion, onClose, onComple
               <Sparkles size={14} className="text-[#3182F6]" /> '다른 앱 위에 표시' 권한 필요
             </p>
             <p className="mt-1 text-[11px] text-[#8B95A1] leading-relaxed">
-              설정 화면으로 이동하여 SubMate 권한을 켜주시면 즉시 플로팅 가이드가 활성화됩니다.
+              설정 화면으로 이동하여 꾸독 권한을 켜주시면 즉시 플로팅 가이드가 활성화됩니다.
             </p>
           </div>
           <Button size="large" fullWidth className="mt-5" onClick={handleRequestPermission}>
@@ -208,7 +208,7 @@ export function CancelModal({ subscription: rawSub, promotion, onClose, onComple
     <BottomSheet onClose={onClose} label="구독 해지 가이드">
       <div className="flex items-start gap-3">
         <ServiceMark monogram={subscription.monogram} className="h-12 w-12 rounded-2xl text-[14px] shadow-2xs" />
-        <div className="min-w-0"><p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#8B95A1]">Direct cancel</p><h2 className="mt-0.5 truncate text-[20px] font-extrabold tracking-tight text-[#191F28]">{subscription.name} 해지하기</h2><p className="mt-0.5 text-[12px] font-medium text-[#6B7684]">직접 해지 페이지와 단계별 안내를 준비했어요.</p></div>
+        <div className="min-w-0"><h2 className="truncate text-[20px] font-extrabold tracking-tight text-[#191F28]">{subscription.name} 해지하기</h2><p className="mt-0.5 text-[12px] font-medium text-[#6B7684]">직접 해지 페이지와 단계별 안내를 준비했어요.</p></div>
       </div>
 
       {promotion && <div className="mt-5 rounded-2xl border border-[#FFE8CC] bg-[#FFF9F2] p-4 shadow-2xs"><p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#FF6F0F]">환승 혜택</p><p className="mt-1 text-[13px] font-bold text-[#191F28]">{promotion.title}</p><p className="mt-0.5 text-[12px] text-[#6B7684]">해지 후 혜택 페이지로 이어갈 수 있어요.</p></div>}
@@ -255,7 +255,7 @@ export function CancelModal({ subscription: rawSub, promotion, onClose, onComple
         </ol>
       </section>
 
-      <div className="mt-6 rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-4"><div className="flex gap-2.5"><ShieldCheck className="shrink-0 text-[#6B7684]" size={18} /><p className="text-[12px] leading-relaxed text-[#6B7684]">SubMate는 해지를 대행하지 않아요. 해지 완료 여부는 서비스 화면에서 확인한 뒤 아래 버튼을 눌러주세요.</p></div></div>
+      <div className="mt-6 rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-4"><div className="flex gap-2.5"><ShieldCheck className="shrink-0 text-[#6B7684]" size={18} /><p className="text-[12px] leading-relaxed text-[#6B7684]">꾸독은 해지를 대행하지 않아요. 해지 완료 여부는 서비스 화면에서 확인한 뒤 아래 버튼을 눌러주세요.</p></div></div>
       <Button size="large" fullWidth variant="secondary" className="mt-4" onClick={complete}>해지 완료했습니다</Button>
     </BottomSheet>
   );

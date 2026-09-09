@@ -97,10 +97,7 @@ export function PushNotificationBanner({ notification, onClose, onOpenDetail, du
         {/* Banner Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <span className="grid h-4.5 w-4.5 place-items-center rounded-[5px] bg-white text-[9px] font-bold text-black px-1">
-              S
-            </span>
-            <span className="text-[11px] font-bold tracking-wider text-white/80">SUBMATE</span>
+            <span className="text-[11px] font-bold tracking-wider text-white/80">꾸독</span>
             <span className="h-1 w-1 rounded-full bg-white/40" />
             <span className="text-[10px] text-white/60">지금</span>
           </div>
@@ -190,7 +187,7 @@ export function NotificationCenterModal({
   onOpenTerms,
 }) {
   return (
-    <BottomSheet onClose={onClose} label="SubMate 알림 센터">
+    <BottomSheet onClose={onClose} label="꾸독 알림 센터">
       <div>
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#E4E4E7]">

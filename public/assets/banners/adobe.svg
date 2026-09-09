@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <rect width="800" height="450" fill="#1F0404"/>
+  <g transform="translate(240, 145)">
+    <rect width="140" height="140" rx="24" fill="#FA0F00"/>
+    <path d="M50 30h-15l22 70h12l-19-70zm35 0h15l-22 70h-12l19-70zm-27 42h18l-9-26-9 26z" fill="#FFFFFF"/>
+    <text x="170" y="85" fill="#FFFFFF" font-size="46" font-weight="800" font-family="Pretendard, system-ui, sans-serif">Adobe CC</text>
+  </g>
+</svg>

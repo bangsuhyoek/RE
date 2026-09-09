@@ -10,6 +10,7 @@ import {
   MessageSquareText,
   Pencil,
   ScanLine,
+  SlidersHorizontal,
   UploadCloud,
   X,
 } from "lucide-react";
@@ -22,6 +23,7 @@ import {
   PAYMENT_PRESETS,
   PaymentMethodTriggerField,
   ToggleSwitch,
+  CATEGORY_PHILOSOPHY,
 } from "./ui";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -115,8 +117,16 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
     cancelUrl: initialData?.cancelUrl || "",
   }));
 
+  const [showDetails, setShowDetails] = useState(() => {
+    return Boolean(initialData?.plan || initialData?.memo || initialData?.isTrial);
+  });
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+
   useEffect(() => {
     if (initialData) {
+      if (initialData.plan || initialData.memo || initialData.isTrial) {
+        setShowDetails(true);
+      }
       setManualForm((curr) => ({
         ...curr,
         name: initialData.name ?? curr.name,
@@ -148,6 +158,19 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
   const updateManual = (key, value) => {
     setManualForm((curr) => ({ ...curr, [key]: value }));
     setError("");
+  };
+
+  const handleNameChange = (val) => {
+    updateManual("name", val);
+    if (val && val.trim()) {
+      const q = val.trim().toLowerCase();
+      const match = catalog.find(
+        (c) => c.name.toLowerCase() === q || c.id.toLowerCase() === q
+      );
+      if (match && match.category) {
+        updateManual("category", match.category);
+      }
+    }
   };
 
   // 자주 찾는 구독 빠른 선택: 요금제와 결제 금액은 채우지 않고 서비스명, 카테고리 등 기본 정보만 채움 (결제수단은 사용자 기존값 유지)
@@ -288,8 +311,7 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">SubMate</p>
-          <h2 className="mt-1 text-[20px] font-bold tracking-[-0.02em] text-[#191F28]">구독 추가하기</h2>
+          <h2 className="text-[20px] font-bold tracking-[-0.02em] text-[#191F28]">구독 추가하기</h2>
         </div>
         <button
           type="button"
@@ -375,7 +397,7 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
               <div className="relative mt-1.5 flex items-center">
                 <input
                   value={manualForm.name}
-                  onChange={(e) => updateManual("name", e.target.value)}
+                  onChange={(e) => handleNameChange(e.target.value)}
                   className={`${inputClass(!manualForm.name && error)} pr-10`}
                   placeholder="예: 넷플릭스, 유튜브 프리미엄, 쿠팡 와우"
                 />
@@ -390,100 +412,96 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
                   </button>
                 )}
               </div>
-            </div>
-
-            {/* 카테고리 선택 */}
-            <div>
-              <label className="block text-[13px] font-semibold text-[#191F28] mb-1.5">카테고리</label>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {CATEGORIES.map((cat) => (
-                  <ActionChip
-                    key={cat}
-                    selected={manualForm.category === cat}
-                    onClick={() => updateManual("category", cat)}
-                    size="small"
+              {/* 카테고리 간편 배지 */}
+              <div className="mt-1.5 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-[#868B94]">카테고리:</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowCategoryPicker((prev) => !prev)}
+                    className="inline-flex items-center gap-1 rounded-md bg-[#F2F4F6] px-2 py-0.5 text-[11px] font-bold text-[#4E5968] hover:bg-[#E5E8EB] transition-colors"
                   >
-                    {cat}
-                  </ActionChip>
-                ))}
-              </div>
-            </div>
-
-            {/* 요금제 */}
-            <div>
-              <label className="block text-[13px] font-semibold text-[#191F28]">
-                요금제 / 플랜 <span className="text-[12px] font-normal text-[#868B94]">(선택)</span>
-              </label>
-              <div className="mt-1.5">
-                <input
-                  value={manualForm.plan}
-                  onChange={(e) => updateManual("plan", e.target.value)}
-                  className={inputClass(false)}
-                  placeholder="예: 프리미엄, 스탠다드, 개인 멤버십"
-                />
-              </div>
-            </div>
-
-            {/* 결제 금액 */}
-            <div>
-              <label className="block text-[13px] font-semibold text-[#191F28]">
-                결제 금액 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
-              </label>
-              <div className="relative mt-1.5">
-                <input
-                  type="number"
-                  min="0"
-                  inputMode="numeric"
-                  value={manualForm.amount}
-                  onChange={(e) => updateManual("amount", e.target.value)}
-                  className={`${inputClass(
-                    (String(manualForm.amount ?? "").trim() === "" ||
-                      isNaN(Number(manualForm.amount)) ||
-                      Number(manualForm.amount) < 0) &&
-                      Boolean(error)
-                  )} pr-10`}
-                  placeholder="0"
-                />
-                <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] font-bold text-[#4E5968]">
-                  원
-                </span>
-              </div>
-            </div>
-
-            {/* 결제 주기 및 결제일 */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[13px] font-semibold text-[#191F28]">결제 주기</label>
-                <div className="relative mt-1.5">
-                  <select
-                    value={manualForm.billingCycle}
-                    onChange={(e) => updateManual("billingCycle", e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-[#E5E8EB] bg-white px-3.5 py-3 pr-8 text-[14px] font-medium text-[#191F28] outline-none transition-colors focus:border-[#191F28]"
-                  >
-                    <option value="매월">매월</option>
-                    <option value="매년">매년</option>
-                  </select>
-                  <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8B95A1]" />
+                    <span>{manualForm.category || "기타"}</span>
+                    <ChevronDown size={11} className={`transition-transform ${showCategoryPicker ? "rotate-180" : ""}`} />
+                  </button>
                 </div>
               </div>
-              <div>
-                <label className="block text-[13px] font-semibold text-[#191F28]">
-                  결제일 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
+              {showCategoryPicker && (
+                <div className="mt-2 flex flex-wrap gap-1.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] p-2 animate-in fade-in duration-150">
+                  {CATEGORIES.map((cat) => (
+                    <ActionChip
+                      key={cat}
+                      selected={manualForm.category === cat}
+                      onClick={() => {
+                        updateManual("category", cat);
+                        setShowCategoryPicker(false);
+                      }}
+                      size="small"
+                    >
+                      {cat}
+                    </ActionChip>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 통합 결제 금액 & 결제일 카드 */}
+            <div className="rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-3.5 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] font-bold text-[#191F28]">
+                  결제 금액 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
                 </label>
-                <div className="relative mt-1.5">
+                <div className="relative w-40">
                   <input
                     type="number"
-                    min="1"
-                    max="31"
+                    min="0"
                     inputMode="numeric"
-                    value={manualForm.dueDay}
-                    onChange={(e) => updateManual("dueDay", e.target.value)}
-                    className={`${inputClass((!manualForm.dueDay || manualForm.dueDay < 1 || manualForm.dueDay > 31) && error)} pr-9`}
-                    placeholder="1~31"
+                    value={manualForm.amount}
+                    onChange={(e) => updateManual("amount", e.target.value)}
+                    className={`${inputClass(
+                      (String(manualForm.amount ?? "").trim() === "" ||
+                        isNaN(Number(manualForm.amount)) ||
+                        Number(manualForm.amount) < 0) &&
+                        Boolean(error)
+                    )} pr-8 text-right font-bold text-[15px]`}
+                    placeholder="0"
                   />
-                  <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] font-bold text-[#4E5968]">
-                    일
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold text-[#4E5968]">
+                    원
                   </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-[#E5E8EB]/70 pt-2.5">
+                <div className="flex items-center gap-1.5">
+                  <label className="text-[13px] font-bold text-[#191F28]">결제 주기 / 일</label>
+                  <span className="text-[#FF4D4D] font-bold">*</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="relative">
+                    <select
+                      value={manualForm.billingCycle}
+                      onChange={(e) => updateManual("billingCycle", e.target.value)}
+                      className="appearance-none rounded-xl border border-[#E5E8EB] bg-white px-2.5 py-1.5 pr-7 text-[13px] font-semibold text-[#191F28] outline-none"
+                    >
+                      <option value="매월">매월</option>
+                      <option value="매년">매년</option>
+                    </select>
+                    <ChevronDown size={14} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#8B95A1]" />
+                  </div>
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      inputMode="numeric"
+                      value={manualForm.dueDay}
+                      onChange={(e) => updateManual("dueDay", e.target.value)}
+                      className={`${inputClass((!manualForm.dueDay || manualForm.dueDay < 1 || manualForm.dueDay > 31) && error)} w-14 px-2 py-1.5 text-center font-bold text-[13px]`}
+                      placeholder="15"
+                    />
+                    <span className="ml-1 text-[13px] font-semibold text-[#191F28]">일</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -504,38 +522,70 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
               />
             </div>
 
-            {/* 무료 체험 여부 토글 */}
-            <div className="flex items-center justify-between rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] p-3.5">
-              <div>
-                <strong className="block text-[13px] font-bold text-[#191F28]">현재 무료 체험 중</strong>
-                <span className="text-[11px] text-[#868B94]">종료 전 사전 알림을 보내드려요</span>
-              </div>
-              <ToggleSwitch
-                checked={manualForm.isTrial}
-                onChange={(checked) => {
-                  setManualForm((curr) => ({
-                    ...curr,
-                    isTrial: checked,
-                    amount: checked ? "0" : (curr.amount === "0" ? "" : curr.amount),
-                  }));
-                  setError("");
-                }}
-                label="무료 체험 여부"
-              />
-            </div>
+            {/* 세부 옵션 접이식 (요금제, 무료체험, 메모) */}
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setShowDetails((prev) => !prev)}
+                className="flex w-full items-center justify-between rounded-xl border border-[#E5E8EB] bg-white px-3.5 py-2.5 text-[13px] font-semibold text-[#4E5968] hover:bg-[#F9FAFB] transition-colors"
+              >
+                <span className="flex items-center gap-1.5">
+                  <SlidersHorizontal size={14} />
+                  {showDetails ? "세부 정보 닫기" : "세부 정보 더보기 (요금제, 무료체험, 메모)"}
+                </span>
+                <ChevronDown size={15} className={`transition-transform duration-200 ${showDetails ? "rotate-180" : ""}`} />
+              </button>
 
-            {/* 메모 / 비고 */}
-            <div>
-              <label className="block text-[13px] font-semibold text-[#191F28]">
-                메모 <span className="text-[12px] font-normal text-[#868B94]">(선택)</span>
-              </label>
-              <textarea
-                value={manualForm.memo}
-                onChange={(e) => updateManual("memo", e.target.value)}
-                placeholder="예: 3개월 프로모션 적용 중, 가족과 계정 공유"
-                rows={2}
-                className="mt-1.5 w-full resize-none rounded-xl border border-[#E5E8EB] bg-white p-3.5 text-[14px] text-[#191F28] outline-none placeholder:text-[#8B95A1] focus:border-[#191F28] transition-colors"
-              />
+              {showDetails && (
+                <div className="mt-3 space-y-3 rounded-2xl border border-[#E5E8EB] bg-[#FAFAFA] p-3.5 animate-in fade-in duration-150">
+                  {/* 요금제 */}
+                  <div>
+                    <label className="block text-[12px] font-bold text-[#4E5968]">
+                      요금제 / 플랜 <span className="text-[11px] font-normal text-[#868B94]">(선택)</span>
+                    </label>
+                    <input
+                      value={manualForm.plan}
+                      onChange={(e) => updateManual("plan", e.target.value)}
+                      className={`${inputClass(false)} mt-1 bg-white`}
+                      placeholder="예: 프리미엄, 스탠다드, 개인 멤버십"
+                    />
+                  </div>
+
+                  {/* 무료 체험 여부 토글 */}
+                  <div className="flex items-center justify-between rounded-xl border border-[#E5E8EB] bg-white p-3">
+                    <div>
+                      <strong className="block text-[12px] font-bold text-[#191F28]">현재 무료 체험 중</strong>
+                      <span className="text-[11px] text-[#868B94]">종료 전 사전 알림을 보내드려요</span>
+                    </div>
+                    <ToggleSwitch
+                      checked={manualForm.isTrial}
+                      onChange={(checked) => {
+                        setManualForm((curr) => ({
+                          ...curr,
+                          isTrial: checked,
+                          amount: checked ? "0" : (curr.amount === "0" ? "" : curr.amount),
+                        }));
+                        setError("");
+                      }}
+                      label="무료 체험 여부"
+                    />
+                  </div>
+
+                  {/* 메모 / 비고 */}
+                  <div>
+                    <label className="block text-[12px] font-bold text-[#4E5968]">
+                      메모 <span className="text-[11px] font-normal text-[#868B94]">(선택)</span>
+                    </label>
+                    <textarea
+                      value={manualForm.memo}
+                      onChange={(e) => updateManual("memo", e.target.value)}
+                      placeholder="예: 3개월 프로모션 적용 중, 가족과 계정 공유"
+                      rows={2}
+                      className="mt-1 w-full resize-none rounded-xl border border-[#E5E8EB] bg-white p-3 text-[13px] text-[#191F28] outline-none placeholder:text-[#8B95A1] focus:border-[#191F28] transition-colors"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -736,7 +786,7 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
               </div>
               {error && <p className="mt-2 text-[12px] leading-5 text-[#FF4D4D]">{error}</p>}
               <p className="mt-3 text-[11px] leading-4 text-[#8B95A1]">
-                이미지는 OCR 처리에만 사용되며 SubMate에는 원본과 OCR 원문을 저장하지 않습니다. 확인한 구독 정보만 저장합니다.
+                이미지는 OCR 처리에만 사용되며 꾸독에는 원본과 OCR 원문을 저장하지 않습니다. 확인한 구독 정보만 저장합니다.
               </p>
               <div className="mt-6 grid grid-cols-2 gap-2.5">
                 <Button size="large" variant="secondary" onClick={() => setAiForm(null)}>

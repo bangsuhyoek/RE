@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <rect width="800" height="450" fill="#14061A"/>
+  <g transform="translate(270, 150)">
+    <path d="M40 30l28 65 18-35 18 35 28-65" stroke="#FF0558" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <text x="170" y="85" fill="#FFFFFF" font-size="52" font-weight="900" font-family="Pretendard, system-ui, sans-serif" letter-spacing="-1">WATCHA</text>
+  </g>
+</svg>

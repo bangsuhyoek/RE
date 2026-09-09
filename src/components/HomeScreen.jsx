@@ -15,7 +15,7 @@ function SummaryCard({ subscriptions }) {
   }, 0);
   const displayAmount = annual ? yearly : monthly;
   return (
-    <button type="button" onClick={() => setAnnual((value) => !value)} className="card-press w-full rounded-[24px] bg-[#191F28] p-5 text-left text-white shadow-[0_4px_20px_rgba(25,31,40,0.12)] border border-[#2B3240]" aria-label="월간 및 연간 지출 전환">
+    <button type="button" onClick={() => setAnnual((value) => !value)} className="card-press w-full rounded-[24px] bg-surface-inverse p-5 text-left text-fg-inverse shadow-[0_4px_20px_rgba(34,45,34,0.18)] border border-white/10" aria-label="월간 및 연간 지출 전환">
       <div className="flex items-center justify-between">
         <span className="text-[13px] font-semibold text-white/70">{annual ? "연간 환산 지출액" : "이번 달 총 결제 예정"}</span>
         <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/80 backdrop-blur-xs">{annual ? "연간 보기" : "월간 보기"}</span>
@@ -48,30 +48,29 @@ function PromotionCarousel({ promotions, onOpen, onExplore }) {
     <section className="mt-8">
       <div className="mb-3 flex items-end justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">Smart alternative</p>
-          <h2 className="mt-1 text-[18px] font-bold tracking-tight text-[#191F28]">더 아낄 수 있는 선택</h2>
+          <h2 className="text-[18px] font-bold tracking-tight text-fg-primary">더 아낄 수 있는 선택</h2>
         </div>
-        <button type="button" onClick={onExplore} className="flex items-center gap-0.5 text-[13px] font-semibold text-[#6B7684] hover:text-[#191F28] transition-colors">전체보기 <ChevronRight size={15} /></button>
+        <button type="button" onClick={onExplore} className="flex items-center gap-0.5 text-[13px] font-semibold text-fg-muted hover:text-fg-primary transition-colors">전체보기 <ChevronRight size={15} /></button>
       </div>
-      <article className="overflow-hidden rounded-2xl border border-[#E5E8EB] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+      <article className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-default shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
         <div className="p-5">
           <div className="flex items-start justify-between gap-4">
-            <span className="rounded-[6px] bg-[#191F28] px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs">{typeLabels[index] || "추천 혜택"}</span>
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F2F4F6] text-[13px] font-bold text-[#191F28] border border-[#E5E8EB]">{promo.monogram || promo.title.slice(0, 1)}</span>
+            <span className="rounded-[6px] bg-surface-inverse px-2.5 py-1 text-[11px] font-bold text-fg-inverse shadow-2xs">{typeLabels[index] || "추천 혜택"}</span>
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-surface-subtle text-[13px] font-bold text-fg-primary border border-border-subtle">{promo.monogram || promo.title.slice(0, 1)}</span>
           </div>
-          <h3 className="mt-4 text-[18px] font-bold tracking-tight text-[#191F28]">{promo.title}</h3>
-          <p className="mt-1.5 min-h-10 text-[13px] leading-relaxed text-[#6B7684]">{promo.description}</p>
+          <h3 className="mt-4 text-[18px] font-bold tracking-tight text-fg-primary">{promo.title}</h3>
+          <p className="mt-1.5 min-h-10 text-[13px] leading-relaxed text-fg-muted">{promo.description}</p>
           <div className="mt-4 flex items-end justify-between">
             <span>
-              <span className="block text-[11px] font-semibold text-[#8B95A1]">예상 절약</span>
-              <strong className="mt-0.5 block text-[18px] font-extrabold tracking-tight text-[#191F28]">{formatWon(promo.saving)}</strong>
+              <span className="block text-[11px] font-semibold text-fg-subtle">예상 절약</span>
+              <strong className="mt-0.5 block text-[18px] font-extrabold tracking-tight text-fg-brand">{formatWon(promo.saving)}</strong>
             </span>
             <Button size="compact" onClick={() => onOpen(promo)}>혜택 보기 <ArrowRight size={15} /></Button>
           </div>
         </div>
-        <div className="flex items-center justify-between border-t border-[#F2F4F6] bg-[#F9FAFB] px-4 py-3">
+        <div className="flex items-center justify-between border-t border-border-subtle bg-surface-inset px-4 py-3">
           <div className="flex gap-1.5" aria-label="추천 단계">
-            {items.map((item, dotIndex) => <span key={item.id} className={`h-1.5 rounded-full transition-all ${dotIndex === index ? "w-4 bg-[#191F28]" : "w-1.5 bg-[#D1D6DB]"}`} />)}
+            {items.map((item, dotIndex) => <span key={item.id} className={`h-1.5 rounded-full transition-all ${dotIndex === index ? "w-4 bg-surface-brand" : "w-1.5 bg-border-default"}`} />)}
           </div>
           <div className="flex gap-1">
             <IconButton size="small" variant="weak" onClick={previous} aria-label="이전 추천"><ChevronLeft size={16} /></IconButton>
@@ -123,98 +122,41 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
 
   return (
     <main className="px-5 pb-28 pt-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <button
-            type="button"
-            onClick={onOpenAccount}
-            className="group flex items-center gap-1 text-left transition-all active:scale-[0.98]"
-            aria-label="내 계정 설정 열기"
-          >
-            <span className="text-[13px] font-semibold text-[#8B95A1] group-hover:text-[#191F28] transition-colors">
-              {profile?.nickname || "사용자"}님, 이번 달
-            </span>
-            <span className="grid h-4 w-4 place-items-center rounded-full bg-[#F2F4F6] text-[#8B95A1] group-hover:bg-[#E5E8EB] group-hover:text-[#191F28] transition-colors">
-              <ChevronRight size={11} />
-            </span>
-          </button>
-          <h1 className="mt-0.5 text-[24px] font-extrabold tracking-tight text-[#191F28]">고정지출을 확인하세요</h1>
-        </div>
-        <button
-          type="button"
-          onClick={onOpenAccount}
-          className="flex items-center gap-1.5 rounded-full border border-[#E5E8EB] bg-white px-2.5 py-1.5 text-[11px] font-bold text-[#4E5968] shadow-2xs hover:bg-[#F9FAFB] hover:text-[#191F28] active:scale-95 transition-all shrink-0 ml-2"
-          aria-label="내 계정 관리"
-        >
-          <span className="grid h-5 w-5 place-items-center rounded-full bg-[#191F28] text-[10px] font-bold text-white">
-            {(profile?.nickname || "사").slice(0, 1).toUpperCase()}
-          </span>
-          <span>내 정보</span>
-        </button>
+      <div>
+        <p className="text-[13px] font-semibold text-fg-subtle">
+          {profile?.nickname || "사용자"}님, 이번 달
+        </p>
+        <h1 className="mt-0.5 text-[24px] font-extrabold tracking-tight text-fg-primary">고정지출을 확인하세요</h1>
       </div>
       {notificationDenied && (
         <button
           type="button"
           onClick={onToggleNotificationPermission}
-          className="mt-5 flex w-full items-center justify-between rounded-2xl border border-[#FFE8CC] bg-[#FFF9F2] p-4 text-left shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all active:scale-[0.98]"
+          className="mt-5 flex w-full items-center justify-between rounded-2xl border border-status-trial-border bg-status-trial-bg p-4 text-left shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all active:scale-[0.98]"
         >
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF6F0F] text-white shadow-2xs">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-surface-brand text-fg-inverse shadow-2xs">
               <Sparkles size={16} />
             </span>
             <div>
-              <strong className="block text-[13px] font-bold text-[#191F28]">결제 전 알림이 꺼져 있어요</strong>
-              <span className="mt-0.5 block text-[12px] font-medium text-[#8B95A1]">탭하여 알림을 켜고 D-3, D-1에 미리 안내받으세요.</span>
+              <strong className="block text-[13px] font-bold text-fg-primary">결제 전 알림이 꺼져 있어요</strong>
+              <span className="mt-0.5 block text-[12px] font-medium text-fg-muted">탭하여 알림을 켜고 D-3, D-1에 미리 안내받으세요.</span>
             </div>
           </div>
-          <span className="rounded-lg bg-[#FF6F0F] px-3 py-1.5 text-[12px] font-bold text-white shadow-2xs">
+          <span className="rounded-lg bg-surface-brand px-3 py-1.5 text-[12px] font-bold text-fg-inverse shadow-2xs">
             켜기
           </span>
         </button>
       )}
-      {/* 실시간 결제 감지 안내 및 체험 카드 */}
-      <div className={`flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5 shadow-2xs ${notificationDenied ? "mt-3" : "mt-5"}`}>
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white font-bold text-sm shadow-xs">
-            ⚡
-          </span>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <strong className="text-[13px] font-bold text-emerald-950">실시간 결제 감지</strong>
-              <span className="rounded bg-emerald-200/80 px-1.5 py-0.2 text-[9px] font-bold text-emerald-800">Beta</span>
-            </div>
-            <p className="mt-0.5 text-[11px] text-emerald-700/80 truncate">
-              웹/앱에서 카드 결제 시 알림을 감지해 바로 등록해드려요.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0 ml-2">
-          <button
-            type="button"
-            onClick={onTestPaymentDetection}
-            className="rounded-lg border border-emerald-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-emerald-900 shadow-2xs hover:bg-emerald-50 active:scale-95 transition-all"
-          >
-            체험
-          </button>
-          <button
-            type="button"
-            onClick={onRequestPaymentCapture}
-            className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-2xs hover:bg-emerald-700 active:scale-95 transition-all"
-          >
-            설정
-          </button>
-        </div>
-      </div>
       <div className="mt-5"><SummaryCard subscriptions={subscriptions} /></div>
 
       <section className="mt-8">
         <div className="mb-3 flex items-end justify-between">
           <div>
-            <p className="mb-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8B95A1]">Upcoming</p>
-            <h2 className="text-[18px] font-bold tracking-tight text-[#191F28]">결제 임박 (최대 3개)</h2>
+            <h2 className="text-[18px] font-bold tracking-tight text-fg-primary">결제 임박 (최대 3개)</h2>
           </div>
           {subscriptions.length > 3 && (
-            <button type="button" onClick={onShowAll} className="flex items-center gap-0.5 text-[13px] font-semibold text-[#6B7684] hover:text-[#191F28] transition-colors">
+            <button type="button" onClick={onShowAll} className="flex items-center gap-0.5 text-[13px] font-semibold text-fg-muted hover:text-fg-primary transition-colors">
               전체보기 <ChevronRight size={15} />
             </button>
           )}
@@ -233,9 +175,9 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
 
       <PromotionCarousel promotions={promotions} onOpen={onOpenPromotion} onExplore={onExplorePromotions} />
       {/* Legal & Terms Footer */}
-      <footer className="mt-12 border-t border-[#F2F4F6] pt-6 pb-2 text-center">
-        <div className="flex items-center justify-center gap-2.5 text-[11px] text-[#8B95A1]">
-          <button type="button" onClick={() => onOpenTerms?.("terms")} className="hover:text-[#191F28] hover:underline">
+      <footer className="mt-12 border-t border-border-subtle pt-6 pb-2 text-center">
+        <div className="flex items-center justify-center gap-2.5 text-[11px] text-fg-subtle">
+          <button type="button" onClick={() => onOpenTerms?.("terms")} className="hover:text-fg-primary hover:underline">
             서비스 이용약관
           </button>
           <span>·</span>
@@ -256,7 +198,7 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
           )}
         </div>
         <p className="mt-2 text-[10px] text-[#B0B8C1]">
-          © 2026 SubMate. 구독 관리 및 실시간 결제 감지 서비스
+          © 2026 꾸독. 구독 관리 서비스
         </p>
       </footer>
     </main>

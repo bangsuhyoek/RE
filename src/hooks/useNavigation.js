@@ -4,7 +4,7 @@ import { App as CapApp } from "@capacitor/app";
 import { readStoredValue, storageKeys } from "../lib/storage.js";
 
 export const PAGE_TITLES = {
-  home: "SubMate",
+  home: "꾸독",
   subscriptions: "구독 목록",
   calendar: "결제 캘린더",
   promotions: "혜택",
@@ -99,6 +99,6 @@ export function useNavigation({ initialRoute, onHashParamAction } = {}) {
     highlightCancelId,
     setHighlightCancelId,
     hasAppChrome,
-    pageTitle: PAGE_TITLES[screen.route] || "SubMate",
+    pageTitle: PAGE_TITLES[screen.route] || "꾸독",
   };
 }

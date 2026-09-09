@@ -8,8 +8,7 @@ export function RenewalSheet({ subscription, onKeep, onCancel, onClose }) {
       <div className="flex items-start gap-3">
         <ServiceMark monogram={subscription.monogram} className="h-11 w-11 rounded-xl text-[13px]" />
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">Renewal check</p>
-          <h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em]">이번 달에도 계속 이용하셨나요?</h2>
+          <h2 className="text-[20px] font-semibold tracking-[-0.02em]">이번 달에도 계속 이용하셨나요?</h2>
         </div>
       </div>
       <p className="mt-4 text-[14px] leading-6 text-[#71717A]">

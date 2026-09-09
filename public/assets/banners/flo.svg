@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <rect width="800" height="450" fill="#0C0824"/>
+  <g transform="translate(290, 140)">
+    <circle cx="70" cy="70" r="56" fill="none" stroke="#6854F5" stroke-width="18"/>
+    <circle cx="70" cy="70" r="24" fill="#FFFFFF"/>
+    <text x="170" y="90" fill="#FFFFFF" font-size="64" font-weight="900" font-family="Pretendard, system-ui, sans-serif" letter-spacing="2">FLO</text>
+  </g>
+</svg>

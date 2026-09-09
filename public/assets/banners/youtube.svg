@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <rect width="800" height="450" fill="#0F0F0F"/>
+  <g transform="translate(240, 150)">
+    <rect x="0" y="0" width="180" height="126" rx="36" fill="#FF0000"/>
+    <polygon points="72,36 126,63 72,90" fill="#FFFFFF"/>
+    <text x="210" y="86" fill="#FFFFFF" font-size="44" font-weight="800" font-family="Pretendard, system-ui, sans-serif" letter-spacing="-1">Premium</text>
+  </g>
+</svg>

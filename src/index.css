@@ -3,9 +3,207 @@
 @tailwind utilities;
 
 :root {
+  /* ==========================================================================
+     [1] Primitive Palette (100 Colors from Figma: 10 Hues x 10 Luminance Steps)
+     ========================================================================== */
+  --palette-gray-50: #F9FAFB;
+  --palette-gray-100: #F2F4F6;
+  --palette-gray-200: #E5E8EB;
+  --palette-gray-300: #D1D6DB;
+  --palette-gray-400: #B0B8C1;
+  --palette-gray-500: #8B95A1;
+  --palette-gray-600: #6B7684;
+  --palette-gray-700: #4E5968;
+  --palette-gray-800: #333D4B;
+  --palette-gray-900: #191F28;
+
+  --palette-orange-50: #FFF5ED;
+  --palette-orange-100: #FFE8D6;
+  --palette-orange-200: #FFD2B2;
+  --palette-orange-300: #FFB380;
+  --palette-orange-400: #FF924D;
+  --palette-orange-500: #FF6F0F;
+  --palette-orange-600: #E65A00;
+  --palette-orange-700: #BD4500;
+  --palette-orange-800: #943400;
+  --palette-orange-900: #6B2300;
+
+  --palette-red-50: #FFF0F0;
+  --palette-red-100: #FFE0E0;
+  --palette-red-200: #FFC2C2;
+  --palette-red-300: #FF9494;
+  --palette-red-400: #FF6666;
+  --palette-red-500: #FF4D4D;
+  --palette-red-600: #E03535;
+  --palette-red-700: #BA2424;
+  --palette-red-800: #941818;
+  --palette-red-900: #6E0D0D;
+
+  --palette-amber-50: #FFF9EB;
+  --palette-amber-100: #FEF0C7;
+  --palette-amber-200: #FEDF89;
+  --palette-amber-300: #FEC84B;
+  --palette-amber-400: #FDB022;
+  --palette-amber-500: #F79009;
+  --palette-amber-600: #DC6803;
+  --palette-amber-700: #B54708;
+  --palette-amber-800: #93370D;
+  --palette-amber-900: #712B08;
+
+  --palette-green-50: #EDFDF4;
+  --palette-green-100: #D1FADF;
+  --palette-green-200: #A6F4C5;
+  --palette-green-300: #6CE9A6;
+  --palette-green-400: #32D583;
+  --palette-green-500: #12B76A;
+  --palette-green-600: #039855;
+  --palette-green-700: #027A48;
+  --palette-green-800: #05603A;
+  --palette-green-900: #054F31;
+
+  --palette-teal-50: #F0FDF9;
+  --palette-teal-100: #CCFBEF;
+  --palette-teal-200: #99F6E0;
+  --palette-teal-300: #5EEAD4;
+  --palette-teal-400: #2DD4BF;
+  --palette-teal-500: #14B8A6;
+  --palette-teal-600: #0F766E;
+  --palette-teal-700: #115E59;
+  --palette-teal-800: #134E4A;
+  --palette-teal-900: #042F2E;
+
+  --palette-blue-50: #EFF8FF;
+  --palette-blue-100: #D1E9FF;
+  --palette-blue-200: #B2DDFF;
+  --palette-blue-300: #84CAFF;
+  --palette-blue-400: #53B1FD;
+  --palette-blue-500: #3182F6;
+  --palette-blue-600: #1570EF;
+  --palette-blue-700: #175CD3;
+  --palette-blue-800: #1849A9;
+  --palette-blue-900: #194185;
+
+  --palette-indigo-50: #EEF4FF;
+  --palette-indigo-100: #E0EAFF;
+  --palette-indigo-200: #C7D7FE;
+  --palette-indigo-300: #A4BCFD;
+  --palette-indigo-400: #8098F9;
+  --palette-indigo-500: #6172F3;
+  --palette-indigo-600: #444CE7;
+  --palette-indigo-700: #3538CD;
+  --palette-indigo-800: #2D31A6;
+  --palette-indigo-900: #1F235B;
+
+  --palette-purple-50: #F9F5FF;
+  --palette-purple-100: #F4EBFF;
+  --palette-purple-200: #E9D7FE;
+  --palette-purple-300: #D6BBFB;
+  --palette-purple-400: #B692F6;
+  --palette-purple-500: #9E77ED;
+  --palette-purple-600: #7F56D9;
+  --palette-purple-700: #6941C6;
+  --palette-purple-800: #53389E;
+  --palette-purple-900: #42307D;
+
+  --palette-pink-50: #FDF2F8;
+  --palette-pink-100: #FCE7F3;
+  --palette-pink-200: #FBCFE8;
+  --palette-pink-300: #F9A8D4;
+  --palette-pink-400: #F472B6;
+  --palette-pink-500: #EC4899;
+  --palette-pink-600: #DB2777;
+  --palette-pink-700: #BE185D;
+  --palette-pink-800: #9D174D;
+  --palette-pink-900: #831843;
+
+  /* ==========================================================================
+     [Eucalyptus Grove Theme - Figma Palette Integration]
+     #B2AC88 (Sage) | #898989 (Gray) | #F2F0EF (Light) | #4B6E48 (Green)
+     ========================================================================== */
+  --palette-eucalyptus-sage-50: #F8F7F3;
+  --palette-eucalyptus-sage-100: #F1EFE6;
+  --palette-eucalyptus-sage-200: #E3DFCF;
+  --palette-eucalyptus-sage-300: #D5D0BC;
+  --palette-eucalyptus-sage-400: #C4BEA2;
+  --palette-eucalyptus-sage-500: #B2AC88;
+  --palette-eucalyptus-sage-600: #9B946E;
+  --palette-eucalyptus-sage-700: #7F7954;
+  --palette-eucalyptus-sage-800: #625D3F;
+  --palette-eucalyptus-sage-900: #46422B;
+
+  --palette-eucalyptus-gray-50: #FAFAFA;
+  --palette-eucalyptus-gray-100: #F2F0EF;
+  --palette-eucalyptus-gray-200: #E4E2DF;
+  --palette-eucalyptus-gray-300: #D0CECB;
+  --palette-eucalyptus-gray-400: #B1AFA9;
+  --palette-eucalyptus-gray-500: #898989;
+  --palette-eucalyptus-gray-600: #6E6F6C;
+  --palette-eucalyptus-gray-700: #535450;
+  --palette-eucalyptus-gray-800: #393B37;
+  --palette-eucalyptus-gray-900: #1F221E;
+
+  --palette-eucalyptus-green-50: #F2F6F1;
+  --palette-eucalyptus-green-100: #E4ECE3;
+  --palette-eucalyptus-green-200: #C9DAC7;
+  --palette-eucalyptus-green-300: #A7C2A4;
+  --palette-eucalyptus-green-400: #789E74;
+  --palette-eucalyptus-green-500: #4B6E48;
+  --palette-eucalyptus-green-600: #3E5C3B;
+  --palette-eucalyptus-green-700: #324B30;
+  --palette-eucalyptus-green-800: #263924;
+  --palette-eucalyptus-green-900: #1B291A;
+
+  /* ==========================================================================
+     [2] SEED Semantic Tokens (Role-Based Design for SubMate)
+     ========================================================================== */
+  --color-bg-base: var(--palette-eucalyptus-gray-100);
+  --color-bg-surface: #FFFFFF;
+  --color-bg-subtle: var(--palette-eucalyptus-gray-100);
+  --color-bg-inset: var(--palette-eucalyptus-gray-50);
+  --color-bg-inverse: #222D22;
+  --color-bg-brand: var(--palette-eucalyptus-green-500);
+  --color-bg-brand-hover: var(--palette-eucalyptus-green-600);
+  --color-bg-brand-active: var(--palette-eucalyptus-green-700);
+
+  --color-fg-primary: var(--palette-eucalyptus-gray-900);
+  --color-fg-secondary: var(--palette-eucalyptus-gray-800);
+  --color-fg-tertiary: var(--palette-eucalyptus-gray-700);
+  --color-fg-muted: var(--palette-eucalyptus-gray-500);
+  --color-fg-subtle: var(--palette-eucalyptus-gray-400);
+  --color-fg-inverse: #FFFFFF;
+  --color-fg-brand: var(--palette-eucalyptus-green-500);
+  --color-fg-danger: var(--palette-red-600);
+
+  --color-border-subtle: var(--palette-eucalyptus-gray-200);
+  --color-border-default: var(--palette-eucalyptus-gray-300);
+  --color-border-focus: var(--palette-eucalyptus-green-500);
+
+  /* Domain Status Contrast Pairings (Accessibility by Default) */
+  --color-status-today-bg: var(--palette-red-500);
+  --color-status-today-fg: #FFFFFF;
+  --color-status-urgent-bg: var(--palette-red-50);
+  --color-status-urgent-fg: var(--palette-red-700);
+  --color-status-urgent-border: var(--palette-red-200);
+
+  --color-status-trial-bg: var(--palette-eucalyptus-sage-100);
+  --color-status-trial-fg: var(--palette-eucalyptus-sage-800);
+  --color-status-trial-border: var(--palette-eucalyptus-sage-300);
+
+  --color-status-warning-bg: var(--palette-amber-50);
+  --color-status-warning-fg: var(--palette-amber-700);
+  --color-status-warning-border: var(--palette-amber-200);
+
+  --color-status-success-bg: var(--palette-eucalyptus-green-50);
+  --color-status-success-fg: var(--palette-eucalyptus-green-700);
+  --color-status-success-border: var(--palette-eucalyptus-green-200);
+
+  --color-status-ai-bg: var(--palette-purple-50);
+  --color-status-ai-fg: var(--palette-purple-700);
+  --color-status-ai-border: var(--palette-purple-200);
+
   font-family: Pretendard, Inter, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
-  color: #191F28;
-  background: #F2F4F6;
+  color: var(--color-fg-primary);
+  background: var(--color-bg-base);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -16,15 +214,15 @@
 
 html {
   min-width: 320px;
-  background: #F2F4F6;
+  background: var(--color-bg-base);
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #F2F4F6;
-  color: #191F28;
+  background: var(--color-bg-base);
+  color: var(--color-fg-primary);
 }
 
 button,
@@ -39,7 +237,7 @@ input:focus-visible,
 textarea:focus-visible:not(.no-focus-ring),
 select:focus-visible,
 a:focus-visible {
-  outline: 2px solid #191F28;
+  outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
 }
 
@@ -63,9 +261,9 @@ button {
   max-width: 420px;
   margin: 0 auto;
   overflow-x: hidden;
-  border-left: 1px solid #E5E8EB;
-  border-right: 1px solid #E5E8EB;
-  background: #ffffff;
+  border-left: 1px solid var(--color-border-subtle);
+  border-right: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-surface);
 }
 
 .card-press {

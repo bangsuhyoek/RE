@@ -53,11 +53,10 @@ export function CalendarScreen({ subscriptions, onOpen }) {
     <main className="px-5 pb-36 pt-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">Billing calendar</p>
-          <h1 className="mt-1 flex items-center gap-2 text-[22px] font-extrabold tracking-tight text-[#191F28]">
+          <h1 className="flex items-center gap-2 text-[22px] font-extrabold tracking-tight text-fg-primary">
             {formatKoreanMonth(year, month)}
             {monthTotal > 0 && (
-              <span className="rounded-full bg-[#F2F4F6] px-2.5 py-0.5 text-[12px] font-bold text-[#4E5968]">
+              <span className="rounded-full bg-surface-subtle px-2.5 py-0.5 text-[12px] font-bold text-fg-secondary">
                 총 {formatWon(monthTotal)}
               </span>
             )}
@@ -69,8 +68,8 @@ export function CalendarScreen({ subscriptions, onOpen }) {
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-[#E5E8EB] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div className="grid grid-cols-7 text-center text-[12px] font-bold text-[#8B95A1]">
+      <div className="mt-5 rounded-2xl border border-border-subtle bg-surface-default p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="grid grid-cols-7 text-center text-[12px] font-bold text-fg-subtle">
           <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
         </div>
         <div className="mt-2 grid grid-cols-7 gap-y-2 text-center text-[13px]">
@@ -85,12 +84,12 @@ export function CalendarScreen({ subscriptions, onOpen }) {
                 type="button"
                 onClick={() => setSelectedDay(item)}
                 className={`relative mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-xl font-semibold transition-all active:scale-95 ${
-                  isSelected ? "bg-[#191F28] text-white shadow-sm" : "text-[#191F28] hover:bg-[#F2F4F6]"
+                  isSelected ? "bg-surface-inverse text-fg-inverse shadow-sm" : "text-fg-primary hover:bg-surface-subtle"
                 }`}
               >
                 <span>{item}</span>
                 {hasDue && !isSelected && (
-                  <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[#FF6F0F]" />
+                  <span className="absolute bottom-1 h-1 w-1 rounded-full bg-surface-brand" />
                 )}
                 {hasDue && isSelected && (
                   <span className="absolute bottom-1 h-1 w-1 rounded-full bg-white" />
@@ -103,8 +102,8 @@ export function CalendarScreen({ subscriptions, onOpen }) {
 
       <section className="mt-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-[16px] font-bold text-[#191F28]">{month + 1}월 {clampedDay}일 결제 예정 ({selectedDues.length}건)</h2>
-          {selectedDues.length > 0 && <span className="text-[15px] font-extrabold text-[#191F28]">{formatWon(selectedTotal)}</span>}
+          <h2 className="text-[16px] font-bold text-fg-primary">{month + 1}월 {clampedDay}일 결제 예정 ({selectedDues.length}건)</h2>
+          {selectedDues.length > 0 && <span className="text-[15px] font-extrabold text-fg-primary">{formatWon(selectedTotal)}</span>}
         </div>
 
         {selectedDues.length > 0 ? (

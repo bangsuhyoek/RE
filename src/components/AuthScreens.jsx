@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
-import { Button, LogoMark } from "./ui";
+import { Button } from "./ui";
 
 const fieldBase = "w-full rounded-xl border border-[#E4E4E7] bg-white px-4 py-3.5 text-[15px] outline-none transition-colors placeholder:text-[#A1A1AA] focus:border-black";
 
@@ -50,10 +50,9 @@ export function AuthLogin({ onGuest, onSocial, onRegister, onLogin }) {
   return (
     <main className="flex min-h-screen flex-col px-5 pb-8 pt-10">
       <div className="mb-10">
-        <LogoMark className="mb-6 h-11 w-11 rounded-2xl text-base" />
         <p className="mb-2 text-[13px] font-medium text-[#71717A]">구독을 내 편으로</p>
         <h1 className="text-3xl font-bold tracking-[-0.03em]">구독 관리의<br />가장 쉬운 시작</h1>
-        <p className="mt-4 max-w-[290px] text-[15px] leading-6 text-[#71717A]">결제 전에 알리고, 해지는 빠르게. SubMate가 매달의 고정지출을 정리해드려요.</p>
+        <p className="mt-4 max-w-[290px] text-[15px] leading-6 text-[#71717A]">결제 전에 알리고, 해지는 빠르게. 꾸독이 매달의 고정지출을 정리해드려요.</p>
       </div>
 
       {/* 메인 폼: 아이디 비밀번호 로그인 */}
@@ -185,7 +184,7 @@ export function AuthRegister({ onBack, onComplete, existingUsers = [] }) {
     <main className="min-h-screen px-5 pb-8 pt-8">
       <button type="button" onClick={onBack} className="mb-9 rounded-xl p-2 text-[#71717A] hover:bg-[#FAFAFA] hover:text-black" aria-label="로그인으로 돌아가기">←</button>
       <p className="text-[13px] font-medium text-[#71717A]">1분이면 충분해요</p>
-      <h1 className="mt-2 text-3xl font-bold tracking-[-0.03em]">SubMate 시작하기</h1>
+      <h1 className="mt-2 text-3xl font-bold tracking-[-0.03em]">꾸독 시작하기</h1>
       <p className="mt-3 text-[14px] leading-6 text-[#71717A]">한 단계씩 확인하며 안전하게 계정을 만들어요.</p>
 
       <form className="mt-9 space-y-5" onSubmit={(event) => { event.preventDefault(); if (canSubmit) onComplete({ accountId, password, nickname }); }}>
