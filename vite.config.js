@@ -21,8 +21,29 @@ export default defineConfig(({ mode }) => {
       port: 3000,
     },
     define: {
-      "import.meta.env.VITE_GEMINI_API_KEY": JSON.stringify(geminiKey),
+      "import.meta.env.VITE_GEMINI_API_KEY": JSON.stringify(mode === "development" ? geminiKey : (env.VITE_GEMINI_API_KEY || "")),
       "import.meta.env.VITE_GEMINI_MODEL": JSON.stringify(geminiModel),
+    },
+    build: {
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/")) {
+              return "react-vendor";
+            }
+            if (id.includes("node_modules/@supabase/")) {
+              return "supabase-vendor";
+            }
+            if (id.includes("node_modules/@capacitor/")) {
+              return "capacitor-vendor";
+            }
+            if (id.includes("node_modules/lucide-react/")) {
+              return "icons-vendor";
+            }
+          },
+        },
+      },
     },
   };
 });

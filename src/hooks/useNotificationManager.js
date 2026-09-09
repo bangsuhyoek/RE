@@ -8,6 +8,7 @@ import {
   requestNotificationPermission,
   initAndroidNotificationChannel,
   sendAppNotification,
+  scheduleSubscriptionNotifications,
 } from "../lib/notifications";
 import { readHash } from "./useNavigation";
 
@@ -53,6 +54,7 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
         return [...newItems, ...current];
       });
     }
+    scheduleSubscriptionNotifications(subscriptions).catch(() => {});
   }, [subscriptions]);
 
   const unreadCount = useMemo(

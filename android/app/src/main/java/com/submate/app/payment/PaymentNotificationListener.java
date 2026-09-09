@@ -63,6 +63,12 @@ public class PaymentNotificationListener extends NotificationListenerService {
         // 중복 방지 (카드사 앱 푸시와 SMS가 동시에 오는 경우 등)
         String dedupKey = parsed.serviceName + "_" + parsed.amount;
         long now = System.currentTimeMillis();
+
+        // 만료된 이벤트 캐시 정리 (메모리 누수 방지)
+        if (RECENT_EVENTS.size() > 50) {
+            RECENT_EVENTS.entrySet().removeIf(entry -> (now - entry.getValue()) >= DEDUP_WINDOW_MS);
+        }
+
         Long lastSeen = RECENT_EVENTS.get(dedupKey);
         if (lastSeen != null && (now - lastSeen) < DEDUP_WINDOW_MS) {
             Log.d(TAG, "Duplicate payment alert ignored: " + dedupKey);
@@ -75,6 +81,14 @@ public class PaymentNotificationListener extends NotificationListenerService {
     }
 
     public void dispatchQuickAddNotification(PaymentParser.ParsedPayment payment) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                Log.w(TAG, "POST_NOTIFICATIONS permission not granted. Skip notification.");
+                return;
+            }
+        }
+
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm == null) return;
 

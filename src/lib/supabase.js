@@ -88,8 +88,8 @@ export function mapSubscriptionToDb(sub, userId) {
     service_name: sub.name,
     plan_name: sub.plan,
     category: sub.category || '기타',
-    amount_krw: sub.amount,
-    due_day: sub.dueDay || 1,
+    amount_krw: Number(sub.amount) || 0,
+    due_day: Number(sub.dueDay) || 1,
     billing_cycle: sub.billingCycle || '매월',
     payment_method: sub.paymentMethod || '',
     cancel_url: sub.cancelUrl || '',
@@ -101,7 +101,7 @@ export function mapSubscriptionToDb(sub, userId) {
     monogram: sub.monogram || '',
     mark_tone: sub.markTone || null,
     next_billing_date: sub.nextBillingDate || null,
-    renewalReviewedFor: sub.renewalReviewedFor || null,
+    renewal_reviewed_for: sub.renewalReviewedFor || null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -208,4 +208,51 @@ export function matchServicesFromCatalog(catalog, keyword) {
   }));
 }
 
+/**
+ * 로컬 캐시에 없는 롱테일 서비스를 Supabase DB에서 원격 비동기 검색합니다.
+ */
+export async function searchRemoteCatalog(keyword) {
+  if (!supabase || !keyword || !keyword.trim()) return [];
+  const q = keyword.trim();
+  try {
+    const { data, error } = await supabase
+      .from('subscription_services')
+      .select(`
+        id,
+        name,
+        aliases,
+        category,
+        service_plans (
+          id,
+          name,
+          aliases,
+          amount_krw,
+          billing_cycle
+        )
+      `)
+      .eq('active', true)
+      .ilike('name', `%${q}%`)
+      .limit(10);
 
+    if (error) throw error;
+    return (data || []).map((service) => ({
+      ...service,
+      plans: Array.isArray(service.service_plans) ? service.service_plans : [],
+    }));
+  } catch (err) {
+    console.warn('searchRemoteCatalog error:', err);
+    return [];
+  }
+}
+
+/**
+ * 인기 Top 로컬 캐시(0ms) 우선 검색 후, 결과 부재 시 롱테일 원격 DB를 검색하는 하이브리드 검색기
+ */
+export async function searchHybridCatalog(localCatalog, keyword) {
+  const localResults = matchServicesFromCatalog(localCatalog, keyword);
+  if (localResults.length > 0 || !keyword || keyword.trim().length < 2) {
+    return localResults;
+  }
+  const remoteResults = await searchRemoteCatalog(keyword);
+  return remoteResults.length > 0 ? remoteResults : localResults;
+}

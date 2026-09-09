@@ -1,6 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { daysUntilCharge, formatWon } from "./dates.js";
+import { daysUntilCharge, formatWon, getNextChargeDate } from "./dates.js";
 import { readStoredValue, writeStoredValue, storageKeys } from "./storage.js";
 
 export const NOTIFICATION_STORAGE_KEY = "submate-mvp:notifications";
@@ -256,5 +256,88 @@ export async function sendAppNotification(title, options = {}) {
   }
 
   return sendBrowserNotification(title, options);
+}
+
+function stringHashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
+}
+
+/**
+ * 향후 30~60일간의 결제 사전 알림(D-3, D-1)을 네이티브 로컬 알림 큐에 배치 스케줄링
+ */
+export async function scheduleSubscriptionNotifications(subscriptions = []) {
+  if (!Capacitor.isNativePlatform()) return false;
+  try {
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display !== "granted") return false;
+
+    const pending = await LocalNotifications.getPending();
+    if (pending?.notifications?.length > 0) {
+      await LocalNotifications.cancel({ notifications: pending.notifications });
+    }
+
+    const scheduledList = [];
+    const now = new Date();
+
+    for (const sub of subscriptions) {
+      if (sub.status === "cancelled") continue;
+      const isTrial = Boolean(sub.isTrial || sub.status === "trial");
+
+      // D-3 예약 (오전 9시)
+      if (sub.alertD3 !== false) {
+        const nextCharge = getNextChargeDate(sub, now);
+        const d3Date = new Date(nextCharge);
+        d3Date.setDate(d3Date.getDate() - 3);
+        d3Date.setHours(9, 0, 0, 0);
+
+        if (d3Date > now) {
+          const notifId = Math.abs(stringHashCode(`${sub.subscriptionId || sub.id}-d3-${d3Date.getMonth()}`));
+          scheduledList.push({
+            id: notifId % 100000000,
+            title: `[결제 D-3] ${sub.name} 결제 예정`,
+            body: `3일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
+            channelId: "submate-billing-channel",
+            schedule: { at: d3Date },
+            extra: { subscriptionId: sub.subscriptionId || sub.id, type: "billing_d3" },
+          });
+        }
+      }
+
+      // D-1 예약 (오전 9시)
+      if (sub.alertD1) {
+        const nextCharge = getNextChargeDate(sub, now);
+        const d1Date = new Date(nextCharge);
+        d1Date.setDate(d1Date.getDate() - 1);
+        d1Date.setHours(9, 0, 0, 0);
+
+        if (d1Date > now) {
+          const notifId = Math.abs(stringHashCode(`${sub.subscriptionId || sub.id}-d1-${d1Date.getMonth()}`));
+          scheduledList.push({
+            id: notifId % 100000000,
+            title: isTrial ? `[체험 만료 D-1] ${sub.name} 무료체험 종료` : `[결제 D-1] ${sub.name} 결제 예정`,
+            body: isTrial
+              ? `내일 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
+              : `내일 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
+            channelId: "submate-billing-channel",
+            schedule: { at: d1Date },
+            extra: { subscriptionId: sub.subscriptionId || sub.id, type: isTrial ? "trial_d1" : "billing_d1" },
+          });
+        }
+      }
+    }
+
+    if (scheduledList.length > 0) {
+      await LocalNotifications.schedule({ notifications: scheduledList });
+    }
+    return true;
+  } catch (err) {
+    console.warn("scheduleSubscriptionNotifications error:", err);
+    return false;
+  }
 }
 

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { matchServicesFromCatalog } from "../src/lib/supabase.js";
+import { matchServicesFromCatalog, searchHybridCatalog } from "../src/lib/supabase.js";
 
 // 1. 샘플 카탈로그 (DB subscription_services & service_plans 구조 모사)
 const mockCatalog = [
@@ -105,3 +105,13 @@ test("검색어가 비어있거나 매칭되는 항목이 없으면 빈 배열�
   assert.deepEqual(matchServicesFromCatalog(mockCatalog, "존재하지않는서비스XYZ"), []);
 });
 
+test("searchHybridCatalog는 로컬 캐시 일치 항목이 있으면 즉시 반환한다", async () => {
+  const results = await searchHybridCatalog(mockCatalog, "넷플");
+  assert.equal(results.length, 1);
+  assert.equal(results[0].id, "netflix");
+});
+
+test("searchHybridCatalog는 로컬 캐시에 일치 항목이 없고 Supabase가 비활성 상태일 때 안전하게 빈 배열을 반환한다", async () => {
+  const results = await searchHybridCatalog(mockCatalog, "완전히새로운미등록서비스");
+  assert.deepEqual(results, []);
+});

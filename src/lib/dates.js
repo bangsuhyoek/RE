@@ -12,6 +12,27 @@ export const dateForDueDay = (year, monthIndex, dueDay) =>
 
 export const getNextChargeDate = (subscription, reference = new Date()) => {
   const today = startOfDay(reference);
+  const isYearly = subscription?.billingCycle === "매년";
+
+  if (isYearly && subscription.nextBillingDate) {
+    const explicit = startOfDay(new Date(subscription.nextBillingDate));
+    if (explicit >= today) return explicit;
+    const nextYearDate = new Date(explicit);
+    while (nextYearDate < today) {
+      nextYearDate.setFullYear(nextYearDate.getFullYear() + 1);
+    }
+    return nextYearDate;
+  }
+
+  if (isYearly) {
+    const baseMonth = subscription.createdAt ? new Date(subscription.createdAt).getMonth() : today.getMonth();
+    let candidate = dateForDueDay(today.getFullYear(), baseMonth, subscription.dueDay);
+    if (candidate < today) {
+      candidate = dateForDueDay(today.getFullYear() + 1, baseMonth, subscription.dueDay);
+    }
+    return candidate;
+  }
+
   const thisMonth = dateForDueDay(today.getFullYear(), today.getMonth(), subscription.dueDay);
   if (thisMonth >= today) return thisMonth;
   return dateForDueDay(today.getFullYear(), today.getMonth() + 1, subscription.dueDay);

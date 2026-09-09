@@ -76,8 +76,23 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     if (!profile?.user_id) return;
     let active = true;
     fetchUserSubscriptions(profile.user_id).then((cloudSubs) => {
-      if (active && Array.isArray(cloudSubs) && cloudSubs.length > 0) {
-        setSubscriptions(cloudSubs);
+      if (!active) return;
+      const cloudList = Array.isArray(cloudSubs) ? cloudSubs : [];
+      const cloudIds = new Set(cloudList.map((s) => s.subscriptionId || s.id));
+
+      setSubscriptions((localCurrent) => {
+        const unsynced = localCurrent.filter(
+          (localSub) => !cloudIds.has(localSub.subscriptionId || localSub.id) && !localSub.isDemo
+        );
+        if (unsynced.length > 0) {
+          unsynced.forEach((sub) => {
+            upsertDbSubscription(profile.user_id, sub).catch(console.error);
+          });
+        }
+        const merged = [...cloudList, ...unsynced];
+        return merged.length > 0 ? merged : localCurrent;
+      });
+      if (cloudList.length > 0) {
         setOnboardingComplete(true);
       }
     });
@@ -143,23 +158,26 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
       renewalPending: false,
     };
     setSubscriptions((current) => [record, ...current]);
+    if (profile?.user_id) {
+      upsertDbSubscription(profile.user_id, record).catch(console.error);
+    }
     setOnboardingComplete(true);
     notify?.(`${record.name}을 내 구독에 추가했어요.`);
     return true;
-  }, [subscriptions]);
+  }, [subscriptions, profile?.user_id]);
 
   const updateSubscription = useCallback((subscriptionId, update, notify) => {
+    const target = subscriptions.find((s) => s.subscriptionId === subscriptionId || s.id === subscriptionId);
+    if (target && profile?.user_id) {
+      upsertDbSubscription(profile.user_id, { ...target, ...update }).catch(console.error);
+    }
     setSubscriptions((current) =>
       current.map((subscription) =>
-        subscription.subscriptionId === subscriptionId ? (() => {
-        const updated = { ...subscription, ...update };
-        if (profile?.user_id) { upsertDbSubscription(profile.user_id, updated); }
-        return updated;
-      })() : subscription
+        subscription.subscriptionId === subscriptionId ? { ...subscription, ...update } : subscription
       )
     );
     notify?.("구독 정보를 저장했어요.");
-  }, []);
+  }, [subscriptions, profile?.user_id]);
 
   const muteSubscription = useCallback((subscriptionId, notify) => {
     setSubscriptions((current) =>
@@ -197,7 +215,7 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     setCompletedCancelId(target.subscriptionId);
     setCancelTarget(null);
     onComplete?.();
-  }, [subscriptions]);
+  }, [subscriptions, profile?.user_id]);
 
   const handleRenewal = useCallback((keep, notify) => {
     if (!renewalSubscription) return;
@@ -248,4 +266,3 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     muteSubscription,
   };
 }
-

@@ -52,30 +52,7 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
   const goToCancel = async () => {
     if (!subscription.cancelUrl) return;
 
-    if (Capacitor.isNativePlatform()) {
-      const hasPermission = await checkOverlayPermission();
-      if (hasPermission) {
-        onToast?.("화면에 미니 해지 가이드 버블을 띄웠어요.");
-        setCancelSessionActive(true);
-        await startFloatingGuide(
-          {
-            serviceId: subscription.id,
-            serviceName: subscription.name,
-            cancelUrl: subscription.cancelUrl,
-            guideSteps: subscription.guideSteps,
-          },
-          () => {
-            complete();
-          }
-        );
-        setChecked((current) => [true, ...current.slice(1)]);
-        return;
-      } else {
-        setShowPermissionPrompt(true);
-        return;
-      }
-    }
-
+    setCancelSessionActive(true);
     const res = await openCancelBrowser({
       serviceId: subscription.id,
       serviceName: subscription.name,
@@ -94,7 +71,7 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
     }
 
     window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
-    onToast(`${subscription.name} 해지 페이지를 새 탭에서 열었어요.`);
+    onToast?.(`${subscription.name} 해지 페이지를 브라우저에서 열었어요.`);
     setChecked((current) => [true, ...current.slice(1)]);
   };
 

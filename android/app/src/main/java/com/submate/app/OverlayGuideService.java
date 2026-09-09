@@ -14,6 +14,8 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -75,6 +77,12 @@ public class OverlayGuideService extends Service {
         }
         String stepsJson = intent.getStringExtra("guideStepsJson");
         parseSteps(stepsJson);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            Log.w("OverlayGuideService", "SYSTEM_ALERT_WINDOW permission is missing. Stopping service.");
+            stopSelf();
+            return START_NOT_STICKY;
+        }
 
         if (bubbleView == null) {
             initBubbleView();
@@ -322,7 +330,11 @@ public class OverlayGuideService extends Service {
                 .setOngoing(true)
                 .build();
 
-        startForeground(1001, notification);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(1001, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        } else {
+            startForeground(1001, notification);
+        }
     }
 
     private void parseSteps(String jsonStr) {
