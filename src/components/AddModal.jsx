@@ -181,6 +181,10 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
       setError("결제일을 1~31일 사이로 입력해 주세요.");
       return;
     }
+    if (!manualForm.paymentMethod?.trim()) {
+      setError("결제 수단을 선택해 주세요.");
+      return;
+    }
     const matched = catalog.find(
       (s) => s.name.toLowerCase() === manualForm.name.trim().toLowerCase()
     );
@@ -268,6 +272,10 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
     const dueDay = Number(aiForm.dueDay);
     if (amount <= 0 || dueDay < 1 || dueDay > 31) {
       setError("결제 금액과 결제일을 올바르게 입력해 주세요.");
+      return;
+    }
+    if (!aiForm.paymentMethod?.trim()) {
+      setError("결제 수단을 선택해 주세요.");
       return;
     }
     const added = onAdd({ ...aiForm, amount, dueDay });
@@ -477,11 +485,15 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
             {/* 결제 수단 */}
             <div>
               <label className="block text-[13px] font-semibold text-[#191F28] mb-1.5">
-                결제 수단 <span className="text-[12px] font-normal text-[#868B94]">(선택)</span>
+                결제 수단 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
               </label>
               <PaymentMethodTriggerField
                 value={manualForm.paymentMethod}
-                onChange={(val) => updateManual("paymentMethod", val)}
+                onChange={(val) => {
+                  updateManual("paymentMethod", val);
+                  if (val && error === "결제 수단을 선택해 주세요.") setError("");
+                }}
+                error={!manualForm.paymentMethod?.trim() && Boolean(error)}
                 subscriptions={subscriptions}
               />
             </div>
@@ -696,11 +708,15 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
                 </div>
                 <div className="mt-3">
                   <label className="block text-[12px] font-medium text-[#71717A] mb-1.5">
-                    결제 수단
+                    결제 수단 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
                   </label>
                   <PaymentMethodTriggerField
                     value={aiForm.paymentMethod}
-                    onChange={(val) => setAiForm((curr) => ({ ...curr, paymentMethod: val }))}
+                    onChange={(val) => {
+                      setAiForm((curr) => ({ ...curr, paymentMethod: val }));
+                      if (val && error === "결제 수단을 선택해 주세요.") setError("");
+                    }}
+                    error={!aiForm.paymentMethod?.trim() && Boolean(error)}
                     subscriptions={subscriptions}
                   />
                 </div>

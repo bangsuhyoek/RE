@@ -252,29 +252,19 @@ export function PaymentMethodPickerModal({
                 })}
               </div>
 
-              {/* Bottom Actions */}
-              <div className="pt-3 border-t border-[#F2F4F6] flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsCustom(true)}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] py-2.5 text-[13px] font-semibold text-[#4E5968] hover:bg-white hover:border-[#B0B8C1] active:scale-[0.99] transition-all"
-                >
-                  <Plus size={14} />
-                  <span>직접 입력하기</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSelect("");
-                    resetAndClose();
-                  }}
-                  className="w-full py-1.5 text-[12px] font-medium text-[#8B95A1] hover:text-[#4E5968] transition-colors"
-                >
-                  결제수단 없이 등록 (미등록)
-                </button>
-              </div>
-            </div>
-          ) : (
+             {/* Bottom Actions */}
+             <div className="pt-3 border-t border-[#F2F4F6] flex flex-col gap-2">
+               <button
+                 type="button"
+                 onClick={() => setIsCustom(true)}
+                 className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] py-2.5 text-[13px] font-semibold text-[#4E5968] hover:bg-white hover:border-[#B0B8C1] active:scale-[0.99] transition-all"
+               >
+                 <Plus size={14} />
+                 <span>직접 입력하기</span>
+               </button>
+             </div>
+           </div>
+         ) : (
             <div className="py-2 space-y-4">
               <div>
                 <label className="block text-[13px] font-semibold text-[#191F28] mb-1.5">
@@ -322,6 +312,7 @@ export function PaymentMethodTriggerField({
   value = "",
   onChange,
   className = "",
+  error = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const info = getPaymentMethodInfo(value);
@@ -356,20 +347,24 @@ export function PaymentMethodTriggerField({
           </div>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="flex w-full items-center justify-between rounded-xl border border-dashed border-[#D1D6DB] bg-white px-3.5 py-2.5 text-left transition-all hover:border-[#191F28] hover:bg-[#F9FAFB] active:scale-[0.99]"
+       <button
+         type="button"
+         onClick={() => setIsOpen(true)}
+          className={`flex w-full items-center justify-between rounded-xl border border-dashed px-3.5 py-2.5 text-left transition-all hover:bg-[#F9FAFB] active:scale-[0.99] ${
+            error
+              ? "border-[#FF4D4D] bg-[#FFF5F5] hover:border-[#FF4D4D]"
+              : "border-[#D1D6DB] bg-white hover:border-[#191F28]"
+          }`}
         >
           <div className="flex items-center gap-2.5 text-[#8B95A1]">
             <div className="grid h-6 w-6 place-items-center rounded-lg bg-[#F2F4F6] text-[#4E5968]">
               <Plus size={14} />
             </div>
-            <span className="text-[13px] font-medium text-[#4E5968]">
-              결제 수단 선택 <span className="text-[11px] text-[#8B95A1]">(선택 사항)</span>
+            <span className={`text-[13px] font-medium ${error ? "text-[#FF4D4D]" : "text-[#4E5968]"}`}>
+              결제 수단 선택
             </span>
           </div>
-          <ChevronRight size={16} className="text-[#B0B8C1]" />
+          <ChevronRight size={16} className={error ? "text-[#FF4D4D]" : "text-[#B0B8C1]"} />
         </button>
       )}
 
@@ -382,4 +377,3 @@ export function PaymentMethodTriggerField({
     </div>
   );
 }
-

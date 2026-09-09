@@ -207,7 +207,7 @@ public class PaymentParser {
         if (text.contains("스탠다드") || text.toLowerCase().contains("standard")) return "스탠다드";
         if (text.contains("베이직") || text.toLowerCase().contains("basic")) return "베이직";
         if (text.contains("와우")) return "와우 멤버십";
-        if (text.contains("플러스")) return "Plus";
+        if (!"disney".equals(serviceId) && text.contains("플러스")) return "Plus";
 
         if ("netflix".equals(serviceId)) {
             if (amount == 17000) return "프리미엄";
@@ -228,4 +228,3 @@ public class PaymentParser {
         return "기본 플랜";
     }
 }
-

@@ -46,6 +46,10 @@ export function SubscriptionDetailScreen({ subscription, subscriptions = [], onU
     const amount = Number(draft.amount);
     const dueDay = Math.max(1, Math.min(31, Number(draft.dueDay)));
     if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(dueDay)) return;
+    if (!draft.paymentMethod?.trim()) {
+      alert("결제 수단을 선택해 주세요.");
+      return;
+    }
     onUpdate(subscription.subscriptionId, { ...draft, amount, dueDay });
     setEditing(false);
   };
@@ -139,11 +143,12 @@ export function SubscriptionDetailScreen({ subscription, subscriptions = [], onU
             </div>
             <div>
               <label className="block text-[12px] font-semibold text-[#6B7684] mb-1.5">
-                결제 수단
+                결제 수단 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
               </label>
               <PaymentMethodTriggerField
                 value={draft.paymentMethod}
                 onChange={(val) => setDraft((v) => ({ ...v, paymentMethod: val }))}
+                error={!draft.paymentMethod?.trim()}
                 subscriptions={subscriptions}
               />
             </div>

@@ -26,16 +26,19 @@ test("수동 구독 등록 페이로드가 유효하게 구성되고 저장된�
 });
 
 test("수동 구독 등록 금액 및 결제일 유효성 검증", () => {
-  const isValid = (name, amount, dueDay) => {
+  const isValid = (name, amount, dueDay, paymentMethod = "신한카드") => {
     if (!name || !name.trim()) return false;
     const numAmount = Number(amount);
     if (!numAmount || numAmount <= 0) return false;
     const numDueDay = Number(dueDay);
     if (!numDueDay || numDueDay < 1 || numDueDay > 31) return false;
+    if (!paymentMethod || !paymentMethod.trim()) return false;
     return true;
   };
 
   assert.equal(isValid("넷플릭스", 17000, 15), true);
+  assert.equal(isValid("넷플릭스", 17000, 15, ""), false);
+  assert.equal(isValid("넷플릭스", 17000, 15, "   "), false);
   assert.equal(isValid("", 17000, 15), false);
   assert.equal(isValid("넷플릭스", 0, 15), false);
   assert.equal(isValid("넷플릭스", -1000, 15), false);
