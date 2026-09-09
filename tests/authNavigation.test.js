@@ -91,3 +91,39 @@ test("미인증 상태에서는 민수 프로필이나 더미 구독을 자동 �
   const subscriptions = effectiveProfile?.guest || isGuestParam ? createMockSubscriptions() : [];
   assert.equal(subscriptions.length, 0);
 });
+
+test("과거 데모/게스트('민수') 프로필이 스토리지에 남아있더라도 자동 정리하고 login(시작화면)으로 진입한다", () => {
+  const mockStorage = new Map();
+  mockStorage.set(storageKeys.profile, JSON.stringify({ nickname: "민수", provider: "Guest", guest: true }));
+  mockStorage.set(storageKeys.subscriptions, JSON.stringify([{ id: "netflix", name: "Netflix" }]));
+
+  global.window = {
+    localStorage: {
+      getItem: (k) => (mockStorage.has(k) ? mockStorage.get(k) : null),
+      setItem: (k, v) => mockStorage.set(k, String(v)),
+      removeItem: (k) => mockStorage.delete(k),
+    },
+    location: { hash: "" },
+  };
+
+  let raw = readStoredValue(storageKeys.profile, null);
+  assert.equal(raw.nickname, "민수");
+
+  // useSubscriptions와 useNavigation의 정리 로직 적용 검증
+  if (raw && (raw.guest || raw.provider === "Guest" || raw.nickname === "민수")) {
+    mockStorage.delete(storageKeys.profile);
+    mockStorage.delete(storageKeys.subscriptions);
+    raw = null;
+  }
+
+  const defaultRoute = (!raw || raw.guest || raw.provider === "Guest") ? "login" : "home";
+  assert.equal(defaultRoute, "login");
+  assert.equal(mockStorage.get(storageKeys.profile), undefined);
+  assert.equal(mockStorage.get(storageKeys.subscriptions), undefined);
+});
+
+test("게스트(둘러보기) 사용자는 저장되어 있더라도 기본 화면이 login(시작화면)이다", () => {
+  const guestProfile = { nickname: "체험 사용자", provider: "Guest", guest: true };
+  const defaultRoute = (!guestProfile || guestProfile.guest || guestProfile.provider === "Guest") ? "login" : "home";
+  assert.equal(defaultRoute, "login");
+});

@@ -338,7 +338,7 @@ export default function App() {
   };
 
   const completeLogin = (provider, nickname, guest = false) => {
-    setProfile({ nickname: nickname || "민수", provider, guest, notificationsAllowed: true });
+    setProfile({ nickname: nickname || "사용자", provider, guest, notificationsAllowed: true });
     if (guest) {
       const mockSubs = createMockSubscriptions();
       setSubscriptions(mockSubs);
@@ -447,7 +447,7 @@ export default function App() {
       />
     );
   } else {
-    content = <AuthLogin onGuest={() => completeLogin("Guest", "민수", true)} onSocial={handleSocialLogin} onRegister={() => navigate("register")} />;
+    content = <AuthLogin onGuest={() => completeLogin("Guest", "체험 사용자", true)} onSocial={handleSocialLogin} onRegister={() => navigate("register")} />;
   }
 
   return (
@@ -558,7 +558,6 @@ export default function App() {
     </div>
   );
 }
-
 
 
 

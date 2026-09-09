@@ -12,7 +12,7 @@ export function AuthLogin({ onGuest, onSocial, onRegister }) {
   const handleEmailLogin = (event) => {
     event.preventDefault();
     if (!email || !password) return;
-    onSocial("이메일", email.split("@")[0] || "민수");
+    onSocial("이메일", email.split("@")[0] || "사용자");
   };
 
   return (
@@ -25,11 +25,11 @@ export function AuthLogin({ onGuest, onSocial, onRegister }) {
       </div>
 
       <div className="space-y-3">
-        <Button className="w-full" onClick={() => onSocial("Apple", "민수")}>
+        <Button className="w-full" onClick={() => onSocial("Apple", "사용자")}>
           Apple로 계속하기
           <ArrowRight size={17} />
         </Button>
-        <Button variant="secondary" className="w-full" onClick={() => onSocial("Google", "민수")}>
+        <Button variant="secondary" className="w-full" onClick={() => onSocial("Google", "사용자")}>
           <span className="grid h-5 w-5 place-items-center rounded-full border border-black text-[10px] font-bold">G</span>
           Google로 계속하기
         </Button>

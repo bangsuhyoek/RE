@@ -17,10 +17,19 @@ export const createSubscription = (service, index = 0) => ({
 });
 
 export function useSubscriptions({ currentRoute = "home" } = {}) {
-  const storedProfile = useMemo(() => readStoredValue(storageKeys.profile, null), []);
+  const storedProfile = useMemo(() => {
+    const raw = typeof window !== "undefined" ? readStoredValue(storageKeys.profile, null) : null;
+    if (raw && (raw.guest || raw.provider === "Guest" || raw.nickname === "민수")) {
+      clearStoredValue(storageKeys.profile);
+      clearStoredValue(storageKeys.subscriptions);
+      clearStoredValue(storageKeys.onboardingComplete);
+      return null;
+    }
+    return raw;
+  }, []);
   const initialHash = useMemo(() => readHash(), []);
   const isGuestParam = !storedProfile && initialHash.params?.get("guest") === "1";
-  const effectiveProfile = storedProfile || (isGuestParam ? { nickname: "민수", provider: "Guest", guest: true, notificationsAllowed: true } : null);
+  const effectiveProfile = storedProfile || (isGuestParam ? { nickname: "체험 사용자", provider: "Guest", guest: true, notificationsAllowed: true } : null);
 
   const [profile, setProfile] = useState(effectiveProfile);
   const [subscriptions, setSubscriptions] = useState(() => {
@@ -239,5 +248,4 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     muteSubscription,
   };
 }
-
 

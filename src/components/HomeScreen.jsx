@@ -76,7 +76,7 @@ function PromotionCarousel({ promotions, onOpen, onExplore }) {
   );
 }
 
-function EmptyState({ onAdd, onScan }) {
+function EmptyState({ onAdd, onScan, onLogout }) {
   return (
     <section className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-center px-5 text-center">
       <span className="grid h-16 w-16 place-items-center rounded-3xl bg-[#F2F4F6] text-[#6B7684] border border-[#E5E8EB]"><Inbox size={28} strokeWidth={1.75} /></span>
@@ -90,6 +90,13 @@ function EmptyState({ onAdd, onScan }) {
         <Sparkles size={18} className="shrink-0 text-[#FF6F0F]" />
         <p className="text-[12px] leading-5 text-[#6B7684]">구독을 등록하면 내 사용 패턴에 맞는 프로모션을 추천해드려요.</p>
       </div>
+      {onLogout && (
+        <div className="mt-6">
+          <button type="button" onClick={onLogout} className="text-[12px] text-[#8B95A1] hover:text-[#E11D48] underline">
+            로그아웃
+          </button>
+        </div>
+      )}
     </section>
   );
 }
@@ -97,11 +104,11 @@ function EmptyState({ onAdd, onScan }) {
 export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onScan, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTestPaymentDetection, onRequestPaymentCapture, onOpenTerms, onLogout }) {
   const upcoming = useMemo(() => [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b)).slice(0, 3), [subscriptions]);
 
-  if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onScan || onAdd} />;
+  if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onScan || onAdd} onLogout={onLogout} />;
 
   return (
     <main className="px-5 pb-28 pt-6">
-      <p className="text-[13px] font-semibold text-[#8B95A1]">{profile?.nickname || "민수"}님, 이번 달</p>
+      <p className="text-[13px] font-semibold text-[#8B95A1]">{profile?.nickname || "사용자"}님, 이번 달</p>
       <h1 className="mt-0.5 text-[24px] font-extrabold tracking-tight text-[#191F28]">고정지출을 확인하세요</h1>
       {notificationDenied && (
         <button
@@ -213,5 +220,4 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
     </main>
   );
 }
-
 

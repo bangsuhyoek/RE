@@ -27,7 +27,10 @@ export const readHash = () => {
 export function useNavigation({ initialRoute, onHashParamAction } = {}) {
   const getFallbackRoute = useCallback(() => {
     const storedProfile = typeof window !== "undefined" ? readStoredValue(storageKeys.profile, null) : null;
-    return storedProfile ? "home" : "login";
+    if (!storedProfile || storedProfile.guest || storedProfile.provider === "Guest") {
+      return "login";
+    }
+    return "home";
   }, []);
 
   const [screen, setScreen] = useState(() => {
