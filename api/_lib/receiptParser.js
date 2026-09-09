@@ -89,10 +89,20 @@ export const toAmount = (value) => {
   return Number.isFinite(number) && number >= 1000 && number <= 2_000_000 ? number : null;
 };
 
+export const toDollarAmount = (value, rate = 1350) => {
+  if (value === null || value === undefined) return null;
+  const num = parseFloat(String(value).replace(/[^0-9.]/g, ""));
+  if (Number.isFinite(num) && num > 0 && num <= 2000) {
+    return Math.round(num * rate);
+  }
+  return null;
+};
+
 export const collectAmounts = (text) => {
   const amounts = [];
   const labeledPattern = /(?:결제\s*금액|승인\s*금액|청구\s*금액|이용\s*금액|최종\s*금액|합계|총액)\s*[:：-]?\s*(?:krw|₩|￦)?\s*([0-9][0-9,]{2,})\s*(?:원|krw)?/gi;
   const wonPattern = /(?:krw|₩|￦)?\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,7})\s*(?:원|krw)/gi;
+  const dollarPattern = /(?:\$|usd)\s*([0-9]+(?:\.[0-9]{1,2})?)|([0-9]+(?:\.[0-9]{1,2})?)\s*(?:usd|\$)/gi;
   let match;
   while ((match = labeledPattern.exec(text)) !== null) {
     const amount = toAmount(match[1]);
@@ -101,6 +111,11 @@ export const collectAmounts = (text) => {
   while ((match = wonPattern.exec(text)) !== null) {
     const amount = toAmount(match[1]);
     if (amount) amounts.push({ amount, source: "won-amount" });
+  }
+  while ((match = dollarPattern.exec(text)) !== null) {
+    const raw = match[1] || match[2];
+    const amount = toDollarAmount(raw);
+    if (amount) amounts.push({ amount, source: "dollar-amount" });
   }
   return amounts.filter((entry, index, list) => list.findIndex((item) => item.amount === entry.amount) === index);
 };

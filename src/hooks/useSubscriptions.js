@@ -238,6 +238,15 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     setRenewalTarget(null);
   }, [renewalSubscription]);
 
+  const deleteSubscription = useCallback((subscriptionId) => {
+    const target = subscriptions.find((sub) => (sub.subscriptionId || sub.id) === subscriptionId);
+    if (!target) return;
+    setSubscriptions((current) => current.filter((sub) => (sub.subscriptionId || sub.id) !== subscriptionId));
+    if (profile?.user_id) {
+      deleteDbSubscription(profile.user_id, target.subscriptionId || target.id);
+    }
+  }, [profile?.user_id, subscriptions]);
+
   return {
     profile,
     setProfile,
@@ -264,5 +273,6 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     handleAddSubscription,
     updateSubscription,
     muteSubscription,
+    deleteSubscription,
   };
 }

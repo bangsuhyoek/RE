@@ -166,7 +166,7 @@ export function AuthRegister({ onBack, onComplete, existingUsers = [] }) {
     const idDuplicate = ["submate", "admin", "testuser", ...existingIds].includes(accountId.toLowerCase());
     const passwordFormat = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,16}$/.test(password);
     const matching = Boolean(password) && password === passwordConfirm;
-    const nicknameFormat = /^[가-힣a-zA-Z]{3,10}$/.test(nickname);
+    const nicknameFormat = /^[가-힣a-zA-Z0-9\s]{2,12}$/.test(nickname.trim());
     return {
       id: idFormat && !idDuplicate,
       idError: accountId && (!idFormat ? "아이디 5~20자의 영문 소문자, 숫자와 특수기호만 사용 가능합니다." : idDuplicate ? "중복된 아이디가 있습니다." : ""),
@@ -175,7 +175,7 @@ export function AuthRegister({ onBack, onComplete, existingUsers = [] }) {
       matching,
       confirmError: passwordConfirm && !matching ? "비밀번호 확인을 위해 한번 더 입력해주십시오" : "",
       nickname: nicknameFormat,
-      nicknameError: nickname && !nicknameFormat ? "닉네임은 한/영 3~10자로 입력해 주세요." : "",
+      nicknameError: nickname && !nicknameFormat ? "닉네임은 한/영 2~12자로 입력해 주세요." : "",
     };
   }, [accountId, existingUsers, nickname, password, passwordConfirm]);
 
@@ -225,7 +225,7 @@ export function AuthRegister({ onBack, onComplete, existingUsers = [] }) {
         {validation.matching && (
           <label className="field-enter block">
             <span className="mb-2 block text-[13px] font-semibold">닉네임</span>
-            <input className={fieldBase} placeholder="한/영 3~10자" value={nickname} onChange={(event) => setNickname(event.target.value)} />
+            <input className={fieldBase} placeholder="한/영 2~12자" value={nickname} onChange={(event) => setNickname(event.target.value)} />
             <ValidationHint valid={validation.nickname} error={validation.nicknameError} success="사용 가능한 닉네임입니다" />
           </label>
         )}

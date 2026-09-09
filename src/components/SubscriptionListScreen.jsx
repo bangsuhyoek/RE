@@ -3,7 +3,7 @@ import { FilterX, RefreshCw, Search, SlidersHorizontal } from "lucide-react";
 import { Button, Chip, IconButton, SubscriptionCard } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 
-const categories = ["전체", "OTT", "음악", "쇼핑", "생산성"];
+const categories = ["전체", "OTT", "음악", "쇼핑", "생산성", "도서", "클라우드", "게임", "기타"];
 
 export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCancel, onMute, onRefresh }) {
   const [query, setQuery] = useState("");

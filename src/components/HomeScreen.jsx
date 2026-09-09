@@ -5,8 +5,15 @@ import { daysUntilCharge, formatWon } from "../lib/dates";
 
 function SummaryCard({ subscriptions }) {
   const [annual, setAnnual] = useState(false);
-  const monthly = subscriptions.reduce((sum, subscription) => sum + subscription.amount, 0);
-  const displayAmount = annual ? monthly * 12 : monthly;
+  const monthly = subscriptions.reduce((sum, sub) => {
+    const amt = sub.billingCycle === "매년" ? Math.round(sub.amount / 12) : sub.amount;
+    return sum + amt;
+  }, 0);
+  const yearly = subscriptions.reduce((sum, sub) => {
+    const amt = sub.billingCycle === "매년" ? sub.amount : sub.amount * 12;
+    return sum + amt;
+  }, 0);
+  const displayAmount = annual ? yearly : monthly;
   return (
     <button type="button" onClick={() => setAnnual((value) => !value)} className="card-press w-full rounded-[24px] bg-[#191F28] p-5 text-left text-white shadow-[0_4px_20px_rgba(25,31,40,0.12)] border border-[#2B3240]" aria-label="월간 및 연간 지출 전환">
       <div className="flex items-center justify-between">
@@ -22,7 +29,7 @@ function SummaryCard({ subscriptions }) {
         </span>
         <span>
           <span className="block text-[11px] font-medium text-white/60">{annual ? "월 환산" : "연간 환산"}</span>
-          <strong className="mt-0.5 block text-[16px] font-bold text-white tracking-tight">{formatWon(annual ? monthly : monthly * 12)}</strong>
+          <strong className="mt-0.5 block text-[16px] font-bold text-white tracking-tight">{formatWon(annual ? monthly : yearly)}</strong>
         </span>
       </div>
     </button>

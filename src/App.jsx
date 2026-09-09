@@ -178,6 +178,7 @@ export default function App() {
     handleAddSubscription,
     updateSubscription,
     muteSubscription,
+    deleteSubscription,
   } = useSubscriptions({ currentRoute: screen.route });
 
   // Notifications domain state
@@ -481,6 +482,12 @@ export default function App() {
           setHighlightCancelId(null);
           navigate("subscriptions");
         }}
+        onDelete={(id) => {
+          deleteSubscription(id);
+          notify("구독이 삭제되었습니다.");
+          setHighlightCancelId(null);
+          navigate("subscriptions");
+        }}
         promotion={promotionCatalog.find((p) => p.sourceServiceIds?.includes(selectedSubscription?.id))}
         onTriggerNotification={(sub) => handleTriggerTestNotification(sub, notify)}
         highlightCancel={highlightCancelId === selectedSubscription?.subscriptionId}
@@ -613,6 +620,4 @@ export default function App() {
     </div>
   );
 }
-
-
 

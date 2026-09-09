@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Send, Settings2, X, Camera } from "lucide-react";
+import { Send, Settings2, X, Camera, Trash2 } from "lucide-react";
 import {
   Button,
   DDayBadge,
@@ -21,7 +21,7 @@ function DetailField({ label, value }) {
   );
 }
 
-export function SubscriptionDetailScreen({ subscription, subscriptions = [], onUpdate, onStartCancel, onBack, promotion, onTriggerNotification, highlightCancel }) {
+export function SubscriptionDetailScreen({ subscription, subscriptions = [], onUpdate, onStartCancel, onBack, onDelete, promotion, onTriggerNotification, highlightCancel }) {
   const [editing, setEditing] = useState(false);
   const [previewPhoto, setPreviewPhoto] = useState(null);
   const [draft, setDraft] = useState(() => ({
@@ -215,6 +215,18 @@ export function SubscriptionDetailScreen({ subscription, subscriptions = [], onU
       <div className="mt-8 space-y-3">
         <Button size="large" fullWidth className={highlightCancel ? "cancel-highlight" : ""} onClick={() => onStartCancel(subscription.subscriptionId, promotion)}>웹사이트에서 다이렉트 해지하기</Button>
         <Button size="large" fullWidth variant="secondary" onClick={() => setEditing((value) => !value)}>{editing ? "수정 닫기" : "구독 정보 수정"}</Button>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm("이 구독을 목록에서 삭제하시겠습니까?\n(단순 삭제 시 절약 통계에 누적되지 않습니다)")) {
+              onDelete?.(subscription.subscriptionId || subscription.id);
+            }
+          }}
+          className="flex w-full items-center justify-center gap-1.5 py-2.5 text-[13px] font-semibold text-[#8B95A1] hover:text-[#FF4D4D] transition-colors"
+        >
+          <Trash2 size={15} />
+          구독 삭제
+        </button>
       </div>
 
       {previewPhoto && (

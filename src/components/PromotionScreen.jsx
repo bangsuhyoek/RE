@@ -39,11 +39,11 @@ export function PromotionScreen({ subscriptions, promotions, onOpenPromotion }) 
 
   return (
     <main className="px-5 pb-28 pt-6">
-      <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">Curated for you</p>
-      <h1 className="mt-1 text-[24px] font-bold tracking-[-0.02em]">맞춤 혜택 &amp; 프로모션</h1>
-      <p className="mt-2 text-[13px] leading-5 text-[#71717A]">20대 인기 구독 서비스를 더 저렴하게 이용할 수 있는 실시간 혜택 모음이에요.</p>
+     <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">Curated for you</p>
+     <h1 className="mt-1 text-[24px] font-bold tracking-[-0.02em]">맞춤 혜택 &amp; 프로모션</h1>
+      <p className="mt-2 text-[13px] leading-5 text-[#71717A]">스마트한 구독 생활을 위한 실시간 맞춤 혜택 모음이에요.</p>
 
-      {/* 절약 시뮬레이션 카드 */}
+     {/* 절약 시뮬레이션 카드 */}
       <section className="mt-5 rounded-2xl bg-[#18181B] p-4 text-white">
         <div className="flex items-center gap-2 text-[#A1A1AA]">
           <TrendingDown size={16} className="text-white" />

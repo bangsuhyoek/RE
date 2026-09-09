@@ -16,16 +16,35 @@ export function CalendarScreen({ subscriptions, onOpen }) {
   const duesByDay = useMemo(() => {
     const map = new Map();
     for (const sub of subscriptions) {
+      if (sub.billingCycle === "매년") {
+        const chargeMonth = sub.nextBillingDate
+          ? new Date(sub.nextBillingDate).getMonth()
+          : sub.createdAt
+          ? new Date(sub.createdAt).getMonth()
+          : null;
+        if (chargeMonth !== null && chargeMonth !== month) {
+          continue;
+        }
+      }
       const day = Math.min(sub.dueDay, lastDay);
       const list = map.get(day) || [];
       list.push(sub);
       map.set(day, list);
     }
     return map;
-  }, [lastDay, subscriptions]);
+  }, [lastDay, subscriptions, month]);
 
   const selectedDues = duesByDay.get(clampedDay) || [];
   const selectedTotal = selectedDues.reduce((sum, item) => sum + item.amount, 0);
+  const monthTotal = useMemo(() => {
+    let total = 0;
+    for (const list of duesByDay.values()) {
+      for (const item of list) {
+        total += item.amount;
+      }
+    }
+    return total;
+  }, [duesByDay]);
 
   const prevMonth = () => setDate(new Date(year, month - 1, 1));
   const nextMonth = () => setDate(new Date(year, month + 1, 1));
@@ -35,7 +54,14 @@ export function CalendarScreen({ subscriptions, onOpen }) {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">Billing calendar</p>
-          <h1 className="mt-1 text-[22px] font-extrabold tracking-tight text-[#191F28]">{formatKoreanMonth(year, month)}</h1>
+          <h1 className="mt-1 flex items-center gap-2 text-[22px] font-extrabold tracking-tight text-[#191F28]">
+            {formatKoreanMonth(year, month)}
+            {monthTotal > 0 && (
+              <span className="rounded-full bg-[#F2F4F6] px-2.5 py-0.5 text-[12px] font-bold text-[#4E5968]">
+                총 {formatWon(monthTotal)}
+              </span>
+            )}
+          </h1>
         </div>
         <div className="flex gap-1">
           <IconButton variant="weak" size="medium" onClick={prevMonth} aria-label="이전 달"><ChevronLeft size={16} /></IconButton>

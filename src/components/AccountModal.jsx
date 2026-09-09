@@ -43,8 +43,8 @@ export function AccountModal({ profile, onClose, onUpdateNickname, onLogout }) {
   const handleSaveNickname = (e) => {
     e.preventDefault();
     const trimmed = nicknameInput.trim();
-    if (!/^[가-힣a-zA-Z]{3,10}$/.test(trimmed)) {
-      setError("닉네임은 한글 또는 영문 3~10자로 입력해 주세요.");
+    if (!/^[가-힣a-zA-Z0-9\s]{2,12}$/.test(trimmed)) {
+      setError("닉네임은 한/영 2~12자로 입력해 주세요.");
       return;
     }
     if (trimmed === currentNickname) {
@@ -58,7 +58,7 @@ export function AccountModal({ profile, onClose, onUpdateNickname, onLogout }) {
     }, 2000);
   };
 
-  const isValidNickname = /^[가-힣a-zA-Z]{3,10}$/.test(nicknameInput.trim());
+  const isValidNickname = /^[가-힣a-zA-Z0-9\s]{2,12}$/.test(nicknameInput.trim());
   const canSave = isValidNickname && nicknameInput.trim() !== currentNickname;
 
   return (
@@ -107,7 +107,7 @@ export function AccountModal({ profile, onClose, onUpdateNickname, onLogout }) {
         <label className="block">
           <span className="block text-[13px] font-bold text-[#191F28]">닉네임 변경</span>
           <span className="mt-0.5 block text-[11px] text-[#8B95A1]">
-            홈 화면 및 알림에 표시되는 호칭이에요 (한/영 3~10자)
+            홈 화면 및 알림에 표시되는 호칭이에요 (한/영 2~12자)
           </span>
           <div className="mt-2.5 flex items-center gap-2">
             <input
@@ -115,7 +115,7 @@ export function AccountModal({ profile, onClose, onUpdateNickname, onLogout }) {
               value={nicknameInput}
               onChange={handleNicknameChange}
               placeholder="새 닉네임 입력"
-              maxLength={10}
+              maxLength={12}
               className="flex-1 rounded-xl border border-[#E5E8EB] bg-white px-3.5 py-2.5 text-[14px] text-[#191F28] outline-none transition-colors focus:border-black placeholder:text-[#A1A1AA]"
             />
             <button
