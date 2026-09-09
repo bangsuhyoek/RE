@@ -1,207 +1,147 @@
-import { useMemo, useState } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight, Inbox, ReceiptText, ScanLine, Sparkles } from "lucide-react";
-import { Button, IconButton, SubscriptionCard } from "./ui";
-import { daysUntilCharge, formatWon } from "../lib/dates";
+import { useMemo } from "react";
+import { Bell, ChevronRight, Leaf, Plus, RotateCcw } from "lucide-react";
+import { Button, ServiceMark } from "./ui";
+import { daysUntilCharge, formatBillingDate, formatWon } from "../lib/dates";
+import { RECharacter } from "./REBrand";
 
-function SummaryCard({ subscriptions }) {
-  const [annual, setAnnual] = useState(false);
-  const monthly = subscriptions.reduce((sum, subscription) => sum + subscription.amount, 0);
-  const displayAmount = annual ? monthly * 12 : monthly;
+function EmptyHome({ onAdd }) {
   return (
-    <button type="button" onClick={() => setAnnual((value) => !value)} className="card-press w-full rounded-[24px] bg-[#191F28] p-5 text-left text-white shadow-[0_4px_20px_rgba(25,31,40,0.12)] border border-[#2B3240]" aria-label="월간 및 연간 지출 전환">
-      <div className="flex items-center justify-between">
-        <span className="text-[13px] font-semibold text-white/70">{annual ? "연간 환산 지출액" : "이번 달 총 결제 예정"}</span>
-        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/80 backdrop-blur-xs">{annual ? "연간 보기" : "월간 보기"}</span>
-      </div>
-      <span className="mt-2.5 block text-[32px] font-extrabold tracking-tight text-white">{formatWon(displayAmount)}</span>
-      <span className="mt-1 flex items-center gap-1 text-[12px] text-white/50">탭하면 {annual ? "월간" : "연간"} 지출로 전환</span>
-      <div className="mt-5 grid grid-cols-2 gap-3 rounded-2xl bg-white/[0.06] p-3.5 backdrop-blur-xs">
-        <span>
-          <span className="block text-[11px] font-medium text-white/60">활성 구독</span>
-          <strong className="mt-0.5 block text-[16px] font-bold text-white tracking-tight">{subscriptions.length}개</strong>
-        </span>
-        <span>
-          <span className="block text-[11px] font-medium text-white/60">{annual ? "월 환산" : "연간 환산"}</span>
-          <strong className="mt-0.5 block text-[16px] font-bold text-white tracking-tight">{formatWon(annual ? monthly : monthly * 12)}</strong>
-        </span>
-      </div>
-    </button>
-  );
-}
-
-function PromotionCarousel({ promotions, onOpen, onExplore }) {
-  const [index, setIndex] = useState(0);
-  const items = promotions.slice(0, 4);
-  if (!items.length) return null;
-  const promo = items[index];
-  const typeLabels = ["01 더 저렴한 대체", "02 무료 · 이벤트", "03 연간 · 학생 할인", "04 통신사 결합"];
-  const next = () => setIndex((value) => (value + 1) % items.length);
-  const previous = () => setIndex((value) => (value + items.length - 1) % items.length);
-  return (
-    <section className="mt-8">
-      <div className="mb-3 flex items-end justify-between">
+    <main className="re-home px-6 pb-28 pt-8">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717A]">Smart alternative</p>
-          <h2 className="mt-1 text-[18px] font-bold tracking-tight text-[#191F28]">더 아낄 수 있는 선택</h2>
+          <h1 className="text-[24px] font-extrabold leading-[1.35] text-[#1B2A8C]">안녕하세요,<br /><span className="inline-flex items-center gap-2">좋은 하루예요. <Leaf size={19} className="text-[#6FB48A]" /></span></h1>
+          <p className="mt-4 text-[14px] leading-6 text-[#9099CA]">오늘도 가벼운 선택이<br />더 좋은 내일을 만들어요.</p>
         </div>
-        <button type="button" onClick={onExplore} className="flex items-center gap-0.5 text-[13px] font-semibold text-[#6B7684] hover:text-[#191F28] transition-colors">전체보기 <ChevronRight size={15} /></button>
+        <RECharacter state="idle" className="h-[112px] w-auto object-contain" />
       </div>
-      <article className="overflow-hidden rounded-2xl border border-[#E5E8EB] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-        <div className="p-5">
-          <div className="flex items-start justify-between gap-4">
-            <span className="rounded-[6px] bg-[#191F28] px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs">{typeLabels[index] || "추천 혜택"}</span>
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F2F4F6] text-[13px] font-bold text-[#191F28] border border-[#E5E8EB]">{promo.monogram || promo.title.slice(0, 1)}</span>
-          </div>
-          <h3 className="mt-4 text-[18px] font-bold tracking-tight text-[#191F28]">{promo.title}</h3>
-          <p className="mt-1.5 min-h-10 text-[13px] leading-relaxed text-[#6B7684]">{promo.description}</p>
-          <div className="mt-4 flex items-end justify-between">
-            <span>
-              <span className="block text-[11px] font-semibold text-[#8B95A1]">예상 절약</span>
-              <strong className="mt-0.5 block text-[18px] font-extrabold tracking-tight text-[#191F28]">{formatWon(promo.saving)}</strong>
-            </span>
-            <Button size="compact" onClick={() => onOpen(promo)}>혜택 보기 <ArrowRight size={15} /></Button>
-          </div>
-        </div>
-        <div className="flex items-center justify-between border-t border-[#F2F4F6] bg-[#F9FAFB] px-4 py-3">
-          <div className="flex gap-1.5" aria-label="추천 단계">
-            {items.map((item, dotIndex) => <span key={item.id} className={`h-1.5 rounded-full transition-all ${dotIndex === index ? "w-4 bg-[#191F28]" : "w-1.5 bg-[#D1D6DB]"}`} />)}
-          </div>
-          <div className="flex gap-1">
-            <IconButton size="small" variant="weak" onClick={previous} aria-label="이전 추천"><ChevronLeft size={16} /></IconButton>
-            <IconButton size="small" variant="weak" onClick={next} aria-label="다음 추천"><ChevronRight size={16} /></IconButton>
-          </div>
-        </div>
-      </article>
-    </section>
+
+      <section className="re-dashboard-card mt-7 rounded-[22px] p-5 text-center">
+        <p className="text-[13px] text-[#9099CA]">관리 중인 구독</p>
+        <strong className="mt-2 block text-[30px] text-[#1B2A8C]">0개</strong>
+        <p className="mt-4 text-[13px] leading-6 text-[#7E8AC0]">아직 확인된 구독이 없어요.<br />확인되는 순간 RE.가 같이 챙길게요.</p>
+        <Button className="mt-5 w-full" onClick={onAdd}><Plus size={17} /> 구독 직접 등록하기</Button>
+      </section>
+    </main>
   );
 }
 
-function EmptyState({ onAdd, onScan }) {
-  return (
-    <section className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-center px-5 text-center">
-      <span className="grid h-16 w-16 place-items-center rounded-3xl bg-[#F2F4F6] text-[#6B7684] border border-[#E5E8EB]"><Inbox size={28} strokeWidth={1.75} /></span>
-      <h1 className="mt-6 text-[22px] font-bold tracking-tight text-[#191F28]">등록된 구독 서비스가 없습니다</h1>
-      <p className="mt-2 max-w-[280px] text-[14px] leading-relaxed text-[#6B7684]">하단의 + 버튼이나 아래 버튼으로 구독을 추가해보세요.</p>
-      <div className="mt-8 w-full space-y-3">
-        <Button size="large" fullWidth onClick={onAdd} prefixIcon={<ReceiptText size={18} />}>첫 구독 서비스 등록하기</Button>
-        <Button size="large" fullWidth variant="secondary" onClick={onScan} prefixIcon={<ScanLine size={18} />}>영수증 AI 스캔하기</Button>
-      </div>
-      <div className="mt-8 flex items-center gap-2.5 rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] px-4 py-3.5 text-left shadow-2xs">
-        <Sparkles size={18} className="shrink-0 text-[#FF6F0F]" />
-        <p className="text-[12px] leading-5 text-[#6B7684]">구독을 등록하면 내 사용 패턴에 맞는 프로모션을 추천해드려요.</p>
-      </div>
-    </section>
+export function HomeScreen({
+  subscriptions,
+  promotions,
+  profile,
+  notificationDenied,
+  onOpenSubscription,
+  onReviewSubscription,
+  onShowAll,
+  onOpenPromotion,
+  onExplorePromotions,
+  onAdd,
+  onToggleNotificationPermission,
+  onResumeCancel,
+}) {
+  const sorted = useMemo(
+    () => [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b)),
+    [subscriptions]
   );
-}
+  const upcoming = sorted.filter((item) => item.status !== "cancel_pending").slice(0, 3);
+  const monthly = subscriptions.reduce((sum, subscription) => {
+    if (subscription.status === "cancel_pending") return sum;
+    const amount = Number(subscription.amount || 0);
+    return sum + (subscription.billingCycle === "매년" ? Math.round(amount / 12) : amount);
+  }, 0);
+  const cancelInProgress = subscriptions.find((subscription) => subscription.status === "cancel_in_progress");
+  const urgent = sorted.find((subscription) =>
+    subscription.status !== "cancel_pending" && subscription.status !== "cancel_in_progress" && daysUntilCharge(subscription) <= 3
+  );
+  const needsReview = subscriptions.filter((subscription) =>
+    subscription.status === "cancel_in_progress" ||
+    (subscription.status !== "cancel_pending" && daysUntilCharge(subscription) <= 3)
+  ).length;
+  const eligiblePromotions = (promotions || []).filter((promotion) =>
+    promotion.sourceServiceIds?.some((id) => subscriptions.some((subscription) => subscription.id === id))
+  );
 
-export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onScan, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTestPaymentDetection, onRequestPaymentCapture, onOpenTerms }) {
-  const upcoming = useMemo(() => [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b)).slice(0, 3), [subscriptions]);
-
-  if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onScan || onAdd} />;
+  if (!subscriptions.length) return <EmptyHome onAdd={onAdd} />;
 
   return (
-    <main className="px-5 pb-28 pt-6">
-      <p className="text-[13px] font-semibold text-[#8B95A1]">{profile?.nickname || "민수"}님, 이번 달</p>
-      <h1 className="mt-0.5 text-[24px] font-extrabold tracking-tight text-[#191F28]">고정지출을 확인하세요</h1>
+    <main className="re-home px-6 pb-28 pt-7">
+      <header className="flex items-center justify-end gap-2">
+        <button type="button" onClick={onToggleNotificationPermission} className="re-icon-button" aria-label="알림 설정"><Bell size={19} /></button>
+        <div className="h-9 w-9 overflow-hidden rounded-full border-2 border-white shadow-sm"><img src="/re-assets/char_stand.jpg" alt="" className="h-full w-full object-cover object-top" /></div>
+      </header>
+
+      <section className="mt-4">
+        <h1 className="text-[24px] font-extrabold leading-[1.35] text-[#1B2A8C]">{profile?.nickname ? `${profile.nickname}님,` : "안녕하세요,"}<br /><span className="inline-flex items-center gap-2">좋은 하루예요. <Leaf size={19} className="text-[#6FB48A]" /></span></h1>
+        <p className="mt-4 text-[14px] leading-6 text-[#9099CA]">오늘도 가벼운 선택이<br />더 좋은 내일을 만들어요.</p>
+      </section>
+
       {notificationDenied && (
-        <button
-          type="button"
-          onClick={onToggleNotificationPermission}
-          className="mt-5 flex w-full items-center justify-between rounded-2xl border border-[#FFE8CC] bg-[#FFF9F2] p-4 text-left shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all active:scale-[0.98]"
-        >
-          <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF6F0F] text-white shadow-2xs">
-              <Sparkles size={16} />
-            </span>
-            <div>
-              <strong className="block text-[13px] font-bold text-[#191F28]">결제 전 알림이 꺼져 있어요</strong>
-              <span className="mt-0.5 block text-[12px] font-medium text-[#8B95A1]">탭하여 알림을 켜고 D-3, D-1에 미리 안내받으세요.</span>
-            </div>
-          </div>
-          <span className="rounded-lg bg-[#FF6F0F] px-3 py-1.5 text-[12px] font-bold text-white shadow-2xs">
-            켜기
-          </span>
+        <button type="button" onClick={onToggleNotificationPermission} className="re-notice mt-5 w-full rounded-2xl p-4 text-left">
+          <strong className="text-[13px] text-[#3746A5]">결제 전 알림이 꺼져 있어요</strong>
+          <p className="mt-1 text-[12px] text-[#7E8AC0]">필요한 순간 먼저 알려드릴 수 있게 켜주세요.</p>
         </button>
       )}
-      {/* 실시간 결제 감지 안내 및 체험 카드 */}
-      <div className={`flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5 shadow-2xs ${notificationDenied ? "mt-3" : "mt-5"}`}>
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white font-bold text-sm shadow-xs">
-            ⚡
-          </span>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <strong className="text-[13px] font-bold text-emerald-950">실시간 결제 감지</strong>
-              <span className="rounded bg-emerald-200/80 px-1.5 py-0.2 text-[9px] font-bold text-emerald-800">Beta</span>
-            </div>
-            <p className="mt-0.5 text-[11px] text-emerald-700/80 truncate">
-              웹/앱에서 카드 결제 시 알림을 감지해 바로 등록해드려요.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0 ml-2">
-          <button
-            type="button"
-            onClick={onTestPaymentDetection}
-            className="rounded-lg border border-emerald-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-emerald-900 shadow-2xs hover:bg-emerald-50 active:scale-95 transition-all"
-          >
-            체험
-          </button>
-          <button
-            type="button"
-            onClick={onRequestPaymentCapture}
-            className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-2xs hover:bg-emerald-700 active:scale-95 transition-all"
-          >
-            설정
-          </button>
-        </div>
-      </div>
-      <div className="mt-5"><SummaryCard subscriptions={subscriptions} /></div>
 
-      <section className="mt-8">
-        <div className="mb-3 flex items-end justify-between">
-          <div>
-            <p className="mb-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8B95A1]">Upcoming</p>
-            <h2 className="text-[18px] font-bold tracking-tight text-[#191F28]">결제 임박 (최대 3개)</h2>
+      <section className="mt-6">
+        <p className="re-eyebrow">NOW</p>
+        <h2 className="mt-1 text-[16px] font-extrabold text-[#1B2A8C]">지금 확인할 것</h2>
+        {cancelInProgress ? (
+          <button type="button" onClick={() => onResumeCancel(cancelInProgress.subscriptionId)} className="re-action-card mt-3 w-full rounded-[20px] p-4 text-left">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2.5 py-1 text-[10px] font-bold text-[#3746A5]"><RotateCcw size={12} /> 해지 이어하기</span>
+                <strong className="mt-3 block text-[17px] leading-6 text-[#1B2A8C]">{cancelInProgress.name} 해지를<br />이어서 마무리할까요?</strong>
+              </div>
+              <RECharacter state="guide" className="h-[88px] w-auto object-contain" />
+            </div>
+          </button>
+        ) : urgent ? (
+          <button type="button" onClick={() => onReviewSubscription(urgent.subscriptionId)} className="re-action-card mt-3 w-full rounded-[20px] p-4 text-left">
+            <span className="text-[11px] font-bold text-[#6D5D91]">결제까지 {daysUntilCharge(urgent) <= 0 ? "오늘" : `${daysUntilCharge(urgent)}일`}</span>
+            <strong className="mt-2 block text-[17px] leading-6 text-[#1B2A8C]">{urgent.name}을 이번에도<br />계속 이용할까요?</strong>
+            <span className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-[#475FAC]">확인하기 <ChevronRight size={14} /></span>
+          </button>
+        ) : (
+          <div className="re-calm-card mt-3 rounded-[20px] p-4">
+            <strong className="text-[14px] text-[#3746A5]">지금은 괜찮아요.</strong>
+            <p className="mt-1 text-[12px] leading-5 text-[#7E8AC0]">급하게 확인할 항목이 없어요. 필요한 순간에만 먼저 알려드릴게요.</p>
           </div>
-          {subscriptions.length > 3 && (
-            <button type="button" onClick={onShowAll} className="flex items-center gap-0.5 text-[13px] font-semibold text-[#6B7684] hover:text-[#191F28] transition-colors">
-              전체보기 <ChevronRight size={15} />
-            </button>
-          )}
+        )}
+      </section>
+
+      <section className="re-dashboard-card mt-6 rounded-[22px] p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[13px] text-[#9099CA]">관리 중인 구독</p>
+            <strong className="mt-1 block text-[30px] text-[#1B2A8C]">{subscriptions.length}개</strong>
+          </div>
+          <button type="button" onClick={onShowAll} className="grid h-10 w-10 place-items-center rounded-full bg-[#E3E6F7] text-[#3746A5]" aria-label="구독 전체보기"><ChevronRight size={18} /></button>
         </div>
-        <div className="space-y-3">
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="rounded-[14px] bg-[#E7F7F6] p-3"><strong className="text-[17px] text-[#3746A5]">{formatWon(monthly)}</strong><span className="mt-1 block text-[11px] text-[#7E8AC0]">이번 달 결제 예상</span></div>
+          <div className="rounded-[14px] bg-[#FCEBE5] p-3"><strong className="text-[17px] text-[#3746A5]">{needsReview}개</strong><span className="mt-1 block text-[11px] text-[#7E8AC0]">검토가 필요해요.</span></div>
+        </div>
+      </section>
+
+      <section className="mt-7">
+        <div className="flex items-center justify-between"><h2 className="text-[17px] font-extrabold text-[#1B2A8C]">최근 활동</h2><button type="button" onClick={onShowAll} className="text-[12px] text-[#7E8AC0]">모두 보기</button></div>
+        <div className="re-dashboard-card mt-3 divide-y divide-[#E4EAF6] rounded-[22px] px-4">
           {upcoming.map((subscription) => (
-            <SubscriptionCard
-              key={subscription.subscriptionId}
-              subscription={subscription}
-              detail
-              onOpen={() => onOpenSubscription(subscription.subscriptionId)}
-            />
+            <button key={subscription.subscriptionId} type="button" onClick={() => onOpenSubscription(subscription.subscriptionId)} className="flex w-full items-center gap-3 py-4 text-left">
+              <ServiceMark monogram={subscription.monogram || subscription.name?.[0]} />
+              <span className="min-w-0 flex-1"><strong className="block truncate text-[14px] text-[#1B2A8C]">{subscription.name}</strong><span className="mt-1 block text-[11px] text-[#9099CA]">{formatBillingDate(subscription)}</span></span>
+              <strong className="text-[13px] text-[#3746A5]">{formatWon(subscription.amount)}</strong>
+            </button>
           ))}
         </div>
       </section>
 
-      <PromotionCarousel promotions={promotions} onOpen={onOpenPromotion} onExplore={onExplorePromotions} />
-      {/* Legal & Terms Footer */}
-      <footer className="mt-12 border-t border-[#F2F4F6] pt-6 pb-2 text-center">
-        <div className="flex items-center justify-center gap-2.5 text-[11px] text-[#8B95A1]">
-          <button type="button" onClick={() => onOpenTerms?.("terms")} className="hover:text-[#191F28] hover:underline">
-            서비스 이용약관
-          </button>
-          <span>·</span>
-          <button type="button" onClick={() => onOpenTerms?.("privacy")} className="hover:text-[#191F28] hover:underline">
-            개인정보 처리방침
-          </button>
-          <span>·</span>
-          <button type="button" onClick={() => onOpenTerms?.("permissions")} className="hover:text-[#191F28] hover:underline">
-            권한 사전 고지
-          </button>
-        </div>
-        <p className="mt-2 text-[10px] text-[#B0B8C1]">
-          © 2026 SubMate. 구독 관리 및 실시간 결제 감지 서비스
-        </p>
-      </footer>
+      {eligiblePromotions.length > 0 && (
+        <section className="mt-7">
+          <div className="flex items-center justify-between"><h2 className="text-[17px] font-extrabold text-[#1B2A8C]">받을 수 있는 혜택</h2><button type="button" onClick={onExplorePromotions} className="text-[12px] text-[#7E8AC0]">전체보기</button></div>
+          <button type="button" onClick={() => onOpenPromotion(eligiblePromotions[0])} className="re-dashboard-card mt-3 w-full rounded-[20px] p-4 text-left"><strong className="text-[14px] text-[#3746A5]">{eligiblePromotions[0].title}</strong><p className="mt-1 text-[12px] leading-5 text-[#9099CA]">{eligiblePromotions[0].description}</p></button>
+        </section>
+      )}
     </main>
   );
 }

@@ -1,375 +1,82 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ArrowLeft,
-  BellOff,
-  CalendarDays,
-  Camera,
-  CreditCard,
-  Home,
-  Plus,
-  Sparkles,
-  Loader2,
-  X,
-} from "lucide-react";
+import { useRef, useState } from "react";
+import { ArrowLeft, BellOff, CalendarDays, CreditCard, Home, Plus, Sparkles, X } from "lucide-react";
 import { daysUntilCharge, formatBillingDate, formatWon } from "../lib/dates";
-import {
-  PaymentIcon,
-  PaymentMethodBadge,
-  PAYMENT_PRESETS,
-  PaymentMethodTriggerField,
-  PaymentMethodPickerModal,
-} from "./PaymentMethod";
-
-export {
-  PaymentIcon,
-  PaymentMethodBadge,
-  PAYMENT_PRESETS,
-  PaymentMethodTriggerField,
-  PaymentMethodPickerModal,
-};
+import { RELogo } from "./REBrand";
 
 const cx = (...classes) => classes.filter(Boolean).join(" ");
 
 export function LogoMark({ className = "" }) {
-  return (
-    <span className={cx("grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#191F28] text-sm font-bold text-white shadow-sm", className)} aria-hidden="true">
-      S
-    </span>
-  );
+  return <span className={cx("inline-flex items-center", className)}><RELogo markClassName="h-8 w-auto" /></span>;
 }
 
-export function ServiceMark({ monogram, image = null, className = "" }) {
-  if (image) {
-    return (
-      <img
-        src={image}
-        alt=""
-        className={cx("h-11 w-11 shrink-0 rounded-2xl object-cover border border-[#E5E8EB]", className)}
-      />
-    );
-  }
-  const display = (monogram && monogram.trim()) ? monogram.trim().slice(0, 2).toUpperCase() : "S";
-  return (
-    <span className={cx("grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#F2F4F6] text-sm font-bold text-[#191F28] border border-[#E5E8EB]", className)} aria-hidden="true">
-      {display}
-    </span>
-  );
+export function ServiceMark({ monogram, className = "" }) {
+  const display = monogram?.trim()?.slice(0, 2).toUpperCase() || "RE";
+  return <span className={cx("grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-[#E4EAF6] bg-white text-[12px] font-extrabold text-[#3746A5] shadow-sm", className)}>{display}</span>;
 }
 
-/**
- * SEED Action Button Component
- * Supports SEED-aligned variants (Neutral Solid, Neutral Weak, Neutral Outline, Brand Solid, Critical Solid, Ghost)
- * and sizes (Large, Medium/Default, Small/Compact, XSmall, Icon) with tactile micro-press feedback.
- */
-export function Button({
-  children,
-  className = "",
-  variant = "primary",
-  size = "default",
-  type = "button",
-  loading = false,
-  disabled = false,
-  fullWidth = false,
-  prefixIcon = null,
-  suffixIcon = null,
-  ...props
-}) {
-  const variants = {
-    primary: "bg-[#191F28] text-white hover:bg-[#2C3440] active:bg-[#384252] shadow-sm",
-    "neutral-solid": "bg-[#191F28] text-white hover:bg-[#2C3440] active:bg-[#384252] shadow-sm",
-    secondary: "bg-[#F2F4F6] text-[#333D4B] hover:bg-[#E5E8EB] active:bg-[#D1D6DB]",
-    "neutral-weak": "bg-[#F2F4F6] text-[#333D4B] hover:bg-[#E5E8EB] active:bg-[#D1D6DB]",
-    outline: "border border-[#E5E8EB] bg-white text-[#333D4B] hover:bg-[#F9FAFB] active:bg-[#F2F4F6]",
-    "neutral-outline": "border border-[#E5E8EB] bg-white text-[#333D4B] hover:bg-[#F9FAFB] active:bg-[#F2F4F6]",
-    brand: "bg-[#FF6F0F] text-white hover:bg-[#E85E00] active:bg-[#D25400] shadow-sm",
-    "brand-solid": "bg-[#FF6F0F] text-white hover:bg-[#E85E00] active:bg-[#D25400] shadow-sm",
-    danger: "bg-[#FF4D4D] text-white hover:bg-[#E53935] active:bg-[#CC2E2E]",
-    "critical-solid": "bg-[#FF4D4D] text-white hover:bg-[#E53935] active:bg-[#CC2E2E]",
-    ghost: "text-[#4E5968] hover:bg-[#F2F4F6] hover:text-[#191F28] active:bg-[#E5E8EB]",
-  };
-  const sizes = {
-    large: "min-h-[52px] rounded-2xl px-5 text-[16px] font-bold tracking-tight",
-    default: "min-h-[46px] rounded-xl px-4 text-[15px] font-semibold tracking-tight",
-    compact: "min-h-[36px] rounded-lg px-3.5 text-[13px] font-semibold tracking-tight",
-    xsmall: "min-h-[28px] rounded-full px-2.5 text-[12px] font-medium tracking-tight",
-    icon: "grid h-10 w-10 place-items-center rounded-xl p-0",
-  };
-  const isDisabled = disabled || loading;
-  return (
-    <button
-      type={type}
-      disabled={isDisabled}
-      className={cx(
-        "relative inline-flex select-none items-center justify-center gap-1.5 transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#191F28]",
-        isDisabled ? "cursor-not-allowed opacity-40 pointer-events-none active:scale-100" : "cursor-pointer",
-        fullWidth && "w-full",
-        variants[variant] || variants.primary,
-        sizes[size] || sizes.default,
-        className,
-      )}
-      {...props}
-    >
-      {loading ? (
-        <span className="inline-flex items-center gap-2">
-          <Loader2 size={size === "compact" || size === "xsmall" ? 14 : 17} className="animate-spin" />
-          <span>{children}</span>
-        </span>
-      ) : (
-        <>
-          {prefixIcon && <span className="inline-flex shrink-0 items-center">{prefixIcon}</span>}
-          {children}
-          {suffixIcon && <span className="inline-flex shrink-0 items-center">{suffixIcon}</span>}
-        </>
-      )}
-    </button>
-  );
-}
-
-/**
- * SEED Icon Button Component
- * For navigation, back, close, or action icon targets with min 36-40px touch zone.
- */
-export function IconButton({
-  children,
-  className = "",
-  variant = "ghost",
-  size = "medium",
-  type = "button",
-  disabled = false,
-  ...props
-}) {
-  const variants = {
-    ghost: "text-[#4E5968] hover:bg-[#F2F4F6] hover:text-[#191F28] active:bg-[#E5E8EB]",
-    weak: "bg-[#F2F4F6] text-[#333D4B] hover:bg-[#E5E8EB] active:bg-[#D1D6DB]",
-    outline: "border border-[#E5E8EB] bg-white text-[#333D4B] hover:bg-[#F9FAFB] active:bg-[#F2F4F6]",
-    solid: "bg-[#191F28] text-white hover:bg-[#2C3440] active:bg-[#384252]",
-  };
-  const sizes = {
-    large: "h-11 w-11 rounded-xl",
-    medium: "h-9 w-9 rounded-lg",
-    small: "h-7 w-7 rounded-md",
-  };
-  return (
-    <button
-      type={type}
-      disabled={disabled}
-      className={cx(
-        "grid place-items-center select-none transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.94] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#191F28]",
-        disabled ? "cursor-not-allowed opacity-40 pointer-events-none" : "cursor-pointer",
-        variants[variant] || variants.ghost,
-        sizes[size] || sizes.medium,
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
-
-/**
- * SEED Chip Component
- * For filters, categories, and selectable option tags.
- */
-export function Chip({
-  children,
-  selected = false,
-  className = "",
-  type = "button",
-  disabled = false,
-  ...props
-}) {
-  return (
-    <button
-      type={type}
-      disabled={disabled}
-      className={cx(
-        "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-semibold tracking-tight transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.96]",
-        selected
-          ? "bg-[#191F28] text-white shadow-sm"
-          : "bg-[#F2F4F6] text-[#4E5968] hover:bg-[#E5E8EB] hover:text-[#191F28] active:bg-[#D1D6DB]",
-        disabled && "cursor-not-allowed opacity-40 pointer-events-none",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
-
-/**
- * SEED Segmented Control Component
- * Container and tab items for 2~4 option fast switching.
- */
-export function SegmentedControl({
-  options = [],
-  value,
-  onChange,
-  className = "",
-}) {
-  return (
-    <div className={cx("flex items-center gap-1 rounded-xl bg-[#F2F4F6] p-1", className)} role="tablist">
-      {options.map((option) => {
-        const isSelected = option.value === value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            role="tab"
-            aria-selected={isSelected}
-            onClick={() => onChange(option.value)}
-            className={cx(
-              "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-[13px] font-semibold tracking-tight transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)]",
-              isSelected
-                ? "bg-white text-[#191F28] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
-                : "text-[#8B95A1] hover:text-[#4E5968] active:scale-[0.98]",
-            )}
-          >
-            {option.icon && <span className="shrink-0">{option.icon}</span>}
-            <span>{option.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
+export function Button({ children, className = "", variant = "primary", size = "default", type = "button", ...props }) {
+  const variants = { primary: "re-btn-primary", secondary: "re-btn-secondary", ghost: "re-btn-ghost", danger: "re-btn-danger" };
+  const sizes = { default: "rounded-2xl px-4 py-3.5 text-[15px]", compact: "rounded-xl px-3 py-2.5 text-[13px]", icon: "grid h-10 w-10 place-items-center rounded-xl" };
+  return <button type={type} className={cx("inline-flex items-center justify-center gap-2 font-bold transition active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-40", variants[variant], sizes[size], className)} {...props}>{children}</button>;
 }
 
 export function DDayBadge({ subscription }) {
-  const days = daysUntilCharge(subscription);
-  if (subscription.isTrial || subscription.status === "trial") {
-    return <span className="rounded-[6px] border border-[#FFE8CC] bg-[#FFF4E6] px-2 py-0.5 text-[11px] font-bold tracking-tight text-[#E85E00]">TRIAL D-{days}</span>;
-  }
-  if (days === 0) {
-    return <span className="today-pulse rounded-[6px] bg-[#FF4D4D] px-2 py-0.5 text-[11px] font-bold tracking-tight text-white shadow-sm">TODAY</span>;
-  }
-  if (days <= 3) {
-    return <span className="rounded-[6px] border border-[#FFD8D8] bg-[#FFF0F0] px-2 py-0.5 text-[11px] font-bold tracking-tight text-[#E03E3E]">D-{days}</span>;
-  }
-  return <span className="rounded-[6px] bg-[#F2F4F6] px-2 py-0.5 text-[11px] font-semibold tracking-tight text-[#6B7684]">D-{days}</span>;
+  if (subscription.status === "cancel_in_progress") return <span className="rounded-full bg-[#FCEBE5] px-2.5 py-1 text-[10px] font-bold text-[#9B5E49]">해지 진행</span>;
+  if (subscription.status === "cancel_pending") return <span className="rounded-full bg-[#E3E6F7] px-2.5 py-1 text-[10px] font-bold text-[#3746A5]">해지 확인</span>;
+  const days = Math.max(0, daysUntilCharge(subscription));
+  if (subscription.isTrial || subscription.status === "trial") return <span className="rounded-full bg-[#E3E6F7] px-2.5 py-1 text-[10px] font-bold text-[#3746A5]">TRIAL D-{days}</span>;
+  if (days === 0) return <span className="today-pulse rounded-full bg-[#3746A5] px-2.5 py-1 text-[10px] font-bold text-white">TODAY</span>;
+  return <span className="rounded-full bg-[#F4F7FD] px-2.5 py-1 text-[10px] font-bold text-[#7E8AC0]">D-{days}</span>;
 }
 
 export function ToggleSwitch({ checked, onChange, label }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={cx(
-        "relative inline-flex h-7 w-12 shrink-0 cursor-pointer select-none rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#191F28] active:scale-[0.97]",
-        checked ? "bg-[#191F28]" : "bg-[#E5E8EB]",
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className={cx(
-          "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.15)] ring-0 transition duration-200 ease-in-out",
-          checked ? "translate-x-5" : "translate-x-0",
-        )}
-      />
-    </button>
-  );
+  return <button type="button" role="switch" aria-checked={checked} aria-label={label} onClick={() => onChange(!checked)} className={cx("relative inline-flex h-7 w-12 rounded-full p-0.5 transition", checked ? "bg-[#475FAC]" : "bg-[#DDE3F2]")}><span className={cx("h-6 w-6 rounded-full bg-white shadow transition", checked ? "translate-x-5" : "translate-x-0")} /></button>;
 }
 
 export function AppHeader({ title, onBack, rightSlot = null }) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-[#F2F4F6] bg-white/95 px-5 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#E4EAF6] bg-[#F7FAFD]/95 px-5 backdrop-blur-xl">
       <div className="flex items-center gap-2">
-        {onBack ? (
-          <IconButton onClick={onBack} aria-label="뒤로가기" size="medium">
-            <ArrowLeft size={20} className="text-[#333D4B]" />
-          </IconButton>
-        ) : (
-          <LogoMark />
-        )}
-        <span className="text-[17px] font-bold tracking-tight text-[#191F28]">{title}</span>
+        {onBack ? <button type="button" onClick={onBack} className="re-icon-button" aria-label="뒤로가기"><ArrowLeft size={20} /></button> : <RELogo markClassName="h-7 w-auto" />}
+        <span className="text-[17px] font-extrabold text-[#1B2A8C]">{title}</span>
       </div>
-      <div className="flex items-center gap-2">
-        {rightSlot}
-      </div>
+      {rightSlot}
     </header>
   );
 }
 
 export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
+  const item = (target, icon, label) => (
+    <button type="button" onClick={() => onNavigate(target)} className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px]", route === target || (target === "subscriptions" && route === "detail") ? "font-bold text-[#475FAC]" : "text-[#9099CA]")}>
+      {icon}<span>{label}</span>
+    </button>
+  );
   return (
-    <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-16 w-full max-w-[420px] -translate-x-1/2 items-center justify-around border-x border-t border-[#F2F4F6] bg-white/95 px-2 pb-[max(0.25rem,env(safe-area-inset-bottom,0px))] pt-1 backdrop-blur-md shadow-[0_-1px_3px_rgba(0,0,0,0.02)]" aria-label="주요 탐색">
-      <button
-        type="button"
-        onClick={() => onNavigate("home")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "home" ? "font-bold text-[#191F28]" : "font-medium text-[#8B95A1] hover:text-[#4E5968]")}
-        aria-current={route === "home" ? "page" : undefined}
-      >
-        <Home size={20} strokeWidth={route === "home" ? 2.5 : 1.75} />
-        <span>홈</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => onNavigate("subscriptions")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", (route === "subscriptions" || route === "detail") ? "font-bold text-[#191F28]" : "font-medium text-[#8B95A1] hover:text-[#4E5968]")}
-        aria-current={(route === "subscriptions" || route === "detail") ? "page" : undefined}
-      >
-        <CreditCard size={20} strokeWidth={(route === "subscriptions" || route === "detail") ? 2.5 : 1.75} />
-        <span>구독</span>
-      </button>
-
-      <div className="flex flex-1 items-center justify-center">
-        <button
-          type="button"
-          onClick={onOpenAdd}
-          className="grid h-11 w-11 place-items-center rounded-full bg-[#191F28] text-white shadow-[0_4px_12px_rgba(25,31,40,0.2)] transition-all duration-150 active:scale-95 hover:bg-[#2C3440]"
-          aria-label="새 구독 추가"
-        >
-          <Plus size={22} strokeWidth={2.5} />
-        </button>
-      </div>
-
-      <button
-        type="button"
-        onClick={() => onNavigate("calendar")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "calendar" ? "font-bold text-[#191F28]" : "font-medium text-[#8B95A1] hover:text-[#4E5968]")}
-        aria-current={route === "calendar" ? "page" : undefined}
-      >
-        <CalendarDays size={20} strokeWidth={route === "calendar" ? 2.5 : 1.75} />
-        <span>캘린더</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => onNavigate("promotions")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "promotions" ? "font-bold text-[#191F28]" : "font-medium text-[#8B95A1] hover:text-[#4E5968]")}
-        aria-current={route === "promotions" ? "page" : undefined}
-      >
-        <Sparkles size={20} strokeWidth={route === "promotions" ? 2.5 : 1.75} />
-        <span>혜택</span>
-      </button>
+    <nav className="fixed bottom-0 left-1/2 z-30 flex h-[72px] w-full max-w-[420px] -translate-x-1/2 items-center border-x border-t border-[#E4EAF6] bg-white/95 px-2 pb-2 pt-1 backdrop-blur-xl" aria-label="주요 메뉴">
+      {item("home", <Home size={19} />, "홈")}
+      {item("subscriptions", <CreditCard size={19} />, "구독")}
+      <div className="flex flex-1 justify-center"><button type="button" onClick={onOpenAdd} className="grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-[#A0C3DD] to-[#C7BCEC] text-white shadow-lg" aria-label="구독 추가"><Plus size={22} /></button></div>
+      {item("calendar", <CalendarDays size={19} />, "캘린더")}
+      {item("promotions", <Sparkles size={19} />, "혜택")}
     </nav>
   );
 }
 
 function SubscriptionCardBody({ subscription, onOpen, detail = false }) {
+  const secondary = subscription.status === "cancel_pending"
+    ? "해지 완료 여부 확인 중"
+    : subscription.status === "cancel_in_progress"
+      ? "해지를 이어서 할 수 있어요"
+      : `${subscription.plan || "요금제 미등록"} · ${formatBillingDate(subscription)}`;
   return (
-    <button type="button" onClick={onOpen} className="card-press flex w-full items-center gap-3.5 rounded-2xl border border-[#E5E8EB] bg-white p-4 text-left shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all hover:border-[#D1D6DB] active:scale-[0.98] cursor-pointer">
-      <ServiceMark
-        monogram={subscription.monogram || subscription.name?.slice(0, 1)}
-        image={subscription.image || subscription.attachments?.[0]}
-      />
+    <button type="button" onClick={onOpen} className="re-dashboard-card flex w-full items-center gap-3 rounded-[18px] p-3.5 text-left">
+      <ServiceMark monogram={subscription.monogram || subscription.name?.[0]} />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-bold text-[#191F28] tracking-tight">{subscription.name}</span>
-        <span className="mt-0.5 block truncate text-[13px] font-medium text-[#6B7684]">{subscription.plan} · {formatBillingDate(subscription)}</span>
-        {detail && (
-          <span className="mt-1 block truncate text-[11px] font-medium text-[#8B95A1]">
-            <PaymentMethodBadge method={subscription.paymentMethod} size={14} />
-          </span>
-        )}
+        <strong className="block truncate text-[14px] text-[#1B2A8C]">{subscription.name}</strong>
+        <span className="mt-1 block truncate text-[11px] text-[#9099CA]">{secondary}</span>
+        {detail && <span className="mt-1 block text-[10px] text-[#B4BCDD]">{subscription.paymentMethod || "결제수단 미등록"}</span>}
       </span>
-      <span className="flex shrink-0 flex-col items-end gap-1.5">
-        <DDayBadge subscription={subscription} />
-        <span className="text-[15px] font-bold tracking-tight text-[#191F28]">{formatWon(subscription.amount)}</span>
-      </span>
+      <span className="flex shrink-0 flex-col items-end gap-2"><DDayBadge subscription={subscription} /><strong className="text-[13px] text-[#3746A5]">{formatWon(subscription.amount)}</strong></span>
     </button>
   );
 }
@@ -377,377 +84,42 @@ function SubscriptionCardBody({ subscription, onOpen, detail = false }) {
 export function SubscriptionCard({ subscription, onOpen, onCancel, onMute, swipable = false, detail = false }) {
   const [revealed, setRevealed] = useState(false);
   const [dragX, setDragX] = useState(0);
-  const [isDraggingState, setIsDraggingState] = useState(false);
   const startX = useRef(null);
-  const startY = useRef(null);
-  const isDragging = useRef(false);
-  const capturedElement = useRef(null);
 
   if (!swipable) return <SubscriptionCardBody subscription={subscription} onOpen={onOpen} detail={detail} />;
 
-  const handlePointerDown = (event) => {
-    if (event.button !== undefined && event.button !== 0) return;
+  const down = (event) => {
     startX.current = event.clientX;
-    startY.current = event.clientY;
-    isDragging.current = false;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
   };
-
-  const handlePointerMove = (event) => {
+  const move = (event) => {
+    if (startX.current !== null) setDragX(Math.max(-120, Math.min(0, event.clientX - startX.current)));
+  };
+  const end = () => {
     if (startX.current === null) return;
-    const deltaX = event.clientX - startX.current;
-    const deltaY = event.clientY - (startY.current ?? event.clientY);
-
-    if (!isDragging.current) {
-      if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
-        isDragging.current = true;
-        setIsDraggingState(true);
-        capturedElement.current = event.currentTarget;
-        try {
-          event.currentTarget.setPointerCapture?.(event.pointerId);
-        } catch (_) {}
-      }
-    }
-
-    if (isDragging.current) {
-      const base = revealed ? -120 : 0;
-      const nextX = Math.max(-120, Math.min(0, base + deltaX));
-      setDragX(nextX);
-    }
-  };
-  const handlePointerEnd = (event) => {
-    if (capturedElement.current) {
-      try {
-        capturedElement.current.releasePointerCapture?.(event.pointerId);
-      } catch (_) {}
-      capturedElement.current = null;
-    }
-
-    if (isDragging.current) {
-      if (revealed) {
-        setRevealed(dragX < -70);
-      } else {
-        setRevealed(dragX < -50);
-      }
-      setDragX(0);
-      setIsDraggingState(false);
-      startX.current = null;
-      startY.current = null;
-      setTimeout(() => {
-        isDragging.current = false;
-      }, 100);
-      return;
-    }
-
+    setRevealed(dragX < -55 || revealed);
     setDragX(0);
-    setIsDraggingState(false);
     startX.current = null;
-    startY.current = null;
   };
-
-  const handleCardClick = (event) => {
-    if (isDragging.current) {
-      event?.preventDefault?.();
-      event?.stopPropagation?.();
-      return;
-    }
-    if (revealed) {
-      event?.preventDefault?.();
-      event?.stopPropagation?.();
-      setRevealed(false);
-      return;
-    }
-    onOpen?.();
-  };
-
-  const currentTranslate = isDraggingState ? dragX : (revealed ? -120 : 0);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl">
-      <div className="absolute inset-y-0 right-0 flex w-[120px] overflow-hidden rounded-r-2xl" aria-hidden={!revealed}>
-        <button
-          type="button"
-          tabIndex={revealed ? 0 : -1}
-          onClick={(e) => {
-            e.stopPropagation();
-            setRevealed(false);
-            onCancel?.();
-          }}
-          className="flex w-1/2 flex-col items-center justify-center gap-1 bg-[#FF4D4D] text-[11px] font-bold text-white transition-opacity active:opacity-90 cursor-pointer"
-        >
-          <X size={16} />
-          해지
-        </button>
-        <button
-          type="button"
-          tabIndex={revealed ? 0 : -1}
-          onClick={(e) => {
-            e.stopPropagation();
-            setRevealed(false);
-            onMute?.();
-          }}
-          className="flex w-1/2 flex-col items-center justify-center gap-1 bg-[#6B7684] text-[11px] font-bold text-white transition-opacity active:opacity-90 cursor-pointer"
-        >
-          <BellOff size={16} />
-          알림 끄기
-        </button>
+    <div className="relative overflow-hidden rounded-[18px]">
+      <div className="absolute inset-y-0 right-0 flex w-[120px]">
+        <button type="button" onClick={onCancel} className="flex w-1/2 flex-col items-center justify-center gap-1 bg-[#FEF4F6] text-[10px] font-bold text-[#E43C78]"><X size={16} />해지</button>
+        <button type="button" onClick={onMute} className="flex w-1/2 flex-col items-center justify-center gap-1 bg-[#E3E6F7] text-[10px] font-bold text-[#3746A5]"><BellOff size={16} />알림 끄기</button>
       </div>
-      <div
-        className={"relative touch-pan-y " + (isDraggingState ? "transition-none" : "transition-transform duration-[240ms] ease-[cubic-bezier(0.32,0.72,0,1)]")}
-        style={{ transform: "translateX(" + currentTranslate + "px)" }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
-      >
-        <SubscriptionCardBody subscription={subscription} onOpen={handleCardClick} detail={detail} />
+      <div style={{ transform: `translateX(${revealed ? -120 : dragX}px)` }} className="relative touch-pan-y transition-transform duration-200" onPointerDown={down} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
+        <SubscriptionCardBody subscription={subscription} onOpen={onOpen} detail={detail} />
       </div>
     </div>
   );
 }
 
-export function Toast({ toast, onClose, duration = 6000 }) {
-  const message = typeof toast === "object" && toast !== null ? toast.message : toast;
-  const initialDuration = (typeof toast === "object" && toast?.duration) || duration;
-  const toastKey = (typeof toast === "object" && toast?.id) || message;
-
-  const [isExiting, setIsExiting] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-
-  const startTimeRef = useRef(Date.now());
-  const remainingTimeRef = useRef(initialDuration);
-  const timerRef = useRef(null);
-  const hardTimeoutRef = useRef(null);
-  const exitTimerRef = useRef(null);
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-
-  const handleClose = useCallback(() => {
-    setIsExiting((curr) => {
-      if (curr) return curr;
-      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
-      exitTimerRef.current = setTimeout(() => {
-        onCloseRef.current?.();
-      }, 180);
-      return true;
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!message) {
-      setIsExiting(false);
-      setIsPaused(false);
-      return;
-    }
-    setIsExiting(false);
-    setIsPaused(false);
-    startTimeRef.current = Date.now();
-    remainingTimeRef.current = initialDuration;
-
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (hardTimeoutRef.current) clearTimeout(hardTimeoutRef.current);
-    if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
-
-    timerRef.current = setTimeout(() => {
-      handleClose();
-    }, initialDuration);
-
-    // Hard ceiling timeout (at most 7000ms): guarantees toast always disappears within 5~7 seconds
-    hardTimeoutRef.current = setTimeout(() => {
-      handleClose();
-    }, Math.min(Math.max(initialDuration + 1000, 5000), 7000));
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (hardTimeoutRef.current) clearTimeout(hardTimeoutRef.current);
-      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
-    };
-  }, [toastKey, initialDuration, message, handleClose]);
-
-  const handleMouseEnter = (e) => {
-    if (isExiting) return;
-    if (e?.pointerType === "touch") return;
-    if (timerRef.current) clearTimeout(timerRef.current);
-    const elapsed = Date.now() - startTimeRef.current;
-    remainingTimeRef.current = Math.max(0, remainingTimeRef.current - elapsed);
-    setIsPaused(true);
-  };
-
-  const handleMouseLeave = (e) => {
-    if (isExiting) return;
-    if (e?.pointerType === "touch") return;
-    setIsPaused(false);
-    startTimeRef.current = Date.now();
-    const remaining = remainingTimeRef.current > 0 ? remainingTimeRef.current : 500;
-    timerRef.current = setTimeout(() => {
-      handleClose();
-    }, remaining);
-  };
-
-  if (!message) return null;
-
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={`fixed bottom-20 left-1/2 z-50 flex w-[calc(100%-2.5rem)] max-w-[380px] -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-[#18181B] text-white shadow-xl ${
-        isExiting ? "toast-exit" : "toast-enter"
-      }`}
-    >
-      <div className="flex items-center justify-between gap-3 px-4 py-3.5">
-        <p className="text-[13px] font-medium leading-5">{message}</p>
-        <button
-          type="button"
-          onClick={handleClose}
-          className="rounded-lg p-1 text-[#A1A1AA] hover:text-white transition-colors"
-          aria-label="알림 닫기"
-        >
-          <X size={16} />
-        </button>
-      </div>
-
-      <div className="h-[2px] w-full bg-white/10">
-        <div
-          key={toastKey}
-          className="h-full bg-blue-400/80 origin-left"
-          style={{
-            animation: `toast-shrink ${initialDuration}ms linear forwards`,
-            animationPlayState: isPaused ? "paused" : "running",
-          }}
-        />
-      </div>
-    </div>
-  );
+export function Toast({ toast, onClose }) {
+  if (!toast) return null;
+  return <div className="toast-enter fixed bottom-24 left-1/2 z-50 flex w-[calc(100%-2.5rem)] max-w-[380px] -translate-x-1/2 items-center justify-between rounded-2xl bg-[#3746A5] px-4 py-3.5 text-white shadow-xl"><p className="text-[13px] font-medium">{toast}</p><button type="button" onClick={onClose} aria-label="알림 닫기"><X size={16} /></button></div>;
 }
 
 export function BottomSheet({ children, onClose, label }) {
-  return (
-    <div className="sheet-backdrop fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={onClose}>
-      <div
-        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[420px] max-h-[92vh] flex flex-col rounded-t-[24px] border-t border-[#F2F4F6] bg-white px-5 pb-8 pt-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
-        onClick={(event) => event.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label={label}
-      >
-        <div className="mx-auto mb-3 h-1 w-9 shrink-0 rounded-full bg-[#D1D6DB]" />
-        <div className="overflow-y-auto no-scrollbar flex-1 overscroll-contain pb-safe pr-0.5">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * SEED Attachment Input Component
- * Inspired by Daangn Seed Design (attachment-input / attachment-input-trigger / attachment-input-item)
- * Displays an 80x80px camera trigger button with count badge (e.g. 3/10) and horizontal thumbnail list.
- */
-export function AttachmentInput({
-  files = [],
-  maxFiles = 10,
-  onChange,
-  onRemove,
-  disabled = false,
-  className = "",
-}) {
-  const fileInputRef = useRef(null);
-
-  return (
-    <div className={cx("flex items-center gap-2.5 overflow-x-auto py-1", className)}>
-      <button
-        type="button"
-        disabled={disabled || files.length >= maxFiles}
-        onClick={() => fileInputRef.current?.click()}
-        className={cx(
-          "relative flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl border border-[#E5E8EB] bg-[#F7F8F9] transition-all",
-          files.length >= maxFiles || disabled
-            ? "cursor-not-allowed opacity-40"
-            : "cursor-pointer hover:border-[#191F28] hover:bg-[#F2F4F6] active:scale-[0.96]"
-        )}
-        aria-label={`사진 첨부하기 (${files.length}/${maxFiles})`}
-      >
-        <Camera size={24} className="text-[#868B94]" />
-        <div className="text-[12px] leading-tight select-none">
-          <strong className={cx("font-bold", files.length > 0 ? "text-[#212124]" : "text-[#868B94]")}>
-            {files.length}
-          </strong>
-          <span className="text-[#868B94]">/{maxFiles}</span>
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          multiple
-          className="hidden"
-          onChange={onChange}
-        />
-      </button>
-
-      {files.map((fileUrl, index) => (
-        <div
-          key={index}
-          className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-[#E5E8EB] bg-[#F2F4F6]"
-        >
-          <img src={fileUrl} alt={`첨부 사진 ${index + 1}`} className="h-full w-full object-cover" />
-          {index === 0 && (
-            <span className="absolute bottom-0 inset-x-0 bg-black/60 py-0.5 text-center text-[10px] font-medium text-white backdrop-blur-xs select-none">
-              대표 사진
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove?.(index);
-            }}
-            className="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-[#E5E8EB] bg-white text-[#212124] shadow-xs transition-transform hover:bg-[#F2F4F6] active:scale-90"
-            aria-label={`첨부 사진 ${index + 1} 삭제`}
-          >
-            <X size={11} />
-          </button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/**
- * SEED Action Chip Component
- * For category selection, filter chips, and interactive tags.
- */
-export function ActionChip({
-  children,
-  selected = false,
-  onClick,
-  prefixIcon = null,
-  className = "",
-  disabled = false,
-  size = "medium",
-}) {
-  const sizes = {
-    small: "min-h-[28px] px-2.5 text-[12px]",
-    medium: "min-h-[34px] px-3.5 text-[13px]",
-  };
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      className={cx(
-        "inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-all active:scale-[0.96] select-none shrink-0 cursor-pointer",
-        sizes[size] || sizes.medium,
-        selected
-          ? "bg-[#212124] text-white shadow-xs"
-          : "border border-[#E5E8EB] bg-[#F7F8F9] text-[#4E5968] hover:border-[#D1D6DB] hover:bg-white",
-        disabled && "opacity-40 cursor-not-allowed pointer-events-none",
-        className
-      )}
-    >
-      {prefixIcon && <span className="inline-flex shrink-0">{prefixIcon}</span>}
-      <span>{children}</span>
-    </button>
-  );
+  return <div className="fixed inset-0 z-40 bg-[#1B2A8C]/25 backdrop-blur-sm" onClick={onClose}><div className="sheet-enter fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[420px] rounded-t-[30px] bg-gradient-to-br from-[#DEEFF5] via-[#EFE7FB] to-[#E9EDFD] px-5 pb-8 pt-4 shadow-2xl" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label={label}><div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/80" />{children}</div></div>;
 }
