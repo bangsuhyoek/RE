@@ -28,15 +28,36 @@ jobs:
         run: |
           sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
-      - name: Unpack Android Studio project
+      - name: Reconstruct and verify Android Studio project
         run: |
-          unzip -q build_source/RE_ANDROID_FINAL_NATIVE.zip
-          sed -i 's/compileSdk = 37/compileSdk = 36/' RE_ANDROID_FINAL_NATIVE/app/build.gradle.kts
+          cat \
+            build_source/re_native_b64/current_head00 \
+            build_source/re_native_b64/current_head01 \
+            build_source/re_native_b64/part01 \
+            build_source/re_native_b64/part02 \
+            build_source/re_native_b64/part03 \
+            build_source/re_native_b64/part04 \
+            build_source/re_native_b64/part05 \
+            build_source/re_native_b64/part06 \
+            build_source/re_native_b64/current_tail14 \
+            build_source/re_native_b64/current_tail15 \
+            build_source/re_native_b64/current_tail16 \
+            build_source/re_native_b64/current_tail17 \
+            > /tmp/re-native.b64
+          base64 --decode /tmp/re-native.b64 > /tmp/RE_ANDROID_FINAL_NATIVE.zip
+          echo "1b13887089b758a34824af186844b44090c5c1139ae098db66a8764cb7a71c35  /tmp/RE_ANDROID_FINAL_NATIVE.zip" | sha256sum -c -
+          unzip -t /tmp/RE_ANDROID_FINAL_NATIVE.zip
+          unzip -q /tmp/RE_ANDROID_FINAL_NATIVE.zip
+
+      - name: Run unit tests
+        run: |
+          cd RE_ANDROID_FINAL_NATIVE
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest --stacktrace
 
       - name: Build debug APK
         run: |
           cd RE_ANDROID_FINAL_NATIVE
-          chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
