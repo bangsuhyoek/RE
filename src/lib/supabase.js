@@ -1,3 +1,4 @@
+import { serviceCatalog } from "../data/subscriptionData.js";
 import { Browser } from "@capacitor/browser";
 import { isNativePlatform } from "./platform.js";
 import { createClient } from '@supabase/supabase-js';
@@ -56,6 +57,14 @@ export async function signOut() {
 }
 
 export function mapDbToSubscription(row) {
+  const targetName = (row.service_name || '').toLowerCase().replace(/\s+/g, '');
+  const targetId = (row.service_id || row.subscription_id || '').toLowerCase();
+  const matched = serviceCatalog.find((s) => {
+    const sId = (s.id || '').toLowerCase();
+    const sName = (s.name || '').toLowerCase().replace(/\s+/g, '');
+    return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);
+  });
+
   return {
     id: row.service_id || row.subscription_id,
     name: row.service_name,
@@ -65,10 +74,11 @@ export function mapDbToSubscription(row) {
     category: row.category || '기타',
     dueDay: row.due_day,
     paymentMethod: row.payment_method || '',
-    cancelUrl: row.cancel_url || '',
+    cancelUrl: row.cancel_url || matched?.cancelUrl || '',
+    guideSteps: (matched?.guideSteps && matched.guideSteps.length > 0) ? matched.guideSteps : [],
     status: row.status || 'active',
     subscriptionId: row.subscription_id,
-    monogram: row.monogram || (row.service_name ? row.service_name.slice(0, 1).toUpperCase() : ''),
+    monogram: row.monogram || matched?.monogram || (row.service_name ? row.service_name.slice(0, 1).toUpperCase() : ''),
     markTone: row.mark_tone || null,
     alertD3: Boolean(row.alert_d3),
     alertD1: Boolean(row.alert_d1),

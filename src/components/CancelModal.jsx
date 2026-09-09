@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
-import { Check, CheckCircle2, ExternalLink, ShieldCheck, Layers, Sparkles } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { Check, CheckCircle2, ExternalLink, ShieldCheck, Layers, Sparkles, Globe } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { BottomSheet, Button, ServiceMark } from "./ui";
 import { formatWon } from "../lib/dates";
 import { CancelBrowserModal } from "./CancelBrowserModal";
+import { serviceCatalog } from "../data/subscriptionData";
 import {
   openCancelBrowser,
   checkOverlayPermission,
@@ -19,7 +20,24 @@ const baseSteps = [
   "해지 신청 후 완료 화면 확인하기",
 ];
 
-export function CancelModal({ subscription, promotion, onClose, onComplete, onToast }) {
+export function CancelModal({ subscription: rawSub, promotion, onClose, onComplete, onToast }) {
+  // DB 구독 데이터에 guideSteps나 cancelUrl이 누락되어도 serviceCatalog에서 100% 매칭 보강
+  const subscription = useMemo(() => {
+    const targetName = (rawSub.name || "").toLowerCase().replace(/\s+/g, "");
+    const targetId = (rawSub.id || rawSub.subscriptionId || "").toLowerCase();
+    const matched = serviceCatalog.find((s) => {
+      const sId = (s.id || "").toLowerCase();
+      const sName = (s.name || "").toLowerCase().replace(/\s+/g, "");
+      return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);
+    });
+
+    return {
+      ...rawSub,
+      cancelUrl: rawSub.cancelUrl || matched?.cancelUrl || "",
+      guideSteps: (rawSub.guideSteps && rawSub.guideSteps.length > 0) ? rawSub.guideSteps : (matched?.guideSteps || []),
+    };
+  }, [rawSub]);
+
   const steps = (subscription.guideSteps && subscription.guideSteps.length > 0)
     ? subscription.guideSteps.map((s) => ({ title: s.title, description: s.description }))
     : baseSteps.map((s) => ({ title: "", description: s }));
@@ -69,13 +87,19 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
       return;
     }
 
-    if (res.action === "FALLBACK_WEB") {
+    if (res?.action === "FALLBACK_WEB") {
       setShowBrowserModal(true);
       return;
     }
 
+    setChecked((current) => [true, ...current.slice(1)]);
+  };
+
+  const openInSystemBrowser = () => {
+    if (!subscription.cancelUrl) return;
+    setCancelSessionActive(true);
     window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
-    onToast?.(`${subscription.name} 해지 페이지를 브라우저에서 열었어요.`);
+    onToast?.(`${subscription.name} 해지 페이지를 기본 브라우저(Chrome)에서 열었어요.`);
     setChecked((current) => [true, ...current.slice(1)]);
   };
 
@@ -189,10 +213,20 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
 
       {promotion && <div className="mt-5 rounded-2xl border border-[#FFE8CC] bg-[#FFF9F2] p-4 shadow-2xs"><p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#FF6F0F]">환승 혜택</p><p className="mt-1 text-[13px] font-bold text-[#191F28]">{promotion.title}</p><p className="mt-0.5 text-[12px] text-[#6B7684]">해지 후 혜택 페이지로 이어갈 수 있어요.</p></div>}
 
-      <Button size="large" fullWidth className="mt-5" disabled={!subscription.cancelUrl} onClick={goToCancel} prefixIcon={<ExternalLink size={17} />}>{subscription.cancelUrl ? "해지 페이지로 바로 이동" : "해지 링크를 찾지 못했어요"}</Button>
+      <Button size="large" fullWidth className="mt-5" disabled={!subscription.cancelUrl} onClick={goToCancel} prefixIcon={<ExternalLink size={17} />}>{subscription.cancelUrl ? "해지 페이지로 바로 이동 (가이드 포함)" : "해지 링크를 찾지 못했어요"}</Button>
       {!subscription.cancelUrl && <p className="mt-2 text-center text-[12px] font-medium text-[#FF4D4D]">이 서비스의 해지 URL이 DB에 등록되어 있지 않습니다.</p>}
 
-      <section className="mt-6">
+      {subscription.cancelUrl && (
+        <button
+          type="button"
+          onClick={openInSystemBrowser}
+          className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-1 text-[12px] font-semibold text-[#6B7684] hover:text-[#191F28] active:scale-98 transition-all"
+        >
+          <Globe size={13} className="text-[#8B95A1]" /> 로그인 세션이 유지된 기본 브라우저(Chrome)로 열기
+        </button>
+      )}
+
+      <section className="mt-5">
         <div className="flex items-center justify-between"><h3 className="text-[15px] font-bold text-[#191F28]">해지 가이드</h3><span className="text-[12px] font-semibold text-[#8B95A1]">Step 1–{steps.length}</span></div>
         <ol className="mt-3 space-y-2">
           {steps.map((step, index) => (

@@ -1,29 +1,36 @@
 package com.submate.app;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -60,6 +67,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
     }
 
     private WebView webView;
+    private ProgressBar pbLoading;
     private LinearLayout bottomGuideDock;
     private TextView tvStepBadge;
     private TextView tvStepDescription;
@@ -67,6 +75,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
     private GuideAdapter guideAdapter;
     private final List<GuideStepItem> stepList = new ArrayList<>();
     private int selectedIndex = 0;
+    private String currentCancelUrl = "";
 
     private final ExecutorService executor = Executors.newFixedThreadPool(2);
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -91,13 +100,15 @@ public class CancelBrowserActivity extends AppCompatActivity {
         }
 
         String serviceName = getIntent().getStringExtra("serviceName");
-        String cancelUrl = getIntent().getStringExtra("cancelUrl");
+        currentCancelUrl = getIntent().getStringExtra("cancelUrl");
         String stepsJson = getIntent().getStringExtra("guideStepsJson");
 
         TextView tvServiceName = findViewById(R.id.tvServiceName);
         TextView tvServiceUrl = findViewById(R.id.tvServiceUrl);
         View btnClose = findViewById(R.id.btnClose);
         View btnComplete = findViewById(R.id.btnComplete);
+        View btnOpenExternal = findViewById(R.id.btnOpenExternal);
+        pbLoading = findViewById(R.id.pbLoading);
         tvStepBadge = findViewById(R.id.tvStepBadge);
         tvStepDescription = findViewById(R.id.tvStepDescription);
         bottomGuideDock = findViewById(R.id.bottomGuideDock);
@@ -108,12 +119,12 @@ public class CancelBrowserActivity extends AppCompatActivity {
             tvServiceName.setText(serviceName);
         }
 
-        if (cancelUrl != null) {
+        if (currentCancelUrl != null) {
             try {
-                Uri uri = Uri.parse(cancelUrl);
-                tvServiceUrl.setText(uri.getHost() != null ? uri.getHost() : cancelUrl);
+                Uri uri = Uri.parse(currentCancelUrl);
+                tvServiceUrl.setText(uri.getHost() != null ? uri.getHost() : currentCancelUrl);
             } catch (Exception e) {
-                tvServiceUrl.setText(cancelUrl);
+                tvServiceUrl.setText(currentCancelUrl);
             }
         }
 
@@ -129,7 +140,26 @@ public class CancelBrowserActivity extends AppCompatActivity {
             });
         }
 
-        // 가이드 스텝 데이터 파싱
+        // 외부 브라우저(Chrome/삼성인터넷 등)로 열기 버튼: 이미 로그인된 세션 및 구글 로그인 문제 회피용
+        if (btnOpenExternal != null) {
+            btnOpenExternal.setOnClickListener(v -> {
+                String targetUrl = (webView != null && webView.getUrl() != null && !webView.getUrl().isEmpty())
+                    ? webView.getUrl()
+                    : currentCancelUrl;
+                if (targetUrl != null && !targetUrl.isEmpty()) {
+                    try {
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl));
+                        browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(browserIntent);
+                        Toast.makeText(this, "기본 브라우저에서 열었어요.", Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Toast.makeText(this, "브라우저를 열 수 없습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
+        // 가이드 스텝 데이터 파싱 및 fallback 적용
         parseGuideSteps(stepsJson);
 
         // 리사이클러뷰 설정
@@ -148,24 +178,44 @@ public class CancelBrowserActivity extends AppCompatActivity {
         // 키보드 열림/닫힘 감지하여 하단 20% 도크 숨김/표시
         setupKeyboardListener();
 
-        // 웹뷰 환경 설정
-        setupWebView(cancelUrl);
+        // 웹뷰 환경 설정 (구글 OAuth 허용 및 팝업창 처리 포함)
+        setupWebView(currentCancelUrl);
+
+        // 뒤로가기 제어
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (webView != null && webView.canGoBack()) {
+                    webView.goBack();
+                } else {
+                    finish();
+                }
+            }
+        });
     }
 
     private void parseGuideSteps(String jsonStr) {
-        if (jsonStr == null || jsonStr.trim().isEmpty()) return;
-        try {
-            JSONArray arr = new JSONArray(jsonStr);
-            for (int i = 0; i < arr.length(); i++) {
-                JSONObject obj = arr.getJSONObject(i);
-                int number = obj.optInt("stepNumber", i + 1);
-                String title = obj.optString("title", "스텝 " + number);
-                String desc = obj.optString("description", "");
-                String img = obj.optString("imageUrl", "");
-                stepList.add(new GuideStepItem(number, title, desc, img));
+        if (jsonStr != null && !jsonStr.trim().isEmpty()) {
+            try {
+                JSONArray arr = new JSONArray(jsonStr);
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject obj = arr.getJSONObject(i);
+                    int number = obj.optInt("stepNumber", i + 1);
+                    String title = obj.optString("title", "스텝 " + number);
+                    String desc = obj.optString("description", "");
+                    String img = obj.optString("imageUrl", "");
+                    stepList.add(new GuideStepItem(number, title, desc, img));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        }
+
+        // 가이드 스텝이 없는 경우 안정적인 기본 Fallback 3단계 생성
+        if (stepList.isEmpty()) {
+            stepList.add(new GuideStepItem(1, "로그인", "서비스 계정으로 로그인하세요.", ""));
+            stepList.add(new GuideStepItem(2, "멤버십 관리", "프로필 > 멤버십 또는 계정 관리 메뉴를 선택하세요.", ""));
+            stepList.add(new GuideStepItem(3, "해지 완료", "해지 신청 후 최종 완료 화면을 확인하세요.", ""));
         }
     }
 
@@ -182,12 +232,24 @@ public class CancelBrowserActivity extends AppCompatActivity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-        settings.setSupportMultipleWindows(false);
+        settings.setAllowFileAccess(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setUseWideViewPort(true);
+
+        // 팝업 창(Google, 카카오 등 소셜 로그인 및 본인인증 window.open) 허용
+        settings.setSupportMultipleWindows(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
 
-        // 구글 소셜 로그인 차단 회피용 모바일 크롬 User-Agent
+        // Mixed Content 허용
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+
+        // Google OAuth의 403 disallowed_useragent 차단을 해제하기 위해
+        // WebView 전용 식별자("; wv" 및 "Version/X.X")를 제거한 순수 Chrome Mobile User-Agent 구성
         String defaultUA = settings.getUserAgentString();
-        settings.setUserAgentString(defaultUA.replace("; wv", ""));
+        String cleanUA = defaultUA
+                .replaceAll("(?i);\\s*wv", "")
+                .replaceAll("(?i)Version/\\d+\\.\\d+\\s*", "");
+        settings.setUserAgentString(cleanUA);
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
@@ -195,16 +257,126 @@ public class CancelBrowserActivity extends AppCompatActivity {
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Uri uri = request.getUrl();
+                String scheme = uri.getScheme();
+                if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+                    return false;
+                }
+                return handleCustomScheme(uri.toString());
+            }
+
+            @Override
             public boolean shouldOverrideUrlLoading(WebView view, String loadUrl) {
-                view.loadUrl(loadUrl);
+                if (loadUrl.startsWith("http://") || loadUrl.startsWith("https://")) {
+                    return false;
+                }
+                return handleCustomScheme(loadUrl);
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                if (pbLoading != null) {
+                    pbLoading.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                if (pbLoading != null) {
+                    pbLoading.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                if (request.isForMainFrame() && pbLoading != null) {
+                    pbLoading.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                if (pbLoading != null) {
+                    pbLoading.setProgress(newProgress);
+                    if (newProgress >= 100) {
+                        pbLoading.setVisibility(View.GONE);
+                    }
+                }
+            }
+
+            // 소셜 로그인(Google, Kakao 등) 및 본인인증 팝업창 window.open 완벽 지원
+            @SuppressLint("SetJavaScriptEnabled")
+            @Override
+            public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                WebView newWebView = new WebView(CancelBrowserActivity.this);
+                WebSettings newSettings = newWebView.getSettings();
+                newSettings.setJavaScriptEnabled(true);
+                newSettings.setDomStorageEnabled(true);
+                newSettings.setDatabaseEnabled(true);
+                newSettings.setSupportMultipleWindows(true);
+                newSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+                newSettings.setUserAgentString(cleanUA);
+                newSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+
+                CookieManager.getInstance().setAcceptThirdPartyCookies(newWebView, true);
+
+                final Dialog popupDialog = new Dialog(CancelBrowserActivity.this, android.R.style.Theme_Material_Light_NoActionBar_Fullscreen);
+                popupDialog.setContentView(newWebView);
+                popupDialog.show();
+
+                newWebView.setWebChromeClient(new WebChromeClient() {
+                    @Override
+                    public void onCloseWindow(WebView window) {
+                        popupDialog.dismiss();
+                    }
+                });
+
+                newWebView.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) {
+                        Uri uri = req.getUrl();
+                        String scheme = uri.getScheme();
+                        if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+                            return false;
+                        }
+                        handleCustomScheme(uri.toString());
+                        return true;
+                    }
+                });
+
+                WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+                transport.setWebView(newWebView);
+                resultMsg.sendToTarget();
                 return true;
             }
         });
-        webView.setWebChromeClient(new WebChromeClient());
 
         if (url != null && !url.trim().isEmpty()) {
             webView.loadUrl(url);
         }
+    }
+
+    private boolean handleCustomScheme(String url) {
+        try {
+            Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+                return true;
+            }
+            String fallbackUrl = intent.getStringExtra("browser_fallback_url");
+            if (fallbackUrl != null && !fallbackUrl.isEmpty()) {
+                webView.loadUrl(fallbackUrl);
+                return true;
+            }
+        } catch (Exception ignored) {
+        }
+        return true;
     }
 
     private void setupKeyboardListener() {
@@ -284,11 +456,17 @@ public class CancelBrowserActivity extends AppCompatActivity {
                     try {
                         URL url = new URL(item.imageUrl);
                         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        conn.setConnectTimeout(5000);
+                        conn.setReadTimeout(5000);
                         conn.setDoInput(true);
                         conn.connect();
                         InputStream input = conn.getInputStream();
                         Bitmap bmp = BitmapFactory.decodeStream(input);
-                        mainHandler.post(() -> holder.ivStepThumb.setImageBitmap(bmp));
+                        mainHandler.post(() -> {
+                            if (bmp != null) {
+                                holder.ivStepThumb.setImageBitmap(bmp);
+                            }
+                        });
                     } catch (Exception ignored) {
                     }
                 });
