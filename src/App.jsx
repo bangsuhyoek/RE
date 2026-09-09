@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
@@ -18,7 +18,7 @@ import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from
 import { NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
 import { createMockSubscriptions, promotionCatalog, serviceCatalog } from "./data/subscriptionData";
-import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser } from "./lib/storage";
+import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue } from "./lib/storage";
 import { generateSubscriptionAlerts } from "./lib/notifications";
 import { useNavigation } from "./hooks/useNavigation";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
@@ -37,6 +37,13 @@ export default function App() {
   const notify = useCallback((message, duration = 6000) => {
     setToast({ message, duration, id: Date.now() });
   }, []);
+
+  // 이미 로그인 완료 안내를 받은 유저 ID 추적 (타 웹사이트 왕복, 탭 전환 시 중복 팝업 방지)
+  const googleAuthNotifiedUserRef = useRef(
+    typeof window !== "undefined"
+      ? (readStoredValue(storageKeys.profile, null)?.user_id || sessionStorage.getItem("submate_google_login_notified_user"))
+      : null
+  );
 
   // Hash-based navigation
   const {
@@ -224,18 +231,39 @@ export default function App() {
       if (event === "SIGNED_IN" && session?.user) {
         const user = session.user;
         const nickname = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "사용자";
-        setProfile({
+        setProfile((prev) => ({
+          ...(prev || {}),
           user_id: user.id,
-          nickname,
+          nickname: prev?.nickname || nickname,
           email: user.email,
           provider: "Google",
           guest: false,
-          notificationsAllowed: true,
-        });
+          notificationsAllowed: prev?.notificationsAllowed ?? true,
+        }));
         setOnboardingComplete(true);
-        navigate("home");
-        notify(`${nickname}님, 구글 계정으로 로그인되었어요!`);
+
+        // 타 웹사이트 왕복/탭 포커스 복귀 시 중복 팝업 방지 (최초 1회만 알림 표시 및 홈 이동)
+        const alreadyNotified =
+          googleAuthNotifiedUserRef.current === user.id ||
+          (typeof window !== "undefined" && sessionStorage.getItem("submate_google_login_notified_user") === user.id);
+
+        if (!alreadyNotified) {
+          googleAuthNotifiedUserRef.current = user.id;
+          if (typeof window !== "undefined") {
+            try {
+              sessionStorage.setItem("submate_google_login_notified_user", user.id);
+            } catch (e) {}
+          }
+          navigate("home");
+          notify(`${nickname}님, 구글 계정으로 로그인되었어요!`);
+        }
       } else if (event === "SIGNED_OUT") {
+        googleAuthNotifiedUserRef.current = null;
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.removeItem("submate_google_login_notified_user");
+          } catch (e) {}
+        }
         setProfile(null);
         setSubscriptions([]);
         navigate("login");
@@ -352,6 +380,12 @@ export default function App() {
 
   const handleLogout = async () => {
     setAccountOpen(false);
+    googleAuthNotifiedUserRef.current = null;
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("submate_google_login_notified_user");
+      } catch (e) {}
+    }
     if (isSupabaseConfigured && profile?.user_id) {
       await signOut();
       notify("로그아웃되었습니다.");
@@ -620,4 +654,3 @@ export default function App() {
     </div>
   );
 }
-
