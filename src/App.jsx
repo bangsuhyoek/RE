@@ -412,6 +412,7 @@ export default function App() {
         onTestPaymentDetection={handleTestPaymentDetection}
         onRequestPaymentCapture={handleRequestPaymentCapture}
         onOpenTerms={handleOpenTerms}
+        onLogout={handleLogout}
       />
     );
   } else if (screen.route === "subscriptions") {
@@ -557,6 +558,8 @@ export default function App() {
     </div>
   );
 }
+
+
 
 
 
