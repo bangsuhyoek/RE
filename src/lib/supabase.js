@@ -1,5 +1,5 @@
 import { Browser } from "@capacitor/browser";
-import { isNativePlatform } from "./platform";
+import { isNativePlatform } from "./platform.js";
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_SUPABASE_URL : '';
@@ -207,4 +207,5 @@ export function matchServicesFromCatalog(catalog, keyword) {
     plans: Array.isArray(service.service_plans) ? service.service_plans : (service.plans || []),
   }));
 }
+
 
