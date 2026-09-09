@@ -1,7 +1,94 @@
 import { parseReceiptText } from "../../api/_lib/receiptParser.js";
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
-const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || "gemini-3.5-flash";
+const DEFAULT_GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || "gemini-3.5-flash-lite";
+
+const FALLBACK_MODELS = [
+  DEFAULT_GEMINI_MODEL,
+  "gemini-3.5-flash-lite",
+  "gemini-3.5-flash",
+  "gemini-flash-latest",
+  "gemini-3.6-flash",
+];
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isHighDemandOrOverloaded = (status, message = "") => {
+  const lower = String(message).toLowerCase();
+  return (
+    status === 503 ||
+    status === 429 ||
+    status === 500 ||
+    lower.includes("high demand") ||
+    lower.includes("spikes in demand") ||
+    lower.includes("overloaded") ||
+    lower.includes("quota") ||
+    lower.includes("resource_exhausted") ||
+    lower.includes("unavailable")
+  );
+};
+
+const callSingleGeminiModel = async ({ model, imageBase64, mimeType, apiKey, signal }) => {
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(apiKey);
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            {
+              inlineData: {
+                mimeType: mimeType || "image/jpeg",
+                data: imageBase64,
+              },
+            },
+            {
+              text: "영수증 또는 결제 내역 이미지의 모든 텍스트를 보이는 그대로 정확히 추출(OCR)해주세요. 요약이나 설명 없이 텍스트 원문만 줄바꿈하여 출력하세요.",
+            },
+          ],
+        },
+      ],
+    }),
+    signal,
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.error) {
+    const status = response.status || 500;
+    const message = data.error?.message || ("Gemini OCR 호출 실패 (" + status + ")");
+    const error = new Error(message);
+    error.status = status;
+    throw error;
+  }
+
+  return data.candidates?.[0]?.content?.parts?.find((part) => part.text)?.text || "";
+};
+
+const fetchGeminiVisionWithFallback = async ({ imageBase64, mimeType, apiKey, signal }) => {
+  const candidateModels = Array.from(new Set(FALLBACK_MODELS.filter(Boolean)));
+  let lastError = null;
+
+  for (const model of candidateModels) {
+    try {
+      return await callSingleGeminiModel({ model, imageBase64, mimeType, apiKey, signal });
+    } catch (err) {
+      lastError = err;
+      if (signal?.aborted) throw err;
+      if (!isHighDemandOrOverloaded(err.status, err.message) && err.status !== 404) {
+        throw err;
+      }
+      await sleep(600);
+    }
+  }
+
+  if (lastError && isHighDemandOrOverloaded(lastError.status, lastError.message)) {
+    throw new Error(
+      "AI 모델 서비스에 일시적인 트래픽이 몰려 지연되고 있습니다. 잠시 후 다시 시도해 주시거나 결제 문자로 입력해 주세요."
+    );
+  }
+  throw lastError || new Error("Gemini OCR 호출에 실패했습니다.");
+};
 
 export const isDirectGeminiAvailable = () => Boolean(GEMINI_API_KEY);
 
@@ -30,42 +117,15 @@ export async function recognizeDirectly(payload) {
   }
 
   const controller = new AbortController();
-  const timer = window.setTimeout(() => controller.abort(), 25_000);
+  const timer = window.setTimeout(() => controller.abort(), 28_000);
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  inlineData: {
-                    mimeType: mimeType || "image/jpeg",
-                    data: cleanBase64,
-                  },
-                },
-                {
-                  text: "영수증 또는 결제 내역 이미지의 모든 텍스트를 보이는 그대로 정확히 추출(OCR)해주세요. 요약이나 설명 없이 텍스트 원문만 줄바꿈하여 출력하세요.",
-                },
-              ],
-            },
-          ],
-        }),
-        signal: controller.signal,
-      }
-    );
-
-    const data = await response.json();
-    if (!response.ok || data.error) {
-      const message = data.error?.message || "Gemini OCR 호출에 실패했습니다.";
-      throw new Error(message);
-    }
-
-    const rawText = data.candidates?.[0]?.content?.parts?.find((part) => part.text)?.text || "";
+    const rawText = await fetchGeminiVisionWithFallback({
+      imageBase64: cleanBase64,
+      mimeType,
+      apiKey: GEMINI_API_KEY,
+      signal: controller.signal,
+    });
     const parsed = parseReceiptText(rawText);
     if (!parsed.ok) {
       throw new Error(parsed.message || "영수증에서 결제 정보를 찾지 못했습니다.");

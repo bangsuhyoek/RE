@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   }
 
   const geminiKey = env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || "";
-  const geminiModel = env.VITE_GEMINI_MODEL || env.GEMINI_MODEL || "gemini-3.5-flash";
+  const geminiModel = env.VITE_GEMINI_MODEL || env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
   return {
     plugins: [react(), localOcrApiPlugin()],
