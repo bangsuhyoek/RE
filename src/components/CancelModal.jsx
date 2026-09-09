@@ -20,7 +20,11 @@ const baseSteps = [
 ];
 
 export function CancelModal({ subscription, promotion, onClose, onComplete, onToast }) {
-  const [checked, setChecked] = useState([false, false, false]);
+  const steps = (subscription.guideSteps && subscription.guideSteps.length > 0)
+    ? subscription.guideSteps.map((s) => ({ title: s.title, description: s.description }))
+    : baseSteps.map((s) => ({ title: "", description: s }));
+
+  const [checked, setChecked] = useState(() => new Array(steps.length).fill(false));
   const [celebrating, setCelebrating] = useState(false);
   const [showBrowserModal, setShowBrowserModal] = useState(false);
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
@@ -189,9 +193,31 @@ export function CancelModal({ subscription, promotion, onClose, onComplete, onTo
       {!subscription.cancelUrl && <p className="mt-2 text-center text-[12px] font-medium text-[#FF4D4D]">이 서비스의 해지 URL이 DB에 등록되어 있지 않습니다.</p>}
 
       <section className="mt-6">
-        <div className="flex items-center justify-between"><h3 className="text-[15px] font-bold text-[#191F28]">해지 가이드</h3><span className="text-[12px] font-semibold text-[#8B95A1]">Step 1–3</span></div>
+        <div className="flex items-center justify-between"><h3 className="text-[15px] font-bold text-[#191F28]">해지 가이드</h3><span className="text-[12px] font-semibold text-[#8B95A1]">Step 1–{steps.length}</span></div>
         <ol className="mt-3 space-y-2">
-          {baseSteps.map((step, index) => <li key={step}><button type="button" onClick={() => setChecked((current) => current.map((value, itemIndex) => itemIndex === index ? !value : value))} className={`flex w-full items-center gap-3.5 rounded-2xl border p-3.5 text-left transition-all active:scale-[0.99] ${checked[index] ? "border-[#191F28] bg-[#F9FAFB] shadow-2xs" : "border-[#E5E8EB] bg-white hover:border-[#D1D6DB]"}`}><span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${checked[index] ? "bg-[#191F28] text-white" : "bg-[#F2F4F6] text-[#8B95A1]"}`}>{checked[index] ? <Check size={14} strokeWidth={3} /> : index + 1}</span><span className={`text-[13px] ${checked[index] ? "font-bold text-[#191F28]" : "font-medium text-[#6B7684]"}`}>{step}</span></button></li>)}
+          {steps.map((step, index) => (
+            <li key={index}>
+              <button
+                type="button"
+                onClick={() => setChecked((current) => current.map((value, itemIndex) => itemIndex === index ? !value : value))}
+                className={"flex w-full items-start gap-3 rounded-2xl border p-3.5 text-left transition-all active:scale-[0.99] " + (checked[index] ? "border-[#191F28] bg-[#F9FAFB] shadow-2xs" : "border-[#E5E8EB] bg-white hover:border-[#D1D6DB]")}
+              >
+                <span className={"grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold mt-0.5 " + (checked[index] ? "bg-[#191F28] text-white" : "bg-[#F2F4F6] text-[#8B95A1]")}>
+                  {checked[index] ? <Check size={14} strokeWidth={3} /> : index + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  {step.title && (
+                    <span className={"block text-[11px] font-bold mb-0.5 " + (checked[index] ? "text-[#191F28]" : "text-[#8B95A1]")}>
+                      {step.title}
+                    </span>
+                  )}
+                  <span className={"text-[13px] leading-snug " + (checked[index] ? "font-bold text-[#191F28]" : "font-medium text-[#6B7684]")}>
+                    {step.description}
+                  </span>
+                </div>
+              </button>
+            </li>
+          ))}
         </ol>
       </section>
 

@@ -142,8 +142,8 @@ export const serviceCatalog = [
       },
       {
         stepNumber: 3,
-        title: "Free 취소",
-        description: "스크롤을 맨 아래로 내려 [Spotify Free로 취소]를 누르세요.",
+        title: "Premium 해지",
+        description: "스크롤을 내려 [Spotify 구독 해지] 섹션의 [Premium 해지]를 누르세요.",
         imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=320&auto=format&fit=crop&q=80",
       },
     ],
@@ -188,7 +188,7 @@ export const serviceCatalog = [
     amount: 13500,
     dueDay: 10,
     paymentMethod: "네이버페이",
-    cancelUrl: "https://www.tving.com/",
+    cancelUrl: "https://www.tving.com/my/sub",
     guideSteps: [
       {
         stepNumber: 1,
@@ -250,7 +250,7 @@ export const serviceCatalog = [
     amount: 9900,
     dueDay: 12,
     paymentMethod: "카카오페이",
-    cancelUrl: "https://www.millie.co.kr/v3/customer/faq",
+    cancelUrl: "https://www.millie.co.kr/v3/mypage/subscription",
     guideSteps: [
       {
         stepNumber: 1,
