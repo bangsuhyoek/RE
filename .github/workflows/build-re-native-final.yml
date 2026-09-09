@@ -48,6 +48,9 @@ jobs:
           echo "1b13887089b758a34824af186844b44090c5c1139ae098db66a8764cb7a71c35  /tmp/RE_ANDROID_FINAL_NATIVE.zip" | sha256sum -c -
           unzip -t /tmp/RE_ANDROID_FINAL_NATIVE.zip
           unzip -q /tmp/RE_ANDROID_FINAL_NATIVE.zip
+          # Compose 1.12 requires compileSdk 37. This runner currently exposes API 36,
+          # so use the August 2025 stable BOM (Compose 1.9 generation) for this APK build.
+          sed -i 's/compose-bom:2026.08.00/compose-bom:2025.08.00/g' RE_ANDROID_FINAL_NATIVE/app/build.gradle.kts
 
       - name: Run unit tests
         run: |
