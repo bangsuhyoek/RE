@@ -50,7 +50,7 @@ export function CalendarScreen({ subscriptions, onOpen }) {
   const nextMonth = () => setDate(new Date(year, month + 1, 1));
 
   return (
-    <main className="px-5 pb-36 pt-6">
+    <main className="px-4 sm:px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-5 sm:pt-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-[22px] font-extrabold tracking-tight text-fg-primary">
@@ -68,13 +68,13 @@ export function CalendarScreen({ subscriptions, onOpen }) {
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-border-subtle bg-surface-default p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+      <div className="mt-5 rounded-2xl border border-border-subtle bg-surface-default p-3 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="grid grid-cols-7 text-center text-[12px] font-bold text-fg-subtle">
           <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
         </div>
         <div className="mt-2 grid grid-cols-7 gap-y-2 text-center text-[13px]">
           {days.map((item, i) => {
-            if (!item) return <div key={`empty-${i}`} className="h-10" />;
+            if (!item) return <div key={`empty-${i}`} className="h-8 sm:h-10" />;
             const isSelected = item === clampedDay;
             const subsOnDay = duesByDay.get(item) || [];
             const hasDue = subsOnDay.length > 0;
@@ -83,7 +83,7 @@ export function CalendarScreen({ subscriptions, onOpen }) {
                 key={`day-${item}`}
                 type="button"
                 onClick={() => setSelectedDay(item)}
-                className={`relative mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-xl font-semibold transition-all active:scale-95 ${
+                className={`relative mx-auto flex h-8 w-8 min-w-[32px] sm:h-10 sm:w-10 sm:min-w-[40px] flex-col items-center justify-center rounded-xl text-[12px] sm:text-[13px] font-semibold transition-all active:scale-95 ${
                   isSelected ? "bg-surface-inverse text-fg-inverse shadow-sm" : "text-fg-primary hover:bg-surface-subtle"
                 }`}
               >

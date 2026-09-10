@@ -203,9 +203,9 @@ export function OnboardingScreen({ catalog = [], selectedIds = [], onToggle, onF
   };
 
   return (
-    <main className="min-h-screen pb-36 bg-surface-base">
+    <main className="min-h-screen min-h-[100dvh] pb-36 bg-surface-base">
       {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-border-subtle bg-surface-default/95 px-5 pb-3.5 pt-5 backdrop-blur-md">
+      <header className="sticky top-0 z-20 border-b border-border-subtle bg-surface-default/95 px-4 sm:px-5 pb-3.5 pt-[max(1.25rem,calc(env(safe-area-inset-top,0px)+0.75rem))] backdrop-blur-md">
         <div className="flex items-center justify-between">
           {activeCategory ? (
             <button
@@ -387,7 +387,7 @@ export function OnboardingScreen({ catalog = [], selectedIds = [], onToggle, onF
       )}
 
       {/* Floating Bottom Action Bar */}
-      <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-[420px] -translate-x-1/2 border-x border-t border-border-subtle bg-surface-default/95 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3.5 shadow-lg backdrop-blur-md">
+      <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-full sm:max-w-[440px] -translate-x-1/2 border-t sm:border-x border-border-subtle bg-surface-default/95 px-4 sm:px-5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))] pt-3.5 shadow-lg backdrop-blur-md">
         <div className="mb-2.5 flex items-center justify-between text-[13px]">
           <div className="flex items-center gap-1.5">
             <span className="font-medium text-fg-muted">

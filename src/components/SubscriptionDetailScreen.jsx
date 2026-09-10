@@ -36,7 +36,7 @@ export function SubscriptionDetailScreen({ subscription, subscriptions = [], onU
 
   if (!subscription) {
     return (
-      <main className="px-5 pb-36 pt-12 text-center">
+      <main className="px-4 sm:px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-12 text-center">
         <h1 className="text-[18px] font-bold">구독 정보를 찾을 수 없습니다.</h1>
         <p className="mt-2 text-[13px] text-[#71717A]">삭제되었거나 잘못된 경로입니다.</p>
         <Button className="mt-6 mx-auto" onClick={onBack}>목록으로 돌아가기</Button>
@@ -59,7 +59,7 @@ export function SubscriptionDetailScreen({ subscription, subscriptions = [], onU
   const monogram = subscription.monogram || subscription.name?.slice(0, 1) || "S";
 
   return (
-    <main className="px-5 pb-36 pt-6">
+    <main className="px-4 sm:px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-5 sm:pt-6">
       <section className="flex items-center gap-4">
         <ServiceMark
           monogram={monogram}

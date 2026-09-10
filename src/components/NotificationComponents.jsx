@@ -89,7 +89,7 @@ export function PushNotificationBanner({ notification, onClose, onOpenDetail, du
       aria-live="polite"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`fixed top-3 inset-x-0 mx-auto z-50 w-[calc(100%-1.5rem)] max-w-[396px] ${
+      className={`fixed top-[max(0.75rem,calc(env(safe-area-inset-top,0px)+0.5rem))] inset-x-0 mx-auto z-50 w-[calc(100%-1.5rem)] max-w-[416px] ${
         isExiting ? "push-banner-exit" : "push-banner-enter"
       }`}
     >

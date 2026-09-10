@@ -28,7 +28,7 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
   const reset = () => { setQuery(""); setCategory("전체"); setStatus("all"); setSort("due"); };
 
   return (
-    <main className="relative min-h-[calc(100vh-4rem)] px-5 pb-36 pt-5">
+    <main className="relative min-h-[calc(100dvh-4rem)] min-h-[calc(100vh-4rem)] px-4 sm:px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-5">
       <div className="flex items-center gap-2">
         <label className="relative flex-1">
           <span className="sr-only">구독 검색</span>

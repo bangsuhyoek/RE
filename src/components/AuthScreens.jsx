@@ -48,7 +48,7 @@ export function AuthLogin({ onGuest, onSocial, onRegister, onLogin }) {
   };
 
   return (
-    <main className="flex min-h-screen flex-col px-5 pb-8 pt-10">
+    <main className="flex min-h-screen min-h-[100dvh] flex-col px-4 sm:px-5 pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1rem))] pt-[max(2.5rem,calc(env(safe-area-inset-top,0px)+1.5rem))]">
       <div className="mb-10">
         <p className="mb-2 text-[13px] font-medium text-[#71717A]">구독을 내 편으로</p>
         <h1 className="text-3xl font-bold tracking-[-0.03em]">구독 관리의<br />가장 쉬운 시작</h1>
@@ -181,7 +181,7 @@ export function AuthRegister({ onBack, onComplete, existingUsers = [] }) {
   const canSubmit = validation.id && validation.password && validation.matching && validation.nickname;
 
   return (
-    <main className="min-h-screen px-5 pb-8 pt-8">
+    <main className="min-h-screen min-h-[100dvh] px-4 sm:px-5 pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1rem))] pt-[max(2rem,calc(env(safe-area-inset-top,0px)+1rem))]">
       <button type="button" onClick={onBack} className="mb-9 rounded-xl p-2 text-[#71717A] hover:bg-[#FAFAFA] hover:text-black" aria-label="로그인으로 돌아가기">←</button>
       <p className="text-[13px] font-medium text-[#71717A]">1분이면 충분해요</p>
       <h1 className="mt-2 text-3xl font-bold tracking-[-0.03em]">꾸독 시작하기</h1>

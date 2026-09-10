@@ -38,7 +38,7 @@ export function PromotionScreen({ subscriptions, promotions, onOpenPromotion }) 
   }, [filter, promotions]);
 
   return (
-    <main className="px-5 pb-28 pt-6">
+    <main className="px-4 sm:px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-5 sm:pt-6">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-[24px] font-extrabold tracking-tight text-fg-primary">맞춤 혜택 &amp; 프로모션</h1>

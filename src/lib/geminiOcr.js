@@ -8,6 +8,7 @@ const FALLBACK_MODELS = [
   "gemini-3.5-flash-lite",
   "gemini-3.5-flash",
   "gemini-flash-latest",
+  "gemini-2.5-flash",
   "gemini-3.6-flash",
 ];
 
@@ -75,10 +76,11 @@ const fetchGeminiVisionWithFallback = async ({ imageBase64, mimeType, apiKey, si
     } catch (err) {
       lastError = err;
       if (signal?.aborted) throw err;
-      if (!isHighDemandOrOverloaded(err.status, err.message) && err.status !== 404) {
+      const lower = String(err.message || "").toLowerCase();
+      if (err.status === 401 || (err.status === 403 && lower.includes("api_key_invalid"))) {
         throw err;
       }
-      await sleep(600);
+      await sleep(500);
     }
   }
 
@@ -116,13 +118,14 @@ export async function recognizeDirectly(payload) {
     throw new Error("인식할 이미지가 없습니다.");
   }
 
+  const normalizedMimeType = String(mimeType || "image/jpeg").toLowerCase() === "image/jpg" ? "image/jpeg" : (mimeType || "image/jpeg");
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), 28_000);
 
   try {
     const rawText = await fetchGeminiVisionWithFallback({
       imageBase64: cleanBase64,
-      mimeType,
+      mimeType: normalizedMimeType,
       apiKey: GEMINI_API_KEY,
       signal: controller.signal,
     });

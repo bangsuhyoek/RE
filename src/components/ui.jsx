@@ -486,17 +486,19 @@ export function ToggleSwitch({ checked, onChange, label }) {
 
 export function AppHeader({ title, onBack, rightSlot = null }) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border-subtle bg-surface-default/95 px-5 backdrop-blur-md">
-      <div className="flex items-center gap-2">
-        {onBack && (
-          <IconButton onClick={onBack} aria-label="뒤로가기" size="medium">
-            <ArrowLeft size={20} className="text-fg-secondary" />
-          </IconButton>
-        )}
-        <span className="text-[17px] font-bold tracking-tight text-fg-primary">{title}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        {rightSlot}
+    <header className="sticky top-0 z-30 flex flex-col w-full border-b border-border-subtle bg-surface-default/95 backdrop-blur-md pt-safe">
+      <div className="flex h-14 w-full items-center justify-between px-4 sm:px-5">
+        <div className="flex items-center gap-2 min-w-0">
+          {onBack && (
+            <IconButton onClick={onBack} aria-label="뒤로가기" size="medium">
+              <ArrowLeft size={20} className="text-fg-secondary" />
+            </IconButton>
+          )}
+          <span className="text-[17px] font-bold tracking-tight text-fg-primary truncate">{title}</span>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {rightSlot}
+        </div>
       </div>
     </header>
   );
@@ -504,11 +506,11 @@ export function AppHeader({ title, onBack, rightSlot = null }) {
 
 export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
   return (
-    <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-16 w-full max-w-[420px] -translate-x-1/2 items-center justify-around border-x border-t border-border-subtle bg-surface-default/95 px-2 pb-[max(0.25rem,env(safe-area-inset-bottom,0px))] pt-1 backdrop-blur-md shadow-[0_-1px_3px_rgba(0,0,0,0.02)]" aria-label="주요 탐색">
+    <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-[calc(3.75rem+env(safe-area-inset-bottom,0px))] w-full max-w-full sm:max-w-[440px] -translate-x-1/2 items-center justify-around border-t sm:border-x border-border-subtle bg-surface-default/95 px-1 sm:px-2 pb-[max(0.4rem,calc(env(safe-area-inset-bottom,0px)+0.2rem))] pt-1 backdrop-blur-md shadow-[0_-1px_3px_rgba(0,0,0,0.02)]" aria-label="주요 탐색">
       <button
         type="button"
         onClick={() => onNavigate("home")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "home" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px] sm:text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "home" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
         aria-current={route === "home" ? "page" : undefined}
       >
         <Home size={20} strokeWidth={route === "home" ? 2.5 : 1.75} />
@@ -518,7 +520,7 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
       <button
         type="button"
         onClick={() => onNavigate("subscriptions")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", (route === "subscriptions" || route === "detail") ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px] sm:text-[11px] tracking-tight transition-all active:scale-[0.95]", (route === "subscriptions" || route === "detail") ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
         aria-current={(route === "subscriptions" || route === "detail") ? "page" : undefined}
       >
         <CreditCard size={20} strokeWidth={(route === "subscriptions" || route === "detail") ? 2.5 : 1.75} />
@@ -529,7 +531,7 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
         <button
           type="button"
           onClick={onOpenAdd}
-          className="grid h-11 w-11 place-items-center rounded-full bg-surface-inverse text-fg-inverse shadow-[0_4px_12px_rgba(25,31,40,0.2)] transition-all duration-150 active:scale-95 hover:bg-palette-gray-800"
+          className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-full bg-surface-inverse text-fg-inverse shadow-[0_4px_12px_rgba(25,31,40,0.2)] transition-all duration-150 active:scale-95 hover:bg-palette-gray-800"
           aria-label="새 구독 추가"
         >
           <Plus size={22} strokeWidth={2.5} />
@@ -539,7 +541,7 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
       <button
         type="button"
         onClick={() => onNavigate("calendar")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "calendar" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px] sm:text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "calendar" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
         aria-current={route === "calendar" ? "page" : undefined}
       >
         <CalendarDays size={20} strokeWidth={route === "calendar" ? 2.5 : 1.75} />
@@ -549,7 +551,7 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
       <button
         type="button"
         onClick={() => onNavigate("promotions")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "promotions" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
+        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px] sm:text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "promotions" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
         aria-current={route === "promotions" ? "page" : undefined}
       >
         <Sparkles size={20} strokeWidth={route === "promotions" ? 2.5 : 1.75} />
@@ -808,7 +810,7 @@ export function Toast({ toast, onClose, duration = 6000 }) {
       aria-live="polite"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`fixed bottom-20 left-1/2 z-50 flex w-[calc(100%-2.5rem)] max-w-[380px] -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-[#18181B] text-white shadow-xl ${
+      className={`fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-[400px] -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-[#18181B] text-white shadow-xl ${
         isExiting ? "toast-exit" : "toast-enter"
       }`}
     >
@@ -842,14 +844,14 @@ export function BottomSheet({ children, onClose, label }) {
   return (
     <div className="sheet-backdrop fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={onClose}>
       <div
-        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto max-w-[420px] max-h-[92vh] flex flex-col rounded-t-[24px] border-t border-[#F2F4F6] bg-white px-5 pb-8 pt-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
+        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-full sm:max-w-[440px] max-h-[90vh] max-h-[90dvh] flex flex-col rounded-t-[24px] border-t border-[#F2F4F6] bg-white px-4 sm:px-5 pb-[max(1.75rem,calc(env(safe-area-inset-bottom,0px)+1rem))] pt-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label={label}
       >
         <div className="mx-auto mb-3 h-1 w-9 shrink-0 rounded-full bg-[#D1D6DB]" />
-        <div className="overflow-y-auto no-scrollbar flex-1 overscroll-contain pb-safe pr-0.5">
+        <div className="overflow-y-auto no-scrollbar flex-1 overscroll-contain pb-2 pr-0.5">
           {children}
         </div>
       </div>

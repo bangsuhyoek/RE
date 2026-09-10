@@ -20,7 +20,7 @@ function SummaryCard({ subscriptions }) {
         <span className="text-[13px] font-semibold text-white/70">{annual ? "연간 환산 지출액" : "이번 달 총 결제 예정"}</span>
         <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/80 backdrop-blur-xs">{annual ? "연간 보기" : "월간 보기"}</span>
       </div>
-      <span className="mt-2.5 block text-[32px] font-extrabold tracking-tight text-white">{formatWon(displayAmount)}</span>
+      <span className="mt-2.5 block text-[26px] sm:text-[32px] font-extrabold tracking-tight text-white truncate">{formatWon(displayAmount)}</span>
       <span className="mt-1 flex items-center gap-1 text-[12px] text-white/50">탭하면 {annual ? "월간" : "연간"} 지출로 전환</span>
       <div className="mt-5 grid grid-cols-2 gap-3 rounded-2xl bg-white/[0.06] p-3.5 backdrop-blur-xs">
         <span>
@@ -84,7 +84,7 @@ function PromotionCarousel({ promotions, onOpen, onExplore }) {
 
 function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile }) {
   return (
-    <section className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-center px-5 text-center">
+    <section className="flex min-h-[calc(100dvh-9rem)] min-h-[calc(100vh-9rem)] flex-col items-center justify-center px-4 sm:px-5 text-center">
       <span className="grid h-16 w-16 place-items-center rounded-3xl bg-[#F2F4F6] text-[#6B7684] border border-[#E5E8EB]"><Inbox size={28} strokeWidth={1.75} /></span>
       <h1 className="mt-6 text-[22px] font-bold tracking-tight text-[#191F28]">등록된 구독 서비스가 없습니다</h1>
       <p className="mt-2 max-w-[280px] text-[14px] leading-relaxed text-[#6B7684]">하단의 + 버튼이나 아래 버튼으로 구독을 추가해보세요.</p>
@@ -121,7 +121,7 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
   if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onScan || onAdd} onLogout={onLogout} onOpenAccount={onOpenAccount} profile={profile} />;
 
   return (
-    <main className="px-5 pb-28 pt-6">
+    <main className="px-4 sm:px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-5 sm:pt-6">
       <div>
         <p className="text-[13px] font-semibold text-fg-subtle">
           {profile?.nickname || "사용자"}님, 이번 달

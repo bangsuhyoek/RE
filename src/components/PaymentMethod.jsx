@@ -153,7 +153,7 @@ export function PaymentMethodPickerModal({
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4 animate-in fade-in duration-200">
       <div
-        className="w-full max-w-[440px] rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl transition-all max-h-[85vh] flex flex-col overflow-hidden"
+        className="w-full max-w-full sm:max-w-[440px] rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl transition-all max-h-[85vh] max-h-[85dvh] flex flex-col overflow-hidden pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

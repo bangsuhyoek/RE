@@ -6,7 +6,7 @@ export const config = {
   },
 };
 
-const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const allowedMimeTypes = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
 const send = (response, status, payload) => {
@@ -80,6 +80,7 @@ const callGeminiVision = async ({ imageBase64, mimeType, apiKey }) => {
     "gemini-3.5-flash-lite",
     "gemini-3.5-flash",
     "gemini-flash-latest",
+    "gemini-2.5-flash",
     "gemini-3.6-flash",
   ].filter(Boolean)));
 
@@ -97,10 +98,11 @@ const callGeminiVision = async ({ imageBase64, mimeType, apiKey }) => {
       } catch (err) {
         lastError = err;
         if (controller.signal.aborted) throw err;
-        if (!isHighDemandOrOverloaded(err.status, err.message) && err.status !== 404) {
+        const lower = String(err.message || "").toLowerCase();
+        if (err.status === 401 || (err.status === 403 && lower.includes("api_key_invalid"))) {
           throw err;
         }
-        await sleep(600);
+        await sleep(500);
       }
     }
     if (lastError && isHighDemandOrOverloaded(lastError.status, lastError.message)) {
@@ -194,9 +196,21 @@ export default async function handler(request, response) {
   }
 
   try {
-    const rawText = geminiKey
-      ? await callGeminiVision({ imageBase64, mimeType, apiKey: geminiKey })
-      : await callGoogleVision({ imageBase64, apiKey: visionKey });
+    const normalizedMimeType = mimeType === "image/jpg" ? "image/jpeg" : mimeType;
+    let rawText = "";
+    if (geminiKey) {
+      try {
+        rawText = await callGeminiVision({ imageBase64, mimeType: normalizedMimeType, apiKey: geminiKey });
+      } catch (geminiError) {
+        if (visionKey && !geminiError.name?.includes("Abort")) {
+          rawText = await callGoogleVision({ imageBase64, apiKey: visionKey });
+        } else {
+          throw geminiError;
+        }
+      }
+    } else {
+      rawText = await callGoogleVision({ imageBase64, apiKey: visionKey });
+    }
     const parsed = parseReceiptText(rawText);
     return send(response, parsed.ok ? 200 : 422, parsed);
   } catch (error) {

@@ -27,17 +27,67 @@ import {
 } from "./ui";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
 
-const readImageAsBase64 = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result || "");
-      resolve(result.includes(",") ? result.split(",")[1] : result);
+const optimizeImageFile = (file) =>
+  new Promise((resolve) => {
+    const fallback = () => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result || "");
+        resolve({
+          base64: result.includes(",") ? result.split(",")[1] : result,
+          mimeType: file.type || "image/jpeg",
+        });
+      };
+      reader.onerror = () => resolve({ base64: "", mimeType: file.type || "image/jpeg" });
+      reader.readAsDataURL(file);
     };
-    reader.onerror = () => reject(new Error("이미지 파일을 읽지 못했습니다."));
-    reader.readAsDataURL(file);
+
+    if (typeof window === "undefined" || !window.URL?.createObjectURL || file.size < 1.5 * 1024 * 1024) {
+      fallback();
+      return;
+    }
+
+    try {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const maxDim = 1600;
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          fallback();
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+        resolve({
+          base64: dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl,
+          mimeType: "image/jpeg",
+        });
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        fallback();
+      };
+      img.src = url;
+    } catch {
+      fallback();
+    }
   });
 
 const callRecognitionApi = async (payload) => {
@@ -236,8 +286,10 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
       return "";
     }
     if (!file) return "영수증 또는 결제 화면 이미지를 선택해 주세요.";
-    if (!ALLOWED_IMAGE_TYPES.has(file.type)) return "JPG, PNG, WEBP 이미지만 사용할 수 있습니다.";
-    if (file.size > MAX_IMAGE_BYTES) return "이미지는 8MB 이하만 사용할 수 있습니다.";
+    const fileType = String(file.type || "").toLowerCase();
+    const isAllowed = ALLOWED_IMAGE_TYPES.has(fileType) || /\.(jpe?g|png|webp)$/i.test(file.name || "");
+    if (!isAllowed) return "JPG, PNG, WEBP 이미지만 사용할 수 있습니다.";
+    if (file.size > 20 * 1024 * 1024) return "이미지는 20MB 이하만 사용할 수 있습니다.";
     return "";
   };
 
@@ -252,10 +304,13 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
     setWarnings([]);
     setScanning(true);
     try {
-      const payload =
-        aiTab === "image"
-          ? { imageBase64: await readImageAsBase64(file), mimeType: file.type }
-          : { text: sms.trim() };
+      let payload;
+      if (aiTab === "image") {
+        const { base64, mimeType } = await optimizeImageFile(file);
+        payload = { imageBase64: base64, mimeType };
+      } else {
+        payload = { text: sms.trim() };
+      }
       const result = await callRecognitionApi(payload);
       const recognized = result.data;
       const matched = catalog.find(

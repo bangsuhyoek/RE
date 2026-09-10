@@ -201,6 +201,8 @@
   --color-status-ai-fg: var(--palette-purple-700);
   --color-status-ai-border: var(--palette-purple-200);
 
+  --app-max-width: 440px;
+
   font-family: Pretendard, Inter, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
   color: var(--color-fg-primary);
   background: var(--color-bg-base);
@@ -215,14 +217,18 @@
 html {
   min-width: 320px;
   background: var(--color-bg-base);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--color-bg-base);
   color: var(--color-fg-primary);
+  -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -253,17 +259,27 @@ button {
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-shell {
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
-  max-width: 420px;
+  max-width: 100%;
   margin: 0 auto;
   overflow-x: hidden;
-  border-left: 1px solid var(--color-border-subtle);
-  border-right: 1px solid var(--color-border-subtle);
   background: var(--color-bg-surface);
+  position: relative;
+}
+
+@media (min-width: 481px) {
+  .app-shell {
+    max-width: var(--app-max-width, 440px);
+    border-left: 1px solid var(--color-border-subtle);
+    border-right: 1px solid var(--color-border-subtle);
+    box-shadow: 0 0 32px rgba(0, 0, 0, 0.06);
+  }
 }
 
 .card-press {
@@ -424,6 +440,12 @@ button {
 }
 .pr-safe {
   padding-right: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+}
+.top-safe {
+  top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+}
+.bottom-safe {
+  bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
 }
 
 /* Mobile App WebView Polish */

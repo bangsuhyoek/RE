@@ -53,7 +53,7 @@ export function CancelBrowserModal({
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white select-none animate-in fade-in duration-200">
       {/* 상단 헤더 (전체 화면의 약 7%, 52px) */}
-      <header className="h-[52px] shrink-0 border-b border-[#E5E8EB] bg-white px-4 flex items-center justify-between shadow-2xs">
+      <header className="min-h-[calc(52px+env(safe-area-inset-top,0px))] shrink-0 border-b border-[#E5E8EB] bg-white px-4 pt-safe flex items-center justify-between shadow-2xs">
         <div className="flex items-center gap-2 min-w-0">
           <span className="grid h-7 w-7 place-items-center rounded-full bg-[#F2F4F6] text-[#191F28]">
             <Lock size={14} className="text-[#3182F6]" />
@@ -119,7 +119,7 @@ export function CancelBrowserModal({
       </main>
 
       {/* 하단 가이드 도크 (전체 화면의 정확히 20%, 약 160px) */}
-      <section className="h-[20vh] min-h-[148px] max-h-[180px] shrink-0 border-t border-[#E5E8EB] bg-white flex flex-col justify-between px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+      <section className="min-h-[calc(148px+env(safe-area-inset-bottom,0px))] max-h-[calc(200px+env(safe-area-inset-bottom,0px))] shrink-0 border-t border-[#E5E8EB] bg-white flex flex-col justify-between px-4 pt-3 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
         {/* 상단 단계 인디케이터 및 핵심 안내 문구 */}
         <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
