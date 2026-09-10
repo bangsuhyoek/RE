@@ -51,6 +51,29 @@ const destApk = path.join(rootDir, "SubMate-debug.apk");
 
 if (fs.existsSync(srcApk)) {
   fs.copyFileSync(srcApk, destApk);
+
+  // Sign with v1, v2, v3 schemes for maximum Android device compatibility
+  const buildToolsDir = path.join(process.env.LOCALAPPDATA || "", "Android", "Sdk", "build-tools");
+  const keystorePath = path.join(process.env.USERPROFILE || "", ".android", "debug.keystore");
+  if (fs.existsSync(buildToolsDir) && fs.existsSync(keystorePath)) {
+    const versions = fs.readdirSync(buildToolsDir).sort().reverse();
+    if (versions.length > 0) {
+      const apksignerBat = path.join(buildToolsDir, versions[0], "apksigner.bat");
+      if (fs.existsSync(apksignerBat)) {
+        console.log("🔐 APK 서명 호환성(v1 + v2 + v3) 적용 중...");
+        try {
+          execSync(
+            `"${apksignerBat}" sign --ks "${keystorePath}" --ks-pass pass:android --key-pass pass:android --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --min-sdk-version 23 "${destApk}"`,
+            { stdio: "inherit" }
+          );
+          console.log("✅ APK v1/v2/v3 다중 서명 적용 완료");
+        } catch (e) {
+          console.warn("⚠️ apksigner 서명 경고 (기본 Gradle 서명 유지):", e.message);
+        }
+      }
+    }
+  }
+
   const stat = fs.statSync(destApk);
   const sizeMb = (stat.size / (1024 * 1024)).toFixed(2);
   console.log(`\n✅ APK 빌드 완료!`);
