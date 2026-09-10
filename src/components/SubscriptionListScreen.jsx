@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { FilterX, RefreshCw, Search, SlidersHorizontal } from "lucide-react";
+import { FilterX, RefreshCw, Search, SlidersHorizontal, PlusCircle } from "lucide-react";
 import { Button, Chip, IconButton, SubscriptionCard, CATEGORY_PHILOSOPHY } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 
@@ -95,14 +95,26 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
         <span className="text-[14px] font-bold text-[#191F28]">월 {formatWon(total)}</span>
       </div>
 
-      {filtered.length > 0 ? (
+      {subscriptions.length === 0 ? (
+        <section className="mt-16 flex flex-col items-center text-center px-4">
+          <div className="grid h-16 w-16 place-items-center rounded-3xl bg-[#F2F4F6] text-[#191F28] border border-[#E5E8EB]">
+            <PlusCircle size={32} className="text-[#3182F6]" />
+          </div>
+          <h2 className="mt-5 text-[18px] font-bold text-[#191F28]">등록된 구독이 없어요</h2>
+          <p className="mt-1.5 text-[13px] text-[#6B7684] leading-relaxed">
+            매달 나가는 고정 지출을 등록하고<br />결제일 전 알림과 통계를 확인해 보세요.
+          </p>
+          <Button variant="primary" size="default" className="mt-6 w-full max-w-[200px]" onClick={onAdd}>
+            첫 구독 추가하기
+          </Button>
+        </section>
+      ) : filtered.length > 0 ? (
         <div className="mt-3 space-y-3">
           {filtered.map((subscription) => (
             <SubscriptionCard
               key={subscription.subscriptionId || subscription.id}
               subscription={subscription}
               detail
-              swipable
               onOpen={() => onOpen(subscription.subscriptionId || subscription.id)}
               onCancel={() => onStartCancel(subscription.subscriptionId || subscription.id)}
               onMute={() => onMute(subscription.subscriptionId || subscription.id)}

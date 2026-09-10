@@ -387,7 +387,7 @@ export function OnboardingScreen({ catalog = [], selectedIds = [], onToggle, onF
       )}
 
       {/* Floating Bottom Action Bar */}
-      <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-full sm:max-w-[440px] -translate-x-1/2 border-t sm:border-x border-border-subtle bg-surface-default/95 px-4 sm:px-5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))] pt-3.5 shadow-lg backdrop-blur-md">
+      <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-full sm:max-w-[440px] -translate-x-1/2 border-t sm:border-x border-border-subtle bg-surface-default px-4 sm:px-5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))] pt-3.5 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
         <div className="mb-2.5 flex items-center justify-between text-[13px]">
           <div className="flex items-center gap-1.5">
             <span className="font-medium text-fg-muted">

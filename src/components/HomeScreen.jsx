@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight, Inbox, ReceiptText, ScanLine, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Inbox, ReceiptText, ScanLine, Sparkles, BellOff } from "lucide-react";
 import { Button, IconButton, SubscriptionCard } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 
@@ -132,18 +132,18 @@ export function HomeScreen({ subscriptions, promotions, profile, notificationDen
         <button
           type="button"
           onClick={onToggleNotificationPermission}
-          className="mt-5 flex w-full items-center justify-between rounded-2xl border border-status-trial-border bg-status-trial-bg p-4 text-left shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all active:scale-[0.98]"
+          className="mt-5 flex w-full items-center justify-between rounded-2xl border border-amber-200 bg-amber-50/90 p-4 text-left shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all active:scale-[0.98]"
         >
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-surface-brand text-fg-inverse shadow-2xs">
-              <Sparkles size={16} />
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-500 text-white shadow-2xs">
+              <BellOff size={16} />
             </span>
             <div>
-              <strong className="block text-[13px] font-bold text-fg-primary">결제 전 알림이 꺼져 있어요</strong>
-              <span className="mt-0.5 block text-[12px] font-medium text-fg-muted">탭하여 알림을 켜고 D-3, D-1에 미리 안내받으세요.</span>
+              <strong className="block text-[13px] font-bold text-amber-950">결제 전 알림이 꺼져 있어요</strong>
+              <span className="mt-0.5 block text-[12px] font-medium text-amber-700">탭하여 알림을 켜고 D-3, D-1에 미리 안내받으세요.</span>
             </div>
           </div>
-          <span className="rounded-lg bg-surface-brand px-3 py-1.5 text-[12px] font-bold text-fg-inverse shadow-2xs">
+          <span className="rounded-lg bg-amber-600 px-3 py-1.5 text-[12px] font-bold text-white shadow-2xs">
             켜기
           </span>
         </button>

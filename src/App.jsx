@@ -17,7 +17,7 @@ import { RenewalSheet } from "./components/RenewalSheet";
 import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from "./components/SubscriptionScreens";
 import { NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
-import { createMockSubscriptions, promotionCatalog, serviceCatalog } from "./data/subscriptionData";
+import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
 import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue } from "./lib/storage";
 import { generateSubscriptionAlerts } from "./lib/notifications";
 import { useNavigation } from "./hooks/useNavigation";
@@ -282,10 +282,9 @@ export default function App() {
     }
   }, [screen, setNotificationCenterOpen]);
 
-  // Route guard: unauthenticated users must stay on auth screens unless guest param is present
+  // Route guard: unauthenticated users must stay on auth screens
   useEffect(() => {
-    const isGuestParam = screen.params?.get("guest") === "1";
-    if (!profile && !isGuestParam && screen.route !== "login" && screen.route !== "register") {
+    if (!profile && screen.route !== "login" && screen.route !== "register") {
       navigate("login");
     }
   }, [profile, screen.route, screen.params, navigate]);
@@ -405,17 +404,8 @@ export default function App() {
     notify(`${newNickname}으로 닉네임이 변경되었어요!`);
   };
 
-  const completeLogin = (provider, nickname, guest = false) => {
-    setProfile({ nickname: nickname || "사용자", provider, guest, notificationsAllowed: true });
-    if (guest) {
-      const mockSubs = createMockSubscriptions();
-      setSubscriptions(mockSubs);
-      setOnboardingComplete(true);
-      setNotifications(generateSubscriptionAlerts(mockSubs));
-      navigate("home");
-      notify("데모 구독 내역 5종을 불러왔어요.");
-      return;
-    }
+  const completeLogin = (provider, nickname) => {
+    setProfile({ nickname: nickname || "사용자", provider, guest: false, notificationsAllowed: true });
     setSubscriptions((current) => removeDemoSubscriptions(current));
     setOnboardingComplete(false);
     navigate("onboarding");
@@ -532,7 +522,6 @@ export default function App() {
   } else {
     content = (
       <AuthLogin
-        onGuest={() => completeLogin("Guest", "체험 사용자", true)}
         onSocial={handleSocialLogin}
         onLogin={handleIdLogin}
         onRegister={() => navigate("register")}

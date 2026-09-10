@@ -3,6 +3,20 @@ import { Bell, BellRing, Check, ChevronRight, Sparkles, X, Trash2, Send } from "
 import { BottomSheet, Button, ServiceMark } from "./ui";
 import { formatWon } from "../lib/dates";
 
+function getNotificationBadgeStyle(badge = "") {
+  const b = badge.toUpperCase();
+  if (b.includes("D-0") || b.includes("D-1") || b.includes("TODAY") || b.includes("오늘")) {
+    return "bg-red-50 text-red-600 border border-red-200";
+  }
+  if (b.includes("D-3") || b.includes("정기")) {
+    return "bg-blue-50 text-blue-700 border border-blue-200";
+  }
+  if (b.includes("체험") || b.includes("만료") || b.includes("TRIAL")) {
+    return "bg-amber-50 text-amber-700 border border-amber-200";
+  }
+  return "bg-gray-100 text-gray-700 border border-gray-200";
+}
+
 /**
  * Floating push notification banner (simulates iOS/Android push notification banner)
  */
@@ -125,6 +139,8 @@ export function PushNotificationBanner({ notification, onClose, onOpenDetail, du
         >
           <div className="flex items-start gap-2.5">
             <ServiceMark
+              serviceId={notification.subscriptionId || notification.serviceId}
+              name={notification.title || notification.name}
               monogram={notification.monogram}
               className="mt-0.5 h-8 w-8 rounded-lg bg-white/10 text-[11px] text-white shrink-0"
             />
@@ -319,34 +335,40 @@ export function NotificationCenterModal({
                     onOpenDetail(item.subscriptionId);
                   }
                 }}
-                className={`flex items-start gap-2.5 py-2.5 px-2 rounded-xl transition-colors cursor-pointer text-left hover:bg-[#FAFAFA] ${
-                  !item.read ? "bg-[#F4F4F5]/50" : ""
+                className={`flex items-start gap-3 py-3 px-3 rounded-xl transition-all cursor-pointer text-left hover:bg-[#F9FAFB] ${
+                  !item.read ? "bg-[#F0F4FF] border-l-[3px] border-l-[#3182F6]" : "border-l-[3px] border-l-transparent bg-white border border-[#F2F4F6]"
                 }`}
               >
                 <ServiceMark
+                  serviceId={item.subscriptionId || item.serviceId}
+                  name={item.title || item.name}
                   monogram={item.monogram}
-                  className="mt-0.5 h-9 w-9 text-[11px] shrink-0"
+                  className="mt-0.5 h-10 w-10 text-[12px] shrink-0 rounded-xl"
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="rounded-[4px] border border-black px-1.5 py-0.2 text-[9px] font-bold shrink-0">
+                    <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold shrink-0 ${getNotificationBadgeStyle(item.badge)}`}>
                       {item.badge}
                     </span>
-                    <strong className="truncate text-[12px] font-semibold">
+                    <strong className="truncate text-[13px] font-bold text-[#191F28]">
                       {item.title}
                     </strong>
                     {!item.read && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
+                      <span className="h-2 w-2 rounded-full bg-red-500 shrink-0 ml-auto" />
                     )}
                   </div>
-                  <p className="mt-1 text-[11px] leading-4 text-[#71717A]">
+                  <p className="mt-1 text-[12px] leading-relaxed text-[#4E5968]">
                     {item.message}
                   </p>
-                  <span className="mt-1 block text-[10px] text-[#A1A1AA]">
-                    {item.isTest ? "테스트 알림" : "스마트 정기 알림"} · 탭하여 해지 가이드 열기
+                  <span className="mt-1.5 block text-[11px] font-medium text-[#3182F6]">
+                    {item.isTest ? "테스트 알림" : "스마트 결제 알림"} · {
+                      item.badge?.includes("체험") || item.badge?.includes("D-0") || item.badge?.includes("D-1")
+                        ? "탭하여 해지 가이드 및 일정 확인"
+                        : "탭하여 결제 상세 정보 확인"
+                    }
                   </span>
                 </div>
-                <ChevronRight size={14} className="text-[#A1A1AA] shrink-0 mt-2.5" />
+                <ChevronRight size={15} className="text-[#B0B8C1] shrink-0 mt-3" />
               </div>
             ))
           )}

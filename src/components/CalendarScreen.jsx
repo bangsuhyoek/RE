@@ -36,6 +36,15 @@ export function CalendarScreen({ subscriptions, onOpen }) {
 
   const selectedDues = duesByDay.get(clampedDay) || [];
   const selectedTotal = selectedDues.reduce((sum, item) => sum + item.amount, 0);
+  const maxDayAmount = useMemo(() => {
+    let max = 0;
+    for (const list of duesByDay.values()) {
+      const daySum = list.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+      if (daySum > max) max = daySum;
+    }
+    return max;
+  }, [duesByDay]);
+
   const monthTotal = useMemo(() => {
     let total = 0;
     for (const list of duesByDay.values()) {
@@ -78,18 +87,33 @@ export function CalendarScreen({ subscriptions, onOpen }) {
             const isSelected = item === clampedDay;
             const subsOnDay = duesByDay.get(item) || [];
             const hasDue = subsOnDay.length > 0;
+            const dayAmount = subsOnDay.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
+            const isPeak = hasDue && maxDayAmount > 0 && dayAmount >= maxDayAmount * 0.6;
+            const isMid = hasDue && !isPeak && maxDayAmount > 0 && dayAmount >= maxDayAmount * 0.25;
+
+            let dayStyle = "text-fg-primary hover:bg-surface-subtle";
+            if (isSelected) {
+              dayStyle = "bg-surface-inverse text-fg-inverse shadow-sm";
+            } else if (isPeak) {
+              dayStyle = "bg-amber-100/90 text-amber-950 font-bold border border-amber-300 shadow-2xs";
+            } else if (isMid) {
+              dayStyle = "bg-emerald-50 text-emerald-950 font-semibold border border-emerald-200/70";
+            } else if (hasDue) {
+              dayStyle = "bg-surface-subtle text-fg-primary font-semibold";
+            }
+
             return (
               <button
                 key={`day-${item}`}
                 type="button"
                 onClick={() => setSelectedDay(item)}
-                className={`relative mx-auto flex h-8 w-8 min-w-[32px] sm:h-10 sm:w-10 sm:min-w-[40px] flex-col items-center justify-center rounded-xl text-[12px] sm:text-[13px] font-semibold transition-all active:scale-95 ${
-                  isSelected ? "bg-surface-inverse text-fg-inverse shadow-sm" : "text-fg-primary hover:bg-surface-subtle"
-                }`}
+                className={`relative mx-auto flex h-8 w-8 min-w-[32px] sm:h-10 sm:w-10 sm:min-w-[40px] flex-col items-center justify-center rounded-xl text-[12px] sm:text-[13px] font-semibold transition-all active:scale-95 ${dayStyle}`}
               >
                 <span>{item}</span>
                 {hasDue && !isSelected && (
-                  <span className="absolute bottom-1 h-1 w-1 rounded-full bg-surface-brand" />
+                  <span className={`absolute bottom-1 h-1 w-1 rounded-full ${
+                    isPeak ? "bg-amber-600" : isMid ? "bg-emerald-600" : "bg-surface-brand"
+                  }`} />
                 )}
                 {hasDue && isSelected && (
                   <span className="absolute bottom-1 h-1 w-1 rounded-full bg-white" />
@@ -116,7 +140,14 @@ export function CalendarScreen({ subscriptions, onOpen }) {
                 className="card-press flex w-full items-center justify-between rounded-2xl border border-[#E5E8EB] bg-white p-3.5 text-left shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all hover:border-[#D1D6DB] active:scale-[0.98]"
               >
                 <div className="flex items-center gap-3">
-                  <ServiceMark monogram={sub.monogram || sub.name?.slice(0, 1)} className="h-10 w-10 rounded-xl text-[13px]" />
+                  <ServiceMark
+                    serviceId={sub.id}
+                    name={sub.name}
+                    monogram={sub.monogram || sub.name?.slice(0, 1)}
+                    image={sub.image || sub.attachments?.[0]}
+                    category={sub.category}
+                    className="h-10 w-10 rounded-xl text-[13px]"
+                  />
                   <div>
                     <strong className="block text-[14px] font-bold text-[#191F28]">{sub.name}</strong>
                     <span className="text-[12px] font-medium text-[#6B7684]">{sub.plan}</span>

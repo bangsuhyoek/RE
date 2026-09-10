@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { BottomSheet, SegmentedControl } from "./ui";
 import { FileText, Shield, KeyRound, X } from "lucide-react";
 
@@ -52,6 +52,13 @@ const CONSENT_TEXT = `# 앱 접근 권한 및 눈에 띄는 사전 고지서 (Pr
 
 export function TermsModal({ initialTab = "terms", onClose }) {
   const [currentTab, setCurrentTab] = useState(initialTab);
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+    }
+  }, [currentTab]);
 
   return (
     <BottomSheet onClose={onClose} label="꾸독 약관 및 정책">
@@ -87,10 +94,52 @@ export function TermsModal({ initialTab = "terms", onClose }) {
           ]}
         />
 
-        <div className="mt-4 max-h-[380px] overflow-y-auto rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-4 text-[12px] leading-relaxed text-[#333D4B] whitespace-pre-line font-mono">
-          {currentTab === "terms" && TERMS_TEXT}
-          {currentTab === "privacy" && PRIVACY_TEXT}
-          {currentTab === "permissions" && CONSENT_TEXT}
+        <div ref={contentRef} className="mt-4 max-h-[380px] overflow-y-auto rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-4 text-[13px] leading-relaxed text-[#333D4B] font-sans">
+          {currentTab === "terms" && (
+            <div>
+              <div className="mb-3.5 rounded-xl border border-blue-200 bg-blue-50/70 p-3 text-[12px] text-blue-950">
+                <strong className="block font-bold mb-1">💡 이용약관 핵심 요약</strong>
+                <ul className="space-y-0.5 text-[11px] text-blue-900/90 list-disc list-inside">
+                  <li>꾸독은 계약 당사자가 아닌 구독 관리 보조 서비스입니다.</li>
+                  <li>최종 결제 및 해지 확인 책임은 이용자 본인에게 있습니다.</li>
+                  <li>결제 감지 및 AI 인식 오차 가능성을 감안해 최종 확인을 권장합니다.</li>
+                </ul>
+              </div>
+              <div className="whitespace-pre-line text-[12.5px] leading-6 text-[#333D4B]">
+                {TERMS_TEXT}
+              </div>
+            </div>
+          )}
+          {currentTab === "privacy" && (
+            <div>
+              <div className="mb-3.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-[12px] text-emerald-950">
+                <strong className="block font-bold mb-1">🔒 개인정보 보호 핵심 원칙</strong>
+                <ul className="space-y-0.5 text-[11px] text-emerald-900/90 list-disc list-inside">
+                  <li>카드 비밀번호, CVC, 전체 계좌번호는 일체 수집하지 않습니다.</li>
+                  <li>실시간 결제 알림은 기기 내에서만 파싱 후 즉시 폐기됩니다.</li>
+                  <li>회원 탈퇴 시 모든 개인정보는 지체 없이 영구 파기됩니다.</li>
+                </ul>
+              </div>
+              <div className="whitespace-pre-line text-[12.5px] leading-6 text-[#333D4B]">
+                {PRIVACY_TEXT}
+              </div>
+            </div>
+          )}
+          {currentTab === "permissions" && (
+            <div>
+              <div className="mb-3.5 rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-[12px] text-amber-950">
+                <strong className="block font-bold mb-1">🛡️ 권한 사용 및 안전 보증</strong>
+                <ul className="space-y-0.5 text-[11px] text-amber-900/90 list-disc list-inside">
+                  <li>결제 알림 접근: 오직 카드사/페이 결제 승인 알림만 선별 감지합니다.</li>
+                  <li>다른 앱 위에 표시: 해지 공식 사이트 이동 시 화면 구석 미니 팁 표시.</li>
+                  <li>사적인 메신저, 문자, 사진 등에 대한 접근은 일체 수행하지 않습니다.</li>
+                </ul>
+              </div>
+              <div className="whitespace-pre-line text-[12.5px] leading-6 text-[#333D4B]">
+                {CONSENT_TEXT}
+              </div>
+            </div>
+          )}
         </div>
 
         <p className="mt-3 text-center text-[11px] text-[#8B95A1]">

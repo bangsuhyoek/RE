@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
+  Bell,
   BellOff,
   CalendarDays,
   Camera,
   CreditCard,
+  ExternalLink,
+  FileText,
   Home,
+  MoreVertical,
   Plus,
   Sparkles,
   Loader2,
@@ -506,7 +510,7 @@ export function AppHeader({ title, onBack, rightSlot = null }) {
 
 export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
   return (
-    <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-[calc(3.75rem+env(safe-area-inset-bottom,0px))] w-full max-w-full sm:max-w-[440px] -translate-x-1/2 items-center justify-around border-t sm:border-x border-border-subtle bg-surface-default/95 px-1 sm:px-2 pb-[max(0.4rem,calc(env(safe-area-inset-bottom,0px)+0.2rem))] pt-1 backdrop-blur-md shadow-[0_-1px_3px_rgba(0,0,0,0.02)]" aria-label="주요 탐색">
+    <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-[calc(3.75rem+env(safe-area-inset-bottom,0px))] w-full max-w-full sm:max-w-[440px] -translate-x-1/2 items-center justify-around border-t sm:border-x border-border-subtle bg-surface-default px-1 sm:px-2 pb-[max(0.4rem,calc(env(safe-area-inset-bottom,0px)+0.2rem))] pt-1 shadow-[0_-2px_10px_rgba(0,0,0,0.04)]" aria-label="주요 탐색">
       <button
         type="button"
         onClick={() => onNavigate("home")}
@@ -561,166 +565,125 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
   );
 }
 
-function SubscriptionCardBody({ subscription, onOpen, detail = false }) {
+export function SubscriptionCard({ subscription, onOpen, onCancel, onMute, detail = false }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isMuted = subscription.alertD3 === false && subscription.alertD1 === false;
+
   return (
-    <button type="button" onClick={onOpen} className="card-press flex w-full items-center gap-3.5 rounded-2xl border border-border-subtle bg-surface-default p-4 text-left shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all hover:border-border-default active:scale-[0.98] cursor-pointer">
-      <ServiceMark
-        serviceId={subscription.id}
-        name={subscription.name}
-        monogram={subscription.monogram || subscription.name?.slice(0, 1)}
-        image={subscription.image || subscription.attachments?.[0]}
-        category={subscription.category}
-      />
-      <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1.5 min-w-0">
-          <span className="truncate text-[15px] font-bold text-fg-primary tracking-tight">{subscription.name}</span>
-          <CategoryBadge category={subscription.category} />
-        </span>
-        <span className="mt-0.5 flex items-center gap-1.5 truncate text-[13px] font-medium text-fg-muted">
-          <span>{subscription.plan} · {formatBillingDate(subscription)}</span>
-        </span>
-        {detail && (
-          <span className="mt-1 block truncate text-[11px] font-medium text-fg-subtle">
-            <PaymentMethodBadge method={subscription.paymentMethod} size={14} />
+    <>
+      <div className="card-press flex w-full items-center gap-3 rounded-2xl border border-border-subtle bg-surface-default p-3.5 sm:p-4 text-left shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all hover:border-border-default active:scale-[0.99]">
+        <button type="button" onClick={onOpen} className="flex flex-1 items-center gap-3.5 min-w-0 text-left cursor-pointer">
+          <ServiceMark
+            serviceId={subscription.id}
+            name={subscription.name}
+            monogram={subscription.monogram || subscription.name?.slice(0, 1)}
+            image={subscription.image || subscription.attachments?.[0]}
+            category={subscription.category}
+          />
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-1.5 min-w-0">
+              <span className="truncate text-[15px] font-bold text-fg-primary tracking-tight">{subscription.name}</span>
+              <CategoryBadge category={subscription.category} />
+              {isMuted && (
+                <span className="inline-flex items-center text-[#8B95A1] shrink-0" title="알림 꺼짐">
+                  <BellOff size={13} />
+                </span>
+              )}
+            </span>
+            <span className="mt-0.5 flex items-center gap-1.5 truncate text-[13px] font-medium text-fg-muted">
+              <span>{subscription.plan} · {formatBillingDate(subscription)}</span>
+            </span>
+            {detail && (
+              <span className="mt-1 block truncate text-[11px] font-medium text-fg-subtle">
+                <PaymentMethodBadge method={subscription.paymentMethod} size={14} />
+              </span>
+            )}
           </span>
-        )}
-      </span>
-      <span className="flex shrink-0 flex-col items-end gap-1.5">
-        <DDayBadge subscription={subscription} />
-        <span className="text-[15px] font-bold tracking-tight text-fg-primary">{formatWon(subscription.amount)}</span>
-      </span>
-    </button>
-  );
-}
+          <span className="flex shrink-0 flex-col items-end gap-1">
+            <DDayBadge subscription={subscription} />
+            <span className="text-[16px] font-extrabold tracking-tight text-fg-primary">{formatWon(subscription.amount)}</span>
+          </span>
+        </button>
 
-export function SubscriptionCard({ subscription, onOpen, onCancel, onMute, swipable = false, detail = false }) {
-  const [revealed, setRevealed] = useState(false);
-  const [dragX, setDragX] = useState(0);
-  const [isDraggingState, setIsDraggingState] = useState(false);
-  const startX = useRef(null);
-  const startY = useRef(null);
-  const isDragging = useRef(false);
-  const capturedElement = useRef(null);
-
-  if (!swipable) return <SubscriptionCardBody subscription={subscription} onOpen={onOpen} detail={detail} />;
-
-  const handlePointerDown = (event) => {
-    if (event.button !== undefined && event.button !== 0) return;
-    startX.current = event.clientX;
-    startY.current = event.clientY;
-    isDragging.current = false;
-  };
-
-  const handlePointerMove = (event) => {
-    if (startX.current === null) return;
-    const deltaX = event.clientX - startX.current;
-    const deltaY = event.clientY - (startY.current ?? event.clientY);
-
-    if (!isDragging.current) {
-      if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
-        isDragging.current = true;
-        setIsDraggingState(true);
-        capturedElement.current = event.currentTarget;
-        try {
-          event.currentTarget.setPointerCapture?.(event.pointerId);
-        } catch (_) {}
-      }
-    }
-
-    if (isDragging.current) {
-      const base = revealed ? -120 : 0;
-      const nextX = Math.max(-120, Math.min(0, base + deltaX));
-      setDragX(nextX);
-    }
-  };
-  const handlePointerEnd = (event) => {
-    if (capturedElement.current) {
-      try {
-        capturedElement.current.releasePointerCapture?.(event.pointerId);
-      } catch (_) {}
-      capturedElement.current = null;
-    }
-
-    if (isDragging.current) {
-      if (revealed) {
-        setRevealed(dragX < -70);
-      } else {
-        setRevealed(dragX < -50);
-      }
-      setDragX(0);
-      setIsDraggingState(false);
-      startX.current = null;
-      startY.current = null;
-      setTimeout(() => {
-        isDragging.current = false;
-      }, 100);
-      return;
-    }
-
-    setDragX(0);
-    setIsDraggingState(false);
-    startX.current = null;
-    startY.current = null;
-  };
-
-  const handleCardClick = (event) => {
-    if (isDragging.current) {
-      event?.preventDefault?.();
-      event?.stopPropagation?.();
-      return;
-    }
-    if (revealed) {
-      event?.preventDefault?.();
-      event?.stopPropagation?.();
-      setRevealed(false);
-      return;
-    }
-    onOpen?.();
-  };
-
-  const currentTranslate = isDraggingState ? dragX : (revealed ? -120 : 0);
-
-  return (
-    <div className="relative overflow-hidden rounded-2xl">
-      <div className="absolute inset-y-0 right-0 flex w-[120px] overflow-hidden rounded-r-2xl" aria-hidden={!revealed}>
         <button
           type="button"
-          tabIndex={revealed ? 0 : -1}
           onClick={(e) => {
             e.stopPropagation();
-            setRevealed(false);
-            onCancel?.();
+            setMenuOpen(true);
           }}
-          className="flex w-1/2 flex-col items-center justify-center gap-1 bg-[#FF4D4D] text-[11px] font-bold text-white transition-opacity active:opacity-90 cursor-pointer"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[#8B95A1] hover:bg-[#F2F4F6] hover:text-[#191F28] active:scale-95 transition-all cursor-pointer"
+          aria-label="구독 옵션 메뉴 열기"
         >
-          <X size={16} />
-          해지
-        </button>
-        <button
-          type="button"
-          tabIndex={revealed ? 0 : -1}
-          onClick={(e) => {
-            e.stopPropagation();
-            setRevealed(false);
-            onMute?.();
-          }}
-          className="flex w-1/2 flex-col items-center justify-center gap-1 bg-[#6B7684] text-[11px] font-bold text-white transition-opacity active:opacity-90 cursor-pointer"
-        >
-          <BellOff size={16} />
-          알림 끄기
+          <MoreVertical size={18} />
         </button>
       </div>
-      <div
-        className={"relative touch-pan-y " + (isDraggingState ? "transition-none" : "transition-transform duration-[240ms] ease-[cubic-bezier(0.32,0.72,0,1)]")}
-        style={{ transform: "translateX(" + currentTranslate + "px)" }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
-      >
-        <SubscriptionCardBody subscription={subscription} onOpen={handleCardClick} detail={detail} />
-      </div>
-    </div>
+
+      {menuOpen && (
+        <BottomSheet onClose={() => setMenuOpen(false)} label={`${subscription.name} 관리`}>
+          <div className="flex items-center gap-3 pb-4 border-b border-[#E5E8EB]">
+            <ServiceMark
+              serviceId={subscription.id}
+              name={subscription.name}
+              monogram={subscription.monogram || subscription.name?.slice(0, 1)}
+              image={subscription.image || subscription.attachments?.[0]}
+              category={subscription.category}
+              className="h-12 w-12 rounded-xl"
+            />
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[16px] font-bold text-[#191F28] truncate">{subscription.name}</h3>
+              <p className="text-[13px] text-[#6B7684] truncate">{subscription.plan} · 월 {formatWon(subscription.amount)}</p>
+            </div>
+          </div>
+
+          <div className="mt-3 space-y-1">
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                onOpen?.();
+              }}
+              className="flex w-full items-center gap-3 rounded-xl p-3 text-left text-[14px] font-semibold text-[#191F28] hover:bg-[#F9FAFB] active:bg-[#F2F4F6] transition-colors cursor-pointer"
+            >
+              <FileText size={18} className="text-[#6B7684]" />
+              <span>상세 정보 및 수정</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                onMute?.();
+              }}
+              className="flex w-full items-center gap-3 rounded-xl p-3 text-left text-[14px] font-semibold text-[#191F28] hover:bg-[#F9FAFB] active:bg-[#F2F4F6] transition-colors cursor-pointer"
+            >
+              {isMuted ? (
+                <>
+                  <Bell size={18} className="text-[#3182F6]" />
+                  <span>알림 켜기 (D-3, D-1 알림 받기)</span>
+                </>
+              ) : (
+                <>
+                  <BellOff size={18} className="text-[#8B95A1]" />
+                  <span>알림 끄기 (결제 전 알림 끄기)</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                onCancel?.();
+              }}
+              className="flex w-full items-center gap-3 rounded-xl p-3 text-left text-[14px] font-semibold text-[#E03838] hover:bg-[#FFF5F5] active:bg-[#FFEBEB] transition-colors cursor-pointer"
+            >
+              <ExternalLink size={18} />
+              <span>해지 가이드 바로가기</span>
+            </button>
+          </div>
+        </BottomSheet>
+      )}
+    </>
   );
 }
 

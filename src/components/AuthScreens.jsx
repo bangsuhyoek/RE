@@ -27,7 +27,7 @@ function GoogleIcon({ className = "h-5 w-5 shrink-0" }) {
   );
 }
 
-export function AuthLogin({ onGuest, onSocial, onRegister, onLogin }) {
+export function AuthLogin({ onSocial, onRegister, onLogin }) {
   const [accountId, setAccountId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -132,9 +132,7 @@ export function AuthLogin({ onGuest, onSocial, onRegister, onLogin }) {
       </div>
 
       <div className="mt-auto pt-8 text-center text-[13px]">
-        <button type="button" onClick={onRegister} className="font-semibold text-black underline underline-offset-4">회원가입</button>
-        <span className="mx-3 text-[#E4E4E7]">|</span>
-        <button type="button" onClick={onGuest} className="font-medium text-[#71717A] underline underline-offset-4">둘러보기</button>
+        <button type="button" onClick={onRegister} className="font-semibold text-black underline underline-offset-4">계정이 없으신가요? 회원가입</button>
       </div>
     </main>
   );
@@ -156,6 +154,7 @@ export function AuthRegister({ onBack, onComplete, existingUsers = [] }) {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [nickname, setNickname] = useState("");
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -178,7 +177,7 @@ export function AuthRegister({ onBack, onComplete, existingUsers = [] }) {
     };
   }, [accountId, existingUsers, nickname, password, passwordConfirm]);
 
-  const canSubmit = validation.id && validation.password && validation.matching && validation.nickname;
+  const canSubmit = validation.id && validation.password && validation.matching && validation.nickname && agreeTerms;
 
   return (
     <main className="min-h-screen min-h-[100dvh] px-4 sm:px-5 pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1rem))] pt-[max(2rem,calc(env(safe-area-inset-top,0px)+1rem))]">
@@ -227,6 +226,20 @@ export function AuthRegister({ onBack, onComplete, existingUsers = [] }) {
             <input className={fieldBase} placeholder="한/영 2~12자" value={nickname} onChange={(event) => setNickname(event.target.value)} />
             <ValidationHint valid={validation.nickname} error={validation.nicknameError} success="사용 가능한 닉네임입니다" />
           </label>
+        )}
+
+        {validation.matching && validation.nickname && (
+          <div className="field-enter pt-2 border-t border-[#E4E4E7] space-y-2">
+            <label className="flex items-center gap-2.5 text-[13px] text-[#333D4B] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(e) => setAgreeTerms(e.target.checked)}
+                className="h-4 w-4 rounded border-[#D1D6DB] text-black focus:ring-black accent-black cursor-pointer"
+              />
+              <span>[필수] 꾸독 서비스 이용약관 및 개인정보 처리방침 동의</span>
+            </label>
+          </div>
         )}
 
         {canSubmit && <Button type="submit" className="field-enter mt-2 w-full">가입 완료</Button>}

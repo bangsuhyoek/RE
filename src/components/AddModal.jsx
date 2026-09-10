@@ -17,6 +17,7 @@ import {
 import {
   BottomSheet,
   Button,
+  ServiceMark,
   SegmentedControl,
   ActionChip,
   PaymentIcon,
@@ -143,6 +144,59 @@ const callRecognitionApi = async (payload) => {
 
 const CATEGORIES = ["OTT", "음악", "쇼핑", "생산성", "도서", "클라우드", "게임", "기타"];
 
+const SERVICE_ALIASES = [
+  { id: "netflix", name: "Netflix", aliases: ["netflix", "넷플릭스", "넷플", "net", "nf"], category: "OTT" },
+  { id: "youtube", name: "YouTube Premium", aliases: ["youtube", "유튜브", "유툽", "유투브", "youtube premium", "yt"], category: "OTT" },
+  { id: "coupang", name: "쿠팡 와우", aliases: ["coupang", "쿠팡", "쿠팡와우", "와우", "쿠팡 와우"], category: "쇼핑" },
+  { id: "spotify", name: "Spotify", aliases: ["spotify", "스포티파이", "스포티"], category: "음악" },
+  { id: "chatgpt", name: "ChatGPT Plus", aliases: ["chatgpt", "gpt", "챗지피티", "지피티", "openai", "plus"], category: "생산성" },
+  { id: "tving", name: "티빙", aliases: ["tving", "티빙"], category: "OTT" },
+  { id: "disney", name: "Disney+", aliases: ["disney", "disney+", "disneyplus", "디즈니", "디즈니플러스", "디플"], category: "OTT" },
+  { id: "millie", name: "밀리의 서재", aliases: ["millie", "밀리", "밀리의서재", "밀리의 서재"], category: "도서" },
+  { id: "adobe", name: "Adobe Creative Cloud", aliases: ["adobe", "어도비", "포토샵", "photoshop", "creative cloud"], category: "생산성" },
+  { id: "watcha", name: "왓챠", aliases: ["watcha", "왓챠"], category: "OTT" },
+  { id: "flo", name: "플로", aliases: ["flo", "플로"], category: "음악" },
+  { id: "naver", name: "네이버플러스 멤버십", aliases: ["naver", "네이버", "네이버플러스", "네이버멤버십", "네플멤버십"], category: "쇼핑" },
+];
+
+function findSmartServiceMatch(input, catalog = []) {
+  if (!input || !input.trim()) return null;
+  const q = input.trim().toLowerCase().replace(/\s+/g, "");
+  if (!q) return null;
+
+  for (const item of SERVICE_ALIASES) {
+    if (item.aliases.some((alias) => {
+      const cleanAlias = alias.toLowerCase().replace(/\s+/g, "");
+      return q.includes(cleanAlias) || cleanAlias.includes(q);
+    })) {
+      const fromCat = catalog.find((c) => c.id === item.id);
+      return {
+        id: item.id,
+        name: fromCat?.name || item.name,
+        category: fromCat?.category || item.category,
+        cancelUrl: fromCat?.cancelUrl || "",
+        monogram: fromCat?.monogram || item.name.slice(0, 1).toUpperCase(),
+      };
+    }
+  }
+
+  const found = catalog.find((c) => {
+    const cName = c.name.toLowerCase().replace(/\s+/g, "");
+    const cId = c.id.toLowerCase().replace(/\s+/g, "");
+    return q.includes(cName) || cName.includes(q) || q.includes(cId) || cId.includes(q);
+  });
+  if (found) {
+    return {
+      id: found.id,
+      name: found.name,
+      category: found.category || "기타",
+      cancelUrl: found.cancelUrl || "",
+      monogram: found.monogram || found.name.slice(0, 1).toUpperCase(),
+    };
+  }
+  return null;
+}
+
 const inputClass = (missing) =>
   `w-full rounded-xl border bg-white px-3.5 py-3 text-[14px] text-[#191F28] outline-none transition-colors focus:border-[#191F28] ${
     missing ? "border-[#FF4D4D] bg-[#FFF5F5]" : "border-[#E5E8EB] focus:bg-white"
@@ -166,6 +220,7 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
     monogram: initialData?.monogram || "",
     cancelUrl: initialData?.cancelUrl || "",
   }));
+  const [matchedService, setMatchedService] = useState(() => initialData?.name ? findSmartServiceMatch(initialData.name, catalog) : null);
 
   const [showDetails, setShowDetails] = useState(() => {
     return Boolean(initialData?.plan || initialData?.memo || initialData?.isTrial);
@@ -212,19 +267,19 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
 
   const handleNameChange = (val) => {
     updateManual("name", val);
-    if (val && val.trim()) {
-      const q = val.trim().toLowerCase();
-      const match = catalog.find(
-        (c) => c.name.toLowerCase() === q || c.id.toLowerCase() === q
-      );
-      if (match && match.category) {
-        updateManual("category", match.category);
-      }
+    const match = findSmartServiceMatch(val, catalog);
+    setMatchedService(match);
+    if (match) {
+      if (match.category) updateManual("category", match.category);
+      if (match.cancelUrl) updateManual("cancelUrl", match.cancelUrl);
+      if (match.monogram) updateManual("monogram", match.monogram);
+      updateManual("serviceId", match.id);
     }
   };
 
   // 자주 찾는 구독 빠른 선택: 요금제와 결제 금액은 채우지 않고 서비스명, 카테고리 등 기본 정보만 채움 (결제수단은 사용자 기존값 유지)
   const applyPreset = (service) => {
+    setMatchedService(service);
     setManualForm((curr) => ({
       ...curr,
       name: service.name,
@@ -244,7 +299,7 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
       setError("서비스명을 입력해 주세요.");
       return;
     }
-    const trimmedAmount = String(manualForm.amount ?? "").trim();
+    const trimmedAmount = String(manualForm.amount ?? "").replace(/[^0-9]/g, "");
     const amountNum = Number(trimmedAmount);
     if (trimmedAmount === "" || isNaN(amountNum) || amountNum < 0) {
       setError("결제 금액을 올바르게 입력해 주세요.");
@@ -259,12 +314,11 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
       setError("결제 수단을 선택해 주세요.");
       return;
     }
-    const matched = catalog.find(
-      (s) => s.name.toLowerCase() === manualForm.name.trim().toLowerCase()
-    );
+    const matched = matchedService || findSmartServiceMatch(manualForm.name, catalog);
 
     const payload = {
       ...manualForm,
+      id: matched?.id || manualForm.serviceId || undefined,
       name: manualForm.name.trim(),
       plan: manualForm.plan.trim() || "기본 플랜",
       amount: amountNum,
@@ -459,7 +513,10 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
                 {manualForm.name && (
                   <button
                     type="button"
-                    onClick={() => updateManual("name", "")}
+                    onClick={() => {
+                      updateManual("name", "");
+                      setMatchedService(null);
+                    }}
                     className="absolute right-3 grid h-6 w-6 place-items-center rounded-full bg-[#F2F4F6] text-[#868B94] hover:bg-[#E5E8EB] hover:text-[#191F28] transition-all active:scale-95"
                     aria-label="서비스명 지우기"
                   >
@@ -467,6 +524,41 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
                   </button>
                 )}
               </div>
+
+              {/* 한/영 스마트 서비스 자동 인식 안내 카드 */}
+              {matchedService && (
+                <div className="mt-2 flex items-center justify-between rounded-xl bg-emerald-50/90 border border-emerald-200 px-3 py-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <ServiceMark
+                      serviceId={matchedService.id}
+                      name={matchedService.name}
+                      className="h-7 w-7 rounded-lg text-[10px]"
+                    />
+                    <div className="min-w-0">
+                      <span className="block text-[12px] font-bold text-emerald-950 truncate">
+                        {matchedService.name}
+                      </span>
+                      <span className="block text-[10px] text-emerald-700">카테고리 자동 연동됨 ({matchedService.category})</span>
+                    </div>
+                  </div>
+                  {manualForm.name.toLowerCase().replace(/\s+/g, "") !== matchedService.name.toLowerCase().replace(/\s+/g, "") && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateManual("name", matchedService.name);
+                        updateManual("category", matchedService.category);
+                        updateManual("cancelUrl", matchedService.cancelUrl);
+                        updateManual("monogram", matchedService.monogram);
+                        updateManual("serviceId", matchedService.id);
+                      }}
+                      className="text-[11px] font-bold text-emerald-800 underline hover:text-emerald-950 shrink-0 cursor-pointer ml-2"
+                    >
+                      정식명 적용
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* 카테고리 간편 배지 */}
               <div className="mt-1.5 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
@@ -508,15 +600,16 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
                 </label>
                 <div className="relative w-40">
                   <input
-                    type="number"
-                    min="0"
                     inputMode="numeric"
-                    value={manualForm.amount}
-                    onChange={(e) => updateManual("amount", e.target.value)}
+                    value={manualForm.amount ? Number(String(manualForm.amount).replace(/[^0-9]/g, "")).toLocaleString() : ""}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/[^0-9]/g, "");
+                      updateManual("amount", digits);
+                    }}
                     className={`${inputClass(
-                      (String(manualForm.amount ?? "").trim() === "" ||
-                        isNaN(Number(manualForm.amount)) ||
-                        Number(manualForm.amount) < 0) &&
+                      (String(manualForm.amount ?? "").replace(/[^0-9]/g, "") === "" ||
+                        isNaN(Number(String(manualForm.amount).replace(/[^0-9]/g, ""))) ||
+                        Number(String(manualForm.amount).replace(/[^0-9]/g, "")) < 0) &&
                         Boolean(error)
                     )} pr-8 text-right font-bold text-[15px]`}
                     placeholder="0"

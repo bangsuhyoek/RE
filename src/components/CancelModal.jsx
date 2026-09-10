@@ -49,15 +49,6 @@ export function CancelModal({ subscription: rawSub, promotion, onClose, onComple
   const [cancelSessionActive, setCancelSessionActive] = useState(false);
 
   useEffect(() => {
-    if (!celebrating) return undefined;
-    const timer = window.setTimeout(() => {
-      onComplete?.(subscription.subscriptionId, subscription.amount);
-      onClose();
-    }, 1800);
-    return () => window.clearTimeout(timer);
-  }, [celebrating, onClose, onComplete, subscription.subscriptionId, subscription.amount]);
-
-  useEffect(() => {
     let listenerPromise;
     if (Capacitor.isNativePlatform()) {
       listenerPromise = App.addListener("appStateChange", (state) => {
@@ -148,8 +139,34 @@ export function CancelModal({ subscription: rawSub, promotion, onClose, onComple
         <div className="flex flex-col items-center px-2 pb-5 pt-3 text-center">
           <span className="grid h-16 w-16 place-items-center rounded-3xl bg-[#191F28] text-white shadow-md"><CheckCircle2 size={31} /></span>
           <h2 className="mt-5 text-[22px] font-extrabold tracking-tight text-[#191F28]">월 {formatWon(subscription.amount)}<br />절약 성공!</h2>
-          <p className="mt-2.5 text-[14px] leading-relaxed text-[#6B7684]">{subscription.name}을 구독 목록에서 정리했어요. 절약한 금액은 다음 달에도 이어서 확인할 수 있어요.</p>
-          {promotion && <p className="mt-4 rounded-2xl border border-[#FFE8CC] bg-[#FFF9F2] px-3.5 py-2.5 text-[12px] font-medium text-[#FF6F0F]">다음으로 {promotion.title} 혜택을 확인해 보세요.</p>}
+          <p className="mt-2 text-[14px] font-semibold text-[#3182F6]">☕ 커피 4잔 / 🍗 1년이면 치킨 10마리 값을 아꼈어요!</p>
+          <p className="mt-2 text-[13px] leading-relaxed text-[#6B7684]">{subscription.name}을 구독 목록에서 정리했어요. 절약한 금액은 통계에서 계속 확인할 수 있어요.</p>
+          {promotion && (
+            <div className="mt-4 w-full rounded-2xl border border-[#FFE8CC] bg-[#FFF9F2] p-3.5 text-left">
+              <span className="rounded bg-[#FFE8CC] px-1.5 py-0.5 text-[10px] font-bold text-[#FF6F0F]">추천 혜택</span>
+              <p className="mt-1 text-[13px] font-bold text-[#191F28]">{promotion.title}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (promotion.link) window.open(promotion.link, "_blank", "noopener,noreferrer");
+                }}
+                className="mt-2 inline-flex items-center gap-1 text-[12px] font-bold text-[#FF6F0F] underline"
+              >
+                혜택 자세히 보기 <ExternalLink size={12} />
+              </button>
+            </div>
+          )}
+          <Button
+            size="large"
+            fullWidth
+            className="mt-6"
+            onClick={() => {
+              onComplete?.(subscription.subscriptionId, subscription.amount);
+              onClose();
+            }}
+          >
+            확인 및 완료
+          </Button>
         </div>
       </BottomSheet>
     );
@@ -207,13 +224,91 @@ export function CancelModal({ subscription: rawSub, promotion, onClose, onComple
   return (
     <BottomSheet onClose={onClose} label="구독 해지 가이드">
       <div className="flex items-start gap-3">
-        <ServiceMark monogram={subscription.monogram} className="h-12 w-12 rounded-2xl text-[14px] shadow-2xs" />
+        <ServiceMark
+          serviceId={subscription.id}
+          name={subscription.name}
+          monogram={subscription.monogram}
+          image={subscription.image || subscription.attachments?.[0]}
+          category={subscription.category}
+          className="h-12 w-12 rounded-2xl text-[14px] shadow-2xs"
+        />
         <div className="min-w-0"><h2 className="truncate text-[20px] font-extrabold tracking-tight text-[#191F28]">{subscription.name} 해지하기</h2><p className="mt-0.5 text-[12px] font-medium text-[#6B7684]">직접 해지 페이지와 단계별 안내를 준비했어요.</p></div>
       </div>
 
-      {promotion && <div className="mt-5 rounded-2xl border border-[#FFE8CC] bg-[#FFF9F2] p-4 shadow-2xs"><p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#FF6F0F]">환승 혜택</p><p className="mt-1 text-[13px] font-bold text-[#191F28]">{promotion.title}</p><p className="mt-0.5 text-[12px] text-[#6B7684]">해지 후 혜택 페이지로 이어갈 수 있어요.</p></div>}
+      {/* 연간 절약 예상액 헤더 배너 */}
+      <div className="rounded-2xl bg-[#F2F4F6] p-4 text-center mt-4">
+        <p className="text-[12px] font-semibold text-[#6B7684]">지금 해지하면 1년에</p>
+        <h3 className="mt-0.5 text-[24px] font-extrabold tracking-tight text-[#3182F6]">
+          {formatWon(subscription.amount * 12)}
+          <span className="text-[16px] font-bold text-[#191F28]"> 절약돼요</span>
+        </h3>
+        <p className="mt-0.5 text-[11px] text-[#8B95A1]">
+          월 {formatWon(subscription.amount)}씩 고정 지출을 줄일 수 있어요
+        </p>
+      </div>
 
-      <Button size="large" fullWidth className="mt-5" disabled={!subscription.cancelUrl} onClick={goToCancel} prefixIcon={<ExternalLink size={17} />}>{subscription.cancelUrl ? "해지 페이지로 바로 이동 (가이드 포함)" : "해지 링크를 찾지 못했어요"}</Button>
+      {promotion && (
+        <div className="mt-4 flex items-center justify-between rounded-2xl border border-[#FFD8A8] bg-[#FFF9F2] p-3.5 shadow-2xs">
+          <div className="min-w-0 pr-2">
+            <span className="inline-block rounded-md bg-[#FFE8CC] px-1.5 py-0.5 text-[10px] font-bold text-[#FF6F0F]">
+              추천 환승 혜택
+            </span>
+            <h4 className="mt-1 truncate text-[13px] font-bold text-[#191F28]">{promotion.title}</h4>
+            <p className="text-[11px] text-[#8B95A1] truncate">더 알뜰한 요금제로 갈아타기</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (promotion.link) window.open(promotion.link, "_blank", "noopener,noreferrer");
+            }}
+            className="shrink-0 rounded-xl bg-[#FF6F0F] px-3 py-1.5 text-[12px] font-bold text-white shadow-xs active:scale-95 transition-all cursor-pointer"
+          >
+            혜택 보기
+          </button>
+        </div>
+      )}
+
+      {cancelSessionActive ? (
+        <div className="mt-5 space-y-2">
+          <Button
+            size="large"
+            fullWidth
+            className="bg-[#3182F6] hover:bg-[#1B64DA] text-white shadow-md font-bold"
+            onClick={complete}
+          >
+            ✓ 방금 해지를 완료했어요
+          </Button>
+          <Button
+            size="large"
+            fullWidth
+            variant="secondary"
+            onClick={goToCancel}
+            prefixIcon={<ExternalLink size={16} />}
+          >
+            해지 페이지 다시 열기
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-5 space-y-2">
+          <Button
+            size="large"
+            fullWidth
+            disabled={!subscription.cancelUrl}
+            onClick={goToCancel}
+            prefixIcon={<ExternalLink size={17} />}
+          >
+            {subscription.cancelUrl ? "해지 페이지로 바로 이동 (가이드 포함)" : "해지 링크를 찾지 못했어요"}
+          </Button>
+          <Button
+            size="large"
+            fullWidth
+            variant="secondary"
+            onClick={complete}
+          >
+            이미 해지 완료하셨나요? 목록에서 정리
+          </Button>
+        </div>
+      )}
       {!subscription.cancelUrl && <p className="mt-2 text-center text-[12px] font-medium text-[#FF4D4D]">이 서비스의 해지 URL이 DB에 등록되어 있지 않습니다.</p>}
 
       {subscription.cancelUrl && (
