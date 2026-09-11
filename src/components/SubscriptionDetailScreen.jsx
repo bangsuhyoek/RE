@@ -379,6 +379,26 @@ export function SubscriptionDetailScreen({
             />
           </section>
 
+          {/* 4-2. 홈 화면 상단 고정 강조 설정 */}
+          <section className="flex items-center justify-between py-1 mt-6">
+            <div>
+              <h2 className="text-[16px] font-bold text-black tracking-tight">홈 화면 상단 고정</h2>
+              <span className="text-[13px] text-gray-400 block mt-0.5">
+                홈 화면 구독 목록에서 이 서비스를 최상단에 우선 표시합니다.
+              </span>
+            </div>
+            <ToggleSwitch
+              checked={Boolean(subscription.isPinned || subscription.pinned)}
+              onChange={(checked) => {
+                onUpdate(subscription.subscriptionId, {
+                  isPinned: checked,
+                  pinned: checked,
+                });
+              }}
+              label="홈 화면 상단 고정"
+            />
+          </section>
+
           <div className="h-px bg-gray-100/80 my-8" />
 
           {/* 5. 하단 2-트랙 해지 CTA 버튼 */}

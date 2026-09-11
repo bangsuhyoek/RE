@@ -16,6 +16,7 @@ import {
   User,
   Loader2,
   X,
+  Pin,
 } from "lucide-react";
 import { daysUntilCharge, formatBillingDate, formatWon } from "../lib/dates";
 import {
@@ -25,6 +26,7 @@ import {
   PaymentMethodTriggerField,
   PaymentMethodPickerModal,
 } from "./PaymentMethod";
+import { serviceCatalog } from "../data/subscriptionData";
 
 export {
   PaymentIcon,
@@ -448,27 +450,34 @@ export function DDayBadge({ subscription }) {
   const days = daysUntilCharge(subscription);
   if (subscription.isTrial || subscription.status === "trial") {
     return (
-      <span className="inline-flex items-center rounded-md bg-[#111827] px-2 py-0.5 text-[10px] font-bold tracking-tight text-white leading-none shadow-xs">
-        TRIAL D-{days}
+      <span className="inline-flex items-center text-[11px] font-semibold tracking-tight text-[#EA580C] leading-none">
+        무료 D-{days}
       </span>
     );
   }
   if (days === 0) {
     return (
-      <span className="inline-flex items-center rounded-md bg-[#111827] px-2 py-0.5 text-[10px] font-bold tracking-tight text-white leading-none shadow-xs">
+      <span className="inline-flex items-center rounded-md bg-[#C2410C] px-2 py-0.5 text-[10px] font-bold tracking-tight text-white leading-none shadow-xs">
         TODAY
       </span>
     );
   }
   if (days === 1) {
     return (
-      <span className="inline-flex items-center rounded-md bg-[#111827] px-2 py-0.5 text-[10px] font-bold tracking-tight text-white leading-none shadow-xs">
+      <span className="inline-flex items-center rounded-md bg-[#FF6F0F] px-2 py-0.5 text-[10px] font-bold tracking-tight text-white leading-none shadow-xs">
         D-1
       </span>
     );
   }
+  if (days <= 3) {
+    return (
+      <span className="inline-flex items-center rounded-md bg-[#FFF5ED] border border-[#FED2B2] px-2 py-0.5 text-[10px] font-semibold tracking-tight text-[#EA580C] leading-none">
+        D-{days}
+      </span>
+    );
+  }
   return (
-    <span className="inline-flex items-center rounded-md border border-[#111827] px-2 py-0.5 text-[10px] font-semibold tracking-tight text-[#111827] leading-none">
+    <span className="inline-flex items-center rounded-md bg-[#F9FAFB] border border-[#E5E8EB] px-2 py-0.5 text-[10px] font-normal tracking-tight text-[#9CA3AF] leading-none">
       D-{days}
     </span>
   );
@@ -593,59 +602,114 @@ export function BottomNavigation({
   );
 }
 
+export function getSubscriptionDisplayAmount(subscription) {
+  if (subscription?.amount && Number(subscription.amount) > 0) {
+    return Number(subscription.amount);
+  }
+  if (subscription?.regularAmount) return Number(subscription.regularAmount);
+  if (subscription?.expectedAmount) return Number(subscription.expectedAmount);
+  if (subscription?.normalAmount) return Number(subscription.normalAmount);
+
+  // 0원인 무료체험(프로모션) 구독인 경우 카탈로그에서 정상 결제 예정 금액 탐색
+  const cleanName = (subscription?.name || "").toLowerCase().trim();
+  const cleanId = (subscription?.id || "").toLowerCase().trim();
+  const matched = serviceCatalog.find(
+    (s) => s.id === cleanId || s.name.toLowerCase() === cleanName || cleanName.includes(s.name.toLowerCase()) || s.name.toLowerCase().includes(cleanName)
+  );
+  if (matched) {
+    if (subscription?.plan && Array.isArray(matched.availablePlans)) {
+      const planMatched = matched.availablePlans.find((p) => p.plan === subscription.plan);
+      if (planMatched && planMatched.amount) return planMatched.amount;
+    }
+    if (matched.amount) return matched.amount;
+  }
+  return Number(subscription?.amount || 0);
+}
+
 export function SubscriptionCard({
   subscription,
   onOpen,
   onCancel,
   onMute,
+  onTogglePin,
   detail = false,
   variant = "card",
   className = "",
 }) {
   const isGrouped = variant === "grouped";
   const monogram = subscription.monogram || subscription.name?.slice(0, 1) || "S";
+  const isTrial = Boolean(subscription.isTrial || subscription.status === "trial");
+  const isPinned = Boolean(subscription.isPinned || subscription.pinned);
+  const displayAmount = getSubscriptionDisplayAmount(subscription);
 
   return (
     <button
       type="button"
       onClick={onOpen}
       className={cx(
-        "flex w-full items-center justify-between text-left transition-colors cursor-pointer",
+        "flex w-full items-center justify-between text-left transition-colors cursor-pointer group/card",
         isGrouped
-          ? "py-3.5 border-b border-gray-100/80 bg-transparent hover:bg-gray-50/50 active:bg-gray-100/60"
+          ? "py-5 border-b border-gray-100/80 bg-transparent hover:bg-gray-50/40 active:bg-gray-100/50"
           : "card-press p-4 rounded-xl border border-gray-100/80 bg-white shadow-xs hover:border-gray-200 active:scale-[0.99]",
         className
       )}
     >
-      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+      <div className="flex items-center gap-4 min-w-0 flex-1">
         <ServiceMark
           serviceId={subscription.id}
           name={subscription.name}
           monogram={monogram}
           image={subscription.image || subscription.attachments?.[0]}
           category={subscription.category}
-          className="h-11 w-11 rounded-full"
+          className="h-12 w-12 rounded-full shrink-0 shadow-xs"
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="truncate text-[16px] font-bold text-black tracking-tight leading-tight">
+            <span className="truncate text-[16px] font-semibold text-[#191F28] tracking-tight leading-tight">
               {subscription.name}
             </span>
             <DDayBadge subscription={subscription} />
           </div>
-          <p className="truncate text-[13px] text-gray-400 font-normal mt-0.5 leading-tight">
-            {subscription.plan || "기본 플랜"}
+          <p className="truncate text-[12px] text-gray-400 font-normal mt-1 leading-tight">
+            {subscription.plan || "기본 플랜"}{subscription.paymentMethod ? ` · ${subscription.paymentMethod}` : ""}
           </p>
         </div>
       </div>
 
-      <div className="text-right shrink-0 pl-3">
-        <span className="text-[16px] font-bold text-black tracking-tight block leading-tight">
-          {formatWon(subscription.amount)}
-        </span>
-        <span className="text-[12px] text-gray-400 block mt-0.5 leading-tight">
-          /{subscription.billingCycle === "매년" ? "년" : "월"}
-        </span>
+      <div className="flex items-center gap-2 shrink-0 pl-3">
+        <div className="text-right">
+          <span
+            className={cx(
+              "text-[16px] font-semibold tracking-tight block leading-tight",
+              isTrial ? "text-[#FF6F0F]" : "text-[#191F28]"
+            )}
+          >
+            {formatWon(displayAmount)}
+          </span>
+          <span className="text-[11px] text-gray-400 block mt-0.5 leading-tight font-normal">
+            /{subscription.billingCycle === "매년" ? "년" : "월"}
+          </span>
+        </div>
+
+        {onTogglePin && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePin(subscription.subscriptionId || subscription.id);
+            }}
+            className={cx(
+              "p-1.5 rounded-full transition-all cursor-pointer",
+              isPinned
+                ? "text-amber-500 hover:text-amber-600 hover:bg-amber-50"
+                : "text-gray-300 hover:text-gray-500 hover:bg-gray-100 opacity-60 group-hover/card:opacity-100"
+            )}
+            title={isPinned ? "상단 고정 해제" : "상단에 고정 강조"}
+            aria-label={isPinned ? "상단 고정 해제" : "상단에 고정 강조"}
+          >
+            <Pin size={17} className={isPinned ? "fill-amber-500 text-amber-500" : ""} />
+          </button>
+        )}
       </div>
     </button>
   );

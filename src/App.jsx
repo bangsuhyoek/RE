@@ -191,6 +191,7 @@ export default function App() {
     getSubscriptionById,
     handleAddSubscription,
     updateSubscription,
+    togglePinSubscription,
     muteSubscription,
     deleteSubscription,
   } = useSubscriptions({ currentRoute: screen.route });
@@ -494,6 +495,7 @@ export default function App() {
         onOpenTerms={handleOpenTerms}
         onLogout={handleLogout}
         onOpenAccount={() => setAccountOpen(true)}
+        onTogglePin={(id) => togglePinSubscription(id, notify)}
       />
     );
   } else if (screen.route === "subscriptions") {
@@ -505,6 +507,7 @@ export default function App() {
         onStartCancel={startCancellation}
         onMute={(id) => muteSubscription(id, notify)}
         onRefresh={() => notify("최신 구독 목록을 확인했어요.")}
+        onTogglePin={(id) => togglePinSubscription(id, notify)}
       />
     );
   } else if (screen.route === "calendar") {

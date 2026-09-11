@@ -179,6 +179,23 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     notify?.("구독 정보를 저장했어요.");
   }, [subscriptions, profile?.user_id]);
 
+  const togglePinSubscription = useCallback((subscriptionId, notify) => {
+    const target = subscriptions.find((s) => s.subscriptionId === subscriptionId || s.id === subscriptionId);
+    if (!target) return;
+    const newPinned = !target.isPinned && !target.pinned;
+    if (profile?.user_id) {
+      upsertDbSubscription(profile.user_id, { ...target, isPinned: newPinned, pinned: newPinned }).catch(console.error);
+    }
+    setSubscriptions((current) =>
+      current.map((subscription) =>
+        (subscription.subscriptionId === target.subscriptionId || subscription.id === target.id)
+          ? { ...subscription, isPinned: newPinned, pinned: newPinned }
+          : subscription
+      )
+    );
+    notify?.(newPinned ? `${target.name}을(를) 상단에 고정 강조했어요.` : `${target.name} 고정을 해제했어요.`);
+  }, [subscriptions, profile?.user_id]);
+
   const muteSubscription = useCallback((subscriptionId, notify) => {
     setSubscriptions((current) =>
       current.map((subscription) =>
@@ -272,6 +289,7 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     getSubscriptionById,
     handleAddSubscription,
     updateSubscription,
+    togglePinSubscription,
     muteSubscription,
     deleteSubscription,
   };

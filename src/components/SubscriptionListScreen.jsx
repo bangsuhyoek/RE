@@ -3,7 +3,7 @@ import { FilterX, RefreshCw, Search, SlidersHorizontal, PlusCircle } from "lucid
 import { Button, IconButton, SubscriptionCard } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 
-export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCancel, onMute, onRefresh }) {
+export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCancel, onMute, onRefresh, onTogglePin }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [sort, setSort] = useState("due");
@@ -81,6 +81,7 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
               onOpen={() => onOpen(subscription.subscriptionId || subscription.id)}
               onCancel={() => onStartCancel(subscription.subscriptionId || subscription.id)}
               onMute={() => onMute(subscription.subscriptionId || subscription.id)}
+              onTogglePin={onTogglePin}
             />
           ))}
         </div>
