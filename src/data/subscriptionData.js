@@ -373,18 +373,129 @@ export const serviceCatalog = [
 ];
 
 export const createMockSubscriptions = () =>
-  serviceCatalog.slice(0, 5).map((service, index) => ({
-    ...service,
-    subscriptionId: `seed-${service.id}`,
-    createdAt: new Date(Date.now() - index * 86_400_000).toISOString(),
-    billingCycle: "매월",
-    status: service.isTrial ? "trial" : "active",
-    alertD3: service.id === "netflix" || service.id === "chatgpt",
-    alertD1: service.id === "youtube" || service.id === "spotify",
-    renewalPending: false,
-  }));
+  (() => {
+    const getOffsetDueDay = (offset) => {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      return d.getDate();
+    };
+
+    const seeds = [
+      {
+        id: "netflix",
+        name: "Netflix",
+        monogram: "N",
+        category: "엔터테인먼트",
+        plan: "Standard 4K",
+        amount: 17000,
+        dueDay: getOffsetDueDay(0),
+        paymentMethod: "신한카드 ****4521",
+        cancelUrl: "https://www.netflix.com/cancelplan",
+      },
+      {
+        id: "spotify",
+        name: "Spotify",
+        monogram: "S",
+        category: "음악",
+        plan: "Individual",
+        amount: 10900,
+        dueDay: getOffsetDueDay(1),
+        paymentMethod: "신한카드 ****4521",
+        cancelUrl: "https://www.spotify.com/account/cancel/",
+      },
+      {
+        id: "chatgpt",
+        name: "ChatGPT Plus",
+        monogram: "G",
+        category: "생산성",
+        plan: "Plus",
+        amount: 27000,
+        dueDay: getOffsetDueDay(3),
+        paymentMethod: "현대카드 ****8821",
+        cancelUrl: "https://chatgpt.com/#settings",
+      },
+      {
+        id: "adobe",
+        name: "Adobe CC",
+        monogram: "A",
+        category: "생산성",
+        plan: "Photography",
+        amount: 14000,
+        dueDay: getOffsetDueDay(12),
+        paymentMethod: "신한카드 ****4521",
+        cancelUrl: "https://account.adobe.com/plans",
+      },
+      {
+        id: "icloud",
+        name: "iCloud+",
+        monogram: "i",
+        category: "클라우드",
+        plan: "200GB",
+        amount: 1200,
+        dueDay: getOffsetDueDay(18),
+        paymentMethod: "카카오페이",
+        cancelUrl: "https://support.apple.com/HT207594",
+      },
+    ];
+
+    return seeds.map((service, index) => ({
+      ...service,
+      subscriptionId: `seed-${service.id}`,
+      createdAt: new Date(Date.now() - index * 86_400_000).toISOString(),
+      billingCycle: "매월",
+      status: "active",
+      alertD3: true,
+      alertD1: true,
+      renewalPending: false,
+    }));
+  })();
 
 export const promotionCatalog = [
+  {
+    id: "lgu-nerget",
+    category: "통신사/결합",
+    kind: "LG U+ 너겟 요금제",
+    title: "통신비 줄이고, OTT는 무료로!",
+    subtitle: "너겟 5G 요금제 가입 시 티빙 & 디즈니+ 무료 이용 혜택",
+    description: "약정 없는 무약정 너겟 요금제로 매월 통신비는 절약하고 보고 싶은 OTT는 공짜로 즐기세요.",
+    saving: 23400,
+    originalPrice: 23400,
+    offerPrice: 0,
+    dday: 5,
+    sourceServiceIds: ["tving", "disney", "netflix"],
+    link: "https://nerget.lguplus.com/",
+    monogram: "U+",
+  },
+  {
+    id: "youtube-promo",
+    category: "경쟁사 프로모",
+    kind: "경쟁사 프로모",
+    title: "YouTube Premium",
+    subtitle: "첫 3개월 ₩100",
+    description: "첫 3개월간 월 100원으로 광고 없는 유튜브를 즐겨보세요.",
+    saving: 14800,
+    originalPrice: 14900,
+    offerPrice: 100,
+    dday: 3,
+    sourceServiceIds: ["netflix", "spotify", "tving"],
+    link: "https://www.youtube.com/premium",
+    monogram: "Y",
+  },
+  {
+    id: "spotify-annual",
+    category: "연간 전환 팁",
+    kind: "연간 전환 팁",
+    title: "Spotify",
+    subtitle: "연간 결제 시 2개월 무료",
+    description: "연간 멤버십으로 전환하면 2개월 무료 혜택을 받을 수 있어요.",
+    saving: 21800,
+    originalPrice: 130800,
+    offerPrice: 109000,
+    dday: 7,
+    sourceServiceIds: ["spotify", "youtube"],
+    link: "https://www.spotify.com/kr-ko/premium/",
+    monogram: "S",
+  },
   {
     id: "watcha-switch",
     category: "100원/무료",
@@ -483,4 +594,15 @@ export const promotionCatalog = [
     link: "https://www.adobe.com/kr/creativecloud/buy/students.html",
     monogram: "A",
   },
+];
+
+export const POPULAR_PRESETS = [
+  { id: "netflix", name: "Netflix", category: "OTT", plan: "스탠다드", amount: 13500, monogram: "N" },
+  { id: "youtube", name: "YouTube Premium", category: "OTT", plan: "개인", amount: 14900, monogram: "Y" },
+  { id: "coupang", name: "쿠팡 와우", category: "쇼핑", plan: "와우 멤버십", amount: 7890, monogram: "C" },
+  { id: "tving", name: "티빙", category: "OTT", plan: "베이직", amount: 9500, monogram: "T" },
+  { id: "disney", name: "Disney+", category: "OTT", plan: "스탠다드", amount: 9900, monogram: "D" },
+  { id: "naver", name: "네이버플러스 멤버십", category: "쇼핑", plan: "월간", amount: 4900, monogram: "NP" },
+  { id: "millie", name: "밀리의 서재", category: "도서", plan: "전자책 정기구독", amount: 9900, monogram: "M" },
+  { id: "spotify", name: "Spotify", category: "음악", plan: "개인", amount: 10900, monogram: "S" },
 ];

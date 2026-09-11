@@ -26,6 +26,7 @@ import {
   ToggleSwitch,
   CATEGORY_PHILOSOPHY,
 } from "./ui";
+import { POPULAR_PRESETS } from "../data/subscriptionData";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
@@ -219,6 +220,8 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
     memo: initialData?.memo || "",
     monogram: initialData?.monogram || "",
     cancelUrl: initialData?.cancelUrl || "",
+    sharingType: "solo",
+    splitCount: 4,
   }));
   const [matchedService, setMatchedService] = useState(() => initialData?.name ? findSmartServiceMatch(initialData.name, catalog) : null);
 
@@ -277,18 +280,20 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
     }
   };
 
-  // 자주 찾는 구독 빠른 선택: 요금제와 결제 금액은 채우지 않고 서비스명, 카테고리 등 기본 정보만 채움 (결제수단은 사용자 기존값 유지)
+  // 인기 구독 빠른 선택: 서비스명, 카테고리, 추천 요금제/금액 기본값 자동 완성 (결제수단은 사용자 기존값 유지)
   const applyPreset = (service) => {
-    setMatchedService(service);
+    const catalogMatch = catalog.find((c) => c.id === service.id);
+    const resolved = catalogMatch ? { ...service, ...catalogMatch } : service;
+    setMatchedService(resolved);
     setManualForm((curr) => ({
       ...curr,
-      name: service.name,
-      category: service.category || "기타",
-      plan: "", // 요금제는 사용자가 직접 입력하도록 비움
-      amount: "", // 결제 금액은 사용자가 직접 입력하도록 비움
+      name: resolved.name,
+      category: resolved.category || "기타",
+      plan: curr.plan ? curr.plan : (resolved.plan || "기본 플랜"),
+      amount: curr.amount ? curr.amount : (resolved.amount ? String(resolved.amount) : ""),
       dueDay: curr.dueDay || new Date().getDate(),
-      monogram: service.monogram || service.name.slice(0, 1).toUpperCase(),
-      cancelUrl: service.cancelUrl || "",
+      monogram: resolved.monogram || resolved.name.slice(0, 1).toUpperCase(),
+      cancelUrl: resolved.cancelUrl || "",
       paymentMethod: curr.paymentMethod || "",
     }));
     setError("");
@@ -315,19 +320,24 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
       return;
     }
     const matched = matchedService || findSmartServiceMatch(manualForm.name, catalog);
+    const isSplit = manualForm.sharingType === "split";
+    const splitCount = Number(manualForm.splitCount) || 4;
+    const finalAmount = isSplit ? Math.round(amountNum / splitCount) : amountNum;
+    const splitMemo = isSplit ? `[${splitCount}인 N빵 분담 (총 ${amountNum.toLocaleString()}원 중 내 몫)]` : "";
+    const finalMemo = [manualForm.memo.trim(), splitMemo].filter(Boolean).join(" ");
 
     const payload = {
       ...manualForm,
       id: matched?.id || manualForm.serviceId || undefined,
       name: manualForm.name.trim(),
       plan: manualForm.plan.trim() || "기본 플랜",
-      amount: amountNum,
+      amount: finalAmount,
       dueDay: dueDayNum,
       monogram: manualForm.monogram || matched?.monogram || manualForm.name.trim().slice(0, 1).toUpperCase(),
       cancelUrl: manualForm.cancelUrl || matched?.cancelUrl || "https://google.com",
       category: manualForm.category || matched?.category || "기타",
       paymentMethod: manualForm.paymentMethod.trim(),
-      memo: manualForm.memo.trim(),
+      memo: finalMemo,
     };
     const added = onAdd(payload);
     if (added !== false) onClose();
@@ -446,8 +456,8 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
           setError("");
         }}
         options={[
-          { value: "manual", label: "직접 입력", icon: <Pencil size={15} /> },
-          { value: "ai", label: "AI 영수증 인식", icon: <ScanLine size={15} /> },
+          { value: "manual", label: "직접 등록", icon: <Pencil size={15} /> },
+          { value: "ai", label: "AI 결제인식 (문자·영수증)", icon: <ScanLine size={15} /> },
         ]}
       />
 
@@ -462,36 +472,6 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
               <div className="flex-1">
                 <p className="font-semibold text-emerald-900">결제 알림에서 자동 감지된 구독 정보입니다</p>
                 <p className="mt-0.5 text-[11px] text-emerald-700/80">내용을 확인하고 하단의 등록 완료 버튼을 눌러주세요.</p>
-              </div>
-            </div>
-          )}
-          {/* Popular Services Quick Presets */}
-          {catalog.length > 0 && (
-            <div>
-              <span className="block text-[12px] font-semibold text-[#868B94]">자주 찾는 구독 빠른 선택</span>
-              <div className="mt-2 flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-                {catalog.slice(0, 8).map((preset) => {
-                  const isSelected = manualForm.name.toLowerCase() === preset.name.toLowerCase();
-                  return (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      onClick={() => applyPreset(preset)}
-                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-all active:scale-95 ${
-                        isSelected
-                          ? "border-[#191F28] bg-[#191F28] text-white shadow-xs"
-                          : "border-[#E5E8EB] bg-[#F7F8F9] text-[#4E5968] hover:border-[#D1D6DB] hover:bg-white"
-                      }`}
-                    >
-                      <span className={`grid h-4.5 w-4.5 place-items-center rounded-full text-[10px] font-bold ${
-                        isSelected ? "bg-white/20 text-white" : "bg-[#E5E8EB] text-[#191F28]"
-                      }`}>
-                        {preset.monogram || preset.name.slice(0, 1)}
-                      </span>
-                      <span>{preset.name}</span>
-                    </button>
-                  );
-                })}
               </div>
             </div>
           )}
@@ -654,11 +634,80 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
               </div>
             </div>
 
+            {/* 이용 형태: 혼자 이용 vs 파티 분담 (N빵) - 사용자 피드백 14, 15번 */}
+            <div className="rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] font-bold text-[#191F28]">이용 형태</label>
+                <div className="flex items-center gap-1 rounded-xl bg-[#E5E8EB]/60 p-0.5 text-[12px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => updateManual("sharingType", "solo")}
+                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                      manualForm.sharingType !== "split"
+                        ? "bg-white text-[#191F28] shadow-xs"
+                        : "text-[#6B7684] hover:text-[#191F28]"
+                    }`}
+                  >
+                    혼자 이용
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateManual("sharingType", "split")}
+                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                      manualForm.sharingType === "split"
+                        ? "bg-[#191F28] text-white shadow-xs"
+                        : "text-[#6B7684] hover:text-[#191F28]"
+                    }`}
+                  >
+                    파티 분담 (N빵)
+                  </button>
+                </div>
+              </div>
+
+              {manualForm.sharingType === "split" && (
+                <div className="pt-2.5 border-t border-[#E5E8EB] space-y-2.5 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-medium text-[#6B7684]">분담 인원</span>
+                    <div className="flex gap-1.5">
+                      {[2, 3, 4, 5].map((cnt) => (
+                        <button
+                          key={cnt}
+                          type="button"
+                          onClick={() => updateManual("splitCount", cnt)}
+                          className={`h-7 w-9 rounded-lg border text-[12px] font-bold transition-all cursor-pointer ${
+                            (Number(manualForm.splitCount) || 4) === cnt
+                              ? "border-[#191F28] bg-[#191F28] text-white"
+                              : "border-[#E5E8EB] bg-white text-[#4E5968] hover:border-[#D1D6DB]"
+                          }`}
+                        >
+                          {cnt}명
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {Number(String(manualForm.amount).replace(/[^0-9]/g, "")) > 0 && (
+                    <div className="flex items-center justify-between rounded-xl bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 text-[12px]">
+                      <div>
+                        <span className="font-bold text-emerald-950 block">내 실제 부담금</span>
+                        <span className="text-[11px] text-emerald-700">총 {Number(String(manualForm.amount).replace(/[^0-9]/g, "")).toLocaleString()}원 ÷ {Number(manualForm.splitCount) || 4}명</span>
+                      </div>
+                      <span className="font-extrabold text-emerald-800 text-[15px]">
+                        월 {Math.round(Number(String(manualForm.amount).replace(/[^0-9]/g, "")) / (Number(manualForm.splitCount) || 4)).toLocaleString()}원
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* 결제 수단 */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#191F28] mb-1.5">
-                결제 수단 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[13px] font-semibold text-[#191F28]">
+                  결제 수단 <span className="text-[#FF4D4D] font-bold ml-0.5">*</span>
+                </label>
+                <span className="text-[11px] text-[#868B94]">지출 관리 메모용</span>
+              </div>
               <PaymentMethodTriggerField
                 value={manualForm.paymentMethod}
                 onChange={(val) => {
@@ -668,6 +717,9 @@ export function AddModal({ catalog = [], subscriptions = [], initialMode = "manu
                 error={!manualForm.paymentMethod?.trim() && Boolean(error)}
                 subscriptions={subscriptions}
               />
+              <p className="mt-1.5 text-[11px] text-[#868B94] leading-relaxed">
+                ※ 실제 카드 연동이나 결제가 아닌, 지출 관리 메모용으로 안전하게 저장됩니다.
+              </p>
             </div>
 
             {/* 세부 옵션 접이식 (요금제, 무료체험, 메모) */}

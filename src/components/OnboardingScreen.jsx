@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Check, ChevronRight, ArrowLeft, X, CheckCircle2 } from "lucide-react";
 import { BottomSheet, Button, IconButton, ServiceMark, CategoryBadge, CATEGORY_PHILOSOPHY } from "./ui";
 import { formatWon } from "../lib/dates";
+import { PaymentMethodTriggerField } from "./PaymentMethod";
 
 const COMMON_PAYMENTS = ["신용/체크카드", "신한카드", "현대카드", "KB국민카드", "삼성카드", "카카오페이", "네이버페이", "토스페이", "기타"];
 
@@ -36,7 +37,7 @@ function ServiceDirectConfigModal({ service, currentConfig, onSave, onRemove, on
       <div className="overflow-y-auto max-h-[78vh] pb-4">
         <div className="flex items-center justify-between border-b border-border-subtle pb-4">
           <div className="flex items-center gap-3">
-            <ServiceMark serviceId={service.id} name={service.name} className="h-11 w-11 rounded-2xl" />
+            <ServiceMark serviceId={service.id} name={service.name} className="h-11 w-11 rounded-full" />
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-[17px] font-bold text-fg-primary tracking-tight">{service.name}</h2>
@@ -108,15 +109,11 @@ function ServiceDirectConfigModal({ service, currentConfig, onSave, onRemove, on
 
           <div>
             <label className="block text-[13px] font-bold text-fg-primary mb-1.5">결제 수단</label>
-            <select
+            <PaymentMethodTriggerField
               value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              className="w-full rounded-xl border border-border-subtle bg-surface-inset px-3 py-2.5 text-[13px] font-semibold text-fg-primary outline-none focus:border-border-focus"
-            >
-              {COMMON_PAYMENTS.map((pm) => (
-                <option key={pm} value={pm}>{pm}</option>
-              ))}
-            </select>
+              onChange={(val) => setPaymentMethod(val)}
+              error={!paymentMethod}
+            />
           </div>
         </div>
 

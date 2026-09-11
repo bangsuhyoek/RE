@@ -1,20 +1,16 @@
 import { useMemo, useState } from "react";
 import { FilterX, RefreshCw, Search, SlidersHorizontal, PlusCircle } from "lucide-react";
-import { Button, Chip, IconButton, SubscriptionCard, CATEGORY_PHILOSOPHY } from "./ui";
+import { Button, IconButton, SubscriptionCard } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
-
-const categories = ["전체", "OTT", "음악", "쇼핑", "생산성", "도서", "클라우드", "게임", "기타"];
 
 export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCancel, onMute, onRefresh }) {
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("전체");
   const [status, setStatus] = useState("all");
   const [sort, setSort] = useState("due");
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return subscriptions
-      .filter((subscription) => category === "전체" || subscription.category === category)
       .filter((subscription) => status === "all" || (status === "trial" ? subscription.status === "trial" : subscription.status === "active"))
       .filter((subscription) => !normalized || `${subscription.name} ${subscription.plan}`.toLowerCase().includes(normalized))
       .sort((a, b) => {
@@ -22,10 +18,10 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
         if (sort === "recent") return new Date(b.createdAt) - new Date(a.createdAt);
         return daysUntilCharge(a) - daysUntilCharge(b);
       });
-  }, [category, query, sort, status, subscriptions]);
+  }, [query, sort, status, subscriptions]);
 
   const total = filtered.reduce((sum, subscription) => sum + subscription.amount, 0);
-  const reset = () => { setQuery(""); setCategory("전체"); setStatus("all"); setSort("due"); };
+  const reset = () => { setQuery(""); setStatus("all"); setSort("due"); };
 
   return (
     <main className="relative min-h-[calc(100dvh-4rem)] min-h-[calc(100vh-4rem)] px-4 sm:px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-5">
@@ -37,40 +33,6 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
         </label>
         <IconButton variant="weak" size="large" onClick={onRefresh} aria-label="목록 새로고침"><RefreshCw size={18} className="text-[#4E5968]" /></IconButton>
       </div>
-
-      <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {categories.map((item) => {
-          const isSelected = category === item;
-          const info = CATEGORY_PHILOSOPHY[item];
-          const activeClass = isSelected ? (info?.chipActive || "bg-surface-inverse text-white") : "";
-          return (
-            <Chip
-              key={item}
-              selected={isSelected}
-              className={activeClass}
-              onClick={() => setCategory(item)}
-            >
-              {info && <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSelected ? "bg-white/80" : info.dot}`} />}
-              <span>{item}</span>
-            </Chip>
-          );
-        })}
-      </div>
-
-      {category !== "전체" && CATEGORY_PHILOSOPHY[category] && (
-        <div className="mt-3 flex items-start gap-2.5 rounded-2xl border border-border-subtle bg-surface-default p-3.5 shadow-2xs">
-          <span className={`mt-1 h-2 w-2 rounded-full shrink-0 ${CATEGORY_PHILOSOPHY[category].dot}`} />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[13px] font-bold text-fg-primary">{CATEGORY_PHILOSOPHY[category].label}</span>
-              <span className="text-[12px] font-semibold text-fg-brand">· {CATEGORY_PHILOSOPHY[category].theme}</span>
-            </div>
-            <p className="mt-0.5 text-[11px] text-fg-muted leading-relaxed">
-              {CATEGORY_PHILOSOPHY[category].desc}
-            </p>
-          </div>
-        </div>
-      )}
 
       <div className="mt-4 flex gap-2">
         <label className="relative flex-1">
@@ -109,11 +71,12 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
           </Button>
         </section>
       ) : filtered.length > 0 ? (
-        <div className="mt-3 space-y-3">
+        <div className="mt-3 divide-y divide-gray-100/80 border-t border-b border-gray-100/80">
           {filtered.map((subscription) => (
             <SubscriptionCard
               key={subscription.subscriptionId || subscription.id}
               subscription={subscription}
+              variant="grouped"
               detail
               onOpen={() => onOpen(subscription.subscriptionId || subscription.id)}
               onCancel={() => onStartCancel(subscription.subscriptionId || subscription.id)}

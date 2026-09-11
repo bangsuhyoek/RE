@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
+  BarChart2,
   Bell,
   BellOff,
   CalendarDays,
@@ -12,6 +13,7 @@ import {
   MoreVertical,
   Plus,
   Sparkles,
+  User,
   Loader2,
   X,
 } from "lucide-react";
@@ -135,6 +137,9 @@ export const SERVICE_IMAGES = {
   watcha: "/assets/services/watcha.svg",
   flo: "/assets/services/flo.svg",
   naver: "/assets/services/naver.svg",
+  icloud: "/assets/services/icloud.svg",
+  apple: "/assets/services/icloud.svg",
+  uplus: "/assets/services/uplus.svg",
 };
 
 export function ServiceMark({
@@ -166,16 +171,17 @@ export function ServiceMark({
       (cleanName.includes("adobe") || cleanName.includes("어도비") ? SERVICE_IMAGES.adobe : null) ||
       (cleanName.includes("watcha") || cleanName.includes("왓챠") ? SERVICE_IMAGES.watcha : null) ||
       (cleanName.includes("flo") || cleanName.includes("플로") ? SERVICE_IMAGES.flo : null) ||
-      (cleanName.includes("naver") || cleanName.includes("네이버") ? SERVICE_IMAGES.naver : null)
+      (cleanName.includes("naver") || cleanName.includes("네이버") ? SERVICE_IMAGES.naver : null) ||
+      (cleanName.includes("icloud") || cleanName.includes("apple") || cleanName.includes("아이클라우드") || cleanName.includes("애플") ? SERVICE_IMAGES.icloud : null)
     ));
 
   if (resolvedImage) {
     return (
-      <span className={cx("inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border-subtle bg-surface-default p-2 shadow-2xs overflow-hidden", className)}>
+      <span className={cx("inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-50/80 p-2 overflow-hidden border border-gray-100 select-none", className)}>
         <img
           src={resolvedImage}
-          alt=""
-          className="h-full w-full object-contain rounded-xl select-none pointer-events-none"
+          alt={name || ""}
+          className="h-full w-full object-contain pointer-events-none"
         />
       </span>
     );
@@ -442,26 +448,30 @@ export function DDayBadge({ subscription }) {
   const days = daysUntilCharge(subscription);
   if (subscription.isTrial || subscription.status === "trial") {
     return (
-      <span className="rounded-[6px] border border-status-trial-border bg-status-trial-bg px-2 py-0.5 text-[11px] font-bold tracking-tight text-status-trial-fg">
+      <span className="inline-flex items-center rounded-md bg-[#111827] px-2 py-0.5 text-[10px] font-bold tracking-tight text-white leading-none shadow-xs">
         TRIAL D-{days}
       </span>
     );
   }
   if (days === 0) {
     return (
-      <span className="today-pulse rounded-[6px] bg-status-today-bg px-2 py-0.5 text-[11px] font-bold tracking-tight text-status-today-fg shadow-sm">
+      <span className="inline-flex items-center rounded-md bg-[#111827] px-2 py-0.5 text-[10px] font-bold tracking-tight text-white leading-none shadow-xs">
         TODAY
       </span>
     );
   }
-  if (days <= 3) {
+  if (days === 1) {
     return (
-      <span className="rounded-[6px] border border-status-urgent-border bg-status-urgent-bg px-2 py-0.5 text-[11px] font-bold tracking-tight text-status-urgent-fg">
-        D-{days}
+      <span className="inline-flex items-center rounded-md bg-[#111827] px-2 py-0.5 text-[10px] font-bold tracking-tight text-white leading-none shadow-xs">
+        D-1
       </span>
     );
   }
-  return <span className="rounded-[6px] bg-surface-subtle px-2 py-0.5 text-[11px] font-semibold tracking-tight text-fg-muted">D-{days}</span>;
+  return (
+    <span className="inline-flex items-center rounded-md border border-[#111827] px-2 py-0.5 text-[10px] font-semibold tracking-tight text-[#111827] leading-none">
+      D-{days}
+    </span>
+  );
 }
 
 export function ToggleSwitch({ checked, onChange, label }) {
@@ -508,26 +518,38 @@ export function AppHeader({ title, onBack, rightSlot = null }) {
   );
 }
 
-export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
+export function BottomNavigation({
+  route,
+  onNavigate,
+  onOpenAdd,
+  onOpenNotifications,
+  onOpenAccount,
+}) {
   return (
-    <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-[calc(3.75rem+env(safe-area-inset-bottom,0px))] w-full max-w-full sm:max-w-[440px] -translate-x-1/2 items-center justify-around border-t sm:border-x border-border-subtle bg-surface-default px-1 sm:px-2 pb-[max(0.4rem,calc(env(safe-area-inset-bottom,0px)+0.2rem))] pt-1 shadow-[0_-2px_10px_rgba(0,0,0,0.04)]" aria-label="주요 탐색">
+    <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-[calc(3.75rem+env(safe-area-inset-bottom,0px))] w-full max-w-full sm:max-w-[440px] -translate-x-1/2 items-center justify-around border-t border-gray-100 bg-white px-2 pb-[max(0.4rem,calc(env(safe-area-inset-bottom,0px)+0.2rem))] pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.03)]" aria-label="주요 탐색">
       <button
         type="button"
         onClick={() => onNavigate("home")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px] sm:text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "home" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
+        className={cx(
+          "flex flex-1 flex-col items-center gap-1 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]",
+          route === "home" ? "font-bold text-black" : "font-medium text-gray-400 hover:text-gray-600"
+        )}
         aria-current={route === "home" ? "page" : undefined}
       >
-        <Home size={20} strokeWidth={route === "home" ? 2.5 : 1.75} />
+        <Home size={22} strokeWidth={route === "home" ? 2.5 : 1.75} />
         <span>홈</span>
       </button>
 
       <button
         type="button"
         onClick={() => onNavigate("subscriptions")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px] sm:text-[11px] tracking-tight transition-all active:scale-[0.95]", (route === "subscriptions" || route === "detail") ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
+        className={cx(
+          "flex flex-1 flex-col items-center gap-1 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]",
+          (route === "subscriptions" || route === "detail") ? "font-bold text-black" : "font-medium text-gray-400 hover:text-gray-600"
+        )}
         aria-current={(route === "subscriptions" || route === "detail") ? "page" : undefined}
       >
-        <CreditCard size={20} strokeWidth={(route === "subscriptions" || route === "detail") ? 2.5 : 1.75} />
+        <CreditCard size={22} strokeWidth={(route === "subscriptions" || route === "detail") ? 2.5 : 1.75} />
         <span>구독</span>
       </button>
 
@@ -535,159 +557,101 @@ export function BottomNavigation({ route, onNavigate, onOpenAdd }) {
         <button
           type="button"
           onClick={onOpenAdd}
-          className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-full bg-surface-inverse text-fg-inverse shadow-[0_4px_12px_rgba(25,31,40,0.2)] transition-all duration-150 active:scale-95 hover:bg-palette-gray-800"
+          className="grid h-12 w-12 place-items-center rounded-full bg-[#111827] text-white shadow-[0_4px_16px_rgba(17,24,39,0.3)] transition-all duration-150 active:scale-95 hover:bg-black -mt-4 cursor-pointer"
           aria-label="새 구독 추가"
         >
-          <Plus size={22} strokeWidth={2.5} />
+          <Plus size={24} strokeWidth={2.5} />
         </button>
       </div>
 
       <button
         type="button"
         onClick={() => onNavigate("calendar")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px] sm:text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "calendar" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
+        className={cx(
+          "flex flex-1 flex-col items-center gap-1 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]",
+          route === "calendar" ? "font-bold text-black" : "font-medium text-gray-400 hover:text-gray-600"
+        )}
         aria-current={route === "calendar" ? "page" : undefined}
       >
-        <CalendarDays size={20} strokeWidth={route === "calendar" ? 2.5 : 1.75} />
+        <CalendarDays size={22} strokeWidth={route === "calendar" ? 2.5 : 1.75} />
         <span>캘린더</span>
       </button>
 
       <button
         type="button"
         onClick={() => onNavigate("promotions")}
-        className={cx("flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px] sm:text-[11px] tracking-tight transition-all active:scale-[0.95]", route === "promotions" ? "font-bold text-fg-primary" : "font-medium text-fg-subtle hover:text-fg-tertiary")}
+        className={cx(
+          "flex flex-1 flex-col items-center gap-1 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]",
+          route === "promotions" ? "font-bold text-black" : "font-medium text-gray-400 hover:text-gray-600"
+        )}
         aria-current={route === "promotions" ? "page" : undefined}
       >
-        <Sparkles size={20} strokeWidth={route === "promotions" ? 2.5 : 1.75} />
+        <Sparkles size={22} strokeWidth={route === "promotions" ? 2.5 : 1.75} />
         <span>혜택</span>
       </button>
     </nav>
   );
 }
 
-export function SubscriptionCard({ subscription, onOpen, onCancel, onMute, detail = false }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const isMuted = subscription.alertD3 === false && subscription.alertD1 === false;
+export function SubscriptionCard({
+  subscription,
+  onOpen,
+  onCancel,
+  onMute,
+  detail = false,
+  variant = "card",
+  className = "",
+}) {
+  const isGrouped = variant === "grouped";
+  const monogram = subscription.monogram || subscription.name?.slice(0, 1) || "S";
 
   return (
-    <>
-      <div className="card-press flex w-full items-center gap-3 rounded-2xl border border-border-subtle bg-surface-default p-3.5 sm:p-4 text-left shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all hover:border-border-default active:scale-[0.99]">
-        <button type="button" onClick={onOpen} className="flex flex-1 items-center gap-3.5 min-w-0 text-left cursor-pointer">
-          <ServiceMark
-            serviceId={subscription.id}
-            name={subscription.name}
-            monogram={subscription.monogram || subscription.name?.slice(0, 1)}
-            image={subscription.image || subscription.attachments?.[0]}
-            category={subscription.category}
-          />
-          <span className="min-w-0 flex-1">
-            <span className="flex items-center gap-1.5 min-w-0">
-              <span className="truncate text-[15px] font-bold text-fg-primary tracking-tight">{subscription.name}</span>
-              <CategoryBadge category={subscription.category} />
-              {isMuted && (
-                <span className="inline-flex items-center text-[#8B95A1] shrink-0" title="알림 꺼짐">
-                  <BellOff size={13} />
-                </span>
-              )}
+    <button
+      type="button"
+      onClick={onOpen}
+      className={cx(
+        "flex w-full items-center justify-between text-left transition-colors cursor-pointer",
+        isGrouped
+          ? "py-3.5 border-b border-gray-100/80 bg-transparent hover:bg-gray-50/50 active:bg-gray-100/60"
+          : "card-press p-4 rounded-xl border border-gray-100/80 bg-white shadow-xs hover:border-gray-200 active:scale-[0.99]",
+        className
+      )}
+    >
+      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+        <ServiceMark
+          serviceId={subscription.id}
+          name={subscription.name}
+          monogram={monogram}
+          image={subscription.image || subscription.attachments?.[0]}
+          category={subscription.category}
+          className="h-11 w-11 rounded-full"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-[16px] font-bold text-black tracking-tight leading-tight">
+              {subscription.name}
             </span>
-            <span className="mt-0.5 flex items-center gap-1.5 truncate text-[13px] font-medium text-fg-muted">
-              <span>{subscription.plan} · {formatBillingDate(subscription)}</span>
-            </span>
-            {detail && (
-              <span className="mt-1 block truncate text-[11px] font-medium text-fg-subtle">
-                <PaymentMethodBadge method={subscription.paymentMethod} size={14} />
-              </span>
-            )}
-          </span>
-          <span className="flex shrink-0 flex-col items-end gap-1">
             <DDayBadge subscription={subscription} />
-            <span className="text-[16px] font-extrabold tracking-tight text-fg-primary">{formatWon(subscription.amount)}</span>
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setMenuOpen(true);
-          }}
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[#8B95A1] hover:bg-[#F2F4F6] hover:text-[#191F28] active:scale-95 transition-all cursor-pointer"
-          aria-label="구독 옵션 메뉴 열기"
-        >
-          <MoreVertical size={18} />
-        </button>
+          </div>
+          <p className="truncate text-[13px] text-gray-400 font-normal mt-0.5 leading-tight">
+            {subscription.plan || "기본 플랜"}
+          </p>
+        </div>
       </div>
 
-      {menuOpen && (
-        <BottomSheet onClose={() => setMenuOpen(false)} label={`${subscription.name} 관리`}>
-          <div className="flex items-center gap-3 pb-4 border-b border-[#E5E8EB]">
-            <ServiceMark
-              serviceId={subscription.id}
-              name={subscription.name}
-              monogram={subscription.monogram || subscription.name?.slice(0, 1)}
-              image={subscription.image || subscription.attachments?.[0]}
-              category={subscription.category}
-              className="h-12 w-12 rounded-xl"
-            />
-            <div className="min-w-0 flex-1">
-              <h3 className="text-[16px] font-bold text-[#191F28] truncate">{subscription.name}</h3>
-              <p className="text-[13px] text-[#6B7684] truncate">{subscription.plan} · 월 {formatWon(subscription.amount)}</p>
-            </div>
-          </div>
-
-          <div className="mt-3 space-y-1">
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false);
-                onOpen?.();
-              }}
-              className="flex w-full items-center gap-3 rounded-xl p-3 text-left text-[14px] font-semibold text-[#191F28] hover:bg-[#F9FAFB] active:bg-[#F2F4F6] transition-colors cursor-pointer"
-            >
-              <FileText size={18} className="text-[#6B7684]" />
-              <span>상세 정보 및 수정</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false);
-                onMute?.();
-              }}
-              className="flex w-full items-center gap-3 rounded-xl p-3 text-left text-[14px] font-semibold text-[#191F28] hover:bg-[#F9FAFB] active:bg-[#F2F4F6] transition-colors cursor-pointer"
-            >
-              {isMuted ? (
-                <>
-                  <Bell size={18} className="text-[#3182F6]" />
-                  <span>알림 켜기 (D-3, D-1 알림 받기)</span>
-                </>
-              ) : (
-                <>
-                  <BellOff size={18} className="text-[#8B95A1]" />
-                  <span>알림 끄기 (결제 전 알림 끄기)</span>
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false);
-                onCancel?.();
-              }}
-              className="flex w-full items-center gap-3 rounded-xl p-3 text-left text-[14px] font-semibold text-[#E03838] hover:bg-[#FFF5F5] active:bg-[#FFEBEB] transition-colors cursor-pointer"
-            >
-              <ExternalLink size={18} />
-              <span>해지 가이드 바로가기</span>
-            </button>
-          </div>
-        </BottomSheet>
-      )}
-    </>
+      <div className="text-right shrink-0 pl-3">
+        <span className="text-[16px] font-bold text-black tracking-tight block leading-tight">
+          {formatWon(subscription.amount)}
+        </span>
+        <span className="text-[12px] text-gray-400 block mt-0.5 leading-tight">
+          /{subscription.billingCycle === "매년" ? "년" : "월"}
+        </span>
+      </div>
+    </button>
   );
 }
 
-export function Toast({ toast, onClose, duration = 6000 }) {
+export function Toast({ toast, onClose, duration = 2500 }) {
   const message = typeof toast === "object" && toast !== null ? toast.message : toast;
   const initialDuration = (typeof toast === "object" && toast?.duration) || duration;
   const toastKey = (typeof toast === "object" && toast?.id) || message;
@@ -702,6 +666,7 @@ export function Toast({ toast, onClose, duration = 6000 }) {
   const exitTimerRef = useRef(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  const toastRef = useRef(null);
 
   const handleClose = useCallback(() => {
     setIsExiting((curr) => {
@@ -733,10 +698,10 @@ export function Toast({ toast, onClose, duration = 6000 }) {
       handleClose();
     }, initialDuration);
 
-    // Hard ceiling timeout (at most 7000ms): guarantees toast always disappears within 5~7 seconds
+    // Hard ceiling timeout: 2~3초 내 빠른 자동 종료 보장 (사용자 피드백)
     hardTimeoutRef.current = setTimeout(() => {
       handleClose();
-    }, Math.min(Math.max(initialDuration + 1000, 5000), 7000));
+    }, Math.min(initialDuration + 500, 3500));
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -744,6 +709,23 @@ export function Toast({ toast, onClose, duration = 6000 }) {
       if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
     };
   }, [toastKey, initialDuration, message, handleClose]);
+
+  // 외부 영역 터치/클릭 시 즉시 닫힘 (사용자 피드백)
+  useEffect(() => {
+    if (!message) return;
+    const handleOutsideClick = (e) => {
+      if (toastRef.current && !toastRef.current.contains(e.target)) {
+        handleClose();
+      }
+    };
+    const timer = setTimeout(() => {
+      window.addEventListener("pointerdown", handleOutsideClick, { capture: true, once: true });
+    }, 80);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("pointerdown", handleOutsideClick, { capture: true });
+    };
+  }, [message, handleClose]);
 
   const handleMouseEnter = (e) => {
     if (isExiting) return;
@@ -769,11 +751,13 @@ export function Toast({ toast, onClose, duration = 6000 }) {
 
   return (
     <div
+      ref={toastRef}
       role="status"
       aria-live="polite"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-[400px] -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-[#18181B] text-white shadow-xl ${
+      onClick={handleClose}
+      className={`fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-[400px] -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-[#18181B] text-white shadow-xl cursor-pointer ${
         isExiting ? "toast-exit" : "toast-enter"
       }`}
     >

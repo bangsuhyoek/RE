@@ -1,98 +1,30 @@
-import { useMemo, useState } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight, Inbox, ReceiptText, ScanLine, Sparkles, BellOff } from "lucide-react";
-import { Button, IconButton, SubscriptionCard } from "./ui";
+import { useMemo, useState, useRef } from "react";
+import {
+  ChevronRight,
+  Inbox,
+  ReceiptText,
+  ScanLine,
+  Sparkles,
+  Bell,
+  BellOff,
+  User,
+} from "lucide-react";
+import { Button, SubscriptionCard } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
-
-function SummaryCard({ subscriptions }) {
-  const [annual, setAnnual] = useState(false);
-  const monthly = subscriptions.reduce((sum, sub) => {
-    const amt = sub.billingCycle === "매년" ? Math.round(sub.amount / 12) : sub.amount;
-    return sum + amt;
-  }, 0);
-  const yearly = subscriptions.reduce((sum, sub) => {
-    const amt = sub.billingCycle === "매년" ? sub.amount : sub.amount * 12;
-    return sum + amt;
-  }, 0);
-  const displayAmount = annual ? yearly : monthly;
-  return (
-    <button type="button" onClick={() => setAnnual((value) => !value)} className="card-press w-full rounded-[24px] bg-surface-inverse p-5 text-left text-fg-inverse shadow-[0_4px_20px_rgba(34,45,34,0.18)] border border-white/10" aria-label="월간 및 연간 지출 전환">
-      <div className="flex items-center justify-between">
-        <span className="text-[13px] font-semibold text-white/70">{annual ? "연간 환산 지출액" : "이번 달 총 결제 예정"}</span>
-        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/80 backdrop-blur-xs">{annual ? "연간 보기" : "월간 보기"}</span>
-      </div>
-      <span className="mt-2.5 block text-[26px] sm:text-[32px] font-extrabold tracking-tight text-white truncate">{formatWon(displayAmount)}</span>
-      <span className="mt-1 flex items-center gap-1 text-[12px] text-white/50">탭하면 {annual ? "월간" : "연간"} 지출로 전환</span>
-      <div className="mt-5 grid grid-cols-2 gap-3 rounded-2xl bg-white/[0.06] p-3.5 backdrop-blur-xs">
-        <span>
-          <span className="block text-[11px] font-medium text-white/60">활성 구독</span>
-          <strong className="mt-0.5 block text-[16px] font-bold text-white tracking-tight">{subscriptions.length}개</strong>
-        </span>
-        <span>
-          <span className="block text-[11px] font-medium text-white/60">{annual ? "월 환산" : "연간 환산"}</span>
-          <strong className="mt-0.5 block text-[16px] font-bold text-white tracking-tight">{formatWon(annual ? monthly : yearly)}</strong>
-        </span>
-      </div>
-    </button>
-  );
-}
-
-function PromotionCarousel({ promotions, onOpen, onExplore }) {
-  const [index, setIndex] = useState(0);
-  const items = promotions.slice(0, 4);
-  if (!items.length) return null;
-  const promo = items[index];
-  const typeLabels = ["01 더 저렴한 대체", "02 무료 · 이벤트", "03 연간 · 학생 할인", "04 통신사 결합"];
-  const next = () => setIndex((value) => (value + 1) % items.length);
-  const previous = () => setIndex((value) => (value + items.length - 1) % items.length);
-  return (
-    <section className="mt-8">
-      <div className="mb-3 flex items-end justify-between">
-        <div>
-          <h2 className="text-[18px] font-bold tracking-tight text-fg-primary">더 아낄 수 있는 선택</h2>
-        </div>
-        <button type="button" onClick={onExplore} className="flex items-center gap-0.5 text-[13px] font-semibold text-fg-muted hover:text-fg-primary transition-colors">전체보기 <ChevronRight size={15} /></button>
-      </div>
-      <article className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-default shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-        <div className="p-5">
-          <div className="flex items-start justify-between gap-4">
-            <span className="rounded-[6px] bg-surface-inverse px-2.5 py-1 text-[11px] font-bold text-fg-inverse shadow-2xs">{typeLabels[index] || "추천 혜택"}</span>
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-surface-subtle text-[13px] font-bold text-fg-primary border border-border-subtle">{promo.monogram || promo.title.slice(0, 1)}</span>
-          </div>
-          <h3 className="mt-4 text-[18px] font-bold tracking-tight text-fg-primary">{promo.title}</h3>
-          <p className="mt-1.5 min-h-10 text-[13px] leading-relaxed text-fg-muted">{promo.description}</p>
-          <div className="mt-4 flex items-end justify-between">
-            <span>
-              <span className="block text-[11px] font-semibold text-fg-subtle">예상 절약</span>
-              <strong className="mt-0.5 block text-[18px] font-extrabold tracking-tight text-fg-brand">{formatWon(promo.saving)}</strong>
-            </span>
-            <Button size="compact" onClick={() => onOpen(promo)}>혜택 보기 <ArrowRight size={15} /></Button>
-          </div>
-        </div>
-        <div className="flex items-center justify-between border-t border-border-subtle bg-surface-inset px-4 py-3">
-          <div className="flex gap-1.5" aria-label="추천 단계">
-            {items.map((item, dotIndex) => <span key={item.id} className={`h-1.5 rounded-full transition-all ${dotIndex === index ? "w-4 bg-surface-brand" : "w-1.5 bg-border-default"}`} />)}
-          </div>
-          <div className="flex gap-1">
-            <IconButton size="small" variant="weak" onClick={previous} aria-label="이전 추천"><ChevronLeft size={16} /></IconButton>
-            <IconButton size="small" variant="weak" onClick={next} aria-label="다음 추천"><ChevronRight size={16} /></IconButton>
-          </div>
-        </div>
-      </article>
-    </section>
-  );
-}
 
 function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile }) {
   return (
     <section className="flex min-h-[calc(100dvh-9rem)] min-h-[calc(100vh-9rem)] flex-col items-center justify-center px-4 sm:px-5 text-center">
-      <span className="grid h-16 w-16 place-items-center rounded-3xl bg-[#F2F4F6] text-[#6B7684] border border-[#E5E8EB]"><Inbox size={28} strokeWidth={1.75} /></span>
+      <span className="grid h-16 w-16 place-items-center rounded-full bg-[#F2F4F6] text-[#6B7684] border border-[#E5E8EB]">
+        <Inbox size={28} strokeWidth={1.75} />
+      </span>
       <h1 className="mt-6 text-[22px] font-bold tracking-tight text-[#191F28]">등록된 구독 서비스가 없습니다</h1>
       <p className="mt-2 max-w-[280px] text-[14px] leading-relaxed text-[#6B7684]">하단의 + 버튼이나 아래 버튼으로 구독을 추가해보세요.</p>
       <div className="mt-8 w-full space-y-3">
         <Button size="large" fullWidth onClick={onAdd} prefixIcon={<ReceiptText size={18} />}>첫 구독 서비스 등록하기</Button>
-        <Button size="large" fullWidth variant="secondary" onClick={onScan} prefixIcon={<ScanLine size={18} />}>영수증 AI 스캔하기</Button>
+        <Button size="large" fullWidth variant="secondary" onClick={onScan} prefixIcon={<ScanLine size={18} />}>AI 결제인식 (문자·영수증 스캔)</Button>
       </div>
-      <div className="mt-8 flex items-center gap-2.5 rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] px-4 py-3.5 text-left shadow-2xs">
+      <div className="mt-8 flex items-center gap-2.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] px-4 py-3.5 text-left shadow-2xs">
         <Sparkles size={18} className="shrink-0 text-[#FF6F0F]" />
         <p className="text-[12px] leading-5 text-[#6B7684]">구독을 등록하면 내 사용 패턴에 맞는 프로모션을 추천해드려요.</p>
       </div>
@@ -115,89 +47,371 @@ function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile }) {
   );
 }
 
-export function HomeScreen({ subscriptions, promotions, profile, notificationDenied, onOpenSubscription, onShowAll, onOpenPromotion, onExplorePromotions, onAdd, onScan, onStartOnboarding, onToggleNotificationPermission, onOpenNotificationCenter, onTestPaymentDetection, onRequestPaymentCapture, onOpenTerms, onLogout, onOpenAccount }) {
-  const upcoming = useMemo(() => [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b)).slice(0, 3), [subscriptions]);
+function VisualPromoCarousel({ promotions, onOpenPromotion }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scrollRef = useRef(null);
 
-  if (subscriptions.length === 0) return <EmptyState onAdd={onAdd} onScan={onScan || onAdd} onLogout={onLogout} onOpenAccount={onOpenAccount} profile={profile} />;
+  const heroPromo = promotions.find((p) => p.id === "lgu-nerget") || promotions[0];
+  const promo1 = promotions.find((p) => p.kind === "경쟁사 프로모" || p.id === "youtube-promo") || promotions[1] || promotions[0];
+  const promo2 = promotions.find((p) => p.kind === "연간 전환 팁" || p.id === "spotify-annual") || promotions[2] || promotions[1];
+
+  const slides = [
+    {
+      id: "lgu-nerget",
+      promo: heroPromo,
+      tag: "LG U+ 너겟 요금제",
+      title: "통신비 줄이고,\nOTT는 무료로!",
+      btnText: "혜택 받아가기",
+      bgGradient: "from-blue-50/50 via-white to-white border-blue-100/80",
+      btnColor: "bg-[#3182F6] text-white hover:bg-blue-600",
+      visual: (
+        <div className="relative mx-auto h-20 w-52 flex items-center justify-center select-none">
+          <div style={{ backgroundColor: "#001D38" }} className="absolute top-4 left-3 w-26 h-14 rounded-xl border border-blue-400/40 text-white p-2 shadow-md -rotate-12 flex items-center justify-center">
+            <span className="text-[11px] font-black tracking-wider text-blue-200">Disney+</span>
+          </div>
+          <div style={{ backgroundColor: "#FF153C" }} className="absolute top-0 right-3 w-26 h-14 rounded-xl text-white p-2 shadow-lg rotate-6 flex items-center justify-center">
+            <span className="text-[13px] font-black tracking-tight">TVING</span>
+          </div>
+          <div className="absolute -top-1 left-9 h-6 w-6 rounded-full bg-[#3182F6] text-white flex items-center justify-center shadow-xs text-[11px] font-bold">✓</div>
+          <div className="absolute bottom-0 right-7 h-5 w-5 rounded-full bg-pink-500 text-white flex items-center justify-center shadow-xs text-[9px] font-black">%</div>
+          <div className="absolute top-3 left-1 h-5 w-5 rounded-full bg-amber-300 text-amber-900 flex items-center justify-center shadow-2xs text-[11px]">😊</div>
+        </div>
+      ),
+    },
+    {
+      id: "youtube-promo",
+      promo: promo1,
+      tag: "경쟁사 환승 특가",
+      title: "광고 없이 몰입하고,\n첫 3개월 ₩100!",
+      btnText: "100원으로 시작하기",
+      bgGradient: "from-red-50/50 via-white to-white border-red-100/80",
+      btnColor: "bg-[#E50914] text-white hover:bg-red-700 shadow-xs",
+      visual: (
+        <div className="relative mx-auto h-20 w-52 flex items-center justify-center select-none">
+          <div style={{ backgroundColor: "#141414" }} className="absolute top-4 left-3 w-26 h-14 rounded-xl border border-gray-700 text-white p-2 shadow-md -rotate-12 flex items-center justify-center">
+            <span className="text-[11px] font-black tracking-wider text-[#E50914]">NETFLIX</span>
+          </div>
+          <div style={{ backgroundColor: "#FF0000" }} className="absolute top-0 right-3 w-26 h-14 rounded-xl text-white p-2 shadow-lg rotate-6 flex items-center justify-center">
+            <span className="text-[12px] font-black tracking-tight text-white flex items-center gap-1">▶ YouTube</span>
+          </div>
+          <div className="absolute -top-1 left-9 h-6 w-6 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-xs text-[9px] font-black">₩100</div>
+          <div className="absolute bottom-0 right-7 h-5 w-5 rounded-full bg-black text-white flex items-center justify-center shadow-xs text-[8px] font-black">HOT</div>
+          <div className="absolute top-3 left-1 h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-2xs text-[10px] font-bold">3달</div>
+        </div>
+      ),
+    },
+    {
+      id: "spotify-annual",
+      promo: promo2,
+      tag: "연간 멤버십 전환 팁",
+      title: "매월 내지 말고,\n1년에 2달 공짜로!",
+      btnText: "연간 혜택 받기",
+      bgGradient: "from-emerald-50/50 via-white to-white border-emerald-100/80",
+      btnColor: "bg-[#1DB954] text-white hover:bg-emerald-600 shadow-xs",
+      visual: (
+        <div className="relative mx-auto h-20 w-52 flex items-center justify-center select-none">
+          <div style={{ backgroundColor: "#121212" }} className="absolute top-4 left-3 w-26 h-14 rounded-xl border border-emerald-500/40 text-white p-2 shadow-md -rotate-12 flex items-center justify-center">
+            <span className="text-[11px] font-black tracking-wider text-[#1DB954]">MUSIC</span>
+          </div>
+          <div style={{ backgroundColor: "#1DB954" }} className="absolute top-0 right-3 w-26 h-14 rounded-xl text-black p-2 shadow-lg rotate-6 flex items-center justify-center">
+            <span className="text-[12px] font-black tracking-tight text-black">Spotify</span>
+          </div>
+          <div className="absolute -top-1 left-9 h-6 w-6 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-xs text-[8px] font-black">FREE</div>
+          <div className="absolute bottom-0 right-7 h-5 w-5 rounded-full bg-black text-white flex items-center justify-center shadow-xs text-[8px] font-black">2달</div>
+          <div className="absolute top-3 left-1 h-5 w-5 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-2xs text-[11px]">🎧</div>
+        </div>
+      ),
+    },
+  ];
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const scrollLeft = scrollRef.current.scrollLeft;
+    const width = scrollRef.current.clientWidth;
+    if (width > 0) {
+      const newIdx = Math.round(scrollLeft / width);
+      setActiveIndex(newIdx);
+    }
+  };
+
+  const scrollToSlide = (idx) => {
+    if (!scrollRef.current) return;
+    const width = scrollRef.current.clientWidth;
+    scrollRef.current.scrollTo({
+      left: idx * width,
+      behavior: "smooth",
+    });
+    setActiveIndex(idx);
+  };
 
   return (
-    <main className="px-4 sm:px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-5 sm:pt-6">
-      <div>
-        <p className="text-[13px] font-semibold text-fg-subtle">
-          {profile?.nickname || "사용자"}님, 이번 달
-        </p>
-        <h1 className="mt-0.5 text-[24px] font-extrabold tracking-tight text-fg-primary">고정지출을 확인하세요</h1>
+    <div className="w-full">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none rounded-2xl"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {slides.map((s) => (
+          <div
+            key={s.id}
+            className={`w-full shrink-0 snap-center rounded-2xl border bg-gradient-to-b ${s.bgGradient} p-4 sm:p-5 text-center flex flex-col items-center justify-between shadow-2xs`}
+            style={{ minHeight: "250px" }}
+          >
+            <div>
+              {s.visual}
+              <span className="text-[12px] font-extrabold text-[#3182F6] block tracking-tight mt-1">
+                {s.tag}
+              </span>
+              <h3 className="mt-0.5 text-[18px] font-black text-black tracking-tight leading-snug whitespace-pre-line">
+                {s.title}
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => onOpenPromotion?.(s.promo)}
+              className={`mt-2.5 inline-flex items-center justify-center rounded-full px-5 py-2 text-[13px] font-bold shadow-xs cursor-pointer active:scale-95 transition-all ${s.btnColor}`}
+            >
+              {s.btnText}
+            </button>
+          </div>
+        ))}
       </div>
+
+      <div className="flex items-center justify-center gap-1.5 mt-3">
+        {slides.map((_, idx) => (
+          <button
+            key={idx}
+            type="button"
+            onClick={() => scrollToSlide(idx)}
+            className={`h-1.5 rounded-full transition-all cursor-pointer ${
+              activeIndex === idx ? "w-5 bg-[#3182F6]" : "w-1.5 bg-gray-200"
+            }`}
+            aria-label={`슬라이드 ${idx + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function HomeScreen({
+  subscriptions,
+  promotions = [],
+  profile,
+  notificationDenied,
+  onOpenSubscription,
+  onShowAll,
+  onOpenPromotion,
+  onExplorePromotions,
+  onAdd,
+  onScan,
+  onToggleNotificationPermission,
+  onOpenNotificationCenter,
+  onOpenTerms,
+  onLogout,
+  onOpenAccount,
+}) {
+  const [annual, setAnnual] = useState(false);
+
+  const monthly = useMemo(() => {
+    return subscriptions.reduce((sum, sub) => {
+      const amt = sub.billingCycle === "매년" ? Math.round(sub.amount / 12) : sub.amount;
+      return sum + amt;
+    }, 0);
+  }, [subscriptions]);
+
+  const yearly = useMemo(() => {
+    return subscriptions.reduce((sum, sub) => {
+      const amt = sub.billingCycle === "매년" ? sub.amount : sub.amount * 12;
+      return sum + amt;
+    }, 0);
+  }, [subscriptions]);
+
+  const displayAmount = annual ? yearly : monthly;
+
+  // 결제 예정순 정렬 (D-Day 빠른 순)
+  const sortedSubscriptions = useMemo(() => {
+    return [...subscriptions].sort((a, b) => daysUntilCharge(a) - daysUntilCharge(b));
+  }, [subscriptions]);
+
+  if (subscriptions.length === 0) {
+    return (
+      <EmptyState
+        onAdd={onAdd}
+        onScan={onScan || onAdd}
+        onLogout={onLogout}
+        onOpenAccount={onOpenAccount}
+        profile={profile}
+      />
+    );
+  }
+
+  return (
+    <main className="px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-safe select-none">
+      {/* 1. 상단 서비스 브랜드 & 알림센터/마이페이지 헤더 */}
+      <header className="flex items-center justify-between pt-4 pb-3 border-b border-gray-100/80">
+        <div className="flex items-baseline gap-2">
+          <span className="text-[20px] font-black tracking-tight text-black">
+            꾸독
+          </span>
+          <span className="text-[12px] font-semibold text-gray-400">
+            구독 관리
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onOpenNotificationCenter}
+            className="relative p-2 text-gray-500 hover:text-black transition-colors cursor-pointer"
+            aria-label="알림 센터 열기"
+          >
+            <Bell size={20} />
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+          </button>
+          {onOpenAccount && (
+            <button
+              type="button"
+              onClick={onOpenAccount}
+              className="p-2 text-gray-500 hover:text-black transition-colors cursor-pointer"
+              aria-label="내 계정 관리"
+            >
+              <User size={20} />
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* 2. 이번 달 총 지출 & 활성 구독 (하단 테두리 없이 시원하게 연결) */}
+      <div className="pt-6 pb-4 flex items-end justify-between">
+        <div
+          onClick={() => setAnnual((v) => !v)}
+          className="cursor-pointer group"
+          role="button"
+          tabIndex={0}
+          aria-label="월간 및 연간 지출 전환"
+        >
+          <span className="text-[13px] font-semibold text-gray-400 block">
+            {annual ? "연간 환산 총 지출" : "이번 달 총 지출"}
+            <span className="text-[11px] text-gray-300 font-normal ml-1 group-hover:text-gray-500 transition-colors">
+              (탭하여 전환)
+            </span>
+          </span>
+          <span className="mt-1.5 block text-[36px] font-black text-black tracking-tight leading-none truncate">
+            {formatWon(displayAmount)}
+          </span>
+        </div>
+
+        <div className="text-right pb-0.5 shrink-0">
+          <span className="text-[11px] font-medium text-gray-400 block">
+            활성 구독
+          </span>
+          <div className="mt-1 leading-none">
+            <span className="text-[26px] font-black text-black tracking-tight">
+              {subscriptions.length}
+            </span>
+            <span className="text-[15px] font-bold text-gray-600 ml-0.5">
+              개
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 알림 권한 꺼짐 안내 (필요 시 노출) */}
       {notificationDenied && (
         <button
           type="button"
           onClick={onToggleNotificationPermission}
-          className="mt-5 flex w-full items-center justify-between rounded-2xl border border-amber-200 bg-amber-50/90 p-4 text-left shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all active:scale-[0.98]"
+          className="mt-3 flex w-full items-center justify-between rounded-xl border border-amber-200 bg-amber-50/90 p-3.5 text-left shadow-xs transition-all active:scale-[0.98]"
         >
-          <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-500 text-white shadow-2xs">
-              <BellOff size={16} />
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-amber-500 text-white shadow-2xs">
+              <BellOff size={15} />
             </span>
             <div>
-              <strong className="block text-[13px] font-bold text-amber-950">결제 전 알림이 꺼져 있어요</strong>
-              <span className="mt-0.5 block text-[12px] font-medium text-amber-700">탭하여 알림을 켜고 D-3, D-1에 미리 안내받으세요.</span>
+              <strong className="block text-[12px] font-bold text-amber-950">결제 전 알림이 꺼져 있어요</strong>
+              <span className="text-[11px] font-medium text-amber-700">D-3, D-1 알림을 켜보세요.</span>
             </div>
           </div>
-          <span className="rounded-lg bg-amber-600 px-3 py-1.5 text-[12px] font-bold text-white shadow-2xs">
+          <span className="rounded-lg bg-amber-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs">
             켜기
           </span>
         </button>
       )}
-      <div className="mt-5"><SummaryCard subscriptions={subscriptions} /></div>
 
-      <section className="mt-8">
-        <div className="mb-3 flex items-end justify-between">
-          <div>
-            <h2 className="text-[18px] font-bold tracking-tight text-fg-primary">결제 임박 (최대 3개)</h2>
-          </div>
-          {subscriptions.length > 3 && (
-            <button type="button" onClick={onShowAll} className="flex items-center gap-0.5 text-[13px] font-semibold text-fg-muted hover:text-fg-primary transition-colors">
-              전체보기 <ChevronRight size={15} />
+      {/* 3. 내 구독 파트 (더 크고 쾌적하게 확장된 리스트) */}
+      <section className="mt-6">
+        <div className="flex items-center justify-between pb-2.5 border-b border-gray-100/80">
+          <h2 className="text-[15px] font-extrabold text-black tracking-tight">
+            내 구독 ({subscriptions.length}개)
+          </h2>
+          {subscriptions.length > 5 && onShowAll && (
+            <button
+              type="button"
+              onClick={onShowAll}
+              className="text-[12px] font-medium text-gray-400 hover:text-black flex items-center transition-colors"
+            >
+              전체보기 <ChevronRight size={13} />
             </button>
           )}
         </div>
-        <div className="space-y-3">
-          {upcoming.map((subscription) => (
+        <div className="divide-y divide-gray-100/80">
+          {sortedSubscriptions.map((subscription) => (
             <SubscriptionCard
-              key={subscription.subscriptionId}
+              key={subscription.subscriptionId || subscription.id}
               subscription={subscription}
-              detail
-              onOpen={() => onOpenSubscription(subscription.subscriptionId)}
+              variant="grouped"
+              onOpen={() => onOpenSubscription(subscription.subscriptionId || subscription.id)}
             />
           ))}
         </div>
       </section>
 
-      <PromotionCarousel promotions={promotions} onOpen={onOpenPromotion} onExplore={onExplorePromotions} />
-      {/* Legal & Terms Footer */}
-      <footer className="mt-12 border-t border-border-subtle pt-6 pb-2 text-center">
-        <div className="flex items-center justify-center gap-2.5 text-[11px] text-fg-subtle">
-          <button type="button" onClick={() => onOpenTerms?.("terms")} className="hover:text-fg-primary hover:underline">
+      {/* 4. 스마트 절약 · 혜택 (하단 30~40% 영역을 차지하는 시각화 스와이프 캐러셀) */}
+      <section className="mt-9">
+        <div className="flex items-center justify-between pb-2 border-b border-gray-100/80 mb-3.5">
+          <h2 className="text-[14px] font-black text-black tracking-tight flex items-center gap-1.5">
+            <Sparkles size={16} className="text-[#3182F6]" />
+            스마트 절약 추천 · 혜택
+          </h2>
+          {onExplorePromotions && (
+            <button
+              type="button"
+              onClick={onExplorePromotions}
+              className="text-[12px] font-medium text-gray-400 hover:text-black flex items-center transition-colors"
+            >
+              더보기 <ChevronRight size={13} />
+            </button>
+          )}
+        </div>
+
+        {/* 시각화 스와이프 캐러셀 (글자 목록 없이 단독 스와이프 배너) */}
+        <VisualPromoCarousel
+          promotions={promotions}
+          onOpenPromotion={onOpenPromotion}
+        />
+      </section>
+
+      {/* 5. Legal & Footer */}
+      <footer className="mt-12 border-t border-gray-100 pt-5 pb-4 text-center">
+        <div className="flex items-center justify-center gap-2.5 text-[11px] text-gray-400">
+          <button type="button" onClick={() => onOpenTerms?.("terms")} className="hover:text-black hover:underline">
             서비스 이용약관
           </button>
           <span>·</span>
-          <button type="button" onClick={() => onOpenTerms?.("privacy")} className="hover:text-[#191F28] hover:underline">
+          <button type="button" onClick={() => onOpenTerms?.("privacy")} className="hover:text-black hover:underline">
             개인정보 처리방침
-          </button>
-          <span>·</span>
-          <button type="button" onClick={() => onOpenTerms?.("permissions")} className="hover:text-[#191F28] hover:underline">
-            권한 사전 고지
           </button>
           {onLogout && (
             <>
               <span>·</span>
-              <button type="button" onClick={onLogout} className="hover:text-[#E11D48] hover:underline text-[#71717A]">
+              <button type="button" onClick={onLogout} className="hover:text-red-500 hover:underline">
                 로그아웃
               </button>
             </>
           )}
         </div>
-        <p className="mt-2 text-[10px] text-[#B0B8C1]">
+        <p className="mt-1.5 text-[10px] text-gray-300">
           © 2026 꾸독. 구독 관리 서비스
         </p>
       </footer>

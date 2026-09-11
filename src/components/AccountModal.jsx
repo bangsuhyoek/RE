@@ -25,7 +25,14 @@ function GoogleIcon({ className = "h-4 w-4 shrink-0" }) {
   );
 }
 
-export function AccountModal({ profile, onClose, onUpdateNickname, onLogout }) {
+export function AccountModal({
+  profile,
+  onClose,
+  onUpdateNickname,
+  onLogout,
+  onTestPaymentDetection,
+  onRequestPaymentCapture,
+}) {
   const currentNickname = profile?.nickname || "사용자";
   const [nicknameInput, setNicknameInput] = useState(currentNickname);
   const [error, setError] = useState("");
@@ -142,6 +149,47 @@ export function AccountModal({ profile, onClose, onUpdateNickname, onLogout }) {
             닉네임이 성공적으로 변경되었습니다.
           </p>
         )}
+      </div>
+
+      {/* 스마트 자동화 설정: 실시간 결제 자동 감지 (Beta) */}
+      <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-xs">
+              ⚡
+            </span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <strong className="block text-[13px] font-bold text-emerald-950">실시간 결제 자동 감지</strong>
+                <span className="rounded bg-emerald-200/80 px-1 py-0.2 text-[9px] font-bold text-emerald-800">Beta</span>
+              </div>
+              <span className="block text-[11px] text-emerald-700/80 truncate">
+                카드사 결제 문자/앱 알림 시 자동 등록 팝업
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {onTestPaymentDetection && (
+              <Button
+                size="compact"
+                variant="secondary"
+                className="!py-1.5 !px-2.5 !text-[11px] !bg-white !border-emerald-200 !text-emerald-900 cursor-pointer"
+                onClick={onTestPaymentDetection}
+              >
+                체험
+              </Button>
+            )}
+            {onRequestPaymentCapture && (
+              <Button
+                size="compact"
+                className="!py-1.5 !px-2.5 !text-[11px] !bg-emerald-600 !text-white hover:!bg-emerald-700 cursor-pointer"
+                onClick={onRequestPaymentCapture}
+              >
+                설정
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* 로그아웃 블록 */}

@@ -4,6 +4,7 @@ import { App as CapApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { Bell } from "lucide-react";
 import { AuthLogin, AuthRegister } from "./components/AuthScreens";
+import { SplashScreen, LandingScreen } from "./components/LandingScreen";
 import { AddModal } from "./components/AddModal";
 import { AccountModal } from "./components/AccountModal";
 import { TermsModal } from "./components/TermsModal";
@@ -33,6 +34,12 @@ export default function App() {
   const [termsOpen, setTermsOpen] = useState(false);
   const [termsTab, setTermsTab] = useState("terms");
   const [toast, setToast] = useState(null);
+  const [showSplash, setShowSplash] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !sessionStorage.getItem("kudok_splash_shown");
+    }
+    return false;
+  });
 
   const notify = useCallback((message, duration = 6000) => {
     setToast({ message, duration, id: Date.now() });
@@ -443,7 +450,14 @@ export default function App() {
   }, [subscriptions, startCancellation, notify]);
 
   let content;
-  if (screen.route === "register") {
+  if (screen.route === "landing") {
+    content = (
+      <LandingScreen
+        onStart={() => navigate("home")}
+        onLogin={() => navigate("login")}
+      />
+    );
+  } else if (screen.route === "register") {
     content = (
       <AuthRegister
         onBack={() => navigate("login")}
@@ -531,7 +545,17 @@ export default function App() {
 
   return (
     <div className="app-shell" data-screen={screen.route} data-hash={typeof window !== "undefined" ? window.location.hash : ""}>
-      {hasAppChrome && (
+      {showSplash && (
+        <SplashScreen
+          onFinish={() => {
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem("kudok_splash_shown", "1");
+            }
+            setShowSplash(false);
+          }}
+        />
+      )}
+      {hasAppChrome && screen.route !== "home" && screen.route !== "detail" && (
         <AppHeader
           title={pageTitle}
           onBack={screen.route === "detail" ? () => {
@@ -557,7 +581,7 @@ export default function App() {
         />
       )}
       {content}
-      {hasAppChrome && (
+      {hasAppChrome && screen.route !== "detail" && (
         <BottomNavigation
           route={screen.route}
           onNavigate={(targetRoute) => {
@@ -565,6 +589,8 @@ export default function App() {
             navigate(targetRoute);
           }}
           onOpenAdd={() => { setAddInitialMode("manual"); setAddOpen(true); }}
+          onOpenNotifications={() => setNotificationCenterOpen(true)}
+          onOpenAccount={() => setAccountOpen(true)}
         />
       )}
       {addOpen && (
@@ -638,6 +664,8 @@ export default function App() {
           profile={profile}
           onClose={() => setAccountOpen(false)}
           onUpdateNickname={handleUpdateNickname}
+          onTestPaymentDetection={handleTestPaymentDetection}
+          onRequestPaymentCapture={handleRequestPaymentCapture}
           onLogout={handleLogout}
         />
       )}

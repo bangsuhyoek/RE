@@ -20,7 +20,7 @@ function getNotificationBadgeStyle(badge = "") {
 /**
  * Floating push notification banner (simulates iOS/Android push notification banner)
  */
-export function PushNotificationBanner({ notification, onClose, onOpenDetail, duration = 6000 }) {
+export function PushNotificationBanner({ notification, onClose, onOpenDetail, duration = 2500 }) {
   const [isExiting, setIsExiting] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -63,10 +63,10 @@ export function PushNotificationBanner({ notification, onClose, onOpenDetail, du
       handleClose();
     }, duration);
 
-    // Hard ceiling timeout (at most 7000ms): guarantees banner always disappears within 5~7 seconds
+    // Hard ceiling timeout: 2~3초 내 빠른 자동 사라짐 보장 (사용자 피드백)
     hardTimeoutRef.current = setTimeout(() => {
       handleClose();
-    }, Math.min(Math.max(duration + 1000, 5000), 7000));
+    }, Math.min(duration + 500, 3500));
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -252,41 +252,6 @@ export function NotificationCenterModal({
             >
               <X size={16} />
             </button>
-          </div>
-        </div>
-
-        {/* Real-time Payment Detection Bar */}
-        <div className="mt-2.5 flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-white font-bold text-xs shadow-xs">
-              ⚡
-            </span>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <strong className="block text-[12px] font-bold text-emerald-950 truncate">실시간 결제 감지</strong>
-                <span className="rounded bg-emerald-200/80 px-1 py-0.2 text-[9px] font-bold text-emerald-800">Beta</span>
-              </div>
-              <span className="block text-[10px] text-emerald-700/80 truncate">
-                카드사 결제 알림 시 자동 등록 팝업
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <Button
-              size="compact"
-              variant="secondary"
-              className="!py-1.5 !px-2 !text-[10px] !bg-white !border-emerald-200 !text-emerald-900"
-              onClick={onTestPaymentDetection}
-            >
-              체험
-            </Button>
-            <Button
-              size="compact"
-              className="!py-1.5 !px-2 !text-[10px] !bg-emerald-600 !text-white hover:!bg-emerald-700"
-              onClick={onRequestPaymentCapture}
-            >
-              설정
-            </Button>
           </div>
         </div>
 

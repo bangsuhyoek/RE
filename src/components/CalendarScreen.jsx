@@ -131,29 +131,29 @@ export function CalendarScreen({ subscriptions, onOpen }) {
         </div>
 
         {selectedDues.length > 0 ? (
-          <div className="mt-3 space-y-2">
+          <div className="mt-3 border-t border-border-subtle divide-y divide-border-subtle">
             {selectedDues.map((sub) => (
               <button
                 key={sub.subscriptionId || sub.id}
                 type="button"
                 onClick={() => onOpen(sub.subscriptionId || sub.id)}
-                className="card-press flex w-full items-center justify-between rounded-2xl border border-[#E5E8EB] bg-white p-3.5 text-left shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all hover:border-[#D1D6DB] active:scale-[0.98]"
+                className="flex w-full items-center justify-between gap-3.5 text-left transition-colors cursor-pointer bg-transparent hover:bg-surface-subtle active:bg-border-subtle/40 px-0.5 sm:px-1 py-3.5 rounded-none border-0 shadow-none"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
                   <ServiceMark
                     serviceId={sub.id}
                     name={sub.name}
                     monogram={sub.monogram || sub.name?.slice(0, 1)}
                     image={sub.image || sub.attachments?.[0]}
                     category={sub.category}
-                    className="h-10 w-10 rounded-xl text-[13px]"
+                    className="h-12 w-12 rounded-xl text-[13px]"
                   />
-                  <div>
-                    <strong className="block text-[14px] font-bold text-[#191F28]">{sub.name}</strong>
-                    <span className="text-[12px] font-medium text-[#6B7684]">{sub.plan}</span>
+                  <div className="min-w-0 flex-1">
+                    <strong className="block text-[17px] font-semibold text-fg-primary tracking-tight truncate leading-tight">{sub.name}</strong>
+                    <span className="mt-1 block text-[12px] font-medium text-fg-muted truncate">{sub.plan}</span>
                   </div>
                 </div>
-                <span className="text-[14px] font-bold text-[#191F28]">{formatWon(sub.amount)}</span>
+                <span className="text-[16px] font-bold tracking-tight text-fg-primary shrink-0 pl-2">{formatWon(sub.amount)}</span>
               </button>
             ))}
           </div>

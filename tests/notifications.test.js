@@ -49,8 +49,8 @@ test("createTestNotification은 올바른 테스트 알림 아이템을 생성�
   assert.equal(testItem.serviceName, "Netflix");
 });
 
-test("알림바 지속 시간은 5~7초(5000ms~7000ms) 사이에 위치한다", () => {
-  assert.ok(DEFAULT_NOTIFICATION_DURATION >= 5000, "5초 이상이어야 함");
-  assert.ok(DEFAULT_NOTIFICATION_DURATION <= 7000, "7초 이하여야 함");
-  assert.equal(DEFAULT_NOTIFICATION_DURATION, 6000);
+test("알림바 지속 시간은 2~3초(2000ms~3000ms) 사이에 위치한다", () => {
+  assert.ok(DEFAULT_NOTIFICATION_DURATION >= 2000, "2초 이상이어야 함");
+  assert.ok(DEFAULT_NOTIFICATION_DURATION <= 3000, "3초 이하여야 함");
+  assert.equal(DEFAULT_NOTIFICATION_DURATION, 2500);
 });
