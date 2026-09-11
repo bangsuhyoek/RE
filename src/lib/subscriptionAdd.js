@@ -99,3 +99,33 @@ export function normalizeSourceType(value = "") {
     ? value
     : "manual";
 }
+
+export function isDuplicateSubscription(
+  existingSubscriptions = [],
+  candidate = {}
+) {
+  const candidateName = String(candidate?.name || "")
+    .trim()
+    .toLowerCase();
+
+  if (!candidateName) return false;
+
+  const candidatePlan = normalizeSubscriptionPlan(candidate?.plan)
+    .trim()
+    .toLowerCase();
+
+  return existingSubscriptions.some((subscription) => {
+    const existingName = String(subscription?.name || "")
+      .trim()
+      .toLowerCase();
+
+    const existingPlan = normalizeSubscriptionPlan(subscription?.plan)
+      .trim()
+      .toLowerCase();
+
+    return (
+      existingName === candidateName &&
+      existingPlan === candidatePlan
+    );
+  });
+}

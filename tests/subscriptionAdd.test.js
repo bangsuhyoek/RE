@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   calculateEqualShare,
   hasRecordedPaymentMethod,
+  isDuplicateSubscription,
   normalizePaymentMethod,
   normalizeSubscriptionPlan,
   normalizeSourceType,
@@ -69,4 +70,29 @@ test("요금제와 sourceType은 UI에서 값이 없어도 안전하게 정규�
   assert.equal(normalizeSourceType("sms"), "sms");
   assert.equal(normalizeSourceType("image"), "image");
   assert.equal(normalizeSourceType("unknown"), "manual");
+});
+
+test("요금제가 비어 있어도 중복 구독 검사는 오류 없이 기본 플랜으로 비교한다", () => {
+  const existing = [
+    {
+      name: "Netflix",
+      plan: "",
+    },
+  ];
+
+  assert.equal(
+    isDuplicateSubscription(existing, {
+      name: " Netflix ",
+      plan: undefined,
+    }),
+    true
+  );
+
+  assert.equal(
+    isDuplicateSubscription(existing, {
+      name: "Netflix",
+      plan: "프리미엄",
+    }),
+    false
+  );
 });

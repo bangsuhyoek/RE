@@ -91,15 +91,24 @@ export default function App() {
 
         if (parsed.protocol === "submate:" && (parsed.hostname === "quick-add" || parsed.pathname.includes("quick-add"))) {
           const params = parsed.searchParams;
+          const detectedAt = Number(params.get("detectedAt")) || Date.now();
+          const detectedDate = new Date(detectedAt);
+          const dueDayFromLink = Number(params.get("dueDay"));
+          const detectedDueDay =
+            dueDayFromLink >= 1 && dueDayFromLink <= 31
+              ? dueDayFromLink
+              : detectedDate.getDate();
+
           const detected = {
             name: params.get("name") || "",
             amount: Number(params.get("amount")) || 0,
             plan: params.get("plan") || "",
-            paymentMethod: params.get("method") || "카드",
+            paymentMethod: params.get("method") || "",
             category: params.get("category") || "기타",
             serviceId: params.get("serviceId") || "",
-            dueDay: new Date().getDate(),
+            dueDay: detectedDueDay,
             billingCycle: "매월",
+            sourceType: "sms",
             autoDetected: true,
           };
           setQuickAddData(detected);
@@ -162,6 +171,7 @@ export default function App() {
         serviceId: "netflix",
         dueDay: new Date().getDate(),
         billingCycle: "매월",
+        sourceType: "sms",
         autoDetected: true,
       });
       setAddInitialMode("quick-detect");
