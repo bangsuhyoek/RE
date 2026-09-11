@@ -4,6 +4,7 @@ import { getMonthKey, isPastDueThisCycle } from "../lib/dates";
 import { clearStoredValue, readStoredValue, removeDemoSubscriptions, storageKeys, writeStoredValue } from "../lib/storage";
 import { readHash } from "./useNavigation";
 import { upsertDbSubscription, deleteDbSubscription, fetchUserSubscriptions } from "../lib/supabase";
+import { isDuplicateSubscription } from "../lib/subscriptionAdd";
 
 export const createSubscription = (service, index = 0) => ({
   ...service,
@@ -132,9 +133,9 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
   }, [subscriptions]);
 
   const handleAddSubscription = useCallback((data, notify) => {
-    const duplicate = subscriptions.some((subscription) =>
-      subscription.name.trim().toLowerCase() === data.name.trim().toLowerCase() &&
-      subscription.plan.trim().toLowerCase() === data.plan.trim().toLowerCase()
+    const duplicate = isDuplicateSubscription(
+      subscriptions,
+      data
     );
     if (duplicate) {
       notify?.("이미 등록된 구독입니다. 기존 카드에서 정보를 수정해 주세요.");

@@ -202,7 +202,7 @@ test("웹 환경에서 paymentCapture 권한 체크 시 안전하게 비활성�
 });
 
 test("딥링크 파라미터가 AddModal 프리필 데이터로 정상 매핑된다", () => {
-  const rawUrl = "submate://quick-add?name=Netflix&amount=17000&plan=%ED%94%84%EB%A6%AC%EB%AF%B8%EC%97%84&method=%EC%8B%A0%ED%95%9C%EC%B9%B4%EB%93%9C&category=OTT";
+  const rawUrl = "submate://quick-add?name=Netflix&amount=17000&plan=%ED%94%84%EB%A6%AC%EB%AF%B8%EC%97%84&method=%EC%8B%A0%ED%95%9C%EC%B9%B4%EB%93%9C&category=OTT&dueDay=8&detectedAt=1788831000000";
   const url = new URL(rawUrl);
   assert.equal(url.protocol, "submate:");
   assert.equal(url.hostname, "quick-add");
@@ -212,8 +212,10 @@ test("딥링크 파라미터가 AddModal 프리필 데이터로 정상 매핑된
     name: params.get("name") || "",
     amount: Number(params.get("amount")) || 0,
     plan: params.get("plan") || "",
-    paymentMethod: params.get("method") || "카드",
+    paymentMethod: params.get("method") || "",
     category: params.get("category") || "기타",
+    dueDay: Number(params.get("dueDay")) || 0,
+    sourceType: "sms",
     autoDetected: true,
   };
 
@@ -222,6 +224,8 @@ test("딥링크 파라미터가 AddModal 프리필 데이터로 정상 매핑된
   assert.equal(mapped.plan, "프리미엄");
   assert.equal(mapped.paymentMethod, "신한카드");
   assert.equal(mapped.category, "OTT");
+  assert.equal(mapped.dueDay, 8);
+  assert.equal(mapped.sourceType, "sms");
   assert.equal(mapped.autoDetected, true);
 });
 

@@ -9,7 +9,10 @@ test("mapSubscriptionToDb는 클라이언트 객체를 DB 스키마 컬럼과 sn
     name: "Netflix",
     plan: "프리미엄",
     category: "OTT",
-    amount: 17000,
+    amount: 4250,
+    grossAmount: 17000,
+    sharingEnabled: true,
+    shareCount: 4,
     dueDay: 15,
     billingCycle: "매월",
     paymentMethod: "신한카드",
@@ -30,7 +33,10 @@ test("mapSubscriptionToDb는 클라이언트 객체를 DB 스키마 컬럼과 sn
   assert.equal(mapped.service_id, "netflix");
   assert.equal(mapped.service_name, "Netflix");
   assert.equal(mapped.plan_name, "프리미엄");
-  assert.equal(mapped.amount_krw, 17000);
+  assert.equal(mapped.amount_krw, 4250);
+  assert.equal(mapped.gross_amount_krw, 17000);
+  assert.equal(mapped.sharing_enabled, true);
+  assert.equal(mapped.share_count, 4);
   assert.equal(mapped.due_day, 15);
   assert.equal(mapped.renewal_reviewed_for, "2026-09");
   assert.equal(mapped.monogram, "N");
@@ -45,7 +51,10 @@ test("mapDbToSubscription은 DB 레코드를 클라이언트 객체로 정확히
     service_name: "YouTube Premium",
     plan_name: "개인",
     category: "OTT",
-    amount_krw: 14900,
+    amount_krw: 5000,
+    gross_amount_krw: 14900,
+    sharing_enabled: true,
+    share_count: 3,
     due_day: 20,
     billing_cycle: "매월",
     payment_method: "KB Pay",
@@ -67,7 +76,11 @@ test("mapDbToSubscription은 DB 레코드를 클라이언트 객체로 정확히
   assert.equal(clientObj.id, "youtube");
   assert.equal(clientObj.name, "YouTube Premium");
   assert.equal(clientObj.plan, "개인");
-  assert.equal(clientObj.amount, 14900);
+  assert.equal(clientObj.amount, 5000);
+  assert.equal(clientObj.grossAmount, 14900);
+  assert.equal(clientObj.sharingEnabled, true);
+  assert.equal(clientObj.shareCount, 3);
+  assert.equal(clientObj.sourceType, "manual");
   assert.equal(clientObj.dueDay, 20);
   assert.equal(clientObj.renewalReviewedFor, "2026-09");
   assert.equal(clientObj.monogram, "Y");

@@ -95,7 +95,7 @@ public class PaymentNotificationListener extends NotificationListenerService {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
-                    "SubMate 결제 감지 알림",
+                    "꾸독 결제 감지 알림",
                     NotificationManager.IMPORTANCE_HIGH
             );
             channel.setDescription("새로운 구독 결제가 감지되었을 때 즉시 등록 알림을 제공합니다.");
@@ -109,7 +109,9 @@ public class PaymentNotificationListener extends NotificationListenerService {
                     + "&plan=" + URLEncoder.encode(payment.plan, StandardCharsets.UTF_8.name())
                     + "&method=" + URLEncoder.encode(payment.paymentMethod, StandardCharsets.UTF_8.name())
                     + "&category=" + URLEncoder.encode(payment.category, StandardCharsets.UTF_8.name())
-                    + "&serviceId=" + URLEncoder.encode(payment.serviceId, StandardCharsets.UTF_8.name());
+                    + "&serviceId=" + URLEncoder.encode(payment.serviceId, StandardCharsets.UTF_8.name())
+                    + "&detectedAt=" + System.currentTimeMillis()
+                    + "&dueDay=" + java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_MONTH);
 
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(deepLink));
             intent.setClass(this, MainActivity.class);
@@ -124,7 +126,7 @@ public class PaymentNotificationListener extends NotificationListenerService {
 
             String formattedAmount = String.format("%,d원", payment.amount);
             String notiTitle = "⚡ " + payment.serviceName + " 결제 감지 (" + formattedAmount + ")";
-            String notiText = "방금 결제된 내역을 SubMate에 바로 등록하시겠습니까? 터치하여 입력.";
+            String notiText = "방금 결제된 구독 정보를 꾸독에서 확인할 수 있어요. 터치해서 확인해 주세요.";
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .setSmallIcon(R.mipmap.ic_launcher)

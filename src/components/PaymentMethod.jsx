@@ -169,7 +169,7 @@ export function PaymentMethodPickerModal({
               </button>
             )}
             <h3 className="text-[17px] font-bold text-[#191F28]">
-              {isCustom ? "직접 입력" : "결제 수단 선택"}
+              {isCustom ? "직접 입력" : "결제 수단 기록"}
             </h3>
           </div>
           <button
@@ -190,13 +190,13 @@ export function PaymentMethodPickerModal({
               className={cx(
                 "flex-1 pb-3 pt-2 text-[14px] font-bold transition-all relative",
                 tab === "card"
-                  ? "text-[#191F28]"
+                  ? "text-[#153D2E]"
                   : "text-[#8B95A1] hover:text-[#4E5968]"
               )}
             >
               카드사
               {tab === "card" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#191F28] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#153D2E] rounded-full" />
               )}
             </button>
             <button
@@ -205,13 +205,13 @@ export function PaymentMethodPickerModal({
               className={cx(
                 "flex-1 pb-3 pt-2 text-[14px] font-bold transition-all relative",
                 tab === "simple"
-                  ? "text-[#191F28]"
+                  ? "text-[#153D2E]"
                   : "text-[#8B95A1] hover:text-[#4E5968]"
               )}
             >
               간편결제 · 계좌
               {tab === "simple" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#191F28] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#153D2E] rounded-full" />
               )}
             </button>
           </div>
@@ -219,6 +219,12 @@ export function PaymentMethodPickerModal({
 
         {/* Modal Body: 3-column Toss-style Financial Grid */}
         <div className="flex-1 overflow-y-auto no-scrollbar px-5 py-4">
+          {!isCustom && (
+            <p className="mb-4 rounded-xl bg-[#F4F7F5] px-3.5 py-3 text-[12px] leading-5 text-[#6B7684]">
+              실제 결제나 카드 연결 없이, 구독료가 어디에서 나가는지만 기록해요.
+            </p>
+          )}
+
           {!isCustom ? (
             <div className="space-y-5">
               <div className="grid grid-cols-3 gap-y-4 gap-x-2">
@@ -234,7 +240,7 @@ export function PaymentMethodPickerModal({
                       <div className="relative">
                         <BrandCircleIcon brand={item.id} size={48} />
                         {isSelected && (
-                          <span className="absolute -top-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-[#191F28] text-white ring-2 ring-white">
+                          <span className="absolute -top-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-[#153D2E] text-white ring-2 ring-white">
                             <Check size={12} strokeWidth={3} />
                           </span>
                         )}
@@ -242,7 +248,7 @@ export function PaymentMethodPickerModal({
                       <span
                         className={cx(
                           "mt-2 text-[13px] tracking-tight truncate max-w-[90px] text-center",
-                          isSelected ? "font-bold text-[#191F28]" : "font-medium text-[#333D4B] group-hover:text-[#191F28]"
+                          isSelected ? "font-bold text-[#153D2E]" : "font-medium text-[#333D4B] group-hover:text-[#153D2E]"
                         )}
                       >
                         {item.shortName || item.name}
@@ -276,7 +282,7 @@ export function PaymentMethodPickerModal({
                   value={customText}
                   onChange={(e) => setCustomText(e.target.value)}
                   placeholder="예: 법인카드, 외환카드, 계좌이체"
-                  className="w-full rounded-xl border border-[#D1D6DB] px-3.5 py-3 text-[14px] text-[#191F28] outline-none focus:border-[#191F28] transition-colors"
+                  className="w-full rounded-xl border border-[#D1D6DB] px-3.5 py-3 text-[14px] text-[#191F28] outline-none focus:border-[#153D2E] transition-colors"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -293,7 +299,7 @@ export function PaymentMethodPickerModal({
                 type="button"
                 onClick={handleFinishCustom}
                 disabled={!customText.trim()}
-                className="w-full rounded-xl bg-[#191F28] py-3 text-[14px] font-semibold text-white shadow-sm hover:bg-[#333D4B] active:scale-[0.99] disabled:opacity-50 transition-all"
+                className="w-full rounded-xl bg-[#153D2E] py-3 text-[14px] font-semibold text-white shadow-sm hover:bg-[#0F3024] active:scale-[0.99] disabled:opacity-50 transition-all"
               >
                 적용하기
               </button>
@@ -360,8 +366,8 @@ export function PaymentMethodTriggerField({
             <div className="grid h-6 w-6 place-items-center rounded-lg bg-[#F2F4F6] text-[#4E5968]">
               <Plus size={14} />
             </div>
-            <span className={`text-[13px] font-medium ${error ? "text-[#FF4D4D]" : "text-[#4E5968]"}`}>
-              결제 수단 선택
+            <span className={`text-[13px] font-medium ${error ? "text-[#FF4D4D]" : "text-[#2C6049]"}`}>
+              어디에서 결제되는지 기록하기
             </span>
           </div>
           <ChevronRight size={16} className={error ? "text-[#FF4D4D]" : "text-[#B0B8C1]"} />
