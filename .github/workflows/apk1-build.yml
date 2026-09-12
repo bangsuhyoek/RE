@@ -90,6 +90,24 @@ jobs:
           browser_qa.write_text(text)
 
           text = browser_qa.read_text()
+          old = '''  page.on("console", (message) => {
+    if (["error", "warning"].includes(message.type())) problems.push(`${screen}@${width} console ${message.type()}: ${message.text()}`);
+  });
+'''
+          new = '''  page.on("console", (message) => {
+    if (["error", "warning"].includes(message.type()) && !message.text().includes("Failed to load resource: the server responded with a status of 404")) {
+      problems.push(`${screen}@${width} console ${message.type()}: ${message.text()}`);
+    }
+  });
+  page.on("response", (response) => {
+    if (response.status() >= 400) problems.push(`${screen}@${width} http ${response.status()}: ${response.url()}`);
+  });
+'''
+          if old not in text:
+              raise SystemExit("browser QA response diagnostic target not found")
+          browser_qa.write_text(text.replace(old, new))
+
+          text = browser_qa.read_text()
           old = '      .filter((target) => !target.closest("[hidden]") && !(target.matches("input") && target.closest("label")))'
           new = '      .filter((target) => !target.closest("[hidden]") && !target.matches(\'input[type="hidden"]\') && !(target.matches("input") && target.closest("label")))'
           if old not in text:
