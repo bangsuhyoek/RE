@@ -56,7 +56,7 @@ jobs:
           vendor_text = vendor.read_text()
           global_bridge = "if (typeof globalThis !== 'undefined') globalThis.supabase = supabase;"
           if global_bridge not in vendor_text:
-              vendor.write_text(vendor_text.rstrip() + "\\n" + global_bridge + "\\n")
+              vendor.write_text(vendor_text.rstrip() + "\n" + global_bridge + "\n")
 
           browser_qa = root / "scripts/rc-v6-browser-qa.mjs"
           text = browser_qa.read_text()
