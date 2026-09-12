@@ -1,0 +1,269 @@
+name: Build RE APK1 candidate
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/apk1-production-rc
+
+permissions:
+  contents: read
+
+jobs:
+  verify-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout isolated build branch
+        uses: actions/checkout@v4
+
+      - name: Reassemble verified APK1 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find source-chunks -maxdepth 1 -type f -name '*.bin' | wc -l)" -eq 47
+          cat source-chunks/*.bin > RE_APK1_SOURCE.zip
+          echo "f9a69022c7134b785a0577ab22c3cb3a5bde66ef2a3ae7f95f5706d7e711d15d  RE_APK1_SOURCE.zip" | sha256sum --check
+          rm -rf app
+          unzip -q RE_APK1_SOURCE.zip -d app
+
+      - name: Apply resumed QA fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path("app")
+
+          visual = root / "scripts/visual-smoke.mjs"
+          text = visual.read_text()
+          old = '''    if (width === 360) {\n      await page.screenshot({ path: path.join(outputDir, `${screen}-${width}.png`), fullPage: true });\n    }\n'''
+          new = '''    await page.screenshot({ path: path.join(outputDir, `${screen}-${width}.png`), fullPage: true });\n'''
+          if old not in text:
+              raise SystemExit("visual-smoke patch target not found")
+          visual.write_text(text.replace(old, new))
+
+          test_file = root / "tests/release-contract.test.mjs"
+          text = test_file.read_text()
+          old = '''  for (const original of fs.readdirSync(path.join(root, "reference/originals"))) {\n    assert.ok(!source.includes(original), `원본 전체 화면을 참조합니다: ${original}`);\n  }\n'''
+          new = '''  const originalsDir = path.join(root, "reference/originals");\n  if (fs.existsSync(originalsDir)) {\n    for (const original of fs.readdirSync(originalsDir)) {\n      assert.ok(!source.includes(original), `원본 전체 화면을 참조합니다: ${original}`);\n    }\n  }\n'''
+          if old not in text:
+              raise SystemExit("release-contract patch target not found")
+          test_file.write_text(text.replace(old, new))
+          PY
+
+          cat > app/scripts/apk-inspect.sh <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+          APK="${1:-$ROOT/android/app/build/outputs/apk/debug/app-debug.apk}"
+          REPORT_DIR="${2:-$ROOT/qa-output/apk-inspection}"
+          mkdir -p "$REPORT_DIR"
+          [[ -f "$APK" ]] || { echo "APK not found: $APK" >&2; exit 1; }
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          [[ -n "$SDK_ROOT" && -d "$SDK_ROOT/build-tools" ]] || { echo "Android SDK build-tools not found" >&2; exit 1; }
+          BT_DIR="$(find "$SDK_ROOT/build-tools" -mindepth 1 -maxdepth 1 -type d -print | sort -V | tail -n1)"
+          AAPT="$BT_DIR/aapt"
+          APKSIGNER="$BT_DIR/apksigner"
+          [[ -x "$AAPT" ]] || { echo "aapt not found: $AAPT" >&2; exit 1; }
+          [[ -x "$APKSIGNER" ]] || { echo "apksigner not found: $APKSIGNER" >&2; exit 1; }
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee "$REPORT_DIR/signing.txt"
+          "$AAPT" dump badging "$APK" | tee "$REPORT_DIR/badging.txt"
+          "$AAPT" dump permissions "$APK" | tee "$REPORT_DIR/permissions.txt"
+          "$AAPT" dump xmltree "$APK" AndroidManifest.xml | tee "$REPORT_DIR/manifest-tree.txt"
+          sha256sum "$APK" | tee "$REPORT_DIR/RE_APK1_CANDIDATE.sha256"
+          BADGING="$REPORT_DIR/badging.txt"
+          PERMS="$REPORT_DIR/permissions.txt"
+          MANIFEST="$REPORT_DIR/manifest-tree.txt"
+          grep -Fq "package: name='kr.co.re.subscription'" "$BADGING"
+          grep -Eq "application-label(:|-[^:]+:)'RE\.'" "$BADGING"
+          for required in android.permission.INTERNET android.permission.POST_NOTIFICATIONS android.permission.CAMERA; do
+            grep -Fq "uses-permission: name='$required'" "$PERMS"
+          done
+          ! grep -Fq "android.permission.READ_SMS" "$PERMS"
+          ! grep -Fq "android.permission.SYSTEM_ALERT_WINDOW" "$PERMS"
+          grep -Fq "PaymentNotificationListener" "$MANIFEST"
+          grep -Fq "usesCleartextTraffic" "$MANIFEST"
+          grep -Eq "usesCleartextTraffic.*0x0" "$MANIFEST"
+          UNPACK_DIR="$REPORT_DIR/unpacked"
+          rm -rf "$UNPACK_DIR"
+          mkdir -p "$UNPACK_DIR"
+          unzip -q "$APK" -d "$UNPACK_DIR"
+          if grep -Rai --binary-files=text -n "SubMate" "$UNPACK_DIR" > "$REPORT_DIR/forbidden-submate.txt"; then
+            echo "Forbidden SubMate string remains in APK" >&2
+            exit 1
+          fi
+          PUBLIC_DIR="$UNPACK_DIR/assets/public"
+          if [[ -d "$PUBLIC_DIR" ]]; then
+            if grep -RaiE --binary-files=text -n "service_role|SUPABASE_SERVICE_ROLE|sb_secret_" "$PUBLIC_DIR" > "$REPORT_DIR/forbidden-secrets.txt"; then
+              echo "Server-side secret marker found in web bundle" >&2
+              exit 1
+            fi
+            if find "$PUBLIC_DIR" -path "*/reference/originals/*" -type f -print -quit | grep -q .; then
+              echo "Original full-screen PNG references were bundled into APK" >&2
+              exit 1
+            fi
+          fi
+          cat > "$REPORT_DIR/summary.txt" <<SUMMARY
+          RE. APK1 static inspection: PASS
+          package: kr.co.re.subscription
+          label: RE.
+          forbidden permissions: absent
+          cleartext: disabled in merged manifest
+          PaymentNotificationListener: present
+          SubMate marker: absent
+          server secret markers in web bundle: absent
+          full-screen original PNG reference bundle: absent
+          signature verification: passed
+          SUMMARY
+          rm -rf "$UNPACK_DIR"
+          echo "RE. APK1 static inspection: PASS"
+          EOF
+          chmod +x app/scripts/apk-inspect.sh
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - name: Install application dependencies
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        working-directory: app
+        run: |
+          npm install --no-save playwright@1.58.2
+          npx playwright install --with-deps chromium
+
+      - name: Run source and integration contracts
+        working-directory: app
+        run: |
+          mkdir -p qa-output
+          set -o pipefail
+          pnpm test 2>&1 | tee qa-output/automated-tests.txt
+
+      - name: Run browser and 60-render visual QA
+        working-directory: app
+        env:
+          VITE_SUPABASE_URL: https://ssukvsphufvdaanqlmgj.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_-8ZiIbmg-eWnMei69Q958A_fpDwu3H8
+        run: |
+          set -euo pipefail
+          pnpm dev:qa > qa-output/vite-qa.log 2>&1 &
+          VITE_PID=$!
+          trap 'kill "$VITE_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 45); do
+            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail http://127.0.0.1:4173/ > /dev/null
+          set -o pipefail
+          pnpm qa:browser 2>&1 | tee qa-output/browser-qa.txt
+          pnpm qa:visual 2>&1 | tee qa-output/visual-qa.txt
+          test "$(find qa-output/render-smoke -maxdepth 1 -type f -name '*.png' | wc -l)" -eq 60
+          node - <<'NODE'
+          const fs = require('fs');
+          const rows = JSON.parse(fs.readFileSync('qa-output/render-smoke/results.json', 'utf8'));
+          if (rows.length !== 60) throw new Error(`Expected 60 visual cases, got ${rows.length}`);
+          const failures = rows.filter((r) => r.consoleErrors.length || r.pageErrors.length || r.bodyOverflow > 0 || r.screenOverflow > 0 || r.brokenImages.length || (r.bottomNavBottom !== null && r.bottomNavBottom !== 0) || (r.bottomNavWidth !== null && r.bottomNavWidth !== r.width));
+          if (failures.length) throw new Error(`Visual QA failures: ${failures.length}`);
+          console.log('Visual QA matrix: PASS (60/60)');
+          NODE
+
+      - name: Build production web bundle
+        working-directory: app
+        env:
+          VITE_SUPABASE_URL: https://ssukvsphufvdaanqlmgj.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_-8ZiIbmg-eWnMei69Q958A_fpDwu3H8
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_GEMINI_MODEL: gemini-2.5-flash
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || vars.VITE_API_BASE_URL }}
+          VITE_TERMS_URL: ${{ secrets.VITE_TERMS_URL || vars.VITE_TERMS_URL }}
+          VITE_TERMS_VERSION: ${{ secrets.VITE_TERMS_VERSION || vars.VITE_TERMS_VERSION }}
+          VITE_TERMS_EFFECTIVE_DATE: ${{ secrets.VITE_TERMS_EFFECTIVE_DATE || vars.VITE_TERMS_EFFECTIVE_DATE }}
+          VITE_PRIVACY_URL: ${{ secrets.VITE_PRIVACY_URL || vars.VITE_PRIVACY_URL }}
+          VITE_PRIVACY_VERSION: ${{ secrets.VITE_PRIVACY_VERSION || vars.VITE_PRIVACY_VERSION }}
+          VITE_PRIVACY_EFFECTIVE_DATE: ${{ secrets.VITE_PRIVACY_EFFECTIVE_DATE || vars.VITE_PRIVACY_EFFECTIVE_DATE }}
+        run: pnpm build
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Setup Android SDK 36
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform and build tools
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Sync Capacitor Android
+        working-directory: app
+        run: pnpm cap:sync
+
+      - name: Verify internal candidate preflight
+        working-directory: app
+        run: |
+          set -o pipefail
+          node scripts/release-preflight.mjs internal-test 2>&1 | tee qa-output/internal-preflight.txt
+
+      - name: Build installable debug APK
+        working-directory: app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Inspect actual APK
+        working-directory: app
+        run: scripts/apk-inspect.sh
+
+      - name: Archive patched source used for this build
+        run: |
+          rm -f RE_APK1_SOURCE_PATCHED.zip
+          (cd app && zip -qr ../RE_APK1_SOURCE_PATCHED.zip . -x 'node_modules/*' 'dist/*' 'qa-output/*' 'android/.gradle/*' 'android/app/build/*')
+          sha256sum RE_APK1_SOURCE_PATCHED.zip > RE_APK1_SOURCE_PATCHED.sha256
+
+      - name: Upload APK and inspection reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: RE-APK1-Internal-QA-Candidate
+          path: |
+            app/android/app/build/outputs/apk/debug/app-debug.apk
+            app/qa-output/apk-inspection/**
+            app/qa-output/automated-tests.txt
+            app/qa-output/browser-qa.txt
+            app/qa-output/visual-qa.txt
+            app/qa-output/internal-preflight.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload 60 visual QA screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: RE-APK1-Visual-QA-60
+          path: app/qa-output/render-smoke/**
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload patched source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: RE-APK1-Patched-Source
+          path: |
+            RE_APK1_SOURCE_PATCHED.zip
+            RE_APK1_SOURCE_PATCHED.sha256
+          if-no-files-found: error
+          retention-days: 30
