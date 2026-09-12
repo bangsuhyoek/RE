@@ -78,7 +78,7 @@ if marker not in css:
 .splash-character {
   left: 50%;
   bottom: -2.5%;
-  width: min(116vw, 465px);
+  width: min(100%, 430px);
   max-width: none;
   filter: drop-shadow(0 18px 18px rgba(64,51,110,.16));
 }
