@@ -1,0 +1,16 @@
+name: Export Figma QA references
+on:
+  push:
+    branches:
+      - codex/apk1-production-rc
+  workflow_dispatch:
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RE-Figma-QA-References
+          path: .qa/reference/figma
+          if-no-files-found: error
