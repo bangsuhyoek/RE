@@ -51,6 +51,14 @@ jobs:
           if old not in text:
               raise SystemExit("release-contract patch target not found")
           test_file.write_text(text.replace(old, new))
+
+          browser_qa = root / "scripts/rc-v6-browser-qa.mjs"
+          text = browser_qa.read_text()
+          old = ".locator('[data-action=\"add-subscription\"]').first().click()"
+          new = ".locator('.app-screen[data-screen=\"subscriptions\"]:not([hidden]) [data-action=\"add-subscription\"]').click()"
+          if text.count(old) != 2:
+              raise SystemExit(f"browser QA add-subscription target count was {text.count(old)}, expected 2")
+          browser_qa.write_text(text.replace(old, new))
           PY
 
           cat > app/scripts/apk-inspect.sh <<'EOF'
