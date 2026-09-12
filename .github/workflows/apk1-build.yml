@@ -59,13 +59,6 @@ jobs:
           if text.count(old) != 2:
               raise SystemExit(f"browser QA add-subscription target count was {text.count(old)}, expected 2")
           browser_qa.write_text(text.replace(old, new))
-
-          text = browser_qa.read_text()
-          anchor = '  await page.goto(`${baseUrl}/?screen=${screen}&qa=1`, { waitUntil: "networkidle" });\\n'
-          diagnostic = '  const snapshot = await page.evaluate(() => ({ href: window.location.href, appScreen: document.querySelector("#app")?.dataset.screen || null, activeScreen: document.querySelector(".app-screen:not([hidden])")?.dataset.screen || null, htmlClass: document.documentElement.className, configDataMode: window.REConfig?.dataMode || null, configAuthRequired: window.REConfig?.auth?.required ?? null, hasIntegrations: Boolean(window.REIntegrations) })); console.log("QA_PAGE_STATE " + screen + "@" + width + " " + JSON.stringify(snapshot)); if (snapshot.activeScreen !== screen) throw new Error("QA requested " + screen + " but active=" + snapshot.activeScreen + " app=" + snapshot.appScreen + " href=" + snapshot.href);\\n'
-          if anchor not in text:
-              raise SystemExit("browser QA diagnostic anchor not found")
-          browser_qa.write_text(text.replace(anchor, anchor + diagnostic))
           PY
 
           cat > app/scripts/apk-inspect.sh <<'EOF'
@@ -174,6 +167,30 @@ jobs:
             sleep 1
           done
           curl --fail http://127.0.0.1:4173/ > /dev/null
+          node - <<'NODE'
+          const { chromium } = require("playwright");
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 360, height: 780 } });
+            const pageErrors = [];
+            page.on("pageerror", e => pageErrors.push(e.message));
+            const consoleErrors = [];
+            page.on("console", m => { if (["error","warning"].includes(m.type())) consoleErrors.push(m.type() + ": " + m.text()); });
+            await page.goto("http://127.0.0.1:4173/?screen=subscriptions&qa=1", { waitUntil: "networkidle" });
+            const state = await page.evaluate(() => ({
+              href: location.href,
+              appScreen: document.querySelector("#app")?.dataset.screen || null,
+              visibleScreens: [...document.querySelectorAll(".app-screen")].filter(el => !el.hidden).map(el => el.dataset.screen),
+              htmlClass: document.documentElement.className,
+              readyState: document.readyState,
+              configDataMode: window.REConfig?.dataMode ?? null,
+              configAuthRequired: window.REConfig?.auth?.required ?? null,
+              hasIntegrations: Boolean(window.REIntegrations),
+            }));
+            console.log("QA_ROUTE_DIAGNOSTIC=" + JSON.stringify({ state, pageErrors, consoleErrors }));
+            await browser.close();
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
           set -o pipefail
           pnpm qa:browser 2>&1 | tee qa-output/browser-qa.txt
           pnpm qa:visual 2>&1 | tee qa-output/visual-qa.txt
