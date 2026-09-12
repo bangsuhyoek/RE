@@ -62,31 +62,12 @@ jobs:
 
           text = browser_qa.read_text()
           old = '  page.on("pageerror", (error) => problems.push(\`${screen}@${width} pageerror: ${error.message}\`));\\n'
-          new = '''  page.on("pageerror", (error) => {
-    const detail = screen + "@" + width + " pageerror: " + error.message;
-    problems.push(detail);
-    console.error(detail);
-  });
-'''
+          new = '  page.on("pageerror", (error) => { const detail = screen + "@" + width + " pageerror: " + error.message; problems.push(detail); console.error(detail); });\\n'
           if old not in text:
               raise SystemExit("browser QA pageerror diagnostic target not found")
           text = text.replace(old, new)
-
           anchor = '  await page.goto(\`${baseUrl}/?screen=${screen}&qa=1\`, { waitUntil: "networkidle" });\\n'
-          diagnostic = '''  const snapshot = await page.evaluate(() => ({
-    href: window.location.href,
-    appScreen: document.querySelector("#app")?.dataset.screen || null,
-    activeScreen: document.querySelector(".app-screen:not([hidden])")?.dataset.screen || null,
-    htmlClass: document.documentElement.className,
-    configDataMode: window.REConfig?.dataMode || null,
-    configAuthRequired: window.REConfig?.auth?.required ?? null,
-    hasIntegrations: Boolean(window.REIntegrations),
-  }));
-  console.log("QA_PAGE_STATE " + screen + "@" + width + " " + JSON.stringify(snapshot));
-  if (snapshot.activeScreen !== screen) {
-    throw new Error("QA requested " + screen + " but active=" + snapshot.activeScreen + " app=" + snapshot.appScreen + " href=" + snapshot.href);
-  }
-'''
+          diagnostic = '  const snapshot = await page.evaluate(() => ({ href: window.location.href, appScreen: document.querySelector("#app")?.dataset.screen || null, activeScreen: document.querySelector(".app-screen:not([hidden])")?.dataset.screen || null, htmlClass: document.documentElement.className, configDataMode: window.REConfig?.dataMode || null, configAuthRequired: window.REConfig?.auth?.required ?? null, hasIntegrations: Boolean(window.REIntegrations) })); console.log("QA_PAGE_STATE " + screen + "@" + width + " " + JSON.stringify(snapshot)); if (snapshot.activeScreen !== screen) throw new Error("QA requested " + screen + " but active=" + snapshot.activeScreen + " app=" + snapshot.appScreen + " href=" + snapshot.href);\\n'
           if anchor not in text:
               raise SystemExit("browser QA diagnostic anchor not found")
           browser_qa.write_text(text.replace(anchor, anchor + diagnostic))
