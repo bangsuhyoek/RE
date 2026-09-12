@@ -90,6 +90,13 @@ jobs:
           browser_qa.write_text(text)
 
           text = browser_qa.read_text()
+          old = '  page.on("pageerror", (error) => problems.push(`${screen}@${width} pageerror: ${error.message}`));'
+          new = old + "\n  page.on(\"response\", (response) => { if (response.status() >= 400) problems.push(`${screen}@${width} http ${response.status()}: ${response.url()}`); });"
+          if old not in text:
+              raise SystemExit("browser QA HTTP response listener target not found")
+          browser_qa.write_text(text.replace(old, new))
+
+          text = browser_qa.read_text()
           old = '      .filter((target) => !target.closest("[hidden]") && !(target.matches("input") && target.closest("label")))'
           new = '      .filter((target) => !target.closest("[hidden]") && !target.matches(\'input[type="hidden"]\') && !(target.matches("input") && target.closest("label")))'
           if old not in text:
