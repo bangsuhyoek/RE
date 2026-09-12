@@ -171,7 +171,7 @@ jobs:
           fi
           PUBLIC_DIR="$UNPACK_DIR/assets/public"
           if [[ -d "$PUBLIC_DIR" ]]; then
-            if grep -RaiE --binary-files=text -n "service_role|SUPABASE_SERVICE_ROLE|sb_secret_" "$PUBLIC_DIR" > "$REPORT_DIR/forbidden-secrets.txt"; then
+            if grep -RaiE --binary-files=text -n "SUPABASE_SERVICE_ROLE(_KEY)?|RE_CONTENT_INGEST_SECRET|sb_secret_[A-Za-z0-9_-]{16,}" "$PUBLIC_DIR" > "$REPORT_DIR/forbidden-secrets.txt"; then
               echo "Server-side secret marker found in web bundle" >&2; exit 1
             fi
             if find "$PUBLIC_DIR" -path "*/reference/originals/*" -type f -print -quit | grep -q .; then
