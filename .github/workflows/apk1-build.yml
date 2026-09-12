@@ -52,6 +52,15 @@ jobs:
               raise SystemExit("release-contract patch target not found")
           test_file.write_text(text.replace(old, new))
 
+          index_file = root / "index.html"
+          index_text = index_file.read_text()
+          stylesheet_link = '<link rel="stylesheet" href="./styles.css" />'
+          favicon_link = '<link rel="icon" type="image/png" href="./assets/raster/logo-transparent-derived.png" />'
+          if 'rel="icon"' not in index_text:
+              if stylesheet_link not in index_text:
+                  raise SystemExit("favicon insertion target not found")
+              index_file.write_text(index_text.replace(stylesheet_link, favicon_link + "\n    " + stylesheet_link))
+
           css_file = root / "styles.css"
           css_text = css_file.read_text()
           touch_fix = "\n/* APK1 QA: prevent the bottom-sheet close button from flex-shrinking below 44px */\n.bottom-sheet > header .icon-button { flex: 0 0 var(--touch); }\n"
