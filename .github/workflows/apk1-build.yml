@@ -65,6 +65,13 @@ jobs:
           if text.count(old) != 2:
               raise SystemExit(f"browser QA add-subscription target count was {text.count(old)}, expected 2")
           browser_qa.write_text(text.replace(old, new))
+
+          text = browser_qa.read_text()
+          old = '      .filter((target) => !target.closest("[hidden]") && !(target.matches("input") && target.closest("label")))\\n'
+          new = '      .filter((target) => !target.closest("[hidden]") && !target.matches(\'input[type="hidden"]\') && !(target.matches("input") && target.closest("label")))\\n'
+          if old not in text:
+              raise SystemExit("browser QA hidden-input filter target not found")
+          browser_qa.write_text(text.replace(old, new))
           PY
 
           cat > app/scripts/apk-inspect.sh <<'EOF'
