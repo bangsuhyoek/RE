@@ -72,6 +72,18 @@ jobs:
           if old not in text:
               raise SystemExit("browser QA hidden-input filter target not found")
           browser_qa.write_text(text.replace(old, new))
+
+          text = browser_qa.read_text()
+          old = '        return { tag: target.tagName, width: targetRect.width, height: targetRect.height };'
+          new = '        return { tag: target.tagName, type: target.getAttribute("type"), name: target.getAttribute("name"), className: String(target.className || ""), text: String(target.textContent || "").trim().slice(0, 40), width: targetRect.width, height: targetRect.height };'
+          if old not in text:
+              raise SystemExit("browser QA target-metrics diagnostic target not found")
+          text = text.replace(old, new)
+          old = '  assert.equal(metrics.smallTargets.length, 0, `${selector}@${width}: small targets`);'
+          new = '  assert.equal(metrics.smallTargets.length, 0, `${selector}@${width}: small targets ${JSON.stringify(metrics.smallTargets)}`);'
+          if old not in text:
+              raise SystemExit("browser QA small-target assertion target not found")
+          browser_qa.write_text(text.replace(old, new))
           PY
 
           cat > app/scripts/apk-inspect.sh <<'EOF'
