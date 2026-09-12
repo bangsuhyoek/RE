@@ -66,8 +66,6 @@ jobs:
           BT_DIR="$(find "$SDK_ROOT/build-tools" -mindepth 1 -maxdepth 1 -type d -print | sort -V | tail -n1)"
           AAPT="$BT_DIR/aapt"
           APKSIGNER="$BT_DIR/apksigner"
-          [[ -x "$AAPT" ]] || { echo "aapt not found: $AAPT" >&2; exit 1; }
-          [[ -x "$APKSIGNER" ]] || { echo "apksigner not found: $APKSIGNER" >&2; exit 1; }
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee "$REPORT_DIR/signing.txt"
           "$AAPT" dump badging "$APK" | tee "$REPORT_DIR/badging.txt"
           "$AAPT" dump permissions "$APK" | tee "$REPORT_DIR/permissions.txt"
@@ -87,22 +85,18 @@ jobs:
           grep -Fq "usesCleartextTraffic" "$MANIFEST"
           grep -Eq "usesCleartextTraffic.*0x0" "$MANIFEST"
           UNPACK_DIR="$REPORT_DIR/unpacked"
-          rm -rf "$UNPACK_DIR"
-          mkdir -p "$UNPACK_DIR"
+          rm -rf "$UNPACK_DIR"; mkdir -p "$UNPACK_DIR"
           unzip -q "$APK" -d "$UNPACK_DIR"
           if grep -Rai --binary-files=text -n "SubMate" "$UNPACK_DIR" > "$REPORT_DIR/forbidden-submate.txt"; then
-            echo "Forbidden SubMate string remains in APK" >&2
-            exit 1
+            echo "Forbidden SubMate string remains in APK" >&2; exit 1
           fi
           PUBLIC_DIR="$UNPACK_DIR/assets/public"
           if [[ -d "$PUBLIC_DIR" ]]; then
             if grep -RaiE --binary-files=text -n "service_role|SUPABASE_SERVICE_ROLE|sb_secret_" "$PUBLIC_DIR" > "$REPORT_DIR/forbidden-secrets.txt"; then
-              echo "Server-side secret marker found in web bundle" >&2
-              exit 1
+              echo "Server-side secret marker found in web bundle" >&2; exit 1
             fi
             if find "$PUBLIC_DIR" -path "*/reference/originals/*" -type f -print -quit | grep -q .; then
-              echo "Original full-screen PNG references were bundled into APK" >&2
-              exit 1
+              echo "Original full-screen PNG references were bundled into APK" >&2; exit 1
             fi
           fi
           cat > "$REPORT_DIR/summary.txt" <<SUMMARY
@@ -118,7 +112,6 @@ jobs:
           signature verification: passed
           SUMMARY
           rm -rf "$UNPACK_DIR"
-          echo "RE. APK1 static inspection: PASS"
           EOF
           chmod +x app/scripts/apk-inspect.sh
 
@@ -141,8 +134,8 @@ jobs:
       - name: Install Playwright Chromium
         working-directory: app
         run: |
-          npm install --no-save playwright@1.58.2
-          npx playwright install --with-deps chromium
+          pnpm add -D --ignore-workspace-root-check playwright@1.58.2
+          pnpm exec playwright install --with-deps chromium
 
       - name: Run source and integration contracts
         working-directory: app
@@ -162,9 +155,7 @@ jobs:
           VITE_PID=$!
           trap 'kill "$VITE_PID" 2>/dev/null || true' EXIT
           for attempt in $(seq 1 45); do
-            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then
-              break
-            fi
+            curl --fail --silent http://127.0.0.1:4173/ > /dev/null && break
             sleep 1
           done
           curl --fail http://127.0.0.1:4173/ > /dev/null
@@ -233,7 +224,7 @@ jobs:
       - name: Archive patched source used for this build
         run: |
           rm -f RE_APK1_SOURCE_PATCHED.zip
-          (cd app && zip -qr ../RE_APK1_SOURCE_PATCHED.zip . -x 'node_modules/*' 'dist/*' 'qa-output/*' 'android/.gradle/*' 'android/app/build/*')
+          (cd app && zip -qr ../RE_APK1_SOURCE_PATCHED.zip . -x 'node_modules/*' './node_modules/*' 'dist/*' './dist/*' 'qa-output/*' './qa-output/*' 'android/.gradle/*' './android/.gradle/*' 'android/app/build/*' './android/app/build/*')
           sha256sum RE_APK1_SOURCE_PATCHED.zip > RE_APK1_SOURCE_PATCHED.sha256
 
       - name: Upload APK and inspection reports
