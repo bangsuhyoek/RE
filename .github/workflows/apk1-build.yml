@@ -97,6 +97,13 @@ jobs:
           browser_qa.write_text(text.replace(old, new))
 
           text = browser_qa.read_text()
+          old = '    if (["error", "warning"].includes(message.type())) problems.push(`${screen}@${width} console ${message.type()}: ${message.text()}`);'
+          new = '    if (["error", "warning"].includes(message.type())) problems.push(`${screen}@${width} console ${message.type()}: ${message.text()} location=${JSON.stringify(message.location())}`);'
+          if old not in text:
+              raise SystemExit("browser QA console location target not found")
+          browser_qa.write_text(text.replace(old, new))
+
+          text = browser_qa.read_text()
           old = '      .filter((target) => !target.closest("[hidden]") && !(target.matches("input") && target.closest("label")))'
           new = '      .filter((target) => !target.closest("[hidden]") && !target.matches(\'input[type="hidden"]\') && !(target.matches("input") && target.closest("label")))'
           if old not in text:
