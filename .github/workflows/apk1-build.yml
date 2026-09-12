@@ -67,8 +67,8 @@ jobs:
           browser_qa.write_text(text.replace(old, new))
 
           text = browser_qa.read_text()
-          old = '      .filter((target) => !target.closest("[hidden]") && !(target.matches("input") && target.closest("label")))\\n'
-          new = '      .filter((target) => !target.closest("[hidden]") && !target.matches(\'input[type="hidden"]\') && !(target.matches("input") && target.closest("label")))\\n'
+          old = '      .filter((target) => !target.closest("[hidden]") && !(target.matches("input") && target.closest("label")))'
+          new = '      .filter((target) => !target.closest("[hidden]") && !target.matches(\'input[type="hidden"]\') && !(target.matches("input") && target.closest("label")))'
           if old not in text:
               raise SystemExit("browser QA hidden-input filter target not found")
           browser_qa.write_text(text.replace(old, new))
