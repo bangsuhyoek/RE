@@ -52,6 +52,12 @@ jobs:
               raise SystemExit("release-contract patch target not found")
           test_file.write_text(text.replace(old, new))
 
+          css_file = root / "src/production-v2.css"
+          css_text = css_file.read_text()
+          touch_fix = "\n/* APK1 QA: prevent the bottom-sheet close button from flex-shrinking below 44px */\n.bottom-sheet > header .icon-button { flex: 0 0 var(--touch); }\n"
+          if touch_fix.strip() not in css_text:
+              css_file.write_text(css_text.rstrip() + touch_fix)
+
           vendor = root / "vendor/supabase.js"
           vendor_text = vendor.read_text()
           global_bridge = "if (typeof globalThis !== 'undefined') globalThis.supabase = supabase;"
