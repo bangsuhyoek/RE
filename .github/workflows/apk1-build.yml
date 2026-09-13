@@ -307,6 +307,40 @@ jobs:
           console.log('Visual QA matrix: PASS (60/60)');
           NODE
 
+      - name: Apply mandatory final refinement pass
+        shell: bash
+        run: python3 build-support/apply-apk1-final-refinement.py app
+
+      - name: Run post-refinement regression QA
+        working-directory: app
+        env:
+          VITE_SUPABASE_URL: https://ssukvsphufvdaanqlmgj.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_-8ZiIbmg-eWnMei69Q958A_fpDwu3H8
+        run: |
+          set -euo pipefail
+          test -f FINAL_REFINEMENT_APPLIED.txt
+          set -o pipefail
+          pnpm test 2>&1 | tee qa-output/post-refinement-tests.txt
+          pnpm dev:qa > qa-output/vite-qa-post-refinement.log 2>&1 &
+          VITE_PID=$!
+          trap 'kill "$VITE_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 45); do
+            curl --fail --silent http://127.0.0.1:4173/ > /dev/null && break
+            sleep 1
+          done
+          curl --fail http://127.0.0.1:4173/ > /dev/null
+          pnpm qa:browser 2>&1 | tee qa-output/post-refinement-browser-qa.txt
+          pnpm qa:visual 2>&1 | tee qa-output/post-refinement-visual-qa.txt
+          test "$(find qa-output/render-smoke -maxdepth 1 -type f -name '*.png' | wc -l)" -eq 60
+          node - <<'NODE'
+          const fs = require('fs');
+          const rows = JSON.parse(fs.readFileSync('qa-output/render-smoke/results.json', 'utf8'));
+          if (rows.length !== 60) throw new Error(`Expected 60 post-refinement visual cases, got ${rows.length}`);
+          const failures = rows.filter((r) => r.consoleErrors.length || r.pageErrors.length || r.bodyOverflow > 0 || r.screenOverflow > 0 || r.brokenImages.length || (r.bottomNavBottom !== null && r.bottomNavBottom !== 0) || (r.bottomNavWidth !== null && r.bottomNavWidth !== r.width));
+          if (failures.length) throw new Error(`Post-refinement visual QA failures: ${failures.length} ${JSON.stringify(failures)}`);
+          console.log('Post-refinement visual QA matrix: PASS (60/60)');
+          NODE
+
       - name: Build production web bundle
         working-directory: app
         env:
