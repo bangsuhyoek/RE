@@ -114,3 +114,12 @@
 .bottom-nav button.active{color:#3159b0!important}
 @media(max-width:340px){.landing-page .landing-character{width:79vw!important}.home-content .welcome-card{min-height:175px!important}.home-content .welcome-avatar{width:63vw!important;height:63vw!important}.home-action-grid button{min-height:72px!important}}
 @media(max-height:720px){.landing-page .landing-character{top:25%!important;width:min(72vw,300px)!important}.landing-brand{top:8.5%!important}.login-screen .auth-header{min-height:160px!important}.home-content .welcome-card{min-height:165px!important}.home-content .welcome-avatar{width:min(58vw,225px)!important;height:min(58vw,225px)!important}}
+
+/* RC6 splash viewport fix: absolutely positioned splash artwork must still own a full screen box. */
+.splash-screen,.splash-character-screen{
+  position:relative!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:100dvh!important;
+  overflow:hidden!important;
+}
