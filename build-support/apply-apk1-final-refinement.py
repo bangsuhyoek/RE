@@ -71,7 +71,7 @@ if marker not in css:
   width: min(43vw, 184px);
 }
 .landing-feature-grid {
-  padding-top: clamp(154px, 38vh, 278px);
+  padding-top: clamp(132px, 18vh, 150px);
   gap: clamp(9px, 2.5vw, 11px);
 }
 .landing-feature-grid article {
