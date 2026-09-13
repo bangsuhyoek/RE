@@ -75,6 +75,22 @@ if marker not in css:
     extra = Path("build-support/rc6.css").read_text(encoding="utf-8")
     style.write_text(css.rstrip() + "\n\n" + extra.rstrip() + "\n", encoding="utf-8")
 
+
+# RC6 uses an intentionally inset bottom navigation so it stays clear of Android system navigation.
+# Keep visual QA strict, but validate the approved 0-12px bottom gap and up-to-10px side insets.
+visual = root / "scripts/visual-smoke.mjs"
+v = visual.read_text(encoding="utf-8")
+old_nav = '''  (item.bottomNavBottom !== null && item.bottomNavBottom !== 0) ||
+  (item.bottomNavWidth !== null && item.bottomNavWidth !== item.width)
+'''
+new_nav = '''  (item.bottomNavBottom !== null && (item.bottomNavBottom < 0 || item.bottomNavBottom > 12)) ||
+  (item.bottomNavWidth !== null && (item.bottomNavWidth > item.width || item.bottomNavWidth < item.width - 20))
+'''
+if old_nav in v:
+    visual.write_text(v.replace(old_nav, new_nav), encoding="utf-8")
+elif new_nav not in v:
+    raise SystemExit("RC6 visual bottom-nav QA target missing")
+
 # Fail closed if unsupported UI was accidentally introduced.
 html = index.read_text(encoding="utf-8")
 for forbidden in ("data-auth-provider=\"apple\"", "data-auth-provider=\"kakao\"", "data-route=\"report\""):
