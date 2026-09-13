@@ -417,7 +417,7 @@
 +
 +/* APK1 RC4B: final-design splash proportions + Android bottom navigation separation. */
 +:root {
-+  --app-bottom-gap: max(8px, env(safe-area-inset-bottom));
++  --app-bottom-gap: env(safe-area-inset-bottom);
 +}
 +
 +.splash-screen,
@@ -566,3 +566,15 @@
          }
      }
  }
+
+--- a/tests/release-contract.test.mjs
++++ b/tests/release-contract.test.mjs
+@@ -59,7 +59,7 @@
+     "data-action", "data-route", "data-password-toggle", "data-landing-page",
+     "data-add-method", "data-service-shortcut", "data-recognize-receipt",
+     "data-legal-document", "data-open-sheet", "data-sheet-close", "data-filter", "data-auth-provider",
+-    "data-clear-notification-search",
++    "data-clear-notification-search", "data-resend-confirmation",
+     "data-enable-payment-capture", "data-delete-subscription",
+     'type="submit"',
+   ];
