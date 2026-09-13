@@ -1,0 +1,196 @@
+name: Build RE APK1 RC5B candidate
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/apk1-production-rc
+    paths:
+      - 'build-support/apply-apk1-rc5.py'
+      - 'build-support/apply-apk1-rc5b.py'
+      - '.github/workflows/apk1-rc5b-build.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  verify-and-build-rc5b:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore verified Run 51 source baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl -L --fail --silent --show-error -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/bangsuhyoek/RE/actions/artifacts/10311578443/zip -o baseline.zip
+          rm -rf baseline app; mkdir baseline app
+          unzip -q baseline.zip -d baseline
+          (cd app && unzip -q ../baseline/RE_APK1_SOURCE_PATCHED.zip)
+          grep -Fq 'versionName "1.0.0-rc4"' app/android/app/build.gradle
+          grep -Fq 'APK1 RC4B: final-design splash proportions and Android-safe app navigation' app/styles.css
+
+      - name: Apply RC5B canonical asset and UI system
+        run: |
+          set -euo pipefail
+          python3 build-support/apply-apk1-rc5b.py app
+          test -f app/assets/brand/logo-service-primary.svg
+          test -f app/assets/characters/character-state-happy.webp
+          test -f app/assets/characters/character-state-thinking.webp
+          for f in default payment-due benefit empty guidance success; do test -f "app/assets/backgrounds/bg-service-${f}.webp"; done
+          grep -Fq 'versionName "1.0.0-rc5"' app/android/app/build.gradle
+          grep -Fq 'data-payment-onboarding' app/index.html
+          grep -Fq 'paymentOnboardingKey' app/app.js
+          grep -Fq 'await waitFor(2650)' app/app.js
+          grep -Fq 'waitFor(2850)' app/app.js
+          grep -Fq 'navGap = Math.round(8 * getResources().getDisplayMetrics().density)' app/android/app/src/main/java/kr/co/re/subscription/MainActivity.java
+          echo 'RC5B structural checks: PASS'
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+      - name: Install dependencies
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright
+        working-directory: app
+        run: |
+          pnpm add -D --ignore-workspace-root-check playwright@1.58.2
+          pnpm exec playwright install --with-deps chromium
+
+      - name: Verify RE personal Supabase auth
+        env:
+          RE_SUPABASE_URL: https://ssukvsphufvdaanqlmgj.supabase.co
+          RE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_-8ZiIbmg-eWnMei69Q958A_fpDwu3H8
+        run: |
+          set -euo pipefail
+          mkdir -p app/qa-output/auth
+          curl --fail --silent --show-error -H "apikey: $RE_SUPABASE_PUBLISHABLE_KEY" "$RE_SUPABASE_URL/auth/v1/settings" -o app/qa-output/auth/settings.json
+          node - <<'NODE'
+          const fs=require('fs'); const s=JSON.parse(fs.readFileSync('app/qa-output/auth/settings.json','utf8'));
+          if(s?.external?.email===false) throw new Error('email auth disabled');
+          if(s?.external?.google!==true) throw new Error('google auth disabled');
+          if(s?.disable_signup===true) throw new Error('signup disabled');
+          console.log('RE personal Supabase providers: PASS');
+          NODE
+          STATUS="$(curl --silent --show-error --output /dev/null --dump-header app/qa-output/auth/google-oauth-headers.txt --write-out '%{http_code}' -H "apikey: $RE_SUPABASE_PUBLISHABLE_KEY" --get --data-urlencode 'provider=google' --data-urlencode 'redirect_to=reapp://auth/callback' "$RE_SUPABASE_URL/auth/v1/authorize")"
+          case "$STATUS" in 302|303|307) ;; *) exit 1;; esac
+          grep -Eiq '^location: https://accounts\.google\.com/' app/qa-output/auth/google-oauth-headers.txt
+
+      - name: Run contracts
+        working-directory: app
+        run: |
+          mkdir -p qa-output
+          set -o pipefail
+          pnpm test 2>&1 | tee qa-output/rc5b-tests.txt
+
+      - name: Run browser, 60-render, empty-state and permission-onboarding QA
+        working-directory: app
+        env:
+          VITE_SUPABASE_URL: https://ssukvsphufvdaanqlmgj.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_-8ZiIbmg-eWnMei69Q958A_fpDwu3H8
+        run: |
+          set -euo pipefail
+          pnpm dev:qa > qa-output/vite-rc5b.log 2>&1 &
+          PID=$!; trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 45); do curl --fail --silent http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
+          pnpm qa:browser 2>&1 | tee qa-output/rc5b-browser.txt
+          pnpm qa:visual 2>&1 | tee qa-output/rc5b-visual.txt
+          test "$(find qa-output/render-smoke -maxdepth 1 -type f -name '*.png' | wc -l)" -eq 60
+          node - <<'NODE'
+          const fs=require('fs'); const {chromium}=require('playwright');
+          const rows=JSON.parse(fs.readFileSync('qa-output/render-smoke/results.json','utf8'));
+          if(rows.length!==60) throw new Error('visual matrix not 60');
+          const bad=rows.filter(r=>r.consoleErrors.length||r.pageErrors.length||r.bodyOverflow>0||r.screenOverflow>0||r.brokenImages.length||(r.bottomNavBottom!==null&&r.bottomNavBottom!==0)||(r.bottomNavWidth!==null&&r.bottomNavWidth!==r.width));
+          if(bad.length) throw new Error(`visual failures ${bad.length} ${JSON.stringify(bad)}`);
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const p=await browser.newPage({viewport:{width:360,height:780}});
+            const errors=[]; p.on('pageerror',e=>errors.push(e.message)); p.on('console',m=>{if(m.type()==='error') errors.push(m.text())});
+            await p.goto('http://127.0.0.1:4173/?screen=subscriptions&qa=1&state=empty',{waitUntil:'networkidle'});
+            const empty=await p.evaluate(()=>({char:!!document.querySelector('.production-state .state-character'),actions:document.querySelectorAll('.production-state .state-actions button').length,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth}));
+            if(!empty.char||empty.actions<3||empty.overflow>0) throw new Error(`empty state invalid ${JSON.stringify(empty)}`);
+            await p.screenshot({path:'qa-output/render-smoke/empty-state-360.png',fullPage:true});
+            await p.goto('http://127.0.0.1:4173/?screen=home&qa=1',{waitUntil:'networkidle'});
+            await p.evaluate(()=>{const n=document.querySelector('[data-payment-onboarding]'); if(n) n.hidden=false;});
+            const permission=await p.evaluate(()=>({dialog:!!document.querySelector('[data-payment-onboarding]:not([hidden])'),buttons:document.querySelectorAll('[data-payment-onboarding] button').length,thinking:(document.querySelector('[data-payment-onboarding] img')?.getAttribute('src')||'').includes('character-state-thinking')}));
+            if(!permission.dialog||permission.buttons<2||!permission.thinking) throw new Error(`permission onboarding invalid ${JSON.stringify(permission)}`);
+            await p.screenshot({path:'qa-output/render-smoke/payment-onboarding-360.png',fullPage:true});
+            if(errors.length) throw new Error(`targeted QA console errors ${JSON.stringify(errors)}`);
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+          echo 'RC5B visual QA: PASS (60 + targeted empty/permission)'
+
+      - name: Build production web
+        working-directory: app
+        env:
+          VITE_SUPABASE_URL: https://ssukvsphufvdaanqlmgj.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_-8ZiIbmg-eWnMei69Q958A_fpDwu3H8
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_GEMINI_MODEL: gemini-2.5-flash
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || vars.VITE_API_BASE_URL }}
+          VITE_TERMS_URL: ${{ secrets.VITE_TERMS_URL || vars.VITE_TERMS_URL }}
+          VITE_TERMS_VERSION: ${{ secrets.VITE_TERMS_VERSION || vars.VITE_TERMS_VERSION }}
+          VITE_TERMS_EFFECTIVE_DATE: ${{ secrets.VITE_TERMS_EFFECTIVE_DATE || vars.VITE_TERMS_EFFECTIVE_DATE }}
+          VITE_PRIVACY_URL: ${{ secrets.VITE_PRIVACY_URL || vars.VITE_PRIVACY_URL }}
+          VITE_PRIVACY_VERSION: ${{ secrets.VITE_PRIVACY_VERSION || vars.VITE_PRIVACY_VERSION }}
+          VITE_PRIVACY_EFFECTIVE_DATE: ${{ secrets.VITE_PRIVACY_EFFECTIVE_DATE || vars.VITE_PRIVACY_EFFECTIVE_DATE }}
+        run: pnpm build
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - name: Android SDK packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Capacitor sync
+        working-directory: app
+        run: pnpm cap:sync
+      - name: Internal preflight
+        working-directory: app
+        run: node scripts/release-preflight.mjs internal-test | tee qa-output/rc5b-preflight.txt
+      - name: Build RC5 APK
+        working-directory: app/android
+        run: chmod +x gradlew && ./gradlew assembleDebug --stacktrace
+      - name: Inspect RC5 APK
+        working-directory: app
+        run: scripts/apk-inspect.sh
+
+      - name: Archive source
+        run: |
+          (cd app && zip -qr ../RE_APK1_RC5B_SOURCE.zip . -x 'node_modules/*' './node_modules/*' 'dist/*' './dist/*' 'qa-output/*' './qa-output/*' 'android/.gradle/*' './android/.gradle/*' 'android/app/build/*' './android/app/build/*')
+          sha256sum RE_APK1_RC5B_SOURCE.zip > RE_APK1_RC5B_SOURCE.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RE-APK1-RC5B-Internal-QA
+          path: |
+            app/android/app/build/outputs/apk/debug/app-debug.apk
+            app/qa-output/apk-inspection/**
+            app/qa-output/rc5b-*.txt
+            app/assets/DESIGN_ASSET_MANIFEST.md
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RE-APK1-RC5B-Visual-QA
+          path: app/qa-output/render-smoke/**
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RE-APK1-RC5B-Patched-Source
+          path: |
+            RE_APK1_RC5B_SOURCE.zip
+            RE_APK1_RC5B_SOURCE.sha256
+          if-no-files-found: error
