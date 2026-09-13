@@ -145,7 +145,7 @@ for name in ("release-config.js", "release-manifest.json"):
 # Append the approved-reference RC6 styling exactly once.
 style = root / "styles.css"
 css = style.read_text(encoding="utf-8")
-marker = "/* APK1 RC6 — final criteria: RE_UI 디자인(1) + 겨울버전 RE_UI 디자인. */"
+marker = "/* APK1 RC7 — final criteria: RE_UI 디자인(1) + 겨울버전 RE_UI 디자인. */"
 if marker not in css:
     extra = Path("build-support/rc6.css").read_text(encoding="utf-8")
     style.write_text(css.rstrip() + "\n\n" + extra.rstrip() + "\n", encoding="utf-8")
@@ -172,4 +172,4 @@ for forbidden in ("data-auth-provider=\"apple\"", "data-auth-provider=\"kakao\""
     if forbidden in html:
         raise SystemExit(f"Unsupported function exposed in RC6: {forbidden}")
 
-print("RC6 final-reference patch applied")
+print("RC7 OAuth-return hardening + final-reference patch applied")
