@@ -26,11 +26,11 @@
 +function authFailureMessage(error, fallback = "계정 연결에 실패했어요. 잠시 후 다시 시도해 주세요.") {
 +  const code = String(error?.code || error?.status || "").toLowerCase();
 +  const message = String(error?.message || "").toLowerCase();
-+  if (code.includes("email_address_not_authorized") || message.includes("email address not authorized")) return "현재 이 이메일 주소로 확인 이메일을 보낼 수 없어요. 다른 이메일을 사용하거나 잠시 후 다시 시도해 주세요.";
++  if (code.includes("email_address_not_authorized") || message.includes("email address not authorized")) return "현재 메일 발송 설정에서 이 주소로 확인 이메일을 보낼 수 없어요. SMTP 설정을 확인해 주세요.";
 +  if (code.includes("over_email_send_rate_limit") || code === "429" || message.includes("rate limit")) return "확인 이메일 발송 한도에 도달했어요. 잠시 후 다시 시도해 주세요.";
 +  if (code.includes("invalid_credentials")) return "이메일 또는 비밀번호를 확인해 주세요.";
 +  if (code.includes("email_exists") || code.includes("user_already_exists")) return "이미 가입된 이메일이에요. 로그인하거나 비밀번호 찾기를 이용해 주세요.";
-+  if (code.includes("oauth_return_missing")) return "Google 인증 후 앱으로 돌아오는 연결을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.";
++  if (code.includes("oauth_return_missing")) return "Google 인증 후 앱으로 돌아오지 못했어요. Supabase Redirect URL에 reapp://auth/callback을 등록해야 해요.";
 +  if (code.includes("oauth_code_missing")) return "Google 인증 결과를 앱에서 확인하지 못했어요. 다시 시도해 주세요.";
 +  return fallback;
 +}
@@ -88,16 +88,6 @@
  });
  
  billingAlertForm?.addEventListener("change", (event) => {
-@@ -1347,7 +1382,8 @@
-       document.querySelector(`.app-screen[data-screen="${screenName}"]`)?.removeAttribute("data-live-status");
-     });
-     closeGenericSheet(false);
--    showToast(payload.id ? "구독 정보를 수정했어요." : "구독을 추가했어요.", "success");
-+    if (result?.remindersScheduled === false) showToast(payload.id ? "구독은 수정했어요. 알림을 받으려면 기기 알림 권한을 허용해 주세요." : "구독은 추가했어요. 알림을 받으려면 기기 알림 권한을 허용해 주세요.", "warning");
-+    else showToast(payload.id ? "구독 정보를 수정했어요." : "구독을 추가했어요.", "success");
-     if (liveDataMode) {
-       setScreen("subscriptions");
-       void ensureLiveScreenData("subscriptions", true);
 @@ -1591,8 +1626,8 @@
        } else {
          setFormStatus(form, "인증 시작 여부를 확인하지 못했어요. 다시 시도해주세요.", "error");
@@ -155,23 +145,6 @@
  }
  
  async function provider(providerName, mode, options = {}) {
-@@ -560,8 +572,14 @@
-   else data = checked(await supabase.from("subscriptions").insert(record).select("*").single());
-   if (payload.candidateId) await removePaymentCandidate(payload.candidateId, true);
-   invalidate();
--  await scheduleBillingReminders(mapSubscription(data));
--  return { saved: true, id: data.id };
-+  let remindersScheduled = true;
-+  if (Capacitor.isNativePlatform()) {
-+    const notificationPermission = await requestLocalNotificationPermission();
-+    remindersScheduled = notificationPermission.permission === "granted" && notificationPermission.channelReady === true
-+      ? await scheduleBillingReminders(mapSubscription(data))
-+      : false;
-+  }
-+  return { saved: true, id: data.id, remindersScheduled };
- }
- 
- async function preparePaymentCandidate(candidate) {
 @@ -713,8 +725,15 @@
    async "open-payment-candidate"({ service }) { return openLatestCandidate(service); },
    async "discard-payment-candidate"({ service }) { return { ok: await removePaymentCandidate(service, false) }; },
@@ -389,192 +362,3 @@
    "type": "module",
    "scripts": {
      "dev": "vite --host 127.0.0.1",
-
---- a/app.js
-+++ b/app.js
-@@ -1744,10 +1744,10 @@
-   const shouldRunStartup = !qaMode && !initialParams.has("screen") && initialParams.get("mode") !== "recovery";
-   if (shouldRunStartup) {
-     setScreen("splash-logo", false);
-     const sessionCheck = authRequired ? refreshSession() : Promise.resolve(true);
--    await waitFor(650);
-+    await waitFor(2650);
-     setScreen("splash-character", false);
--    await Promise.all([sessionCheck, waitFor(850)]);
-+    await Promise.all([sessionCheck, waitFor(2850)]);
-     const next = sessionState === "authenticated" ? "home" : onboardingSeen() ? "login" : "landing";
-     setScreen(next, false);
-   } else {
---- a/styles.css
-+++ b/styles.css
-@@ -1342,3 +1342,113 @@
- .resend-confirmation-button {
-   width: 100%;
-   min-height: 36px;
-   margin-top: -2px;
-   text-align: center;
- }
-+
-+/* APK1 RC4B: final-design splash proportions + Android bottom navigation separation. */
-+:root {
-+  --app-bottom-gap: env(safe-area-inset-bottom);
-+}
-+
-+.splash-screen,
-+.splash-character-screen {
-+  position: relative;
-+  overflow: hidden;
-+  isolation: isolate;
-+  background: #f8f7fb !important;
-+}
-+.splash-screen::before,
-+.splash-character-screen::before {
-+  content: "";
-+  display: block !important;
-+  position: absolute;
-+  z-index: 0;
-+  inset: -2%;
-+  background: url("./assets/raster/bg-waterlily-splash.webp") center 45% / cover no-repeat;
-+  filter: saturate(.52) brightness(1.18) contrast(.84) hue-rotate(-4deg);
-+  opacity: .83;
-+  transform: scale(1.02);
-+  pointer-events: none;
-+}
-+.splash-screen::after,
-+.splash-character-screen::after {
-+  content: "";
-+  display: block !important;
-+  position: absolute;
-+  z-index: 1;
-+  inset: 0;
-+  background:
-+    radial-gradient(circle at 51% 37%, rgba(255,253,249,.72) 0 19%, rgba(255,253,249,.28) 38%, transparent 60%),
-+    linear-gradient(180deg, rgba(246,247,255,.32), rgba(255,249,253,.20) 50%, rgba(245,251,255,.22));
-+  pointer-events: none;
-+}
-+
-+/* Final logo reference: artwork is intentionally smaller than the previous APK
-+   and sits slightly above the vertical center. The first refresh screen has no tagline. */
-+.splash-screen {
-+  display: block;
-+}
-+.splash-screen .splash-logo-art {
-+  position: absolute;
-+  z-index: 3;
-+  top: 44%;
-+  left: 50%;
-+  width: min(52vw, 222px);
-+  height: auto;
-+  margin: 0;
-+  aspect-ratio: 1045 / 1505;
-+  transform: translate(-50%, -50%);
-+  filter: drop-shadow(0 8px 18px rgba(88,103,153,.07));
-+}
-+.splash-screen .splash-tagline {
-+  display: none !important;
-+}
-+
-+/* Final character reference: logo -> copy -> character are three separated
-+   proportional bands instead of the previous overlapping composition. */
-+.splash-character-screen {
-+  display: block;
-+  padding: 0;
-+  text-align: center;
-+}
-+.splash-character-logo {
-+  position: absolute;
-+  z-index: 3;
-+  top: 1.8%;
-+  left: 50%;
-+  width: min(30vw, 128px);
-+  height: auto;
-+  margin: 0;
-+  aspect-ratio: 1045 / 1505;
-+  transform: translateX(-50%);
-+}
-+.splash-character-screen h1 {
-+  position: absolute;
-+  z-index: 4;
-+  top: 21.8%;
-+  left: 50%;
-+  width: 84%;
-+  margin: 0;
-+  padding: 0;
-+  transform: translateX(-50%);
-+  color: #5c65ae;
-+  font-family: Georgia, "Noto Serif KR", serif;
-+  font-size: clamp(16px, 4.65vw, 20px);
-+  font-weight: 700;
-+  line-height: 1.28;
-+  letter-spacing: -.025em;
-+  white-space: nowrap;
-+  text-shadow: 0 1px 12px rgba(255,255,255,.92);
-+}
-+.splash-character-screen h1 span {
-+  display: inline-block;
-+  margin-left: .25em;
-+  color: #6173bd;
-+}
-+.splash-character {
-+  position: absolute;
-+  z-index: 3;
-+  top: 28.5%;
-+  left: 50%;
-+  bottom: auto;
-+  width: min(86vw, 370px);
-+  max-width: none;
-+  transform: translateX(-50%);
-+  filter: drop-shadow(0 13px 16px rgba(83,66,120,.10));
-+}
-+
-+/* Keep the app's own navigation visibly above the Android system navigation area.
-+   MainActivity already applies real WindowInsets to the WebView; this adds a visual
-+   separation inside the safe viewport and prevents the last content from hiding behind it. */
-+.with-bottom-nav .screen-content {
-+  height: calc(100% - 82px - var(--app-bottom-gap));
-+  padding-bottom: calc(20px + var(--app-bottom-gap));
-+}
-+.with-bottom-nav .bottom-nav {
-+  bottom: var(--app-bottom-gap);
-+  height: 66px;
-+  padding: 6px 7px;
-+  border-radius: 24px;
-+}
-+.app-toast {
-+  bottom: calc(82px + var(--app-bottom-gap));
-+}
-+
-+@media (max-width: 340px) {
-+  .splash-screen .splash-logo-art { width: 50vw; }
-+  .splash-character-logo { width: 29vw; }
-+  .splash-character-screen h1 { top: 21.5%; font-size: 15px; }
-+  .splash-character { top: 29%; width: 84vw; }
-+}
-+
-+@media (min-width: 412px) {
-+  .splash-screen .splash-logo-art { width: min(50vw, 220px); }
-+  .splash-character-logo { width: min(29vw, 126px); }
-+  .splash-character { width: min(83vw, 365px); }
-+}
---- a/android/app/src/main/java/kr/co/re/subscription/MainActivity.java
-+++ b/android/app/src/main/java/kr/co/re/subscription/MainActivity.java
-@@ -31,6 +31,7 @@
-                 v.setPadding(systemBars.left, systemBars.top, systemBars.right, bottomPadding);
-                 return WindowInsetsCompat.CONSUMED;
-             });
-+            ViewCompat.requestApplyInsets(contentView);
-         }
-     }
- }
-
---- a/tests/release-contract.test.mjs
-+++ b/tests/release-contract.test.mjs
-@@ -59,7 +59,7 @@
-     "data-action", "data-route", "data-password-toggle", "data-landing-page",
-     "data-add-method", "data-service-shortcut", "data-recognize-receipt",
-     "data-legal-document", "data-open-sheet", "data-sheet-close", "data-filter", "data-auth-provider",
--    "data-clear-notification-search",
-+    "data-clear-notification-search", "data-resend-confirmation",
-     "data-enable-payment-capture", "data-delete-subscription",
-     'type="submit"',
-   ];

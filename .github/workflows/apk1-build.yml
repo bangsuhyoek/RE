@@ -352,10 +352,14 @@ jobs:
           if (!app.includes('capabilities?.imageOcr !== true')) throw new Error('Unavailable OCR capability is still exposed');
           if (!app.includes('await waitFor(2650)') || !app.includes('waitFor(2850)')) throw new Error('RC4B splash timing (+2s each) missing');
           const styles = fs.readFileSync('styles.css','utf8');
-          if (!styles.includes('APK1 RC4B: final-design splash proportions')) throw new Error('RC4B splash proportion refinement missing');
+          if (!styles.includes('APK1 RC4B: final-design splash proportions and Android-safe app navigation')) throw new Error('RC4B splash proportion refinement missing');
           if (!styles.includes('--app-bottom-gap')) throw new Error('Android bottom-nav safe gap missing');
           console.log('RC4 static policy checks: PASS');
           NODE
+
+      - name: Apply RC4B final-design and safe-area corrections
+        shell: bash
+        run: python3 build-support/apply-apk1-rc4b.py app
 
       - name: Run post-refinement regression QA
         working-directory: app
