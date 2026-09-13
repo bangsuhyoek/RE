@@ -350,16 +350,28 @@ jobs:
           if (!integration.includes('auth.resend')) throw new Error('Confirmation resend integration missing');
           const app = fs.readFileSync('app.js','utf8');
           if (!app.includes('capabilities?.imageOcr !== true')) throw new Error('Unavailable OCR capability is still exposed');
-          if (!app.includes('await waitFor(2650)') || !app.includes('waitFor(2850)')) throw new Error('RC4B splash timing (+2s each) missing');
-          const styles = fs.readFileSync('styles.css','utf8');
-          if (!styles.includes('APK1 RC4B: final-design splash proportions and Android-safe app navigation')) throw new Error('RC4B splash proportion refinement missing');
-          if (!styles.includes('--app-bottom-gap')) throw new Error('Android bottom-nav safe gap missing');
           console.log('RC4 static policy checks: PASS');
           NODE
 
       - name: Apply RC4B final-design and safe-area corrections
         shell: bash
-        run: python3 build-support/apply-apk1-rc4b.py app
+        run: |
+          set -euo pipefail
+          python3 build-support/apply-apk1-rc4b.py app
+          node - <<'NODE'
+          const fs = require('fs');
+          const app = fs.readFileSync('app/app.js','utf8');
+          const styles = fs.readFileSync('app/styles.css','utf8');
+          const contract = fs.readFileSync('app/tests/release-contract.test.mjs','utf8');
+          const activity = fs.readFileSync('app/android/app/src/main/java/kr/co/re/subscription/MainActivity.java','utf8');
+          if (!app.includes('await waitFor(2650)') || !app.includes('waitFor(2850)')) throw new Error('RC4B splash timing (+2s each) missing');
+          if (!styles.includes('APK1 RC4B: final-design splash proportions and Android-safe app navigation')) throw new Error('RC4B splash proportion refinement missing');
+          if (!styles.includes('--app-bottom-gap')) throw new Error('Android bottom-nav safe-area CSS missing');
+          if (!contract.includes('data-resend-confirmation')) throw new Error('Resend confirmation contract hook missing');
+          if (!activity.includes('int navGap = Math.round(8 * getResources().getDisplayMetrics().density);')) throw new Error('Android native navigation gap missing');
+          if (!activity.includes('ViewCompat.requestApplyInsets(contentView);')) throw new Error('Android inset request missing');
+          console.log('RC4B final-design/timing/safe-area checks: PASS');
+          NODE
 
       - name: Run post-refinement regression QA
         working-directory: app
