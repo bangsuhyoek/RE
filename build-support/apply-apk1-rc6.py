@@ -148,6 +148,7 @@ css = style.read_text(encoding="utf-8")
 marker = "/* APK1 RC7 — final criteria: RE_UI 디자인(1) + 겨울버전 RE_UI 디자인. */"
 if marker not in css:
     extra = Path("build-support/rc6.css").read_text(encoding="utf-8")
+    extra = extra.replace("/* APK1 RC6 — final criteria: RE_UI 디자인(1) + 겨울버전 RE_UI 디자인. */", marker, 1)
     style.write_text(css.rstrip() + "\n\n" + extra.rstrip() + "\n", encoding="utf-8")
 
 
