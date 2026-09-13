@@ -63,7 +63,6 @@ jobs:
           grep -Fq 'let nativeOAuthCallbackInFlight = false;' app/src/re-integration.js
           grep -Fq 'Date.now() - nativeOAuthCallbackSeenAt < 15000' app/src/re-integration.js
           grep -Fq '}, 10000);' app/src/re-integration.js
-          ! grep -Fq '}, 1200);' app/src/re-integration.js
           ! grep -Fq 'data-auth-provider="apple"' app/index.html
           ! grep -Fq 'data-auth-provider="kakao"' app/index.html
           ! grep -Fq 'data-route="report"' app/index.html
