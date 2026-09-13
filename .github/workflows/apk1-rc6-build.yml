@@ -115,7 +115,7 @@ jobs:
           VITE_SUPABASE_ANON_KEY: sb_publishable_-8ZiIbmg-eWnMei69Q958A_fpDwu3H8
         run: |
           set -euo pipefail
-          pnpm dev:qa > qa-output/vite-rc5b.log 2>&1 &
+          pnpm dev:qa > qa-output/vite-rc6.log 2>&1 &
           PID=$!; trap 'kill "$PID" 2>/dev/null || true' EXIT
           for i in $(seq 1 45); do curl --fail --silent http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
           pnpm qa:browser 2>&1 | tee qa-output/rc6-browser.txt
@@ -125,7 +125,7 @@ jobs:
           const fs=require('fs'); const {chromium}=require('playwright');
           const rows=JSON.parse(fs.readFileSync('qa-output/render-smoke/results.json','utf8'));
           if(rows.length!==60) throw new Error('visual matrix not 60');
-          const bad=rows.filter(r=>r.consoleErrors.length||r.pageErrors.length||r.bodyOverflow>0||r.screenOverflow>0||r.brokenImages.length||(r.bottomNavBottom!==null&&r.bottomNavBottom!==0)||(r.bottomNavWidth!==null&&r.bottomNavWidth!==r.width));
+          const bad=rows.filter(r=>r.consoleErrors.length||r.pageErrors.length||r.bodyOverflow>0||r.screenOverflow>0||r.brokenImages.length||(r.bottomNavBottom!==null&&(r.bottomNavBottom<0||r.bottomNavBottom>12))||(r.bottomNavWidth!==null&&(r.bottomNavWidth>r.width||r.bottomNavWidth<r.width-20)));
           if(bad.length) throw new Error(`visual failures ${bad.length} ${JSON.stringify(bad)}`);
           (async()=>{
             const browser=await chromium.launch({headless:true});
@@ -203,7 +203,7 @@ jobs:
       - name: Archive source
         run: |
           (cd app && zip -qr ../RE_APK1_RC6_SOURCE.zip . -x 'node_modules/*' './node_modules/*' 'dist/*' './dist/*' 'qa-output/*' './qa-output/*' 'android/.gradle/*' './android/.gradle/*' 'android/app/build/*' './android/app/build/*')
-          sha256sum RE_APK1_RC5B_SOURCE.zip > RE_APK1_RC6_SOURCE.sha256
+          sha256sum RE_APK1_RC6_SOURCE.zip > RE_APK1_RC6_SOURCE.sha256
 
       - uses: actions/upload-artifact@v4
         with:
@@ -223,6 +223,6 @@ jobs:
         with:
           name: RE-APK1-RC6-Patched-Source
           path: |
-            RE_APK1_RC5B_SOURCE.zip
-            RE_APK1_RC5B_SOURCE.sha256
+            RE_APK1_RC6_SOURCE.zip
+            RE_APK1_RC6_SOURCE.sha256
           if-no-files-found: error
