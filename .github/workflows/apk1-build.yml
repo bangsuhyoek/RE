@@ -198,6 +198,30 @@ jobs:
         shell: bash
         run: python3 build-support/apply-apk1-rc2.py app
 
+      - name: Apply RC3 final-reference implementation
+        shell: bash
+        run: python3 build-support/apply-apk1-rc3.py app
+
+      - name: Verify personal Supabase Auth providers
+        shell: bash
+        env:
+          RE_SUPABASE_URL: https://ssukvsphufvdaanqlmgj.supabase.co
+          RE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_-8ZiIbmg-eWnMei69Q958A_fpDwu3H8
+        run: |
+          set -euo pipefail
+          mkdir -p app/qa-output/auth
+          curl --fail --silent --show-error             -H "apikey: $RE_SUPABASE_PUBLISHABLE_KEY"             "$RE_SUPABASE_URL/auth/v1/settings"             -o app/qa-output/auth/settings.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const settings = JSON.parse(fs.readFileSync('app/qa-output/auth/settings.json','utf8'));
+          const emailEnabled = settings?.external?.email !== false;
+          const googleEnabled = settings?.external?.google === true;
+          console.log(JSON.stringify({ emailEnabled, googleEnabled, disableSignup: settings?.disable_signup ?? null }));
+          if (!emailEnabled) throw new Error('RE personal Supabase email auth is disabled');
+          if (!googleEnabled) throw new Error('RE personal Supabase Google auth is disabled');
+          if (settings?.disable_signup === true) throw new Error('RE personal Supabase signup is disabled');
+          NODE
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
