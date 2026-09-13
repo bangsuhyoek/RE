@@ -25,16 +25,23 @@ text = text.replace(
 )
 
 # Make reminder permission outcome explicit after subscription save.
-old = '    closeGenericSheet(false);\\n    showToast(payload.id ? "구독 정보를 수정했어요." : "구독을 추가했어요.", "success");'
-new = '    closeGenericSheet(false);\\n    if (result?.remindersScheduled === false) showToast(payload.id ? "구독은 수정했어요. 알림을 받으려면 기기 알림 권한을 허용해 주세요." : "구독은 추가했어요. 알림을 받으려면 기기 알림 권한을 허용해 주세요.", "warning");\\n    else showToast(payload.id ? "구독 정보를 수정했어요." : "구독을 추가했어요.", "success");'
+old = '    showToast(payload.id ? "구독 정보를 수정했어요." : "구독을 추가했어요.", "success");'
+new = '''    if (result?.remindersScheduled === false) showToast(payload.id ? "구독은 수정했어요. 알림을 받으려면 기기 알림 권한을 허용해 주세요." : "구독은 추가했어요. 알림을 받으려면 기기 알림 권한을 허용해 주세요.", "warning");
+    else showToast(payload.id ? "구독 정보를 수정했어요." : "구독을 추가했어요.", "success");'''
 if new not in text:
     if old not in text:
         raise SystemExit("subscription save toast target missing")
     text = text.replace(old, new, 1)
 
 # Each of the two refresh screens stays exactly two seconds longer than RC3.
-text = text.replace('    await waitFor(650);', '    await waitFor(2650);', 1)
-text = text.replace('    await Promise.all([sessionCheck, waitFor(850)]);', '    await Promise.all([sessionCheck, waitFor(2850)]);', 1)
+if '    await waitFor(2650);' not in text:
+    if '    await waitFor(650);' not in text:
+        raise SystemExit("splash logo timing target missing")
+    text = text.replace('    await waitFor(650);', '    await waitFor(2650);', 1)
+if '    await Promise.all([sessionCheck, waitFor(2850)]);' not in text:
+    if '    await Promise.all([sessionCheck, waitFor(850)]);' not in text:
+        raise SystemExit("splash character timing target missing")
+    text = text.replace('    await Promise.all([sessionCheck, waitFor(850)]);', '    await Promise.all([sessionCheck, waitFor(2850)]);', 1)
 app.write_text(text)
 
 integration = root / "src/re-integration.js"
@@ -62,9 +69,9 @@ integration.write_text(text)
 # Contract test: resend confirmation is a real handled button boundary.
 contract = root / "tests/release-contract.test.mjs"
 text = contract.read_text()
-old = '    "data-clear-notification-search",\\n    "data-enable-payment-capture",'
-new = '    "data-clear-notification-search", "data-resend-confirmation",\\n    "data-enable-payment-capture",'
-if new not in text:
+old = '"data-clear-notification-search",'
+new = '"data-clear-notification-search", "data-resend-confirmation",'
+if "data-resend-confirmation" not in text:
     if old not in text:
         raise SystemExit("button hook contract target missing")
     text = text.replace(old, new, 1)
