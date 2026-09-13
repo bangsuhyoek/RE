@@ -56,15 +56,90 @@ js = js.replace("./assets/characters/character-state-thinking.webp", "./assets/r
 js = js.replace("추천 서비스 둘러보기", "혜택 둘러보기")
 app.write_text(js, encoding="utf-8")
 
+# OAuth native return hardening.
+# The previous app-resume fallback could declare failure after 1.2 seconds while
+# exchangeCodeForSession() was still running. Mark callback processing explicitly
+# and never let appStateChange race the PKCE code exchange.
+integration = root / "src/re-integration.js"
+ijt = integration.read_text(encoding="utf-8")
+callback_anchor = 'window.addEventListener("re:auth-callback", async (event) => {\n  try {'
+callback_replacement = '''let nativeOAuthCallbackInFlight = false;
+let nativeOAuthCallbackSeenAt = 0;
+
+window.addEventListener("re:auth-callback", async (event) => {
+  nativeOAuthCallbackInFlight = true;
+  nativeOAuthCallbackSeenAt = Date.now();
+  try {'''
+if callback_replacement not in ijt:
+    if callback_anchor not in ijt:
+        raise SystemExit("RC7 OAuth callback anchor missing")
+    ijt = ijt.replace(callback_anchor, callback_replacement, 1)
+
+old_resume = '''window.addEventListener("re:app-resumed", () => {
+  if (!Capacitor.isNativePlatform() || !readPendingOAuthMode()) return;
+  window.setTimeout(async () => {
+    try {
+      if (!readPendingOAuthMode()) return;
+      const { data } = await requireClient().auth.getSession();
+      if (data.session) return;
+      await Browser.close().catch(() => {});
+      clearPendingOAuthMode();
+      clearPendingLegalAcceptance();
+      window.location.replace("?screen=login&authError=oauth_return_missing");
+    } catch (_error) {}
+  }, 1200);
+});'''
+new_resume = '''window.addEventListener("re:app-resumed", () => {
+  if (!Capacitor.isNativePlatform() || !readPendingOAuthMode()) return;
+  window.setTimeout(async () => {
+    try {
+      if (!readPendingOAuthMode()) return;
+      if (nativeOAuthCallbackInFlight) return;
+      if (nativeOAuthCallbackSeenAt && Date.now() - nativeOAuthCallbackSeenAt < 15000) return;
+      const { data } = await requireClient().auth.getSession();
+      if (data.session) return;
+      await Browser.close().catch(() => {});
+      clearPendingOAuthMode();
+      clearPendingLegalAcceptance();
+      window.location.replace("?screen=login&authError=oauth_return_missing");
+    } catch (_error) {}
+  }, 10000);
+});'''
+if new_resume not in ijt:
+    if old_resume not in ijt:
+        raise SystemExit("RC7 OAuth resume fallback anchor missing")
+    ijt = ijt.replace(old_resume, new_resume, 1)
+
+# Clear the in-flight guard after success/failure processing when navigation does
+# not immediately replace the document (e.g. password recovery).
+catch_tail = '''    clearPendingOAuthMode();
+    clearPendingLegalAcceptance();
+    window.location.replace(`?screen=login&authError=${encodeURIComponent(code)}`);
+  }
+});'''
+catch_replacement = '''    clearPendingOAuthMode();
+    clearPendingLegalAcceptance();
+    window.location.replace(`?screen=login&authError=${encodeURIComponent(code)}`);
+  } finally {
+    nativeOAuthCallbackInFlight = false;
+  }
+});'''
+if catch_replacement not in ijt:
+    if catch_tail not in ijt:
+        raise SystemExit("RC7 OAuth callback finalizer anchor missing")
+    ijt = ijt.replace(catch_tail, catch_replacement, 1)
+
+integration.write_text(ijt, encoding="utf-8")
+
 # Version/build identity.
-replace_once("android/app/build.gradle", 'versionCode 5', 'versionCode 6', "versionCode")
-replace_once("android/app/build.gradle", 'versionName "1.0.0-rc5"', 'versionName "1.0.0-rc6"', "versionName")
+replace_once("android/app/build.gradle", 'versionCode 5', 'versionCode 7', "versionCode")
+replace_once("android/app/build.gradle", 'versionName "1.0.0-rc5"', 'versionName "1.0.0-rc7"', "versionName")
 pkg = root / "package.json"
-t = pkg.read_text(encoding="utf-8").replace('"version": "1.0.0-rc.4"', '"version": "1.0.0-rc.6"')
+t = pkg.read_text(encoding="utf-8").replace('"version": "1.0.0-rc.7"', '"version": "1.0.0-rc.6"')
 pkg.write_text(t, encoding="utf-8")
 for name in ("release-config.js", "release-manifest.json"):
     p = root / name
-    t = p.read_text(encoding="utf-8").replace("apk1-release-candidate-4", "apk1-release-candidate-6")
+    t = p.read_text(encoding="utf-8").replace("apk1-release-candidate-4", "apk1-release-candidate-7")
     p.write_text(t, encoding="utf-8")
 
 # Append the approved-reference RC6 styling exactly once.
