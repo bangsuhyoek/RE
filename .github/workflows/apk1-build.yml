@@ -326,6 +326,19 @@ jobs:
         shell: bash
         run: python3 build-support/apply-apk1-final-refinement.py app
 
+      - name: Apply RC4 auth, capability and color corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd app
+          patch --batch --forward -p1 < ../build-support/apk1-rc4.patch
+          test "$(grep -c 'apk1-release-candidate-4' index.html)" -eq 1
+          grep -Fq 'versionName "1.0.0-rc4"' android/app/build.gradle
+          grep -Fq 'data-resend-confirmation' index.html
+          grep -Fq 'resendConfirmation' src/re-integration.js
+          grep -Fq 're:app-resumed' src/native.js
+          grep -Fq 'APK1 RC4: colorimetric alignment' styles.css
+
       - name: Run post-refinement regression QA
         working-directory: app
         env:
