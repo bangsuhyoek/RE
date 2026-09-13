@@ -88,6 +88,16 @@
  });
  
  billingAlertForm?.addEventListener("change", (event) => {
+@@ -1347,7 +1382,8 @@
+       document.querySelector(`.app-screen[data-screen="${screenName}"]`)?.removeAttribute("data-live-status");
+     });
+     closeGenericSheet(false);
+-    showToast(payload.id ? "구독 정보를 수정했어요." : "구독을 추가했어요.", "success");
++    if (result?.remindersScheduled === false) showToast(payload.id ? "구독은 수정했어요. 알림을 받으려면 기기 알림 권한을 허용해 주세요." : "구독은 추가했어요. 알림을 받으려면 기기 알림 권한을 허용해 주세요.", "warning");
++    else showToast(payload.id ? "구독 정보를 수정했어요." : "구독을 추가했어요.", "success");
+     if (liveDataMode) {
+       setScreen("subscriptions");
+       void ensureLiveScreenData("subscriptions", true);
 @@ -1591,8 +1626,8 @@
        } else {
          setFormStatus(form, "인증 시작 여부를 확인하지 못했어요. 다시 시도해주세요.", "error");
@@ -145,6 +155,23 @@
  }
  
  async function provider(providerName, mode, options = {}) {
+@@ -560,8 +572,14 @@
+   else data = checked(await supabase.from("subscriptions").insert(record).select("*").single());
+   if (payload.candidateId) await removePaymentCandidate(payload.candidateId, true);
+   invalidate();
+-  await scheduleBillingReminders(mapSubscription(data));
+-  return { saved: true, id: data.id };
++  let remindersScheduled = true;
++  if (Capacitor.isNativePlatform()) {
++    const notificationPermission = await requestLocalNotificationPermission();
++    remindersScheduled = notificationPermission.permission === "granted" && notificationPermission.channelReady === true
++      ? await scheduleBillingReminders(mapSubscription(data))
++      : false;
++  }
++  return { saved: true, id: data.id, remindersScheduled };
+ }
+ 
+ async function preparePaymentCandidate(candidate) {
 @@ -713,8 +725,15 @@
    async "open-payment-candidate"({ service }) { return openLatestCandidate(service); },
    async "discard-payment-candidate"({ service }) { return { ok: await removePaymentCandidate(service, false) }; },
