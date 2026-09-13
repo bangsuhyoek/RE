@@ -1,0 +1,364 @@
+--- a/index.html
++++ b/index.html
+@@ -8,7 +8,7 @@
+     <meta name="format-detection" content="telephone=no" />
+     <meta name="mobile-web-app-capable" content="yes" />
+     <meta name="application-name" content="RE. 구독 관리" />
+-    <meta name="re-build" content="apk1-release-candidate-3" />
++    <meta name="re-build" content="apk1-release-candidate-4" />
+     <meta name="description" content="RE. 가볍게 떠오르는 구독 관리" />
+     <title>RE. 구독 관리</title>
+     <link rel="icon" type="image/png" href="./assets/raster/logo-transparent-derived.png" />
+@@ -148,6 +148,7 @@
+             </fieldset>
+             <button class="primary-button" type="submit">가입하기</button>
+             <p class="form-status" role="status" aria-live="polite" hidden></p>
++            <button class="text-button resend-confirmation-button" data-resend-confirmation type="button" hidden>확인 이메일 다시 보내기</button>
+           </form>
+           <div class="divider"><span>또는 간편하게 가입하기</span></div>
+           <div class="social-actions"><button type="button" data-auth-provider="google"><b class="google-g">G</b> Google로 가입하기</button></div>
+--- a/app.js
++++ b/app.js
+@@ -1121,6 +1121,18 @@
+   status.textContent = message;
+ }
+ 
++function authFailureMessage(error, fallback = "계정 연결에 실패했어요. 잠시 후 다시 시도해 주세요.") {
++  const code = String(error?.code || error?.status || "").toLowerCase();
++  const message = String(error?.message || "").toLowerCase();
++  if (code.includes("email_address_not_authorized") || message.includes("email address not authorized")) return "현재 메일 발송 설정에서 이 주소로 확인 이메일을 보낼 수 없어요. SMTP 설정을 확인해 주세요.";
++  if (code.includes("over_email_send_rate_limit") || code === "429" || message.includes("rate limit")) return "확인 이메일 발송 한도에 도달했어요. 잠시 후 다시 시도해 주세요.";
++  if (code.includes("invalid_credentials")) return "이메일 또는 비밀번호를 확인해 주세요.";
++  if (code.includes("email_exists") || code.includes("user_already_exists")) return "이미 가입된 이메일이에요. 로그인하거나 비밀번호 찾기를 이용해 주세요.";
++  if (code.includes("oauth_return_missing")) return "Google 인증 후 앱으로 돌아오지 못했어요. Supabase Redirect URL에 reapp://auth/callback을 등록해야 해요.";
++  if (code.includes("oauth_code_missing")) return "Google 인증 결과를 앱에서 확인하지 못했어요. 다시 시도해 주세요.";
++  return fallback;
++}
++
+ function getAuthIntegration() {
+   return window.REIntegrations?.auth;
+ }
+@@ -1154,6 +1166,8 @@
+     }
+ 
+     const submit = form.querySelector('[type="submit"]');
++    const resend = mode === "register" ? form.querySelector("[data-resend-confirmation]") : null;
++    if (resend instanceof HTMLButtonElement) resend.hidden = true;
+     submit?.setAttribute("aria-busy", "true");
+     if (submit instanceof HTMLButtonElement) submit.disabled = true;
+     setFormStatus(form, "계정 정보를 확인하고 있어요.");
+@@ -1177,17 +1191,38 @@
+       } else if (mode === "register" && result?.registered === true) {
+         sessionState = "unauthenticated";
+         setFormStatus(form, result?.message || "가입 요청을 완료했어요. 계정 인증 후 로그인해주세요.", "success");
++        if (resend instanceof HTMLButtonElement) resend.hidden = false;
+       } else {
+         sessionState = "unauthenticated";
+         setFormStatus(form, "인증 완료 여부를 확인하지 못했어요. 다시 시도해주세요.", "error");
+       }
+-    } catch (_error) {
+-      setFormStatus(form, "계정 연결에 실패했어요. 입력 내용을 확인한 뒤 다시 시도해주세요.", "error");
++    } catch (error) {
++      setFormStatus(form, authFailureMessage(error, "계정 연결에 실패했어요. 입력 내용을 확인한 뒤 다시 시도해주세요."), "error");
+     } finally {
+       submit?.removeAttribute("aria-busy");
+       if (submit instanceof HTMLButtonElement) submit.disabled = false;
+     }
+   });
++});
++
++document.querySelector("[data-resend-confirmation]")?.addEventListener("click", async (event) => {
++  const button = event.currentTarget;
++  const form = button.closest("[data-auth-form=\"register\"]");
++  const input = form?.elements.namedItem("register-email");
++  if (!(form instanceof HTMLFormElement) || !(input instanceof HTMLInputElement)) return;
++  if (!input.reportValidity()) return;
++  const handler = getAuthIntegration()?.resendConfirmation;
++  if (typeof handler !== "function") return;
++  button.disabled = true;
++  setFormStatus(form, "확인 이메일을 다시 요청하고 있어요.");
++  try {
++    const result = await withIntegrationTimeout(handler(input.value), "확인 이메일 재발송");
++    setFormStatus(form, result?.sent === true ? "확인 이메일을 다시 요청했어요. 수신함과 스팸함을 확인해 주세요." : "재발송 결과를 확인하지 못했어요.", result?.sent === true ? "success" : "warning");
++  } catch (error) {
++    setFormStatus(form, authFailureMessage(error, "확인 이메일을 다시 요청하지 못했어요."), "error");
++  } finally {
++    button.disabled = false;
++  }
+ });
+ 
+ billingAlertForm?.addEventListener("change", (event) => {
+@@ -1591,8 +1626,8 @@
+       } else {
+         setFormStatus(form, "인증 시작 여부를 확인하지 못했어요. 다시 시도해주세요.", "error");
+       }
+-    } catch (_error) {
+-      setFormStatus(form, "간편 계정 연결에 실패했어요. 잠시 후 다시 시도해주세요.", "error");
++    } catch (error) {
++      setFormStatus(form, authFailureMessage(error, "간편 계정 연결에 실패했어요. 잠시 후 다시 시도해주세요."), "error");
+     }
+   });
+ });
+@@ -1698,6 +1733,12 @@
+ async function initializeApp() {
+   buildCalendar();
+   applyQaScenario();
++  if (window.REIntegrations?.capabilities?.imageOcr !== true) {
++    document.querySelector('[data-add-method="image"]')?.setAttribute("disabled", "");
++    document.querySelector('[data-add-method="image"] span')?.replaceChildren("현재 빌드에서는 직접 입력을 이용해 주세요.");
++    const recognize = document.querySelector("[data-recognize-receipt]");
++    if (recognize instanceof HTMLButtonElement) recognize.disabled = true;
++  }
+ 
+   const requestedScreen = getScreenFromUrl();
+   const shouldRunStartup = !qaMode && !initialParams.has("screen") && initialParams.get("mode") !== "recovery";
+@@ -1714,7 +1755,7 @@
+     setScreen(requestedScreen, false);
+   }
+   if (window.REPasswordRecoveryPending === true || initialParams.get("mode") === "recovery") requestAnimationFrame(openPasswordRecovery);
+-  if (initialParams.get("authError") === "1") setAuthGateStatus("계정 연결을 마치지 못했어요. 다시 시도해 주세요.");
++  if (initialParams.has("authError")) setAuthGateStatus(authFailureMessage({ code: initialParams.get("authError") }, "계정 연결을 마치지 못했어요. 다시 시도해 주세요."));
+   if (initialParams.get("socialConsent") === "required") {
+     const form = document.querySelector('[data-auth-form="register"]');
+     if (form instanceof HTMLFormElement) setFormStatus(form, "처음 Google로 시작하려면 필수 약관 두 항목을 확인하고 동의해 주세요.", "warning");
+--- a/src/re-integration.js
++++ b/src/re-integration.js
+@@ -228,8 +228,20 @@
+   return {
+     registered: Boolean(data.user),
+     authenticated: Boolean(data.session),
+-    message: data.session ? undefined : "확인 메일을 보냈어요. 인증 후 로그인해 주세요.",
++    message: data.session ? undefined : "확인 이메일 발송을 요청했어요. 수신함과 스팸함을 확인해 주세요.",
+   };
++}
++
++async function resendConfirmation(email) {
++  const client = requireClient();
++  const normalized = String(email || "").trim().toLowerCase();
++  if (!normalized) throw new Error("이메일 주소를 확인해 주세요.");
++  checked(await client.auth.resend({
++    type: "signup",
++    email: normalized,
++    options: { emailRedirectTo: Capacitor.isNativePlatform() ? nativeAuthCallbackUrl : window.location.origin },
++  }));
++  return { sent: true };
+ }
+ 
+ async function provider(providerName, mode, options = {}) {
+@@ -713,8 +725,15 @@
+   async "open-payment-candidate"({ service }) { return openLatestCandidate(service); },
+   async "discard-payment-candidate"({ service }) { return { ok: await removePaymentCandidate(service, false) }; },
+   async "enable-payment-capture"() {
++    const notificationPermission = await requestLocalNotificationPermission();
+     const result = await requestPaymentCapturePermission();
+-    return { ok: result.opened === true, message: "기기 설정에서 RE.의 알림 접근을 허용한 뒤 돌아와 주세요." };
++    return {
++      ok: result.opened === true,
++      notificationPermission: notificationPermission.permission,
++      message: notificationPermission.permission === "granted"
++        ? "기기 설정에서 RE.의 알림 접근을 허용한 뒤 돌아와 주세요."
++        : "알림 표시 권한은 나중에 다시 켤 수 있어요. 먼저 기기 설정에서 RE.의 알림 접근을 허용해 주세요.",
++    };
+   },
+   async "check-payment-capture"() { return { ok: true, enabled: await checkPaymentCapturePermission(), candidates: await getPaymentCandidates() }; },
+   async "recognize-receipt"({ file }) { return recognizeReceipt(file); },
+@@ -722,7 +741,7 @@
+ };
+ 
+ window.REIntegrations = {
+-  auth: { getSession, login, register, provider, requestPasswordReset, updatePassword, deleteAccount },
++  auth: { getSession, login, register, resendConfirmation, provider, requestPasswordReset, updatePassword, deleteAccount },
+   data: { mountScreen },
+   actions,
+   notifications: { requestPermission: requestLocalNotificationPermission },
+@@ -734,10 +753,20 @@
+ window.addEventListener("re:auth-callback", async (event) => {
+   try {
+     const url = new URL(event.detail?.url || "");
+-    const oauthError = url.searchParams.get("error_description") || url.searchParams.get("error");
+-    if (oauthError) throw new Error(oauthError);
+-    const code = url.searchParams.get("code");
+-    if (!code) throw new Error("OAuth 인증 코드가 없습니다.");
++    const fragment = new URLSearchParams(url.hash.replace(/^#/, ""));
++    const oauthErrorCode = url.searchParams.get("error_code") || url.searchParams.get("error") || fragment.get("error_code") || fragment.get("error");
++    const oauthError = url.searchParams.get("error_description") || fragment.get("error_description") || oauthErrorCode;
++    if (oauthError) {
++      const failure = new Error(oauthError);
++      failure.code = oauthErrorCode || "oauth_callback_failed";
++      throw failure;
++    }
++    const code = url.searchParams.get("code") || fragment.get("code");
++    if (!code) {
++      const failure = new Error("OAuth 인증 코드가 없습니다.");
++      failure.code = "oauth_code_missing";
++      throw failure;
++    }
+     checked(await requireClient().auth.exchangeCodeForSession(code));
+     const recovery = url.searchParams.get("mode") === "recovery";
+     const hasPendingConsent = Boolean(readPendingLegalAcceptance());
+@@ -755,12 +784,28 @@
+       window.REPasswordRecoveryPending = true;
+       window.dispatchEvent(new CustomEvent("re:password-recovery"));
+     } else window.location.replace("?screen=home");
+-  } catch (_error) {
++  } catch (error) {
+     await supabase?.auth.signOut({ scope: "local" }).catch(() => {});
++    const code = String(error?.code || "oauth_callback_failed").replace(/[^a-z0-9_-]/gi, "").slice(0, 64) || "oauth_callback_failed";
+     clearPendingOAuthMode();
+     clearPendingLegalAcceptance();
+-    window.location.replace("?screen=login&authError=1");
++    window.location.replace(`?screen=login&authError=${encodeURIComponent(code)}`);
+   }
++});
++
++window.addEventListener("re:app-resumed", () => {
++  if (!Capacitor.isNativePlatform() || !readPendingOAuthMode()) return;
++  window.setTimeout(async () => {
++    try {
++      if (!readPendingOAuthMode()) return;
++      const { data } = await requireClient().auth.getSession();
++      if (data.session) return;
++      await Browser.close().catch(() => {});
++      clearPendingOAuthMode();
++      clearPendingLegalAcceptance();
++      window.location.replace("?screen=login&authError=oauth_return_missing");
++    } catch (_error) {}
++  }, 1200);
+ });
+ 
+ supabase?.auth.onAuthStateChange((event) => {
+--- a/src/native.js
++++ b/src/native.js
+@@ -172,6 +172,9 @@
+     } catch (_error) {}
+   };
+   void App.addListener("appUrlOpen", ({ url }) => dispatchDeepLink(url));
++  void App.addListener("appStateChange", ({ isActive }) => {
++    if (isActive) window.dispatchEvent(new CustomEvent("re:app-resumed"));
++  });
+   void App.getLaunchUrl().then((result) => {
+     if (result?.url) window.queueMicrotask(() => dispatchDeepLink(result.url));
+   }).catch(() => {});
+--- a/styles.css
++++ b/styles.css
+@@ -1268,3 +1268,77 @@
+     height: 52px;
+   }
+ }
++
++
++/* APK1 RC4: colorimetric alignment to the final 852x1847 design references. */
++:root {
++  --ink: #183c7d;
++  --ink-strong: #0b2f78;
++  --text: #2b2944;
++  --muted: #6c7d9f;
++  --line: rgba(101, 145, 205, .18);
++  --blue: #4f8ff2;
++  --cyan: #35c6dc;
++  --violet: #8264ef;
++  --panel: rgba(255,255,255,.94);
++  --panel-soft: rgba(249,251,255,.92);
++}
++.splash-screen,
++.splash-character-screen {
++  background:
++    linear-gradient(rgba(250,248,255,.33), rgba(250,248,255,.33)),
++    url("./assets/raster/bg-waterlily-splash.webp") center 43% / cover no-repeat;
++}
++.landing-screen {
++  background:
++    linear-gradient(rgba(250,248,255,.30), rgba(250,248,255,.30)),
++    url("./assets/raster/bg-waterlily-landing.webp") center 45% / cover no-repeat;
++}
++.auth-screen {
++  background:
++    linear-gradient(rgba(250,248,255,.31), rgba(250,248,255,.31)),
++    url("./assets/raster/bg-waterlily-auth.webp") center 42% / cover no-repeat;
++}
++.app-screen[data-screen="home"] {
++  background:
++    linear-gradient(rgba(250,248,255,.20), rgba(250,248,255,.20)),
++    url("./assets/raster/bg-waterlily-home.webp") center 42% / cover no-repeat;
++}
++.app-screen[data-screen="calendar"] {
++  background:
++    linear-gradient(rgba(250,248,255,.20), rgba(250,248,255,.20)),
++    url("./assets/raster/bg-waterlily-calendar.webp") center 42% / cover no-repeat;
++}
++.app-screen[data-screen="subscriptions"],
++.app-screen[data-screen="subscription-detail"],
++.app-screen[data-screen="benefits"],
++.app-screen[data-screen="notifications"],
++.app-screen[data-screen="my-page"] {
++  background:
++    linear-gradient(rgba(250,248,255,.20), rgba(250,248,255,.20)),
++    url("./assets/raster/bg-waterlily-content.webp") center 42% / cover no-repeat;
++}
++.auth-form,
++.panel,
++.welcome-card,
++.stat-card,
++.subscription-list > article,
++.benefit-list > article,
++.notification-list > article,
++.settings-group,
++.landing-feature-grid article {
++  background-color: rgba(250,251,255,.94);
++  border-color: rgba(224,232,247,.86);
++}
++.primary-button {
++  background: linear-gradient(100deg, #31c3dc 0%, #4e8ef3 58%, #7c61ef 100%);
++  box-shadow: 0 9px 20px rgba(78,142,243,.22);
++}
++.form-status[data-tone="error"] { color: #b94a63; }
++.form-status[data-tone="success"] { color: #267a67; }
++.resend-confirmation-button {
++  width: 100%;
++  min-height: 36px;
++  margin-top: -2px;
++  text-align: center;
++}
+--- a/release-config.js
++++ b/release-config.js
+@@ -1,5 +1,5 @@
+ window.REConfig = Object.freeze({
+-  build: "apk1-release-candidate-3",
++  build: "apk1-release-candidate-4",
+   uiMode: "release",
+   environment: "production",
+   dataMode: "live",
+--- a/release-manifest.json
++++ b/release-manifest.json
+@@ -1,6 +1,6 @@
+ {
+   "schemaVersion": 2,
+-  "build": "apk1-release-candidate-3",
++  "build": "apk1-release-candidate-4",
+   "releaseTarget": "internal-test",
+   "implementation": {
+     "supabaseAuthAndDataAdapter": { "complete": true, "evidence": "src/re-integration.js" },
+--- a/android/app/build.gradle
++++ b/android/app/build.gradle
+@@ -16,8 +16,8 @@
+         applicationId "kr.co.re.subscription"
+         minSdkVersion rootProject.ext.minSdkVersion
+         targetSdkVersion rootProject.ext.targetSdkVersion
+-        versionCode 3
+-        versionName "1.0.0-rc3"
++        versionCode 4
++        versionName "1.0.0-rc4"
+         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+         aaptOptions {
+              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+--- a/package.json
++++ b/package.json
+@@ -1,7 +1,7 @@
+ {
+   "name": "re-subscription-manager",
+   "private": true,
+-  "version": "1.0.0-rc.1",
++  "version": "1.0.0-rc.4",
+   "type": "module",
+   "scripts": {
+     "dev": "vite --host 127.0.0.1",
