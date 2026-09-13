@@ -26,11 +26,11 @@
 +function authFailureMessage(error, fallback = "계정 연결에 실패했어요. 잠시 후 다시 시도해 주세요.") {
 +  const code = String(error?.code || error?.status || "").toLowerCase();
 +  const message = String(error?.message || "").toLowerCase();
-+  if (code.includes("email_address_not_authorized") || message.includes("email address not authorized")) return "현재 메일 발송 설정에서 이 주소로 확인 이메일을 보낼 수 없어요. SMTP 설정을 확인해 주세요.";
++  if (code.includes("email_address_not_authorized") || message.includes("email address not authorized")) return "현재 이 이메일 주소로 확인 이메일을 보낼 수 없어요. 다른 이메일을 사용하거나 잠시 후 다시 시도해 주세요.";
 +  if (code.includes("over_email_send_rate_limit") || code === "429" || message.includes("rate limit")) return "확인 이메일 발송 한도에 도달했어요. 잠시 후 다시 시도해 주세요.";
 +  if (code.includes("invalid_credentials")) return "이메일 또는 비밀번호를 확인해 주세요.";
 +  if (code.includes("email_exists") || code.includes("user_already_exists")) return "이미 가입된 이메일이에요. 로그인하거나 비밀번호 찾기를 이용해 주세요.";
-+  if (code.includes("oauth_return_missing")) return "Google 인증 후 앱으로 돌아오지 못했어요. Supabase Redirect URL에 reapp://auth/callback을 등록해야 해요.";
++  if (code.includes("oauth_return_missing")) return "Google 인증 후 앱으로 돌아오는 연결을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.";
 +  if (code.includes("oauth_code_missing")) return "Google 인증 결과를 앱에서 확인하지 못했어요. 다시 시도해 주세요.";
 +  return fallback;
 +}
