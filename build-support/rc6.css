@@ -20,11 +20,11 @@
 .splash-character-screen h1{position:absolute!important;z-index:6;top:22.5%;left:50%;transform:translateX(-50%);width:92%;margin:0!important;padding:0!important;color:#344e9b!important;font-size:clamp(17px,4.6vw,20px)!important;font-weight:600;letter-spacing:-.03em;white-space:nowrap}
 .splash-character-screen h1 span{display:none!important}
 .splash-character-screen .splash-character{position:absolute!important;z-index:4;left:50%;top:31%;bottom:auto!important;width:min(92vw,390px)!important;height:auto;transform:translateX(-50%)!important;filter:drop-shadow(0 14px 18px rgba(67,57,119,.13))!important}
-.landing-screen{background:linear-gradient(rgba(250,252,255,.13),rgba(250,252,255,.09)),url("./assets/final-backgrounds/bg-default.webp") center 50%/cover no-repeat!important}
-.auth-screen{background:linear-gradient(rgba(253,253,255,.26),rgba(250,252,255,.17)),url("./assets/final-backgrounds/bg-guidance.webp") center 50%/cover no-repeat!important}
-.app-screen[data-screen="home"],.app-screen[data-screen="subscriptions"],.app-screen[data-screen="subscription-detail"],.app-screen[data-screen="notifications"],.app-screen[data-screen="my-page"]{background:linear-gradient(rgba(250,252,255,.16),rgba(250,252,255,.10)),url("./assets/final-backgrounds/bg-default.webp") center 50%/cover no-repeat!important}
-.app-screen[data-screen="calendar"]{background:linear-gradient(rgba(250,252,255,.10),rgba(250,252,255,.07)),url("./assets/final-backgrounds/bg-payment-due.webp") center 50%/cover no-repeat!important}
-.app-screen[data-screen="benefits"]{background:linear-gradient(rgba(253,250,255,.13),rgba(252,250,255,.08)),url("./assets/final-backgrounds/bg-benefit.webp") center 50%/cover no-repeat!important}
+.landing-screen{background:linear-gradient(rgba(250,252,255,.13),rgba(250,252,255,.09)),url("./assets/backgrounds/bg-service-default.webp") center 50%/cover no-repeat!important}
+.auth-screen{background:linear-gradient(rgba(253,253,255,.26),rgba(250,252,255,.17)),url("./assets/backgrounds/bg-service-guidance.webp") center 50%/cover no-repeat!important}
+.app-screen[data-screen="home"],.app-screen[data-screen="subscriptions"],.app-screen[data-screen="subscription-detail"],.app-screen[data-screen="notifications"],.app-screen[data-screen="my-page"]{background:linear-gradient(rgba(250,252,255,.16),rgba(250,252,255,.10)),url("./assets/backgrounds/bg-service-default.webp") center 50%/cover no-repeat!important}
+.app-screen[data-screen="calendar"]{background:linear-gradient(rgba(250,252,255,.10),rgba(250,252,255,.07)),url("./assets/backgrounds/bg-service-payment-due.webp") center 50%/cover no-repeat!important}
+.app-screen[data-screen="benefits"]{background:linear-gradient(rgba(253,250,255,.13),rgba(252,250,255,.08)),url("./assets/backgrounds/bg-service-benefit.webp") center 50%/cover no-repeat!important}
 .app-bg::before,.auth-screen::before,.landing-screen::before{display:none!important}
 .app-screen::after{background:rgba(255,255,255,.025)!important}
 .landing-screen{overflow:hidden!important}
@@ -95,7 +95,7 @@
 .benefits-content .benefit-card:not(:first-child){min-height:100px!important}
 .benefits-content .benefit-card:not(:first-child) p,.benefits-content .benefit-card:not(:first-child) small:last-child{display:none!important}
 #app[data-state="empty"] .app-screen:not([hidden]) [data-fixture],#app[data-state="empty"] .app-screen:not([hidden]) [data-state-content]{display:none!important}
-#app[data-state="empty"] .app-screen:not([hidden]) .screen-content{background:linear-gradient(rgba(252,253,255,.24),rgba(252,253,255,.17)),url("./assets/final-backgrounds/bg-empty.webp") center/cover no-repeat!important}
+#app[data-state="empty"] .app-screen:not([hidden]) .screen-content{background:linear-gradient(rgba(252,253,255,.24),rgba(252,253,255,.17)),url("./assets/backgrounds/bg-service-empty.webp") center/cover no-repeat!important}
 .production-state:has(.state-character){min-height:calc(100vh - 132px)!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;padding:34px 18px 26px!important;background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;text-align:center}
 .production-state .state-character{width:min(66vw,270px)!important;margin:0 auto -9px!important;filter:drop-shadow(0 10px 18px rgba(72,64,130,.10))}
 .production-state h2{font-size:clamp(21px,6vw,26px)!important;color:#173b88!important;margin:4px 0 6px!important}
