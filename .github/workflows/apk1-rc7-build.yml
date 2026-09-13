@@ -239,6 +239,6 @@ jobs:
         with:
           name: RE-APK1-RC7-Patched-Source
           path: |
-            RE_APK1_RC6_SOURCE.zip
-            RE_APK1_RC6_SOURCE.sha256
+            RE_APK1_RC7_SOURCE.zip
+            RE_APK1_RC7_SOURCE.sha256
           if-no-files-found: error
