@@ -1,0 +1,232 @@
+name: Build RE v1.0.3 concierge native
+
+on:
+  push:
+    branches:
+      - codex/re-v1.0.3-concierge
+    paths:
+      - '.github/workflows/v103-concierge-native.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build-concierge-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore verified RC7 source baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl -L --fail --silent --show-error -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/bangsuhyoek/RE/actions/artifacts/10318164726/zip -o source-artifact.zip
+          rm -rf baseline app
+          mkdir -p baseline app
+          unzip -q source-artifact.zip -d baseline
+          unzip -q baseline/RE_APK1_RC7_SOURCE.zip -d app
+          test -f app/android/app/src/main/java/kr/co/re/subscription/payment/PaymentNotificationHelper.java
+          test -f app/assets/raster/character-state-payment-found.webp
+
+      - name: Apply v1.0.3 Android heads-up concierge
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p app/android/app/src/main/res/drawable-nodpi
+          mkdir -p app/android/app/src/main/res/layout
+          cp app/assets/raster/character-state-payment-found.webp \
+             app/android/app/src/main/res/drawable-nodpi/re_heads_up_character.webp
+
+          cat > app/android/app/src/main/res/layout/notification_re_concierge_heads_up.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:minHeight="64dp"
+              android:orientation="horizontal"
+              android:gravity="center_vertical"
+              android:paddingStart="4dp"
+              android:paddingEnd="8dp"
+              android:paddingTop="4dp"
+              android:paddingBottom="4dp">
+
+              <ImageView
+                  android:id="@+id/re_heads_up_character"
+                  android:layout_width="58dp"
+                  android:layout_height="64dp"
+                  android:layout_marginEnd="8dp"
+                  android:contentDescription="@null"
+                  android:scaleType="centerInside"
+                  android:src="@drawable/re_heads_up_character" />
+
+              <LinearLayout
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:layout_weight="1"
+                  android:orientation="vertical"
+                  android:gravity="center_vertical">
+
+                  <TextView
+                      android:id="@+id/re_heads_up_title"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:maxLines="1"
+                      android:ellipsize="end"
+                      android:textColor="#193B85"
+                      android:textSize="14sp"
+                      android:textStyle="bold" />
+
+                  <TextView
+                      android:id="@+id/re_heads_up_body"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="2dp"
+                      android:maxLines="2"
+                      android:ellipsize="end"
+                      android:textColor="#40547E"
+                      android:textSize="12sp" />
+              </LinearLayout>
+          </LinearLayout>
+          XML
+
+          cat > app/android/app/src/main/java/kr/co/re/subscription/payment/PaymentNotificationHelper.java <<'JAVA'
+          package kr.co.re.subscription.payment;
+
+          import android.Manifest;
+          import android.app.NotificationChannel;
+          import android.app.NotificationManager;
+          import android.app.PendingIntent;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.pm.PackageManager;
+          import android.graphics.Bitmap;
+          import android.graphics.BitmapFactory;
+          import android.net.Uri;
+          import android.os.Build;
+          import android.widget.RemoteViews;
+          import androidx.core.app.NotificationCompat;
+          import androidx.core.content.ContextCompat;
+          import kr.co.re.subscription.MainActivity;
+          import kr.co.re.subscription.R;
+
+          public final class PaymentNotificationHelper {
+              private static final String CHANNEL_ID = "re_payment_candidates";
+              private PaymentNotificationHelper() {}
+
+              public static void dispatch(Context context, String candidateId, PaymentParser.ParsedPayment payment) {
+                  if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return;
+                  NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                  if (manager == null) return;
+
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                      NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "구독 결제 확인", NotificationManager.IMPORTANCE_HIGH);
+                      channel.setDescription("RE.가 확인이 필요한 구독 결제를 캐릭터와 함께 한 번 알려드려요.");
+                      manager.createNotificationChannel(channel);
+                  }
+
+                  Uri deepLink = Uri.parse("reapp://payment/candidate?id=" + Uri.encode(candidateId));
+                  Intent intent = new Intent(Intent.ACTION_VIEW, deepLink, context, MainActivity.class);
+                  intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                  PendingIntent pending = PendingIntent.getActivity(context, candidateId.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+                  String amount = String.format("%,d원", payment.amount);
+                  String title = payment.serviceName + " 결제를 확인해 볼까요?";
+                  String body = amount + " 결제 후보를 찾았어요. 저장 전 내용을 확인해 주세요.";
+
+                  RemoteViews headsUp = new RemoteViews(context.getPackageName(), R.layout.notification_re_concierge_heads_up);
+                  headsUp.setTextViewText(R.id.re_heads_up_title, title);
+                  headsUp.setTextViewText(R.id.re_heads_up_body, body);
+
+                  Bitmap character = BitmapFactory.decodeResource(context.getResources(), R.drawable.re_heads_up_character);
+
+                  NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                      .setSmallIcon(R.drawable.ic_stat_re)
+                      .setContentTitle(title)
+                      .setContentText(body)
+                      .setPriority(NotificationCompat.PRIORITY_HIGH)
+                      .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                      .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                      .setAutoCancel(true)
+                      .setOnlyAlertOnce(true)
+                      .setContentIntent(pending)
+                      .setCustomHeadsUpContentView(headsUp)
+                      .setStyle(new NotificationCompat.DecoratedCustomViewStyle());
+
+                  if (character != null) builder.setLargeIcon(character);
+                  manager.notify(candidateId.hashCode(), builder.build());
+              }
+          }
+          JAVA
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app/android/app/build.gradle")
+          t=p.read_text()
+          import re
+          t=re.sub(r'versionCode\s+\d+', 'versionCode 103', t, count=1)
+          t=re.sub(r'versionName\s+"[^"]+"', 'versionName "1.0.3"', t, count=1)
+          p.write_text(t)
+          PY
+
+          grep -Fq 'setCustomHeadsUpContentView(headsUp)' app/android/app/src/main/java/kr/co/re/subscription/payment/PaymentNotificationHelper.java
+          grep -Fq 'setLargeIcon(character)' app/android/app/src/main/java/kr/co/re/subscription/payment/PaymentNotificationHelper.java
+          grep -Fq 'reapp://payment/candidate?id=' app/android/app/src/main/java/kr/co/re/subscription/payment/PaymentNotificationHelper.java
+          grep -Fq 'NotificationManager.IMPORTANCE_HIGH' app/android/app/src/main/java/kr/co/re/subscription/payment/PaymentNotificationHelper.java
+          grep -Fq 'versionName "1.0.3"' app/android/app/build.gradle
+          echo "v1.0.3 native concierge structural QA: PASS"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Compile and build
+        working-directory: app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:compileDebugJavaWithJavac :app:assembleDebug --stacktrace
+
+      - name: Inspect built APK and extract DEX
+        working-directory: app
+        run: |
+          set -euo pipefail
+          mkdir -p qa-output/v103-native qa-output/v103-dex
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          test -f "$APK"
+          unzip -q "$APK" 'classes*.dex' -d qa-output/v103-dex
+          grep -Ral --binary-files=text 'PaymentNotificationHelper' qa-output/v103-dex > qa-output/v103-native/helper-dex.txt
+          test -s qa-output/v103-native/helper-dex.txt
+          HELPER_DEX="$(head -n1 qa-output/v103-native/helper-dex.txt)"
+          grep -aq 're_heads_up_character' "$HELPER_DEX"
+          grep -aq 'notification_re_concierge_heads_up' "$HELPER_DEX"
+          grep -aq 'reapp://payment/candidate?id=' "$HELPER_DEX"
+          unzip -l "$APK" | grep -F 'res/' > qa-output/v103-native/apk-resources.txt
+          sha256sum "$APK" > qa-output/v103-native/apk.sha256
+          cat > qa-output/v103-native/summary.txt <<'TXT'
+          RE v1.0.3 native concierge QA: PASS
+          - HIGH importance payment-candidate channel preserved
+          - custom Android heads-up RemoteViews includes RE winter chibi character
+          - large-icon fallback includes same character
+          - payment candidate deep-link preserved
+          - same app package build succeeded
+          - helper bytecode and character/layout resource references verified in built APK
+          TXT
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RE-v1.0.3-concierge-native
+          path: |
+            app/android/app/build/outputs/apk/debug/app-debug.apk
+            app/qa-output/v103-native/**
+            app/qa-output/v103-dex/**
+          if-no-files-found: error
