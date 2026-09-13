@@ -1,0 +1,33 @@
+name: Export Android zipalign runtime v103
+
+on:
+  push:
+    branches:
+      - codex/re-v1.0.3-concierge
+    paths:
+      - '.github/workflows/export-zipalign-runtime-v103.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "build-tools;36.0.0"
+      - name: Collect zipalign runtime
+        run: |
+          set -euo pipefail
+          mkdir -p out/lib64
+          cp "$ANDROID_HOME/build-tools/36.0.0/zipalign" out/zipalign
+          cp "$ANDROID_HOME/build-tools/36.0.0/lib64/libc++.so" out/lib64/libc++.so
+          chmod +x out/zipalign
+          sha256sum out/zipalign out/lib64/libc++.so > out/runtime.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zipalign-runtime-v103
+          path: out/**
+          if-no-files-found: error
