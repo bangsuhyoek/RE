@@ -219,7 +219,7 @@ jobs:
       - name: Archive source
         run: |
           (cd app && zip -qr ../RE_APK1_RC7_SOURCE.zip . -x 'node_modules/*' './node_modules/*' 'dist/*' './dist/*' 'qa-output/*' './qa-output/*' 'android/.gradle/*' './android/.gradle/*' 'android/app/build/*' './android/app/build/*')
-          sha256sum RE_APK1_RC6_SOURCE.zip > RE_APK1_RC7_SOURCE.sha256
+          sha256sum RE_APK1_RC7_SOURCE.zip > RE_APK1_RC7_SOURCE.sha256
 
       - uses: actions/upload-artifact@v4
         with:
