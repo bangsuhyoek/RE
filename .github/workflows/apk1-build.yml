@@ -338,6 +338,20 @@ jobs:
           grep -Fq 'resendConfirmation' src/re-integration.js
           grep -Fq 're:app-resumed' src/native.js
           grep -Fq 'APK1 RC4: colorimetric alignment' styles.css
+          node - <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('index.html','utf8');
+          const login = html.match(/<form class="auth-form" data-auth-form="login">([\s\S]*?)<\/form>/)?.[1] || '';
+          const register = html.match(/<form class="auth-form register-form" data-auth-form="register">([\s\S]*?)<\/form>/)?.[1] || '';
+          if (login.includes('data-resend-confirmation')) throw new Error('Confirmation resend control must not be in login form');
+          if (!register.includes('data-resend-confirmation')) throw new Error('Confirmation resend control missing from register form');
+          const integration = fs.readFileSync('src/re-integration.js','utf8');
+          if (!integration.includes('requestLocalNotificationPermission();\n    const result = await requestPaymentCapturePermission();')) throw new Error('Payment capture permission ordering regression');
+          if (!integration.includes('auth.resend')) throw new Error('Confirmation resend integration missing');
+          const app = fs.readFileSync('app.js','utf8');
+          if (!app.includes('capabilities?.imageOcr !== true')) throw new Error('Unavailable OCR capability is still exposed');
+          console.log('RC4 static policy checks: PASS');
+          NODE
 
       - name: Run post-refinement regression QA
         working-directory: app
