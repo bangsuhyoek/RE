@@ -8,10 +8,10 @@ on:
     paths:
       - 'build-support/apply-apk1-rc5.py'
       - 'build-support/apply-apk1-rc5b.py'
-      - 'build-support/apply-apk1-rc7.py'
-      - 'build-support/rc7.css'
-      - 'build-support/rc7-assets/**'
-      - '.github/workflows/apk1-rc7-build.yml'
+      - 'build-support/apply-apk1-rc6.py'
+      - 'build-support/rc6.css'
+      - 'build-support/rc6-assets/**'
+      - '.github/workflows/apk1-rc6-build.yml'
 
 permissions:
   contents: read
@@ -56,7 +56,7 @@ jobs:
       - name: Apply RC7 final-reference system
         run: |
           set -euo pipefail
-          python3 build-support/apply-apk1-rc7.py app
+          python3 build-support/apply-apk1-rc6.py app
           grep -Fq 'versionName "1.0.0-rc7"' app/android/app/build.gradle
           grep -Fq 'APK1 RC7 — final criteria: RE_UI 디자인(1) + 겨울버전 RE_UI 디자인.' app/styles.css
           grep -Fq 'class="home-action-grid"' app/index.html
