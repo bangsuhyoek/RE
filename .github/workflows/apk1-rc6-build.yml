@@ -1,4 +1,4 @@
-name: Build RE APK1 RC6 final-reference candidate
+name: Build RE APK1 RC7 final-reference candidate
 
 on:
   workflow_dispatch:
@@ -8,17 +8,17 @@ on:
     paths:
       - 'build-support/apply-apk1-rc5.py'
       - 'build-support/apply-apk1-rc5b.py'
-      - 'build-support/apply-apk1-rc6.py'
-      - 'build-support/rc6.css'
-      - 'build-support/rc6-assets/**'
-      - '.github/workflows/apk1-rc6-build.yml'
+      - 'build-support/apply-apk1-rc7.py'
+      - 'build-support/rc7.css'
+      - 'build-support/rc7-assets/**'
+      - '.github/workflows/apk1-rc7-build.yml'
 
 permissions:
   contents: read
   actions: read
 
 jobs:
-  verify-and-build-rc6:
+  verify-and-build-rc7:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -53,17 +53,21 @@ jobs:
           grep -Fq 'navGap = Math.round(8 * getResources().getDisplayMetrics().density)' app/android/app/src/main/java/kr/co/re/subscription/MainActivity.java
           echo 'RC5B structural checks: PASS'
 
-      - name: Apply RC6 final-reference system
+      - name: Apply RC7 final-reference system
         run: |
           set -euo pipefail
-          python3 build-support/apply-apk1-rc6.py app
-          grep -Fq 'versionName "1.0.0-rc6"' app/android/app/build.gradle
-          grep -Fq 'APK1 RC6 — final criteria: RE_UI 디자인(1) + 겨울버전 RE_UI 디자인.' app/styles.css
+          python3 build-support/apply-apk1-rc7.py app
+          grep -Fq 'versionName "1.0.0-rc7"' app/android/app/build.gradle
+          grep -Fq 'APK1 RC7 — final criteria: RE_UI 디자인(1) + 겨울버전 RE_UI 디자인.' app/styles.css
           grep -Fq 'class="home-action-grid"' app/index.html
+          grep -Fq 'let nativeOAuthCallbackInFlight = false;' app/src/re-integration.js
+          grep -Fq 'Date.now() - nativeOAuthCallbackSeenAt < 15000' app/src/re-integration.js
+          grep -Fq '}, 10000);' app/src/re-integration.js
+          ! grep -Fq '}, 1200);' app/src/re-integration.js
           ! grep -Fq 'data-auth-provider="apple"' app/index.html
           ! grep -Fq 'data-auth-provider="kakao"' app/index.html
           ! grep -Fq 'data-route="report"' app/index.html
-          echo 'RC6 final-reference structural checks: PASS'
+          echo 'RC7 final-reference structural checks: PASS'
 
       - uses: pnpm/action-setup@v4
         with:
@@ -106,7 +110,7 @@ jobs:
         run: |
           mkdir -p qa-output
           set -o pipefail
-          pnpm test 2>&1 | tee qa-output/rc6-tests.txt
+          pnpm test 2>&1 | tee qa-output/rc7-tests.txt
 
       - name: Run browser, 60-render, empty-state and permission-onboarding QA
         working-directory: app
@@ -115,11 +119,11 @@ jobs:
           VITE_SUPABASE_ANON_KEY: sb_publishable_-8ZiIbmg-eWnMei69Q958A_fpDwu3H8
         run: |
           set -euo pipefail
-          pnpm dev:qa > qa-output/vite-rc6.log 2>&1 &
+          pnpm dev:qa > qa-output/vite-rc7.log 2>&1 &
           PID=$!; trap 'kill "$PID" 2>/dev/null || true' EXIT
           for i in $(seq 1 45); do curl --fail --silent http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
-          pnpm qa:browser 2>&1 | tee qa-output/rc6-browser.txt
-          pnpm qa:visual 2>&1 | tee qa-output/rc6-visual.txt
+          pnpm qa:browser 2>&1 | tee qa-output/rc7-browser.txt
+          pnpm qa:visual 2>&1 | tee qa-output/rc7-visual.txt
           test "$(find qa-output/render-smoke -maxdepth 1 -type f -name '*.png' | wc -l)" -eq 60
           node - <<'NODE'
           const fs=require('fs'); const {chromium}=require('playwright');
@@ -161,7 +165,7 @@ jobs:
           })().catch(e=>{console.error(e);process.exit(1)});
           NODE
           for f in qa-output/render-smoke/splash-logo-semantic-360.png qa-output/render-smoke/splash-character-semantic-360.png; do test "$(stat -c%s "$f")" -gt 12000 || { echo "Splash capture too small/blank: $f"; exit 1; }; done
-          echo 'RC6 visual QA: PASS (60 + splash visibility + targeted empty/permission)'
+          echo 'RC7 visual QA: PASS (60 + splash visibility + targeted empty/permission)'
 
       - name: Build production web
         working-directory: app
@@ -192,37 +196,37 @@ jobs:
         run: pnpm cap:sync
       - name: Internal preflight
         working-directory: app
-        run: node scripts/release-preflight.mjs internal-test | tee qa-output/rc6-preflight.txt
-      - name: Build RC6 APK
+        run: node scripts/release-preflight.mjs internal-test | tee qa-output/rc7-preflight.txt
+      - name: Build RC7 APK
         working-directory: app/android
         run: chmod +x gradlew && ./gradlew assembleDebug --stacktrace
-      - name: Inspect RC6 APK
+      - name: Inspect RC7 APK
         working-directory: app
         run: scripts/apk-inspect.sh
 
       - name: Archive source
         run: |
-          (cd app && zip -qr ../RE_APK1_RC6_SOURCE.zip . -x 'node_modules/*' './node_modules/*' 'dist/*' './dist/*' 'qa-output/*' './qa-output/*' 'android/.gradle/*' './android/.gradle/*' 'android/app/build/*' './android/app/build/*')
-          sha256sum RE_APK1_RC6_SOURCE.zip > RE_APK1_RC6_SOURCE.sha256
+          (cd app && zip -qr ../RE_APK1_RC7_SOURCE.zip . -x 'node_modules/*' './node_modules/*' 'dist/*' './dist/*' 'qa-output/*' './qa-output/*' 'android/.gradle/*' './android/.gradle/*' 'android/app/build/*' './android/app/build/*')
+          sha256sum RE_APK1_RC7_SOURCE.zip > RE_APK1_RC7_SOURCE.sha256
 
       - uses: actions/upload-artifact@v4
         with:
-          name: RE-APK1-RC6-Internal-QA
+          name: RE-APK1-RC7-Internal-QA
           path: |
             app/android/app/build/outputs/apk/debug/app-debug.apk
             app/qa-output/apk-inspection/**
-            app/qa-output/rc6-*.txt
+            app/qa-output/rc7-*.txt
             app/assets/DESIGN_ASSET_MANIFEST.md
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
-          name: RE-APK1-RC6-Visual-QA
+          name: RE-APK1-RC7-Visual-QA
           path: app/qa-output/render-smoke/**
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
-          name: RE-APK1-RC6-Patched-Source
+          name: RE-APK1-RC7-Patched-Source
           path: |
-            RE_APK1_RC6_SOURCE.zip
-            RE_APK1_RC6_SOURCE.sha256
+            RE_APK1_RC7_SOURCE.zip
+            RE_APK1_RC7_SOURCE.sha256
           if-no-files-found: error
