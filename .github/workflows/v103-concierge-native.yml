@@ -179,6 +179,20 @@ jobs:
           grep -Fq 'versionName "1.0.3"' app/android/app/build.gradle
           echo "v1.0.3 native concierge structural QA: PASS"
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - name: Restore Capacitor dependencies
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
