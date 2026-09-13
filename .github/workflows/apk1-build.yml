@@ -218,9 +218,24 @@ jobs:
           const googleEnabled = settings?.external?.google === true;
           console.log(JSON.stringify({ emailEnabled, googleEnabled, disableSignup: settings?.disable_signup ?? null }));
           if (!emailEnabled) throw new Error('RE personal Supabase email auth is disabled');
-          if (!googleEnabled) console.warn('WARNING: RE personal Supabase Google auth is disabled; APK will build, but live Google OAuth cannot succeed until the provider is enabled.');
+          if (!googleEnabled) throw new Error('RE personal Supabase Google auth is disabled');
           if (settings?.disable_signup === true) throw new Error('RE personal Supabase signup is disabled');
           NODE
+          OAUTH_STATUS="$(curl --silent --show-error \
+            --output /dev/null \
+            --dump-header app/qa-output/auth/google-oauth-headers.txt \
+            --write-out '%{http_code}' \
+            -H "apikey: $RE_SUPABASE_PUBLISHABLE_KEY" \
+            --get \
+            --data-urlencode 'provider=google' \
+            --data-urlencode 'redirect_to=reapp://auth/callback' \
+            "$RE_SUPABASE_URL/auth/v1/authorize")"
+          case "$OAUTH_STATUS" in
+            302|303|307) ;;
+            *) echo "Unexpected Google OAuth authorize status: $OAUTH_STATUS"; cat app/qa-output/auth/google-oauth-headers.txt; exit 1 ;;
+          esac
+          grep -Eiq '^location: https://accounts\.google\.com/' app/qa-output/auth/google-oauth-headers.txt
+          echo "RE personal Supabase Google OAuth redirect: PASS ($OAUTH_STATUS)"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
