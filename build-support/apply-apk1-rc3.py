@@ -364,7 +364,7 @@ if marker not in css:
 .login-screen .auth-copy h1 { font-size: clamp(22px, 6.6vw, 28px); line-height: 1.25; word-break: keep-all; }
 .login-screen .auth-copy p { max-width: 150px; font-size: clamp(10px, 2.9vw, 12px); word-break: keep-all; }
 .login-screen .auth-avatar {
-  right: -18px;
+  right: 0;
   top: clamp(42px, 11vw, 52px);
   bottom: auto;
   width: min(67vw, 286px);
