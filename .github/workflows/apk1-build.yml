@@ -218,7 +218,7 @@ jobs:
           const googleEnabled = settings?.external?.google === true;
           console.log(JSON.stringify({ emailEnabled, googleEnabled, disableSignup: settings?.disable_signup ?? null }));
           if (!emailEnabled) throw new Error('RE personal Supabase email auth is disabled');
-          if (!googleEnabled) throw new Error('RE personal Supabase Google auth is disabled');
+          if (!googleEnabled) console.warn('WARNING: RE personal Supabase Google auth is disabled; APK will build, but live Google OAuth cannot succeed until the provider is enabled.');
           if (settings?.disable_signup === true) throw new Error('RE personal Supabase signup is disabled');
           NODE
 
