@@ -1,6 +1,6 @@
 {
-  "appId": "com.submate.app",
-  "appName": "SubMate",
+  "appId": "kr.co.re.subscription",
+  "appName": "RE.",
   "webDir": "dist",
   "server": {
     "androidScheme": "https",
