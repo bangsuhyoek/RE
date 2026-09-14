@@ -99,7 +99,7 @@ jobs:
             adb install -r "$APK" &&
             adb logcat -c &&
             adb shell am force-stop kr.co.re.subscription &&
-            LAUNCHER=$(adb shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER kr.co.re.subscription | tr -d '\r') &&
+            LAUNCHER=$(adb shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER kr.co.re.subscription | tr -d '\r' | tail -n 1) &&
             echo "Resolved launcher: $LAUNCHER" &&
             test -n "$LAUNCHER" &&
             adb shell am start -n "$LAUNCHER" &&
