@@ -251,3 +251,17 @@ test("실제 신한카드 표준 결제알림 포맷(가맹점: 넷플릭스 17,
   assert.equal(parsed.serviceName, "Netflix");
   assert.equal(parsed.amount, 17000);
 });
+
+
+test("삼성 메시지의 유튜브 프리미엄 19,000원 정기 구독 결제 문자를 감지한다", () => {
+  const parsed = parsePaymentMock(
+    "com.samsung.android.messaging",
+    "[유튜브 프리미엄]",
+    "정기 구독 결제가 완료되었습니다. 결제금액 19,000원 결제일시 09/14 5:35 결제수단 신한카드(1234) 이용상품 유튜브 프리미엄 다음 결제 예정일 2026.10.14"
+  );
+  assert.ok(parsed);
+  assert.equal(parsed.serviceName, "YouTube Premium");
+  assert.equal(parsed.amount, 19000);
+  assert.equal(parsed.category, "OTT");
+  assert.equal(parsed.isSubscription, true);
+});
