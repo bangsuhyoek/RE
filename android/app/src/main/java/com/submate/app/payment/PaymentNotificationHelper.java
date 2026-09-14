@@ -14,9 +14,6 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import com.submate.app.MainActivity;
 import com.submate.app.R;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
 
 public final class PaymentNotificationHelper {
     private static final String TAG = "REPaymentNotif";
@@ -50,23 +47,16 @@ public final class PaymentNotificationHelper {
         }
 
         try {
-            String deepLink =
-                    "submate://quick-add?name=" +
-                    URLEncoder.encode(payment.serviceName, StandardCharsets.UTF_8.name()) +
-                    "&amount=" + payment.amount +
-                    "&plan=" + URLEncoder.encode(payment.plan, StandardCharsets.UTF_8.name()) +
-                    "&method=" + URLEncoder.encode(payment.paymentMethod, StandardCharsets.UTF_8.name()) +
-                    "&category=" + URLEncoder.encode(payment.category, StandardCharsets.UTF_8.name()) +
-                    "&serviceId=" + URLEncoder.encode(payment.serviceId, StandardCharsets.UTF_8.name()) +
-                    "&detectedAt=" + System.currentTimeMillis() +
-                    "&dueDay=" + Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+            String stableId = candidateId == null ? "" : candidateId;
+            Uri deepLink = Uri.parse(
+                    "reapp://payment/candidate?id=" + Uri.encode(stableId) + "&source=heads-up"
+            );
 
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(deepLink), context, MainActivity.class);
+            Intent intent = new Intent(Intent.ACTION_VIEW, deepLink, context, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
                     Intent.FLAG_ACTIVITY_CLEAR_TOP |
                     Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-            String stableId = candidateId == null ? "" : candidateId;
             int requestCode = !stableId.isEmpty()
                     ? stableId.hashCode()
                     : (int) (System.currentTimeMillis() % 100000);
