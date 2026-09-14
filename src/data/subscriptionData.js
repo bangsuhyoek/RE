@@ -6,370 +6,400 @@ const dayAfterToday = () => {
 
 export const serviceCatalog = [
   {
-   id: "netflix",
-   name: "Netflix",
-   monogram: "N",
-   category: "OTT",
-   plan: "프리미엄",
-   amount: 17000,
-   brandColor: "#E50914",
-    brandBg: "#FEE8E8",
-    brandText: "#E50914",
-    availablePlans: [
-      { plan: "광고형 스탠다드", amount: 5500 },
-      { plan: "스탠다드", amount: 13500 },
-      { plan: "프리미엄", amount: 17000 },
+    "id": "netflix",
+    "name": "Netflix",
+    "monogram": "N",
+    "category": "OTT",
+    "plan": "프리미엄",
+    "amount": 17000,
+    "brandColor": "#E50914",
+    "brandBg": "#FEE8E8",
+    "brandText": "#E50914",
+    "availablePlans": [
+      {
+        "plan": "기본 플랜",
+        "amount": 7000
+      },
+      {
+        "plan": "스탠다드",
+        "amount": 13500
+      },
+      {
+        "plan": "프리미엄",
+        "amount": 17000
+      }
     ],
-   dueDay: 15,
-   paymentMethod: "신한카드 • 4412",
-    cancelUrl: "https://www.netflix.com/cancelplan",
-    guideSteps: [
+    "plans": [
       {
-        stepNumber: 1,
-        title: "로그인",
-        description: "넷플릭스 계정으로 로그인해 주세요.",
-        imageUrl: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=320&auto=format&fit=crop&q=80",
+        "name": "기본 플랜",
+        "amount": 7000,
+        "billingCycle": "매월",
+        "quality": "HD"
       },
       {
-        stepNumber: 2,
-        title: "계정 선택",
-        description: "우측 상단 프로필 > [계정] 메뉴로 들어갑니다.",
-        imageUrl: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=320&auto=format&fit=crop&q=80",
+        "name": "스탠다드",
+        "amount": 13500,
+        "billingCycle": "매월",
+        "quality": "1080p"
       },
       {
-        stepNumber: 3,
-        title: "멤버십 해지",
-        description: "스크롤을 내려 [멤버십 해지]를 터치하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 4,
-        title: "해지 완료",
-        description: "혜택 유지 제안을 넘기고 [해지 완료]를 누르면 끝!",
-        imageUrl: "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=320&auto=format&fit=crop&q=80",
-      },
+        "name": "프리미엄",
+        "amount": 17000,
+        "billingCycle": "매월",
+        "quality": "4K UHD"
+      }
     ],
+    "cancelUrl": "https://www.netflix.com/cancelplan",
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 진입",
+        "description": "Netflix 공식 웹사이트/앱에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지",
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
+      }
+    ],
+    "lastUpdated": "2026-09-14T07:07:35.056Z",
+    "parseStatus": "PARSED_SUCCESS"
   },
   {
-   id: "youtube",
-   name: "YouTube Premium",
-   monogram: "Y",
-   category: "OTT",
-   plan: "개인 멤버십",
-   amount: 14900,
-    brandColor: "#FF0000",
-    brandBg: "#FFEBEB",
-    brandText: "#FF0000",
-    availablePlans: [
-      { plan: "개인 멤버십", amount: 14900 },
-      { plan: "가족 멤버십", amount: 19900 },
+    "id": "youtube",
+    "name": "YouTube Premium",
+    "monogram": "Y",
+    "category": "OTT",
+    "plan": "개인 멤버십",
+    "amount": 14900,
+    "brandColor": "#FF0000",
+    "brandBg": "#FFEBEB",
+    "brandText": "#FF0000",
+    "availablePlans": [
+      {
+        "plan": "개인 멤버십",
+        "amount": 14900
+      },
+      {
+        "plan": "가족 멤버십",
+        "amount": 19900
+      }
     ],
-   dueDay: 22,
-   paymentMethod: "카카오페이",
-    cancelUrl: "https://www.youtube.com/paid_memberships",
-    guideSteps: [
+    "plans": [
       {
-        stepNumber: 1,
-        title: "프로필",
-        description: "우측 상단 내 프로필 아이콘을 터치하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=320&auto=format&fit=crop&q=80",
+        "name": "개인 멤버십",
+        "amount": 14900,
+        "billingCycle": "매월",
+        "quality": "HD"
       },
       {
-        stepNumber: 2,
-        title: "구매 항목",
-        description: "[구매 항목 및 멤버십] 메뉴를 선택합니다.",
-        imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 3,
-        title: "멤버십 관리",
-        description: "활성 멤버십에서 [관리] 또는 [비활성화]를 누르세요.",
-        imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 4,
-        title: "그대로 취소",
-        description: "'일시중지' 대신 하단 [그대로 취소]를 선택하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=320&auto=format&fit=crop&q=80",
-      },
+        "name": "가족 멤버십",
+        "amount": 19900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
     ],
+    "cancelUrl": "https://www.youtube.com/paid_memberships",
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 진입",
+        "description": "YouTube Premium 공식 웹사이트/앱에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지",
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
+      }
+    ],
+    "lastUpdated": "2026-09-14T07:07:35.446Z",
+    "parseStatus": "PARSED_SUCCESS"
   },
   {
-   id: "coupang",
-   name: "쿠팡 와우",
-   monogram: "C",
-   category: "쇼핑",
-   plan: "와우 멤버십",
-   amount: 7890,
-    brandColor: "#0073E6",
-    brandBg: "#EBF4FF",
-    brandText: "#0073E6",
-    availablePlans: [
-      { plan: "와우 멤버십", amount: 7890 },
+    "id": "coupang",
+    "name": "쿠팡 와우",
+    "monogram": "C",
+    "category": "쇼핑",
+    "plan": "와우 멤버십",
+    "amount": 7890,
+    "brandColor": "#0073E6",
+    "brandBg": "#EBF4FF",
+    "brandText": "#0073E6",
+    "availablePlans": [
+      {
+        "plan": "와우 멤버십",
+        "amount": 7890
+      }
     ],
-   dueDay: 28,
-   paymentMethod: "현대카드 • 1298",
-    cancelUrl: "https://www.coupang.com/np/membership/benefit",
-    guideSteps: [
+    "plans": [
       {
-        stepNumber: 1,
-        title: "마이쿠팡",
-        description: "하단 탭에서 [마이쿠팡] 메뉴를 터치하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1556742049-0a67e5572293?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 2,
-        title: "와우 멤버십",
-        description: "[와우 멤버십] 관리 메뉴로 진입하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 3,
-        title: "해지 신청",
-        description: "페이지 맨 아래로 스크롤하여 [해지하기]를 누르세요.",
-        imageUrl: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 4,
-        title: "혜택 포기",
-        description: "반복되는 방어 화면에서 [혜택 포기하고 해지]를 누르세요.",
-        imageUrl: "https://images.unsplash.com/photo-1556740758-90de374c12ad?w=320&auto=format&fit=crop&q=80",
-      },
+        "name": "와우 멤버십",
+        "amount": 7890,
+        "billingCycle": "매월",
+        "quality": "1080p"
+      }
     ],
+    "cancelUrl": "https://www.coupang.com/np/membership/benefit",
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 진입",
+        "description": "쿠팡 와우 계정 서비스에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리",
+        "description": "계정 > 구독 관리 메뉴로 이동합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 완료",
+        "description": "[구독 해지하기]를 클릭하여 완료합니다."
+      }
+    ],
+    "lastUpdated": "2026-09-14T07:07:35.578Z",
+    "parseStatus": "CRAWL_FAILED"
   },
   {
-   id: "spotify",
-   name: "Spotify",
-   monogram: "S",
-   category: "음악",
-   plan: "개인",
-   amount: 10900,
-    brandColor: "#1DB954",
-    brandBg: "#E8F8EE",
-    brandText: "#1DB954",
-    availablePlans: [
-      { plan: "베이직", amount: 7900 },
-      { plan: "개인", amount: 10900 },
-      { plan: "듀오", amount: 16350 },
+    "id": "spotify",
+    "name": "Spotify",
+    "monogram": "S",
+    "category": "음악",
+    "plan": "개인",
+    "amount": 10900,
+    "brandColor": "#1DB954",
+    "brandBg": "#E8F8EE",
+    "brandText": "#1DB954",
+    "availablePlans": [
+      {
+        "plan": "개인",
+        "amount": 10900
+      },
+      {
+        "plan": "듀오",
+        "amount": 16350
+      }
     ],
-   dueDay: dayAfterToday(),
-   paymentMethod: "토스페이",
-    cancelUrl: "https://www.spotify.com/account/subscription/",
-    isTrial: true,
-    guideSteps: [
+    "plans": [
       {
-        stepNumber: 1,
-        title: "계정 로그인",
-        description: "스포티파이 웹사이트에서 계정으로 로그인하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=320&auto=format&fit=crop&q=80",
+        "name": "개인",
+        "amount": 10900,
+        "billingCycle": "매월",
+        "quality": "HD"
       },
       {
-        stepNumber: 2,
-        title: "요금제 변경",
-        description: "이용 중인 요금제 섹션의 [요금제 변경]을 누르세요.",
-        imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 3,
-        title: "Premium 해지",
-        description: "스크롤을 내려 [Spotify 구독 해지] 섹션의 [Premium 해지]를 누르세요.",
-        imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=320&auto=format&fit=crop&q=80",
-      },
+        "name": "듀오",
+        "amount": 16350,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
     ],
+    "cancelUrl": "https://www.spotify.com/kr-ko/account/overview/",
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 진입",
+        "description": "Spotify 공식 웹사이트/앱에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지",
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
+      }
+    ],
+    "lastUpdated": "2026-09-14T07:07:35.834Z",
+    "parseStatus": "PARSED_SUCCESS"
   },
   {
-   id: "chatgpt",
-   name: "ChatGPT Plus",
-   monogram: "G",
-   category: "생산성",
-   plan: "Plus",
-   amount: 29000,
-    brandColor: "#10A37F",
-    brandBg: "#E6F6F2",
-    brandText: "#10A37F",
-    availablePlans: [
-      { plan: "Plus ($20)", amount: 29000 },
-      { plan: "Team ($25/인)", amount: 37000 },
+    "id": "disney",
+    "name": "Disney+",
+    "monogram": "D",
+    "category": "OTT",
+    "plan": "스탠다드",
+    "amount": 9900,
+    "brandColor": "#0063E5",
+    "brandBg": "#E8F1FD",
+    "brandText": "#0063E5",
+    "availablePlans": [
+      {
+        "plan": "기본 플랜",
+        "amount": 15000
+      },
+      {
+        "plan": "스탠다드",
+        "amount": 18000
+      },
+      {
+        "plan": "프리미엄",
+        "amount": 21500
+      }
     ],
-   dueDay: 5,
-   paymentMethod: "KB국민카드 • 8831",
-    cancelUrl: "https://chatgpt.com/#settings",
-    guideSteps: [
+    "plans": [
       {
-        stepNumber: 1,
-        title: "설정 메뉴",
-        description: "좌측 하단 프로필 > [Settings] 메뉴를 누르세요.",
-        imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=320&auto=format&fit=crop&q=80",
+        "name": "기본 플랜",
+        "amount": 15000,
+        "billingCycle": "매월",
+        "quality": "HD"
       },
       {
-        stepNumber: 2,
-        title: "구독 관리",
-        description: "[Subscription] 탭에서 [Manage]를 클릭합니다.",
-        imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=320&auto=format&fit=crop&q=80",
+        "name": "스탠다드",
+        "amount": 18000,
+        "billingCycle": "매월",
+        "quality": "1080p"
       },
       {
-        stepNumber: 3,
-        title: "플랜 취소",
-        description: "Stripe 결제창에서 [플랜 취소]를 선택하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=320&auto=format&fit=crop&q=80",
-      },
+        "name": "프리미엄",
+        "amount": 21500,
+        "billingCycle": "매월",
+        "quality": "4K UHD"
+      }
     ],
+    "cancelUrl": "https://www.disneyplus.com/ko-kr/account",
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 진입",
+        "description": "Disney+ 공식 웹사이트/앱에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지",
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
+      }
+    ],
+    "lastUpdated": "2026-09-14T07:07:35.998Z",
+    "parseStatus": "PARSED_SUCCESS"
   },
   {
-   id: "tving",
-   name: "티빙",
-   monogram: "T",
-   category: "OTT",
-   plan: "스탠다드",
-   amount: 13500,
-    brandColor: "#FF153C",
-    brandBg: "#FFEBF0",
-    brandText: "#FF153C",
-    availablePlans: [
-      { plan: "광고형 스탠다드", amount: 5500 },
-      { plan: "스탠다드", amount: 13500 },
-      { plan: "프리미엄", amount: 17000 },
+    "id": "tving",
+    "name": "TVING",
+    "monogram": "T",
+    "category": "OTT",
+    "plan": "광고형 스탠다드",
+    "amount": 5500,
+    "brandColor": "#FF153C",
+    "brandBg": "#FFEBEF",
+    "brandText": "#FF153C",
+    "availablePlans": [
+      {
+        "plan": "광고형 스탠다드",
+        "amount": 5500
+      },
+      {
+        "plan": "스탠다드",
+        "amount": 13500
+      },
+      {
+        "plan": "프리미엄",
+        "amount": 17000
+      }
     ],
-   dueDay: 10,
-   paymentMethod: "네이버페이",
-    cancelUrl: "https://www.tving.com/my/sub",
-    guideSteps: [
+    "plans": [
       {
-        stepNumber: 1,
-        title: "MY 메뉴",
-        description: "우측 상단 프로필 [MY] 메뉴로 이동합니다.",
-        imageUrl: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=320&auto=format&fit=crop&q=80",
+        "name": "광고형 스탠다드",
+        "amount": 5500,
+        "billingCycle": "매월",
+        "quality": "1080p"
       },
       {
-        stepNumber: 2,
-        title: "이용권/캐시",
-        description: "[이용권/캐시 내역] > [정기결제 관리]를 선택하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=320&auto=format&fit=crop&q=80",
+        "name": "스탠다드",
+        "amount": 13500,
+        "billingCycle": "매월",
+        "quality": "1080p"
       },
       {
-        stepNumber: 3,
-        title: "해지 신청",
-        description: "하단 [자동결제 해지 신청]을 누르면 완료됩니다.",
-        imageUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=320&auto=format&fit=crop&q=80",
-      },
+        "name": "프리미엄",
+        "amount": 17000,
+        "billingCycle": "매월",
+        "quality": "4K UHD"
+      }
     ],
+    "cancelUrl": "https://www.tving.com/my/pass",
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 진입",
+        "description": "TVING 공식 웹사이트/앱에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지",
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
+      }
+    ],
+    "lastUpdated": "2026-09-14T07:07:36.283Z",
+    "parseStatus": "PARSED_SUCCESS"
   },
   {
-   id: "disney",
-   name: "Disney+",
-   monogram: "D",
-   category: "OTT",
-   plan: "스탠다드",
-   amount: 9900,
-    brandColor: "#0063E5",
-    brandBg: "#E8F1FD",
-    brandText: "#0063E5",
-    availablePlans: [
-      { plan: "스탠다드", amount: 9900 },
-      { plan: "프리미엄", amount: 13900 },
+    "id": "chatgpt",
+    "name": "ChatGPT Plus",
+    "monogram": "G",
+    "category": "소프트웨어",
+    "plan": "ChatGPT Plus",
+    "amount": 29000,
+    "brandColor": "#10A37F",
+    "brandBg": "#E6F6F2",
+    "brandText": "#10A37F",
+    "availablePlans": [
+      {
+        "plan": "ChatGPT Plus",
+        "amount": 29000
+      }
     ],
-   dueDay: 18,
-   paymentMethod: "삼성카드 • 3701",
-    cancelUrl: "https://www.disneyplus.com/ko-kr/account",
-    guideSteps: [
+    "plans": [
       {
-        stepNumber: 1,
-        title: "로그인",
-        description: "디즈니+ 공식 사이트에서 계정으로 로그인합니다.",
-        imageUrl: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 2,
-        title: "계정 선택",
-        description: "우측 상단 프로필 > [계정] 메뉴를 선택하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 3,
-        title: "멤버십 취소",
-        description: "구독 중인 요금제를 누르고 [멤버십 취소]를 진행하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=320&auto=format&fit=crop&q=80",
-      },
+        "name": "ChatGPT Plus",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
     ],
-  },
-  {
-   id: "millie",
-   name: "밀리의 서재",
-   monogram: "M",
-   category: "생산성",
-   plan: "전자책 정기구독",
-   amount: 9900,
-    brandColor: "#F8B62D",
-    brandBg: "#FFF7E6",
-    brandText: "#B37A00",
-    availablePlans: [
-      { plan: "전자책 정기구독", amount: 9900 },
-      { plan: "연 정기구독", amount: 99000 },
+    "cancelUrl": "https://chatgpt.com/#settings/Subscription",
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 진입",
+        "description": "ChatGPT Plus 공식 웹사이트/앱에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지",
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
+      }
     ],
-   dueDay: 12,
-   paymentMethod: "카카오페이",
-    cancelUrl: "https://www.millie.co.kr/v3/mypage/subscription",
-    guideSteps: [
-      {
-        stepNumber: 1,
-        title: "관리 이동",
-        description: "하단 메뉴 [관리] 탭으로 이동합니다.",
-        imageUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 2,
-        title: "구독 관리",
-        description: "[구독 관리] > [결제 예정 내역]을 확인하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 3,
-        title: "해지 신청",
-        description: "하단 [해지 신청]을 누르고 최종 확인을 완료하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=320&auto=format&fit=crop&q=80",
-      },
-    ],
-  },
-  {
-   id: "adobe",
-   name: "Adobe Creative Cloud",
-   monogram: "A",
-   category: "생산성",
-   plan: "모든 앱 (학생 할인)",
-   amount: 26400,
-    brandColor: "#FA0F00",
-    brandBg: "#FFEBEA",
-    brandText: "#FA0F00",
-    availablePlans: [
-      { plan: "모든 앱 (학생)", amount: 26400 },
-      { plan: "포토그래피 플랜", amount: 13200 },
-      { plan: "단일 앱", amount: 31900 },
-      { plan: "모든 앱 (일반)", amount: 78100 },
-    ],
-   dueDay: 8,
-   paymentMethod: "신한카드 • 4412",
-    cancelUrl: "https://account.adobe.com/plans",
-    guideSteps: [
-      {
-        stepNumber: 1,
-        title: "계정 로그인",
-        description: "account.adobe.com에 Adobe 계정으로 로그인합니다.",
-        imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 2,
-        title: "플랜 관리",
-        description: "내 플랜 카드에서 [플랜 관리]를 선택하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=320&auto=format&fit=crop&q=80",
-      },
-      {
-        stepNumber: 3,
-        title: "플랜 취소",
-        description: "[플랜 취소] 버튼을 클릭하여 해지 절차를 완료하세요.",
-        imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=320&auto=format&fit=crop&q=80",
-      },
-    ],
-  },
+    "lastUpdated": "2026-09-14T07:07:36.816Z",
+    "parseStatus": "PARSED_SUCCESS"
+  }
 ];
 
 export const createMockSubscriptions = () =>
