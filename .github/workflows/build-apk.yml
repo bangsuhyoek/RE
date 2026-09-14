@@ -72,30 +72,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          script: |
-            set -e
-            APK=android/app/build/outputs/apk/debug/app-debug.apk
-            adb install -r "$APK"
-            adb logcat -c
-            adb shell am force-stop kr.co.re.subscription
-            adb shell am start -W -n kr.co.re.subscription/com.submate.app.MainActivity
-            sleep 6
-            PID="$(adb shell pidof kr.co.re.subscription | tr -d '\r')"
-            test -n "$PID"
-            adb shell dumpsys activity activities | grep -q "kr.co.re.subscription"
-            if adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q .; then
-              echo "Fatal runtime error detected"
-              adb logcat -d -v brief | grep -E -A 40 -B 10 "FATAL EXCEPTION|Process: kr.co.re.subscription"
-              exit 1
-            fi
-            adb shell am start -W -a android.intent.action.VIEW -d "submate://quick-add?name=YouTube%20Premium&amount=19000&plan=Premium&method=Card&category=OTT&serviceId=youtube&dueDay=14" kr.co.re.subscription
-            sleep 3
-            PID2="$(adb shell pidof kr.co.re.subscription | tr -d '\r')"
-            test -n "$PID2"
-            if adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q .; then
-              echo "Fatal runtime error detected after deep link"
-              exit 1
-            fi
+          script: adb install -r android/app/build/outputs/apk/debug/app-debug.apk && adb logcat -c && adb shell am force-stop kr.co.re.subscription && adb shell am start -W -n kr.co.re.subscription/com.submate.app.MainActivity && sleep 6 && adb shell pidof kr.co.re.subscription | grep -q . && adb shell dumpsys activity activities | grep -q "kr.co.re.subscription" && ! adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q . && adb shell am start -W -a android.intent.action.VIEW -d "submate://quick-add?name=YouTube%20Premium&amount=19000&plan=Premium&method=Card&category=OTT&serviceId=youtube&dueDay=14" kr.co.re.subscription && sleep 3 && adb shell pidof kr.co.re.subscription | grep -q . && ! adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q .
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
