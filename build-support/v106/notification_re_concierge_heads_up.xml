@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/re_heads_up_root"
+    android:layout_width="match_parent"
+    android:layout_height="88dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/re_heads_up_bg"
+    android:paddingStart="6dp"
+    android:paddingEnd="8dp">
+
+    <ImageView
+        android:id="@+id/re_heads_up_character"
+        android:layout_width="72dp"
+        android:layout_height="76dp"
+        android:layout_gravity="center_vertical"
+        android:scaleType="centerInside"
+        android:contentDescription="@null"
+        android:src="@drawable/re_heads_up_character" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:paddingStart="4dp">
+
+        <TextView
+            android:id="@+id/re_heads_up_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="#213E88"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/re_heads_up_body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="#6E7FA7"
+            android:textSize="11sp" />
+    </LinearLayout>
+</LinearLayout>
