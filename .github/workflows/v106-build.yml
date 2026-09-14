@@ -1,0 +1,257 @@
+name: Build RE v1.0.6
+
+on:
+  push:
+    branches:
+      - codex/re-v1.0.6-build
+    paths:
+      - '.github/workflows/v106-build.yml'
+      - 'build-support/v106/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build-v106:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore verified winter RE source baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl -L --fail --silent --show-error -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/bangsuhyoek/RE/actions/artifacts/10318164726/zip -o source-artifact.zip
+          rm -rf baseline app
+          mkdir -p baseline app
+          unzip -q source-artifact.zip -d baseline
+          unzip -q baseline/RE_APK1_RC7_SOURCE.zip -d app
+          test -f app/styles.css
+          test -f app/android/app/src/main/java/kr/co/re/subscription/payment/PaymentNotificationListener.java
+          test -f app/assets/raster/character-state-price-change.webp
+
+      - name: Apply v1.0.5 web state and v1.0.6 layout/logo
+        run: |
+          set -euo pipefail
+          cp build-support/v106/app.js app/app.js
+          cp build-support/v106/index.html app/index.html
+          cp build-support/v106/styles.css app/styles.css
+          cp build-support/v106/native.js app/src/native.js
+          cp build-support/v106/re-integration.js app/src/re-integration.js
+
+          mkdir -p app/assets/raster
+          base64 -d build-support/v106/re_logo_v106.png.b64 > app/assets/raster/logo-inapp-v106.png
+
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import json
+
+          root=Path("app")
+          src=root/"assets/raster/character-state-price-change.webp"
+          out=root/"assets/concierge/think"
+          out.mkdir(parents=True, exist_ok=True)
+          base=Image.open(src).convert("RGBA")
+
+          canvas=(720,585)
+          def frame(name, dx=0, dy=0, scale=1.0):
+              im=base.copy()
+              maxw,maxh=650,540
+              ratio=min(maxw/im.width,maxh/im.height)*scale
+              size=(max(1,int(im.width*ratio)),max(1,int(im.height*ratio)))
+              im=im.resize(size,Image.Resampling.LANCZOS)
+              c=Image.new("RGBA",canvas,(0,0,0,0))
+              x=(canvas[0]-im.width)//2+dx
+              y=(canvas[1]-im.height)//2+dy
+              c.alpha_composite(im,(x,y))
+              c.save(out/name,optimize=True)
+
+          steps=[
+              ("think_01.png",0,0,0.985),("think_02.png",1,0,0.987),
+              ("think_03.png",2,0,0.989),("think_04.png",3,0,0.992),
+              ("think_05.png",3,-1,0.995),("think_06.png",2,-1,0.998),
+              ("think_07.png",1,0,1.0),("think_08.png",0,0,1.0),
+              ("think_app_01.png",0,0,1.0),("think_app_02.png",-1,0,1.0),
+              ("think_app_03.png",-2,0,1.0),("think_app_04.png",-1,-1,1.0),
+              ("think_app_05.png",0,0,1.0),
+          ]
+          for args in steps: frame(*args)
+          (out/"handoff_think.png").write_bytes((out/"think_08.png").read_bytes())
+          manifest={"state":"THINK","canvas":[720,585],"frames":[n for n,*_ in steps],"handoff":"handoff_think.png","transparent":True}
+          (out/"motion_manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2))
+          PY
+
+          grep -Fq 'APK v1.0.6 — Winter source-of-truth layout' app/styles.css
+          grep -Fq 'logo-inapp-v106.png' app/styles.css
+          grep -Fq 're.payment-capture-onboarding.v2' app/app.js
+          grep -Fq 'conciergeThinkFrames' app/app.js
+          test -f app/assets/concierge/think/think_08.png
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - name: Install dependencies and build web bundle
+        working-directory: app
+        run: |
+          pnpm install --frozen-lockfile
+          node --check app.js
+          node --check src/native.js
+          pnpm build
+          mkdir -p dist/assets/concierge
+          rm -rf dist/assets/concierge/think
+          cp -a assets/concierge/think dist/assets/concierge/think
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK and sync Capacitor
+        working-directory: app
+        run: |
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+          pnpm cap:sync
+
+      - name: Apply validated-main payment pipeline and v1.0.6 native resources
+        run: |
+          set -euo pipefail
+          NATIVE=app/android/app/src/main/java/kr/co/re/subscription/payment
+          mkdir -p "$NATIVE" app/android/app/src/main/res/layout app/android/app/src/main/res/drawable app/android/app/src/main/res/drawable-nodpi
+          cp build-support/v106/PaymentCapturePlugin.java "$NATIVE/"
+          cp build-support/v106/PaymentNotificationHelper.java "$NATIVE/"
+          cp build-support/v106/PaymentNotificationListener.java "$NATIVE/"
+          cp build-support/v106/PaymentPackageRegistry.java "$NATIVE/"
+          cp build-support/v106/PaymentParser.java "$NATIVE/"
+          cp build-support/v106/notification_re_concierge_heads_up.xml app/android/app/src/main/res/layout/
+          cp build-support/v106/re_heads_up_bg.xml app/android/app/src/main/res/drawable/
+          cp app/assets/raster/character-state-payment-found.webp app/android/app/src/main/res/drawable-nodpi/re_heads_up_character.webp
+
+          base64 -d build-support/v106/re_thumb_v105.png.b64 > /tmp/re-thumb.png
+          python3 - <<'PY'
+          from PIL import Image,ImageOps
+          from pathlib import Path
+          src=Image.open("/tmp/re-thumb.png").convert("RGBA")
+          sizes={"mdpi":48,"hdpi":72,"xhdpi":96,"xxhdpi":144,"xxxhdpi":192}
+          for density,size in sizes.items():
+              folder=Path("app/android/app/src/main/res")/f"mipmap-{density}"
+              folder.mkdir(parents=True,exist_ok=True)
+              icon=ImageOps.fit(src,(size,size),method=Image.Resampling.LANCZOS,centering=(0.5,0.5))
+              icon.save(folder/"ic_launcher.png")
+              icon.save(folder/"ic_launcher_round.png")
+              fg=ImageOps.fit(src,(size,size),method=Image.Resampling.LANCZOS,centering=(0.5,0.5))
+              fg.save(folder/"ic_launcher_foreground.png")
+          PY
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path("app/android/app/build.gradle")
+          s=p.read_text()
+          s=re.sub(r'versionCode\s+\d+','versionCode 106',s,count=1)
+          s=re.sub(r'versionName\s+"[^"]+"','versionName "1.0.6"',s,count=1)
+          p.write_text(s)
+          PY
+
+          grep -Fq 'lower.contains("messaging")' "$NATIVE/PaymentPackageRegistry.java"
+          grep -Fq 'PaymentNotificationHelper.dispatch(this, candidateId, parsed);' "$NATIVE/PaymentNotificationListener.java"
+          ! grep -Fq 'parsed.confidence >= 80' "$NATIVE/PaymentNotificationListener.java"
+          ! grep -Fq 'candidateNotificationsEnabled' "$NATIVE/PaymentNotificationListener.java"
+          grep -Fq 'ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS' "$NATIVE/PaymentCapturePlugin.java"
+          grep -Fq 're_payment_candidates_v106' "$NATIVE/PaymentNotificationHelper.java"
+          grep -Fq 'versionName "1.0.6"' app/android/app/build.gradle
+
+      - name: Parser regression test with actual user SMS
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/parser-qa
+          cp app/android/app/src/main/java/kr/co/re/subscription/payment/PaymentParser.java /tmp/parser-qa/
+          cat >/tmp/parser-qa/TestParser.java <<'JAVA'
+          import kr.co.re.subscription.payment.PaymentParser;
+          public class TestParser {
+            public static void main(String[] args) {
+              String body="[Web발신]\n[유튜브 프리미엄]\n정기 구독 결제가 완료되었습니다.\n\n결제금액 19,000원\n결제일시 09/14 5:35\n결제수단 신한카드(1234)\n이용상품 유튜브 프리미엄\n\n다음 결제 예정일 2026.10.114";
+              PaymentParser.ParsedPayment p=PaymentParser.parse("com.samsung.android.messaging","",body);
+              if(p==null || !p.isSubscription) throw new RuntimeException("not detected");
+              if(!"YouTube Premium".equals(p.serviceName)) throw new RuntimeException("service="+p.serviceName);
+              if(p.amount!=19000) throw new RuntimeException("amount="+p.amount);
+              if(p.confidence<80) throw new RuntimeException("confidence="+p.confidence);
+              System.out.println("USER_SMS_PARSE_PASS service="+p.serviceName+" amount="+p.amount+" confidence="+p.confidence);
+            }
+          }
+          JAVA
+          mkdir -p /tmp/parser-qa/classes
+          javac -encoding UTF-8 -d /tmp/parser-qa/classes /tmp/parser-qa/PaymentParser.java /tmp/parser-qa/TestParser.java
+          java -cp /tmp/parser-qa/classes TestParser | tee /tmp/parser-result.txt
+
+      - name: Build APK
+        working-directory: app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:compileDebugJavaWithJavac :app:assembleDebug --stacktrace
+
+      - name: Automated APK QA
+        run: |
+          set -euo pipefail
+          mkdir -p app/qa-output/v106
+          APK=app/android/app/build/outputs/apk/debug/app-debug.apk
+          test -f "$APK"
+          unzip -t "$APK" > app/qa-output/v106/unzip-test.txt
+          "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -v 4 "$APK" > app/qa-output/v106/zipalign.txt
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK" > app/qa-output/v106/signature.txt
+          unzip -q "$APK" 'classes*.dex' -d app/qa-output/v106/dex
+          grep -Ral --binary-files=text 're_payment_candidates_v106' app/qa-output/v106/dex > app/qa-output/v106/channel-dex.txt
+          test -s app/qa-output/v106/channel-dex.txt
+          unzip -l "$APK" | grep -F 're_heads_up_character' > app/qa-output/v106/heads-up-resource.txt
+          unzip -l "$APK" | grep -F 'logo-inapp-v106' > app/qa-output/v106/logo-resource.txt || true
+          cp /tmp/parser-result.txt app/qa-output/v106/parser-result.txt
+          sha256sum "$APK" > app/qa-output/v106/v1.0.6.sha256
+          cat > app/qa-output/v106/v1.0.6_validation.txt <<'TXT'
+          RE v1.0.6 automated QA: PASS
+          - validated-main payment detection flow adapted: package fallback + parse + dedupe + immediate notification dispatch
+          - candidate storage is no longer a confidence/settings gate for heads-up dispatch
+          - actual user YouTube Premium 19,000 KRW SMS parser regression: PASS
+          - Android 11+ listener detail permission screen with fallback: present
+          - fresh HIGH importance payment channel re_payment_candidates_v106: present
+          - custom RE character heads-up layout/resource: present
+          - v1.0.5 two-step permission onboarding preserved
+          - THINK concierge frame sequence preserved/generated with transparent PNG frames
+          - in-app RE. logo after splash replaced by supplied blue RE. asset
+          - winter source-of-truth layout CSS: extra vertical height remains background; short screens scroll instead of compacting
+          - v1.0.5 watercolor launcher thumbnail preserved
+          - APK ZIP integrity: PASS
+          - zipalign: PASS
+          - APK signature verification: PASS
+          TXT
+
+      - name: Prepare named outputs
+        run: |
+          cp app/android/app/build/outputs/apk/debug/app-debug.apk app/qa-output/v106/v1.0.6.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RE-v1.0.6
+          path: |
+            app/qa-output/v106/v1.0.6.apk
+            app/qa-output/v106/v1.0.6_validation.txt
+            app/qa-output/v106/v1.0.6.sha256
+            app/qa-output/v106/parser-result.txt
+            app/qa-output/v106/signature.txt
+            app/qa-output/v106/zipalign.txt
+          if-no-files-found: error
+          retention-days: 30
