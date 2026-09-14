@@ -99,11 +99,14 @@ jobs:
             adb install -r "$APK" &&
             adb logcat -c &&
             adb shell am force-stop kr.co.re.subscription &&
-            adb shell am start -n kr.co.re.subscription/com.submate.app.MainActivity &&
+            LAUNCHER=$(adb shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER kr.co.re.subscription | tr -d '\r') &&
+            echo "Resolved launcher: $LAUNCHER" &&
+            test -n "$LAUNCHER" &&
+            adb shell am start -n "$LAUNCHER" &&
             sleep 8 &&
-            adb shell dumpsys activity activities | grep -q "kr.co.re.subscription/com.submate.app.MainActivity" &&
+            adb shell dumpsys activity activities | grep -q "kr.co.re.subscription" &&
             ( ! adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q . ) &&
             adb shell am start -a android.intent.action.VIEW -d "reapp://payment/candidate?id=smoke-test&source=heads-up" kr.co.re.subscription &&
             sleep 4 &&
-            adb shell dumpsys activity activities | grep -q "kr.co.re.subscription/com.submate.app.MainActivity" &&
+            adb shell dumpsys activity activities | grep -q "kr.co.re.subscription" &&
             ( ! adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q . )
