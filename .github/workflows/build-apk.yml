@@ -92,24 +92,18 @@ jobs:
           profile: pixel_4
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: |
-            set -e
-            APK=artifact/android/app/build/outputs/apk/debug/app-debug.apk
-            test -s "$APK"
-            adb install -r "$APK"
-            adb logcat -c
-            adb shell am force-stop kr.co.re.subscription
-            adb shell am start -n kr.co.re.subscription/com.submate.app.MainActivity
-            sleep 8
-            adb shell dumpsys activity activities | grep -q "kr.co.re.subscription/com.submate.app.MainActivity"
-            if adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q .; then
-              adb logcat -d -v brief | grep -E -A 50 -B 10 "FATAL EXCEPTION|Process: kr.co.re.subscription"
-              exit 1
-            fi
-            adb shell am start -a android.intent.action.VIEW -d "reapp://payment/candidate?id=smoke-test&source=heads-up" kr.co.re.subscription
-            sleep 4
-            adb shell dumpsys activity activities | grep -q "kr.co.re.subscription/com.submate.app.MainActivity"
-            if adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q .; then
-              adb logcat -d -v brief | grep -E -A 50 -B 10 "FATAL EXCEPTION|Process: kr.co.re.subscription"
-              exit 1
-            fi
+          script: >-
+            APK=$(find artifact -type f -name '*.apk' -print -quit) &&
+            test -n "$APK" &&
+            test -s "$APK" &&
+            adb install -r "$APK" &&
+            adb logcat -c &&
+            adb shell am force-stop kr.co.re.subscription &&
+            adb shell am start -n kr.co.re.subscription/com.submate.app.MainActivity &&
+            sleep 8 &&
+            adb shell dumpsys activity activities | grep -q "kr.co.re.subscription/com.submate.app.MainActivity" &&
+            ( ! adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q . ) &&
+            adb shell am start -a android.intent.action.VIEW -d "reapp://payment/candidate?id=smoke-test&source=heads-up" kr.co.re.subscription &&
+            sleep 4 &&
+            adb shell dumpsys activity activities | grep -q "kr.co.re.subscription/com.submate.app.MainActivity" &&
+            ( ! adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q . )
