@@ -74,7 +74,7 @@ public final class PaymentNotificationHelper {
 
             NotificationCompat.Builder builder =
                     new NotificationCompat.Builder(context, CHANNEL_ID)
-                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setSmallIcon(R.drawable.ic_submate_guide)
                             .setContentTitle(title)
                             .setContentText(body)
                             .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
