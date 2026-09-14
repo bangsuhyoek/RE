@@ -11,7 +11,7 @@
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
-            android:name=".MainActivity"
+            android:name="com.submate.app.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
@@ -45,7 +45,7 @@
         </activity>
 
         <activity
-            android:name=".CancelBrowserActivity"
+            android:name="com.submate.app.CancelBrowserActivity"
             android:label="구독 해지 브라우저"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustResize"
@@ -63,7 +63,7 @@
         </provider>
 
         <service
-            android:name=".OverlayGuideService"
+            android:name="com.submate.app.OverlayGuideService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="specialUse">
@@ -73,7 +73,7 @@
         </service>
 
         <service
-            android:name=".payment.PaymentNotificationListener"
+            android:name="com.submate.app.payment.PaymentNotificationListener"
             android:label="RE. 구독 결제 알림 도우미"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
