@@ -49,7 +49,8 @@ public final class PaymentNotificationHelper {
         try {
             String stableId = candidateId == null ? "" : candidateId;
             Uri deepLink = Uri.parse(
-                    "reapp://payment/candidate?id=" + Uri.encode(stableId) + "&source=heads-up"
+                    "reapp://payment/candidate?id=" + Uri.encode(stableId) +
+                    "&source=heads-up"
             );
 
             Intent intent = new Intent(Intent.ACTION_VIEW, deepLink, context, MainActivity.class);
@@ -74,7 +75,7 @@ public final class PaymentNotificationHelper {
 
             NotificationCompat.Builder builder =
                     new NotificationCompat.Builder(context, CHANNEL_ID)
-                            .setSmallIcon(R.drawable.ic_submate_guide)
+                            .setSmallIcon(R.mipmap.ic_launcher)
                             .setContentTitle(title)
                             .setContentText(body)
                             .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
