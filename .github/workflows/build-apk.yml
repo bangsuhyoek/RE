@@ -109,7 +109,7 @@ jobs:
             sleep 8 &&
             adb shell dumpsys activity activities | grep -q "kr.co.re.subscription" &&
             ( ! adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q . ) &&
-            adb shell am start -a android.intent.action.VIEW -d "reapp://payment/candidate?id=smoke-test&source=heads-up" kr.co.re.subscription &&
+            adb shell am start -a android.intent.action.VIEW -d "reapp://payment/candidate?id=smoke-test" kr.co.re.subscription &&
             sleep 4 &&
             adb shell dumpsys activity activities | grep -q "kr.co.re.subscription" &&
             ( ! adb logcat -d -v brief | grep -E "FATAL EXCEPTION|Process: kr.co.re.subscription" | grep -q . )
