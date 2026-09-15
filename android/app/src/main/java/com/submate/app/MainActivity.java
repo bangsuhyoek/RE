@@ -5,8 +5,8 @@ import android.view.View;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import com.getcapacitor.BridgeActivity;
-import com.submate.app.payment.PaymentCapturePlugin;
+import com.getcapacitor.BridgeActivity;\nimport com.submate.app.CancelBrowserPlugin;
+import kr.co.re.subscription.payment.PaymentCapturePlugin;
 
 public class MainActivity extends BridgeActivity {
     @Override
@@ -34,7 +34,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         // Android 설정에서 돌아왔거나 OEM이 listener를 끊은 경우 실제 OS 상태를 기준으로 재연결한다.
         PaymentCapturePlugin.ensureListenerConnected(this);
