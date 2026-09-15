@@ -12,7 +12,7 @@ import android.os.Build;
 import android.util.Log;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
-import com.submate.app.MainActivity;
+import kr.co.re.subscription.MainActivity;
 import com.submate.app.R;
 
 public final class PaymentNotificationHelper {
