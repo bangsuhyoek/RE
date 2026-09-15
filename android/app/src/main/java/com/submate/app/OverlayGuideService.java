@@ -26,6 +26,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.core.app.NotificationCompat;
+import kr.co.re.subscription.MainActivity;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
