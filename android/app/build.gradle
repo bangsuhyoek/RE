@@ -1,19 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    sourceSets {
-        main.java.exclude 'com/submate/app/CancelBrowserActivity.java'
-        main.java.exclude 'com/submate/app/CancelBrowserPlugin.java'
-        main.java.exclude 'com/submate/app/OverlayGuideService.java'
-    }
     namespace = "kr.co.re.subscription"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "kr.co.re.subscription"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16
-        versionName "1.0.6"
+        versionCode 202
+        versionName "2.0.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
