@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
+import android.service.notification.NotificationListenerService;
+import android.util.Log;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -14,31 +16,95 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 @CapacitorPlugin(name = "PaymentCapture")
 public class PaymentCapturePlugin extends Plugin {
+    private static final String TAG = "REPaymentCapture";
+    private static final long REBIND_COOLDOWN_MS = 15_000L;
+    private static volatile long lastRebindRequestAt = 0L;
 
     private ComponentName listenerComponent(Context context) {
         return new ComponentName(context, PaymentNotificationListener.class);
     }
 
+    public static boolean hasListenerAccess(Context context) {
+        if (context == null) return false;
+        ComponentName component = new ComponentName(context, PaymentNotificationListener.class);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                NotificationManager nm =
+                        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                return nm != null && nm.isNotificationListenerAccessGranted(component);
+            }
+            String enabled = Settings.Secure.getString(
+                    context.getContentResolver(), "enabled_notification_listeners");
+            return enabled != null && enabled.contains(context.getPackageName());
+        } catch (Exception ignored) {
+            String enabled = Settings.Secure.getString(
+                    context.getContentResolver(), "enabled_notification_listeners");
+            return enabled != null && enabled.contains(context.getPackageName());
+        }
+    }
+
+    public static boolean ensureListenerConnected(Context context) {
+        if (!hasListenerAccess(context)) return false;
+        if (PaymentNotificationListener.isConnected()) return true;
+
+        long now = System.currentTimeMillis();
+        if (now - lastRebindRequestAt < REBIND_COOLDOWN_MS) return false;
+        lastRebindRequestAt = now;
+
+        try {
+            NotificationListenerService.requestRebind(
+                    new ComponentName(context, PaymentNotificationListener.class));
+            Log.i(TAG, "notification listener rebind requested");
+        } catch (Exception error) {
+            Log.w(TAG, "notification listener rebind failed", error);
+        }
+        return PaymentNotificationListener.isConnected();
+    }
+
+    private JSObject listenerState(Context context, boolean requestRebind) {
+        boolean access = hasListenerAccess(context);
+        boolean connected = PaymentNotificationListener.isConnected();
+        boolean rebindRequested = false;
+
+        if (access && !connected && requestRebind) {
+            long before = lastRebindRequestAt;
+            ensureListenerConnected(context);
+            rebindRequested = lastRebindRequestAt != before;
+            connected = PaymentNotificationListener.isConnected();
+        }
+
+        JSObject result = new JSObject();
+        result.put("hasPermission", access);
+        result.put("hasAccess", access);
+        result.put("connected", connected);
+        result.put("rebindRequested", rebindRequested);
+        result.put("lastConnectedAt", PaymentNotificationListener.getLastConnectedAt());
+        return result;
+    }
+
     @PluginMethod
     public void checkPermission(PluginCall call) {
+        call.resolve(listenerState(getContext(), true));
+    }
+
+    @PluginMethod
+    public void checkListenerAccess(PluginCall call) {
+        call.resolve(listenerState(getContext(), false));
+    }
+
+    @PluginMethod
+    public void checkListenerConnection(PluginCall call) {
+        call.resolve(listenerState(getContext(), false));
+    }
+
+    @PluginMethod
+    public void requestListenerRebind(PluginCall call) {
         Context context = getContext();
-        boolean granted = false;
-        if (context != null) {
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                    NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                    granted = nm != null && nm.isNotificationListenerAccessGranted(listenerComponent(context));
-                } else {
-                    String enabled = Settings.Secure.getString(context.getContentResolver(), "enabled_notification_listeners");
-                    granted = enabled != null && enabled.contains(context.getPackageName());
-                }
-            } catch (Exception ignored) {
-                String enabled = Settings.Secure.getString(context.getContentResolver(), "enabled_notification_listeners");
-                granted = enabled != null && enabled.contains(context.getPackageName());
-            }
-        }
-        JSObject result = new JSObject();
-        result.put("hasPermission", granted);
+        boolean access = hasListenerAccess(context);
+        boolean before = PaymentNotificationListener.isConnected();
+        if (access && !before) ensureListenerConnected(context);
+        JSObject result = listenerState(context, false);
+        result.put("requested", access && !before);
         call.resolve(result);
     }
 
