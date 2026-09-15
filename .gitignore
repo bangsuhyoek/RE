@@ -6,3 +6,14 @@ dist/
 *.apk
 *.idsig
 .idea/
+public/screenshots/
+outputs/promotion-audit/
+~$*.xlsx
+append_promo.cjs
+check.mjs
+scripts/crawler/explore_urls.mjs
+outputs/
+output/
+*.xlsx
+*.ndjson
+output_*.json

@@ -53,7 +53,7 @@ function VisualPromoCarousel({ promotions, onOpenPromotion }) {
 
   const naverPromo = promotions.find((p) => p.id === "tving-naver" || p.id === "netflix") || promotions[0];
   const youtubePromo = promotions.find((p) => p.id === "youtube-promo") || promotions[1] || promotions[0];
-  const heroPromo = promotions.find((p) => p.id === "lgu-nerget") || promotions[0];
+  const heroPromo = promotions.find((p) => p.id === "tving-naver" || p.id === "naverplus-netflix") || promotions[0];
 
   const slides = [
     {

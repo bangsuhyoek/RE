@@ -1,0 +1,106 @@
+-- ==========================================================
+-- 94개 확정 구독 서비스 해지 URL 컬럼 추가 및 데이터 동기화
+-- 파일: supabase/migrations/20260915120000_add_cancel_urls_to_confirmed_94_services.sql
+-- ==========================================================
+
+begin;
+
+alter table if exists public.subscription_services
+  add column if not exists cancel_url text not null default '';
+
+update public.subscription_services set cancel_url = 'https://chatgpt.com/#settings/Subscription' where id = 'chatgpt';
+update public.subscription_services set cancel_url = 'https://claude.ai/settings/billing' where id = 'claude-pro';
+update public.subscription_services set cancel_url = 'https://www.perplexity.ai/settings/account' where id = 'perplexity-pro';
+update public.subscription_services set cancel_url = 'https://www.midjourney.com/account' where id = 'midjourney';
+update public.subscription_services set cancel_url = 'https://app.runwayml.com/settings/plans' where id = 'runway-gen';
+update public.subscription_services set cancel_url = 'https://v0.dev/chat/settings/billing' where id = 'v0-vercel';
+update public.subscription_services set cancel_url = 'https://www.figma.com/settings' where id = 'figma';
+update public.subscription_services set cancel_url = 'https://www.canva.com/settings/billing-and-teams' where id = 'canva';
+update public.subscription_services set cancel_url = 'https://account.adobe.com/plans' where id = 'adobe';
+update public.subscription_services set cancel_url = 'https://framer.com/projects' where id = 'framer';
+update public.subscription_services set cancel_url = 'https://webflow.com/dashboard/account/plans' where id = 'webflow';
+update public.subscription_services set cancel_url = 'https://www.cursor.com/settings' where id = 'cursor-ai';
+update public.subscription_services set cancel_url = 'https://github.com/login?return_to=%2Fsettings%2Fbilling' where id = 'github-copilot';
+update public.subscription_services set cancel_url = 'https://account.jetbrains.com/licenses' where id = 'jetbrains-all';
+update public.subscription_services set cancel_url = 'https://www.deepl.com/your-account' where id = 'deepl-pro';
+update public.subscription_services set cancel_url = 'https://account.grammarly.com/subscription' where id = 'grammarly';
+update public.subscription_services set cancel_url = 'https://slack.com/admin/billing' where id = 'slack-pro';
+update public.subscription_services set cancel_url = 'https://zoom.us/billing' where id = 'zoom-pro';
+update public.subscription_services set cancel_url = 'https://account.microsoft.com/services' where id = 'ms365';
+update public.subscription_services set cancel_url = 'https://one.google.com/settings' where id = 'google-one';
+update public.subscription_services set cancel_url = 'https://support.apple.com/ko-kr/HT207594' where id = 'icloud';
+update public.subscription_services set cancel_url = 'https://www.dropbox.com/account/plan' where id = 'dropbox';
+update public.subscription_services set cancel_url = 'https://www.evernote.com/secure/BillingInfo.action' where id = 'evernote';
+update public.subscription_services set cancel_url = 'https://app.todoist.com/app/settings/subscription' where id = 'todoist';
+update public.subscription_services set cancel_url = 'https://my.1password.com/billing' where id = '1password';
+update public.subscription_services set cancel_url = 'https://my.nordaccount.com/billing/my-subscriptions/' where id = 'nordvpn';
+update public.subscription_services set cancel_url = 'https://www.notion.so/settings' where id = 'notion';
+update public.subscription_services set cancel_url = 'https://account.adobe.com/plans' where id = 'adobe-lightroom';
+update public.subscription_services set cancel_url = 'https://www.netflix.com/cancelplan' where id = 'netflix';
+update public.subscription_services set cancel_url = 'https://www.youtube.com/paid_memberships' where id = 'youtube';
+update public.subscription_services set cancel_url = 'https://www.tving.com/my/pass' where id = 'tving';
+update public.subscription_services set cancel_url = 'https://www.disneyplus.com/ko-kr/account' where id = 'disney';
+update public.subscription_services set cancel_url = 'https://www.wavve.com/my/pass' where id = 'wavve';
+update public.subscription_services set cancel_url = 'https://watcha.com/settings' where id = 'watcha';
+update public.subscription_services set cancel_url = 'https://loyalty.coupang.com/loyalty/sign-up/home' where id = 'coupangplay';
+update public.subscription_services set cancel_url = 'https://laftel.net/setting' where id = 'laftel';
+update public.subscription_services set cancel_url = 'https://tv.apple.com/settings' where id = 'appletv';
+update public.subscription_services set cancel_url = 'https://www.primevideo.com/settings/your-account/' where id = 'primevideo';
+update public.subscription_services set cancel_url = 'https://www.spotvnow.co.kr/my/pass' where id = 'spotvnow';
+update public.subscription_services set cancel_url = 'https://weverse.io/more/my' where id = 'weverse';
+update public.subscription_services set cancel_url = 'https://www.crunchyroll.com/account/membership' where id = 'crunchyroll';
+update public.subscription_services set cancel_url = 'https://mubi.com/login' where id = 'mubi';
+update public.subscription_services set cancel_url = 'https://www.dazn.com/ko-KR/account' where id = 'dazn';
+update public.subscription_services set cancel_url = 'https://member.melon.com' where id = 'melon';
+update public.subscription_services set cancel_url = 'https://www.spotify.com/kr-ko/account/overview/' where id = 'spotify';
+update public.subscription_services set cancel_url = 'https://www.genie.co.kr/my' where id = 'genie';
+update public.subscription_services set cancel_url = 'https://www.music-flo.com/mypage/voucher' where id = 'flo';
+update public.subscription_services set cancel_url = 'https://music.bugs.co.kr' where id = 'bugs';
+update public.subscription_services set cancel_url = 'https://vibe.naver.com/membership' where id = 'vibe';
+update public.subscription_services set cancel_url = 'https://music.apple.com/account/settings' where id = 'applemusic';
+update public.subscription_services set cancel_url = 'https://www.youtube.com/paid_memberships' where id = 'ytmusic';
+update public.subscription_services set cancel_url = 'https://my.tidal.com/account/subscription' where id = 'tidal';
+update public.subscription_services set cancel_url = 'https://play.google.com/store/account/subscriptions' where id = 'bubble-sm';
+update public.subscription_services set cancel_url = 'https://play.google.com/store/account/subscriptions' where id = 'fromm';
+update public.subscription_services set cancel_url = 'https://www.podbbang.com/mypage/subscription' where id = 'podbbang';
+update public.subscription_services set cancel_url = 'https://www.welaaa.com/my/membership' where id = 'welaaa';
+update public.subscription_services set cancel_url = 'https://www.storytel.com/kr/login' where id = 'storytel';
+update public.subscription_services set cancel_url = 'https://www.millie.co.kr/v3/mypage/subscription' where id = 'millie';
+update public.subscription_services set cancel_url = 'https://select.ridibooks.com/settings' where id = 'ridiselect';
+update public.subscription_services set cancel_url = 'https://www.longblack.co/settings' where id = 'longblack';
+update public.subscription_services set cancel_url = 'https://www.joongang.co.kr/plus' where id = 'the-joongang-plus';
+update public.subscription_services set cancel_url = 'https://www.nytimes.com/subscription/cancel' where id = 'nyt-digital';
+update public.subscription_services set cancel_url = 'https://customercenter.wsj.com/manage-subscription' where id = 'wsj-digital';
+update public.subscription_services set cancel_url = 'https://www.ft.com/myaccount/subscription/overview' where id = 'ft-digital';
+update public.subscription_services set cancel_url = 'https://www.economist.com/manage/my-subscription' where id = 'the-economist';
+update public.subscription_services set cancel_url = 'https://www.audible.com/account/overview' where id = 'audible';
+update public.subscription_services set cancel_url = 'https://www.scribd.com/account-settings' where id = 'scribd';
+update public.subscription_services set cancel_url = 'https://app.usespeak.com/settings/subscription' where id = 'speak';
+update public.subscription_services set cancel_url = 'https://www.duolingo.com/settings/super' where id = 'duolingo';
+update public.subscription_services set cancel_url = 'https://www.ringleplus.com/ko/student/landing/home' where id = 'ringle';
+update public.subscription_services set cancel_url = 'https://www.cambly.com/en/student/settings#subscription' where id = 'cambly';
+update public.subscription_services set cancel_url = 'https://play.google.com/store/account/subscriptions' where id = 'santatoeic';
+update public.subscription_services set cancel_url = 'https://play.google.com/store/account/subscriptions' where id = 'malhaeboca';
+update public.subscription_services set cancel_url = 'https://class101.net/ko/mypage/subscription' where id = 'class101';
+update public.subscription_services set cancel_url = 'https://fastcampus.co.kr' where id = 'fastcampus';
+update public.subscription_services set cancel_url = 'https://www.inflearn.com/my-courses' where id = 'inflearn';
+update public.subscription_services set cancel_url = 'https://www.coursera.org/my-purchases' where id = 'coursera';
+update public.subscription_services set cancel_url = 'https://nid.naver.com/membership/my' where id = 'naverplus';
+update public.subscription_services set cancel_url = 'https://baemin.me/club' where id = 'baemin-club';
+update public.subscription_services set cancel_url = 'https://www.yogiyo.co.kr/mobile/#/mypage/' where id = 'yogipass';
+update public.subscription_services set cancel_url = 'https://www.kurly.com/mypage/membership' where id = 'kurly-pass';
+update public.subscription_services set cancel_url = 'https://loyalty.coupang.com/loyalty/sign-up/home' where id = 'coupang';
+update public.subscription_services set cancel_url = 'https://ec.nintendo.com/my/membership' where id = 'nintendo-online';
+update public.subscription_services set cancel_url = 'https://store.playstation.com/ko-kr/subscriptions' where id = 'ps-plus';
+update public.subscription_services set cancel_url = 'https://account.microsoft.com/services' where id = 'xbox-gamepass';
+update public.subscription_services set cancel_url = 'https://apps.apple.com/account/subscriptions' where id = 'apple-arcade';
+update public.subscription_services set cancel_url = 'https://play.google.com/store/account/subscriptions' where id = 'google-play-pass';
+update public.subscription_services set cancel_url = 'https://www.ea.com/ea-play' where id = 'ea-play';
+update public.subscription_services set cancel_url = 'https://account.battle.net/games' where id = 'wow-subscription';
+update public.subscription_services set cancel_url = 'https://my.kakao.com/product/DRIVE001' where id = 'kakaotalk-drive';
+update public.subscription_services set cancel_url = 'https://my.kakao.com/product/EMOTICON001' where id = 'kakaotalk-emoticon';
+update public.subscription_services set cancel_url = 'https://mybox.naver.com/#/capacity' where id = 'naver-mybox';
+update public.subscription_services set cancel_url = 'https://www.strava.com/subscribe' where id = 'strava-sub';
+update public.subscription_services set cancel_url = 'https://play.google.com/store/account/subscriptions' where id = 'burnfit-pro';
+
+commit;

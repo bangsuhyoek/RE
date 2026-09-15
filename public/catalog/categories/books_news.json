@@ -1,0 +1,452 @@
+[
+  {
+    "id": "millie",
+    "name": "밀리의 서재",
+    "category": "도서/웹툰",
+    "plan": "전자책 정기구독",
+    "amount": 9900,
+    "brandColor": "#F8B62D",
+    "cancelUrl": "https://www.millie.co.kr/v3/mypage/subscription",
+    "aliases": [
+      "밀리",
+      "밀리의서재"
+    ],
+    "monogram": "밀",
+    "availablePlans": [
+      {
+        "plan": "전자책 정기구독",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "전자책 정기구독",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "구독 관리 이동",
+        "description": "밀리의 서재 로그인 후 하단 [관리] > [구독 관리]를 터치합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 해지 신청",
+        "description": "[결제/구독 관리] > [구독 해지 신청]을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "지금 바로 해지",
+        "description": "해지 방어 혜택 화면 맨 아래로 스크롤하여 [지금 바로 해지하기]를 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "ridiselect",
+    "name": "리디셀렉트",
+    "category": "도서/웹툰",
+    "plan": "리디셀렉트 월정액",
+    "amount": 4900,
+    "brandColor": "#1F8CE6",
+    "cancelUrl": "https://select.ridibooks.com/settings",
+    "aliases": [
+      "리디",
+      "리디셀렉트"
+    ],
+    "monogram": "리",
+    "availablePlans": [
+      {
+        "plan": "리디셀렉트 월정액",
+        "amount": 4900
+      }
+    ],
+    "plans": [
+      {
+        "name": "리디셀렉트 월정액",
+        "amount": 4900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이리디 셀렉트 관리",
+        "description": "리디 로그인 후 [마이리디] > [리디셀렉트 관리]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "셀렉트 해지 신청",
+        "description": "구독 정보 카드 하단의 [셀렉트 해지 신청] 링크를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 예약/즉시 해지",
+        "description": "안내 화면 하단 [해지 예약하기] 또는 [즉시 해지]를 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "longblack",
+    "name": "롱블랙",
+    "category": "도서/웹툰",
+    "plan": "월간 멤버십",
+    "amount": 4900,
+    "brandColor": "#000000",
+    "cancelUrl": "https://www.longblack.co/settings",
+    "aliases": [
+      "롱블랙",
+      "longblack"
+    ],
+    "monogram": "롱",
+    "availablePlans": [
+      {
+        "plan": "월간 멤버십",
+        "amount": 4900
+      }
+    ],
+    "plans": [
+      {
+        "name": "월간 멤버십",
+        "amount": 4900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 이동",
+        "description": "롱블랙 로그인 후 우측 상단 프로필 > [설정]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 관리 확인",
+        "description": "[멤버십 관리] 탭에서 현재 멤버십 결제 정보를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지",
+        "description": "[멤버십 해지하기]를 클릭하고 확인 버튼을 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "the-joongang-plus",
+    "name": "더중앙플러스",
+    "category": "도서/웹툰",
+    "plan": "디지털 유료구독",
+    "amount": 9000,
+    "brandColor": "#E60000",
+    "cancelUrl": "https://www.joongang.co.kr/plus",
+    "aliases": [
+      "중앙일보",
+      "더중앙"
+    ],
+    "monogram": "더",
+    "availablePlans": [
+      {
+        "plan": "디지털 유료구독",
+        "amount": 9000
+      }
+    ],
+    "plans": [
+      {
+        "name": "디지털 유료구독",
+        "amount": 9000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "중앙플러스 관리",
+        "description": "중앙일보 로그인 후 [마이페이지] > [더중앙플러스]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "결제/해지 관리 선택",
+        "description": "이용 중인 멤버십 항목 우측 [결제/해지 관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지 완료",
+        "description": "하단 [멤버십 해지하기]를 클릭하여 정기결제를 취소합니다."
+      }
+    ]
+  },
+  {
+    "id": "nyt-digital",
+    "name": "The New York Times",
+    "category": "도서/웹툰",
+    "plan": "All Access",
+    "amount": 6000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://www.nytimes.com/subscription/cancel",
+    "aliases": [
+      "뉴욕타임스",
+      "nyt"
+    ],
+    "monogram": "T",
+    "availablePlans": [
+      {
+        "plan": "All Access",
+        "amount": 6000
+      }
+    ],
+    "plans": [
+      {
+        "name": "All Access",
+        "amount": 6000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "취소 페이지 이동",
+        "description": "NYT 해지 페이지(nytimes.com/subscription/cancel)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 상태 확인",
+        "description": "취소할 Digital Subscription을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "취소 절차 진행",
+        "description": "할인 제안을 지나 [Continue to Cancel]을 눌러 취소를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "wsj-digital",
+    "name": "The Wall Street Journal",
+    "category": "도서/웹툰",
+    "plan": "Digital Access",
+    "amount": 12000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://customercenter.wsj.com/manage-subscription",
+    "aliases": [
+      "월스트리트저널",
+      "wsj"
+    ],
+    "monogram": "T",
+    "availablePlans": [
+      {
+        "plan": "Digital Access",
+        "amount": 12000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Digital Access",
+        "amount": 12000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Customer Center 접속",
+        "description": "WSJ 고객센터(customercenter.wsj.com)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 선택",
+        "description": "[Manage Subscription] 메뉴 항목을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "[Cancel Subscription]을 누르고 확인 단계를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "ft-digital",
+    "name": "Financial Times",
+    "category": "도서/웹툰",
+    "plan": "Standard Digital",
+    "amount": 45000,
+    "brandColor": "#FFF1E5",
+    "cancelUrl": "https://www.ft.com/myaccount/subscription/overview",
+    "aliases": [
+      "파이낸셜타임스",
+      "ft"
+    ],
+    "monogram": "F",
+    "availablePlans": [
+      {
+        "plan": "Standard Digital",
+        "amount": 45000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Standard Digital",
+        "amount": 45000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "My Account 진입",
+        "description": "FT.com 우측 상단 [My Account] > [Settings]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 및 결제 확인",
+        "description": "[Subscription & Billing] 탭에서 이용 플랜을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 확정",
+        "description": "[Cancel Subscription]을 클릭하고 단계를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "the-economist",
+    "name": "The Economist",
+    "category": "도서/웹툰",
+    "plan": "Digital Access",
+    "amount": 29000,
+    "brandColor": "#E3120B",
+    "cancelUrl": "https://www.economist.com/manage/my-subscription",
+    "aliases": [
+      "이코노미스트",
+      "economist"
+    ],
+    "monogram": "T",
+    "availablePlans": [
+      {
+        "plan": "Digital Access",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Digital Access",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Manage Subscription",
+        "description": "The Economist 계정(economist.com/manage/my-subscription)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 세부사항 확인",
+        "description": "이용 중인 Digital Access 플랜 정보를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "[Cancel Subscription] 링크를 누르고 취소 절차를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "audible",
+    "name": "Audible",
+    "category": "도서/웹툰",
+    "plan": "Audible Plus",
+    "amount": 11000,
+    "brandColor": "#FF9900",
+    "cancelUrl": "https://www.audible.com/account/overview",
+    "aliases": [
+      "오디블",
+      "audible"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "Audible Plus",
+        "amount": 11000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Audible Plus",
+        "amount": 11000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Account Details 진입",
+        "description": "Audible 로그인 후 상단 [Hi, 이름!] > [Account Details]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 상세 확인",
+        "description": "[View membership details] 아래 [Cancel membership]을 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "취소 확정",
+        "description": "할인 혜택 유지 제안을 지나 [Continue canceling]을 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "scribd",
+    "name": "Scribd",
+    "category": "도서/웹툰",
+    "plan": "Monthly Pass",
+    "amount": 13000,
+    "brandColor": "#1E7B85",
+    "cancelUrl": "https://www.scribd.com/account-settings",
+    "aliases": [
+      "스크립드",
+      "scribd"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "Monthly Pass",
+        "amount": 13000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Monthly Pass",
+        "amount": 13000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Account Settings 이동",
+        "description": "Scribd 우측 상단 프로필 > [Account Settings]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "결제 상세 확인",
+        "description": "[Membership & Payment Details] 섹션으로 스크롤합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 종료",
+        "description": "[End My Membership] 링크를 누르고 취소 단계를 완료합니다."
+      }
+    ]
+  }
+]

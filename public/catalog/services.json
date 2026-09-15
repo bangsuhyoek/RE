@@ -1,0 +1,4248 @@
+[
+  {
+    "id": "chatgpt",
+    "name": "ChatGPT Plus",
+    "category": "SaaS",
+    "plan": "ChatGPT Plus",
+    "amount": 29000,
+    "brandColor": "#10A37F",
+    "cancelUrl": "https://chatgpt.com/#settings/Subscription",
+    "aliases": [
+      "챗지피티",
+      "오픈ai",
+      "gpt4",
+      "chatgpt"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "ChatGPT Plus",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "ChatGPT Plus",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 열기",
+        "description": "화면 좌측 하단 프로필 아이콘 클릭 후 [Settings] 메뉴를 누르세요."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 진입",
+        "description": "[Subscription] 탭에서 [Manage]를 클릭하여 Stripe 결제창으로 이동합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소",
+        "description": "결제 관리 화면에서 [플랜 취소(Cancel plan)]를 누르고 취소를 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "claude-pro",
+    "name": "Claude Pro",
+    "category": "SaaS",
+    "plan": "Claude Pro",
+    "amount": 29000,
+    "brandColor": "#CC785C",
+    "cancelUrl": "https://claude.ai/settings/billing",
+    "aliases": [
+      "클로드",
+      "클로드프로",
+      "claude"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "Claude Pro",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Claude Pro",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 진입",
+        "description": "좌측 하단 내 계정 이름/프로필 클릭 후 [Settings]를 선택합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "청구 탭 이동",
+        "description": "좌측 설정 사이드바에서 [Billing] 메뉴를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "Claude Pro 섹션에서 [Cancel Subscription]을 누르고 확인합니다."
+      }
+    ]
+  },
+  {
+    "id": "perplexity-pro",
+    "name": "Perplexity Pro",
+    "category": "SaaS",
+    "plan": "Perplexity Pro",
+    "amount": 27000,
+    "brandColor": "#1FB8CD",
+    "cancelUrl": "https://www.perplexity.ai/settings/account",
+    "aliases": [
+      "퍼플렉시티",
+      "perplexity"
+    ],
+    "monogram": "P",
+    "availablePlans": [
+      {
+        "plan": "Perplexity Pro",
+        "amount": 27000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Perplexity Pro",
+        "amount": 27000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴",
+        "description": "좌측 사이드바 하단 톱니바퀴 [Settings] 아이콘을 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "계정 탭 확인",
+        "description": "[Account] 탭에서 Perplexity Pro 멤버십 상태를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "요금제 우측 [Cancel Subscription] 버튼을 클릭하여 해지합니다."
+      }
+    ]
+  },
+  {
+    "id": "midjourney",
+    "name": "Midjourney",
+    "category": "SaaS",
+    "plan": "Basic Plan",
+    "amount": 14000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://www.midjourney.com/account",
+    "aliases": [
+      "미드저니",
+      "그림ai"
+    ],
+    "monogram": "M",
+    "availablePlans": [
+      {
+        "plan": "Basic Plan",
+        "amount": 14000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Basic Plan",
+        "amount": 14000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 페이지 접속",
+        "description": "Midjourney 공식 사이트(midjourney.com/account)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 열기",
+        "description": "화면의 [Manage Sub] 버튼을 클릭해 결제 포털로 이동합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소 확정",
+        "description": "[Billing & Cancellation]에서 [Cancel Plan]을 누르고 주기 만료 취소를 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "runway-gen",
+    "name": "Runway Gen-4.5",
+    "category": "SaaS",
+    "plan": "Standard Plan",
+    "amount": 20000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://app.runwayml.com/settings/plans",
+    "aliases": [
+      "런웨이",
+      "영상ai",
+      "runway"
+    ],
+    "monogram": "R",
+    "availablePlans": [
+      {
+        "plan": "Standard Plan",
+        "amount": 20000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Standard Plan",
+        "amount": 20000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 진입",
+        "description": "Runway 우측 상단 프로필 아이콘 클릭 후 [Settings]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 탭 선택",
+        "description": "좌측 메뉴에서 [Plans & Billing]을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 해지",
+        "description": "이용 중인 플랜 카드 우측 [Manage Plan] > [Cancel Subscription]을 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "v0-vercel",
+    "name": "v0 by Vercel",
+    "category": "SaaS",
+    "plan": "Premium",
+    "amount": 27000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://v0.dev/chat/settings/billing",
+    "aliases": [
+      "브이제로",
+      "v0"
+    ],
+    "monogram": "v",
+    "availablePlans": [
+      {
+        "plan": "Premium",
+        "amount": 27000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Premium",
+        "amount": 27000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정/청구 진입",
+        "description": "v0 우측 상단 프로필 > [Settings] > [Billing] 메뉴로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 항목 선택",
+        "description": "이용 중인 v0 Premium 또는 Vercel 구독 항목을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "[Cancel Subscription]을 클릭하여 차기 결제를 취소합니다."
+      }
+    ]
+  },
+  {
+    "id": "figma",
+    "name": "Figma Professional",
+    "category": "SaaS",
+    "plan": "Professional",
+    "amount": 21000,
+    "brandColor": "#F24E1E",
+    "cancelUrl": "https://www.figma.com/settings",
+    "aliases": [
+      "피그마",
+      "figma"
+    ],
+    "monogram": "F",
+    "availablePlans": [
+      {
+        "plan": "Professional",
+        "amount": 21000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Professional",
+        "amount": 21000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 진입",
+        "description": "Figma 좌측 상단 프로필 드롭다운을 누르고 [Settings]를 선택합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "청구 탭 이동",
+        "description": "[Billing] 탭 또는 관리자 워크스페이스 플랜 영역으로 이동합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소",
+        "description": "Professional 플랜 우측 [Cancel plan]을 누르고 다운그레이드를 확인합니다."
+      }
+    ]
+  },
+  {
+    "id": "canva",
+    "name": "Canva Pro",
+    "category": "SaaS",
+    "plan": "Canva Pro",
+    "amount": 12900,
+    "brandColor": "#00C4CC",
+    "cancelUrl": "https://www.canva.com/settings/billing-and-teams",
+    "aliases": [
+      "캔바",
+      "canva"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "Canva Pro",
+        "amount": 12900
+      }
+    ],
+    "plans": [
+      {
+        "name": "Canva Pro",
+        "amount": 12900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 설정 열기",
+        "description": "우측 상단 톱니바퀴 [계정 설정] 아이콘을 클릭합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "결제 및 팀 선택",
+        "description": "좌측 메뉴에서 [결제 및 팀(Billing & teams)] 항목을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "Canva Pro 요금제 옆 [더보기(···)] > [구독 취소]를 클릭하여 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "adobe",
+    "name": "Adobe Creative Cloud",
+    "category": "SaaS",
+    "plan": "모든 앱",
+    "amount": 61600,
+    "brandColor": "#FA0F00",
+    "cancelUrl": "https://account.adobe.com/plans",
+    "aliases": [
+      "어도비",
+      "포토샵",
+      "일러스트",
+      "creative cloud"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "모든 앱",
+        "amount": 61600
+      }
+    ],
+    "plans": [
+      {
+        "name": "모든 앱",
+        "amount": 61600,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "플랜 관리 접속",
+        "description": "Adobe 계정 페이지(account.adobe.com/plans)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "플랜 관리 선택",
+        "description": "구독 중인 Creative Cloud 플랜 카드의 [플랜 관리]를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소 완료",
+        "description": "[플랜 취소]를 누른 뒤, 할인 유지 제안 화면들을 지나 최종 취소를 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "framer",
+    "name": "Framer Pro",
+    "category": "SaaS",
+    "plan": "Pro",
+    "amount": 27000,
+    "brandColor": "#0055FF",
+    "cancelUrl": "https://framer.com/projects",
+    "aliases": [
+      "프레이머",
+      "framer"
+    ],
+    "monogram": "F",
+    "availablePlans": [
+      {
+        "plan": "Pro",
+        "amount": 27000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Pro",
+        "amount": 27000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "워크스페이스 설정",
+        "description": "Framer 대시보드 좌측 상단 워크스페이스 이름을 누르고 [Settings]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 탭 이동",
+        "description": "좌측 [Plans & Billing] 메뉴를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "현재 요금제 카드 옆 [Cancel Subscription]을 누르고 취소를 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "webflow",
+    "name": "Webflow",
+    "category": "SaaS",
+    "plan": "CMS Plan",
+    "amount": 32000,
+    "brandColor": "#4353FF",
+    "cancelUrl": "https://webflow.com/dashboard/account/plans",
+    "aliases": [
+      "웹플로우",
+      "webflow"
+    ],
+    "monogram": "W",
+    "availablePlans": [
+      {
+        "plan": "CMS Plan",
+        "amount": 32000
+      }
+    ],
+    "plans": [
+      {
+        "name": "CMS Plan",
+        "amount": 32000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 설정 진입",
+        "description": "Webflow 대시보드 우측 상단 계정 아바타 > [Account settings]를 클릭합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 탭 선택",
+        "description": "[Plans] 메뉴에서 Workspace 플랜 또는 Site 요금제를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 해지/다운그레이드",
+        "description": "[Cancel plan] 또는 [Downgrade to Starter]를 클릭하여 취소합니다."
+      }
+    ]
+  },
+  {
+    "id": "cursor-ai",
+    "name": "Cursor Pro",
+    "category": "SaaS",
+    "plan": "Pro Plan",
+    "amount": 27000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://www.cursor.com/settings",
+    "aliases": [
+      "커서",
+      "cursor",
+      "커서ai"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "Pro Plan",
+        "amount": 27000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Pro Plan",
+        "amount": 27000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 페이지 접속",
+        "description": "Cursor 공식 설정 페이지(cursor.com/settings)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 영역 확인",
+        "description": "[Subscription] 항목에서 현재 Pro 멤버십 상태를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소",
+        "description": "[Manage subscription]을 클릭하고 Stripe 화면에서 [Cancel Plan]을 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "github-copilot",
+    "name": "GitHub Copilot",
+    "category": "SaaS",
+    "plan": "Individual",
+    "amount": 14000,
+    "brandColor": "#181717",
+    "cancelUrl": "https://github.com/login?return_to=%2Fsettings%2Fbilling",
+    "aliases": [
+      "코파일럿",
+      "깃허브코파일럿"
+    ],
+    "monogram": "G",
+    "availablePlans": [
+      {
+        "plan": "Individual",
+        "amount": 14000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Individual",
+        "amount": 14000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "GitHub 설정 이동",
+        "description": "우측 상단 프로필 > [Settings] 메뉴로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "청구 및 플랜 선택",
+        "description": "좌측 사이드바에서 [Billing and plans] > [Plans and usage]를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "Copilot 취소",
+        "description": "GitHub Copilot 항목 우측 [Edit] 드롭다운에서 [Cancel Copilot]을 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "jetbrains-all",
+    "name": "JetBrains All Products",
+    "category": "SaaS",
+    "plan": "All Products Pack",
+    "amount": 37000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://account.jetbrains.com/licenses",
+    "aliases": [
+      "젯브레인",
+      "인텔리제이"
+    ],
+    "monogram": "J",
+    "availablePlans": [
+      {
+        "plan": "All Products Pack",
+        "amount": 37000
+      }
+    ],
+    "plans": [
+      {
+        "name": "All Products Pack",
+        "amount": 37000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 라이선스 접속",
+        "description": "JetBrains Account(account.jetbrains.com/licenses)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "라이선스 확인",
+        "description": "구독 중인 All Products Pack 또는 IDE 라이선스 항목을 찾습니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동 갱신 취소",
+        "description": "[Cancel subscription] 또는 결제 정보 옆 [Cancel recurring payment]를 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "deepl-pro",
+    "name": "DeepL Pro",
+    "category": "SaaS",
+    "plan": "Starter",
+    "amount": 12000,
+    "brandColor": "#0F2B46",
+    "cancelUrl": "https://www.deepl.com/your-account",
+    "aliases": [
+      "딥엘",
+      "deepl"
+    ],
+    "monogram": "D",
+    "availablePlans": [
+      {
+        "plan": "Starter",
+        "amount": 12000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Starter",
+        "amount": 12000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 페이지 이동",
+        "description": "DeepL 우측 상단 프로필 > [내 계정(Account)]으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 탭 확인",
+        "description": "[구독(Subscription)] 탭에서 현재 Pro 플랜 정보를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "화면 하단의 [구독 취소(Cancel subscription)] 링크를 클릭하여 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "grammarly",
+    "name": "Grammarly",
+    "category": "SaaS",
+    "plan": "Premium",
+    "amount": 16000,
+    "brandColor": "#15C39A",
+    "cancelUrl": "https://account.grammarly.com/subscription",
+    "aliases": [
+      "그래멀리",
+      "grammarly"
+    ],
+    "monogram": "G",
+    "availablePlans": [
+      {
+        "plan": "Premium",
+        "amount": 16000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Premium",
+        "amount": 16000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 페이지 진입",
+        "description": "Grammarly 계정 설정(account.grammarly.com)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 메뉴 선택",
+        "description": "좌측 사이드바에서 [Subscription] 메뉴를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "화면 하단 [Cancel Subscription]을 누르고 설문 단계를 지나 취소를 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "slack-pro",
+    "name": "Slack Pro",
+    "category": "SaaS",
+    "plan": "Pro",
+    "amount": 11000,
+    "brandColor": "#4A154B",
+    "cancelUrl": "https://slack.com/admin/billing",
+    "aliases": [
+      "슬랙",
+      "slack"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "Pro",
+        "amount": 11000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Pro",
+        "amount": 11000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "관리자 청구 진입",
+        "description": "워크스페이스 이름 클릭 > [도구 및 설정] > [청구] 메뉴로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 수정 선택",
+        "description": "청구 개요 화면에서 [요금제 수정] 버튼을 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "무료로 다운그레이드",
+        "description": "[무료 버전으로 다운그레이드]를 선택하여 다음 갱신을 취소합니다."
+      }
+    ]
+  },
+  {
+    "id": "zoom-pro",
+    "name": "Zoom Workplace Pro",
+    "category": "SaaS",
+    "plan": "Pro Plan",
+    "amount": 19000,
+    "brandColor": "#0B5CFF",
+    "cancelUrl": "https://zoom.us/billing",
+    "aliases": [
+      "줌",
+      "zoom"
+    ],
+    "monogram": "Z",
+    "availablePlans": [
+      {
+        "plan": "Pro Plan",
+        "amount": 19000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Pro Plan",
+        "amount": 19000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "청구 관리 진입",
+        "description": "Zoom 웹 포털 로그인 후 좌측 [계정 관리] > [청구] 메뉴로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "현재 요금제 관리",
+        "description": "[현재 요금제] 탭에서 Workplace Pro 옆 [요금제 관리]를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "[구독 취소]를 선택하고 사유를 선택한 뒤 취소를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "ms365",
+    "name": "Microsoft 365",
+    "category": "SaaS",
+    "plan": "Personal",
+    "amount": 8900,
+    "brandColor": "#D83B01",
+    "cancelUrl": "https://account.microsoft.com/services",
+    "aliases": [
+      "오피스365",
+      "엑셀",
+      "워드",
+      "ms오피스"
+    ],
+    "monogram": "M",
+    "availablePlans": [
+      {
+        "plan": "Personal",
+        "amount": 8900
+      }
+    ],
+    "plans": [
+      {
+        "name": "Personal",
+        "amount": 8900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "서비스 및 구독 이동",
+        "description": "Microsoft 계정(account.microsoft.com/services)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "Microsoft 365 관리",
+        "description": "구독 항목 우측의 [관리] 버튼을 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "반복 청구 끄기/취소",
+        "description": "[구독 취소] 또는 [반복 청구 끄기]를 선택하여 해지 절차를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "google-one",
+    "name": "Google One",
+    "category": "SaaS",
+    "plan": "100GB 플랜",
+    "amount": 2400,
+    "brandColor": "#4285F4",
+    "cancelUrl": "https://one.google.com/settings",
+    "aliases": [
+      "구글원",
+      "구글드라이브",
+      "구글용량"
+    ],
+    "monogram": "G",
+    "availablePlans": [
+      {
+        "plan": "100GB 플랜",
+        "amount": 2400
+      }
+    ],
+    "plans": [
+      {
+        "name": "100GB 플랜",
+        "amount": 2400,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Google One 설정",
+        "description": "Google One 웹(one.google.com/settings)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 취소 선택",
+        "description": "[멤버십 취소] 메뉴 항목을 찾아 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "취소 확정",
+        "description": "용량 만료 안내 팝업에서 [멤버십 취소]를 최종 확인합니다."
+      }
+    ]
+  },
+  {
+    "id": "icloud",
+    "name": "Apple iCloud+",
+    "category": "SaaS",
+    "plan": "50GB 플랜",
+    "amount": 1100,
+    "brandColor": "#0070C9",
+    "cancelUrl": "https://support.apple.com/ko-kr/HT207594",
+    "aliases": [
+      "아이클라우드",
+      "icloud"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "50GB 플랜",
+        "amount": 1100
+      }
+    ],
+    "plans": [
+      {
+        "name": "50GB 플랜",
+        "amount": 1100,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Apple 계정 설정",
+        "description": "iPhone [설정] > 맨 위 [내 이름] > [iCloud] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "저장 공간 관리",
+        "description": "[계정 저장 공간 관리] 또는 [요금제 관리]를 터치합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "다운그레이드 선택",
+        "description": "[다운그레이드 옵션]에서 무료 [5GB]를 선택하고 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "dropbox",
+    "name": "Dropbox",
+    "category": "SaaS",
+    "plan": "Plus 2TB",
+    "amount": 15000,
+    "brandColor": "#0061FF",
+    "cancelUrl": "https://www.dropbox.com/account/plan",
+    "aliases": [
+      "드롭박스",
+      "dropbox"
+    ],
+    "monogram": "D",
+    "availablePlans": [
+      {
+        "plan": "Plus 2TB",
+        "amount": 15000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Plus 2TB",
+        "amount": 15000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 요금제 이동",
+        "description": "Dropbox 우측 상단 프로필 > [설정] > [요금제(Plan)]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 취소 선택",
+        "description": "페이지 맨 아래로 스크롤하여 [요금제 취소]를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "취소 사유 및 확정",
+        "description": "해지 사유를 선택하고 [취소 계속하기]를 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "evernote",
+    "name": "Evernote",
+    "category": "SaaS",
+    "plan": "Personal",
+    "amount": 11900,
+    "brandColor": "#00A82D",
+    "cancelUrl": "https://www.evernote.com/secure/BillingInfo.action",
+    "aliases": [
+      "에버노트",
+      "evernote"
+    ],
+    "monogram": "E",
+    "availablePlans": [
+      {
+        "plan": "Personal",
+        "amount": 11900
+      }
+    ],
+    "plans": [
+      {
+        "name": "Personal",
+        "amount": 11900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 결제 정보 이동",
+        "description": "Evernote 웹 우측 상단 프로필 > [계정 정보] > [청구]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 취소 링크",
+        "description": "[구독 상태] 항목에서 [Evernote 구독 취소] 링크를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "Free 플랜 다운그레이드",
+        "description": "무료 요금제(Evernote Free)로 다운그레이드함을 확인합니다."
+      }
+    ]
+  },
+  {
+    "id": "todoist",
+    "name": "Todoist",
+    "category": "SaaS",
+    "plan": "Pro",
+    "amount": 5500,
+    "brandColor": "#E44332",
+    "cancelUrl": "https://app.todoist.com/app/settings/subscription",
+    "aliases": [
+      "투두이스트",
+      "todoist"
+    ],
+    "monogram": "T",
+    "availablePlans": [
+      {
+        "plan": "Pro",
+        "amount": 5500
+      }
+    ],
+    "plans": [
+      {
+        "name": "Pro",
+        "amount": 5500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 이동",
+        "description": "Todoist 우측 상단 아바타 아이콘 > [설정] > [구독] 탭으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 열기",
+        "description": "[구독 관리] 버튼을 클릭하여 결제 포털로 이동합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소",
+        "description": "결제 상세 화면에서 [플랜 취소]를 누르고 확인합니다."
+      }
+    ]
+  },
+  {
+    "id": "1password",
+    "name": "1Password",
+    "category": "SaaS",
+    "plan": "Individual",
+    "amount": 4500,
+    "brandColor": "#0094F5",
+    "cancelUrl": "https://my.1password.com/billing",
+    "aliases": [
+      "원패스워드",
+      "1password"
+    ],
+    "monogram": "1",
+    "availablePlans": [
+      {
+        "plan": "Individual",
+        "amount": 4500
+      }
+    ],
+    "plans": [
+      {
+        "name": "Individual",
+        "amount": 4500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "청구 페이지 이동",
+        "description": "1Password 웹(my.1password.com) 로그인 후 우측 상단 계정명 > [청구]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 옵션 확인",
+        "description": "현재 이용 중인 개인 또는 가족 플랜 정보를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "[구독 취소(Cancel Subscription)]를 클릭하고 확인 버튼을 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "nordvpn",
+    "name": "NordVPN",
+    "category": "SaaS",
+    "plan": "Plus (2년 월환산)",
+    "amount": 5900,
+    "brandColor": "#4687FF",
+    "cancelUrl": "https://my.nordaccount.com/billing/my-subscriptions/",
+    "aliases": [
+      "노드vpn",
+      "nordvpn"
+    ],
+    "monogram": "N",
+    "availablePlans": [
+      {
+        "plan": "Plus (2년 월환산)",
+        "amount": 5900
+      }
+    ],
+    "plans": [
+      {
+        "name": "Plus (2년 월환산)",
+        "amount": 5900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "NordAccount 접속",
+        "description": "NordAccount(my.nordaccount.com)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "청구 및 구독 확인",
+        "description": "좌측 메뉴 [Billing] > [Subscriptions] 탭으로 이동합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동 갱신 취소",
+        "description": "[Auto-Renewal] 옆 [Manage] 클릭 후 [Cancel auto-renew]를 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "notion",
+    "name": "Notion Plus",
+    "category": "SaaS",
+    "plan": "Plus Plan",
+    "amount": 14000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://www.notion.so/settings",
+    "aliases": [
+      "노션",
+      "notion"
+    ],
+    "monogram": "N",
+    "availablePlans": [
+      {
+        "plan": "Plus Plan",
+        "amount": 14000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Plus Plan",
+        "amount": 14000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "워크스페이스 설정",
+        "description": "Notion 좌측 상단 [설정(Settings)] 메뉴를 엽니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 탭 이동",
+        "description": "워크스페이스 섹션의 [요금제(Billing & Plans)]를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "무료로 다운그레이드",
+        "description": "Plus 요금제 카드에서 [무료 플랜으로 다운그레이드]를 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "adobe-lightroom",
+    "name": "Adobe Lightroom Mobile Premium",
+    "category": "SaaS",
+    "plan": "모바일 프리미엄",
+    "amount": 5500,
+    "brandColor": "#31A8FF",
+    "cancelUrl": "https://account.adobe.com/plans",
+    "aliases": [
+      "라이트룸",
+      "라이트룸모바일",
+      "lightroom"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "모바일 프리미엄",
+        "amount": 5500
+      }
+    ],
+    "plans": [
+      {
+        "name": "모바일 프리미엄",
+        "amount": 5500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Adobe 플랜 이동",
+        "description": "Adobe 계정 페이지(account.adobe.com/plans)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "Lightroom 플랜 관리",
+        "description": "Lightroom 프리미엄 플랜의 [플랜 관리] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소 완료",
+        "description": "[플랜 취소]를 선택하여 해지합니다 (스토어 결제 시 구글플레이 구독 취소)."
+      }
+    ]
+  },
+  {
+    "id": "netflix",
+    "name": "Netflix",
+    "category": "OTT",
+    "plan": "프리미엄",
+    "amount": 17000,
+    "brandColor": "#E50914",
+    "cancelUrl": "https://www.netflix.com/cancelplan",
+    "aliases": [
+      "넷플릭스",
+      "넷플",
+      "netflix.com"
+    ],
+    "monogram": "N",
+    "availablePlans": [
+      {
+        "plan": "프리미엄",
+        "amount": 17000
+      }
+    ],
+    "plans": [
+      {
+        "name": "프리미엄",
+        "amount": 17000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 설정 진입",
+        "description": "넷플릭스 로그인 후 우측 상단 프로필 > [계정] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 해지 터치",
+        "description": "[멤버십 및 결제 정보] 섹션에서 [멤버십 해지] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 완료",
+        "description": "남은 결제 주기 안내를 확인하고 [해지 완료] 버튼을 눌러 끝냅니다."
+      }
+    ]
+  },
+  {
+    "id": "youtube",
+    "name": "YouTube Premium",
+    "category": "OTT",
+    "plan": "개인 멤버십",
+    "amount": 14900,
+    "brandColor": "#FF0000",
+    "cancelUrl": "https://www.youtube.com/paid_memberships",
+    "aliases": [
+      "유튜브",
+      "유튭",
+      "유튜브프리미엄"
+    ],
+    "monogram": "Y",
+    "availablePlans": [
+      {
+        "plan": "개인 멤버십",
+        "amount": 14900
+      }
+    ],
+    "plans": [
+      {
+        "name": "개인 멤버십",
+        "amount": 14900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "구매 항목 및 멤버십",
+        "description": "우측 상단 내 프로필 아이콘 > [구매 항목 및 멤버십] 메뉴를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 관리 선택",
+        "description": "YouTube Premium 항목 우측의 [관리] 화살표를 터치합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "그대로 취소 선택",
+        "description": "[비활성화]를 누른 뒤 '일시중지' 권유를 넘기고 하단 [그대로 취소]를 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "tving",
+    "name": "TVING",
+    "category": "OTT",
+    "plan": "스탠다드",
+    "amount": 13500,
+    "brandColor": "#FF153C",
+    "cancelUrl": "https://www.tving.com/my/pass",
+    "aliases": [
+      "티빙",
+      "tving"
+    ],
+    "monogram": "T",
+    "availablePlans": [
+      {
+        "plan": "스탠다드",
+        "amount": 13500
+      }
+    ],
+    "plans": [
+      {
+        "name": "스탠다드",
+        "amount": 13500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "MY 페이지 진입",
+        "description": "티빙 웹/앱 로그인 후 우측 상단 프로필 > [MY]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용권/구독 관리",
+        "description": "[이용권/구독 관리] 메뉴를 선택해 이용 중인 티빙권을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동결제 해지 신청",
+        "description": "이용권 우측 [변경/해지] > 하단 [자동결제 해지 신청하기]를 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "disney",
+    "name": "Disney+",
+    "category": "OTT",
+    "plan": "스탠다드",
+    "amount": 9900,
+    "brandColor": "#0063E5",
+    "cancelUrl": "https://www.disneyplus.com/ko-kr/account",
+    "aliases": [
+      "디즈니",
+      "디즈니플러스",
+      "디즈니+"
+    ],
+    "monogram": "D",
+    "availablePlans": [
+      {
+        "plan": "스탠다드",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "스탠다드",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 메뉴 진입",
+        "description": "디즈니+ 우측 상단 프로필 아이콘 > [계정]을 클릭합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 플랜 선택",
+        "description": "멤버십 섹션에서 이용 중인 [Disney+ 스탠다드/프리미엄]을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 취소 확정",
+        "description": "하단 [멤버십 취소]를 누르고 취소 사유를 선택해 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "wavve",
+    "name": "Wavve",
+    "category": "OTT",
+    "plan": "스탠다드",
+    "amount": 10900,
+    "brandColor": "#1A56EB",
+    "cancelUrl": "https://www.wavve.com/my/pass",
+    "aliases": [
+      "웨이브",
+      "wavve"
+    ],
+    "monogram": "W",
+    "availablePlans": [
+      {
+        "plan": "스탠다드",
+        "amount": 10900
+      }
+    ],
+    "plans": [
+      {
+        "name": "스탠다드",
+        "amount": 10900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "나의 이용권 이동",
+        "description": "웨이브 우측 상단 [MY] > [나의 이용권] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "자동결제 해지 클릭",
+        "description": "이용 중인 상품 정보 우측의 [자동결제 해지] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 계속하기",
+        "description": "유지 혜택 안내 화면에서 스크롤을 내려 [해지 계속하기]를 눌러 끝냅니다."
+      }
+    ]
+  },
+  {
+    "id": "watcha",
+    "name": "WATCHA",
+    "category": "OTT",
+    "plan": "프리미엄",
+    "amount": 12900,
+    "brandColor": "#FF0558",
+    "cancelUrl": "https://watcha.com/settings",
+    "aliases": [
+      "왓챠",
+      "watcha"
+    ],
+    "monogram": "W",
+    "availablePlans": [
+      {
+        "plan": "프리미엄",
+        "amount": 12900
+      }
+    ],
+    "plans": [
+      {
+        "name": "프리미엄",
+        "amount": 12900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 진입",
+        "description": "왓챠 우측 상단 프로필 > [설정] 메뉴를 선택합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용권 상태 확인",
+        "description": "계정 설정 화면에서 현재 이용권 상태와 결제 정보를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 버튼 클릭",
+        "description": "하단 [해지] 버튼을 누르고 팝업에서 [이용권 해지하기]를 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "coupangplay",
+    "name": "Coupang Play",
+    "category": "OTT",
+    "plan": "와우 회원 무료",
+    "amount": 7890,
+    "brandColor": "#0073E6",
+    "cancelUrl": "https://loyalty.coupang.com/loyalty/sign-up/home",
+    "aliases": [
+      "쿠팡플레이",
+      "쿠플"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "와우 회원 무료",
+        "amount": 7890
+      }
+    ],
+    "plans": [
+      {
+        "name": "와우 회원 무료",
+        "amount": 7890,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이쿠팡 진입",
+        "description": "쿠팡 앱 우측 하단 [마이쿠팡] > [와우 멤버십]을 선택합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "해지하기 버튼",
+        "description": "페이지 맨 아래로 스크롤을 끝까지 내려 [해지하기]를 터치합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "혜택 포기 및 확정",
+        "description": "[내가 누린 혜택 포기할게요] 선택 후 [해지 신청하기]를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "laftel",
+    "name": "Laftel",
+    "category": "OTT",
+    "plan": "베이직",
+    "amount": 9900,
+    "brandColor": "#816BFF",
+    "cancelUrl": "https://laftel.net/setting",
+    "aliases": [
+      "라프텔",
+      "애니메이션"
+    ],
+    "monogram": "L",
+    "availablePlans": [
+      {
+        "plan": "베이직",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "베이직",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 진입",
+        "description": "라프텔 우측 상단 프로필 아이콘 > [설정] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 관리 선택",
+        "description": "[멤버십 관리] 탭에서 현재 구독 중인 이용권을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지",
+        "description": "하단의 [멤버십 해지하기]를 클릭하고 확인을 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "appletv",
+    "name": "Apple TV+",
+    "category": "OTT",
+    "plan": "Apple TV+",
+    "amount": 6500,
+    "brandColor": "#000000",
+    "cancelUrl": "https://tv.apple.com/settings",
+    "aliases": [
+      "애플티비",
+      "애플tv"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "Apple TV+",
+        "amount": 6500
+      }
+    ],
+    "plans": [
+      {
+        "name": "Apple TV+",
+        "amount": 6500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 설정 이동",
+        "description": "Apple TV 웹(tv.apple.com) 우측 상단 프로필 > [설정]을 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 선택",
+        "description": "[구독(Subscriptions)] 항목에서 [관리(Manage)]를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "[구독 취소(Cancel Subscription)]를 누르고 확인을 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "primevideo",
+    "name": "Amazon Prime Video",
+    "category": "OTT",
+    "plan": "Prime Video",
+    "amount": 7900,
+    "brandColor": "#00A8E1",
+    "cancelUrl": "https://www.primevideo.com/settings/your-account/",
+    "aliases": [
+      "프라임비디오",
+      "아마존비디오"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "Prime Video",
+        "amount": 7900
+      }
+    ],
+    "plans": [
+      {
+        "name": "Prime Video",
+        "amount": 7900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 및 설정 이동",
+        "description": "Prime Video 우측 상단 프로필 > [계정 및 설정]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "내 계정 확인",
+        "description": "[내 계정] 탭에서 Prime Video 멤버십 상태를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 종료",
+        "description": "[멤버십 종료(End Membership)]를 클릭하여 해지를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "spotvnow",
+    "name": "SPOTV NOW",
+    "category": "OTT",
+    "plan": "프리미엄",
+    "amount": 19900,
+    "brandColor": "#191919",
+    "cancelUrl": "https://www.spotvnow.co.kr/my/pass",
+    "aliases": [
+      "스포티비",
+      "spotv",
+      "해외축구"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "프리미엄",
+        "amount": 19900
+      }
+    ],
+    "plans": [
+      {
+        "name": "프리미엄",
+        "amount": 19900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "MY 페이지 진입",
+        "description": "SPOTV NOW 상단 메뉴의 [MY]를 클릭합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용권/결제 관리",
+        "description": "좌측 메뉴 [이용권/결제 관리] 탭을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동결제 해지",
+        "description": "이용 중인 이용권 우측 [자동결제 해지] 버튼을 누르고 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "weverse",
+    "name": "Weverse Digital Membership",
+    "category": "OTT",
+    "plan": "글로벌 멤버십",
+    "amount": 25000,
+    "brandColor": "#08E6B2",
+    "cancelUrl": "https://weverse.io/more/my",
+    "aliases": [
+      "위버스",
+      "weverse"
+    ],
+    "monogram": "W",
+    "availablePlans": [
+      {
+        "plan": "글로벌 멤버십",
+        "amount": 25000
+      }
+    ],
+    "plans": [
+      {
+        "name": "글로벌 멤버십",
+        "amount": 25000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "위버스 로그인 후 하단 [더보기] > [멤버십] 탭으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 아티스트 선택",
+        "description": "현재 디지털 멤버십을 이용 중인 아티스트를 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기결제 해지",
+        "description": "결제 상세 설정에서 [정기결제 해지]를 눌러 취소합니다."
+      }
+    ]
+  },
+  {
+    "id": "crunchyroll",
+    "name": "Crunchyroll",
+    "category": "OTT",
+    "plan": "Mega Fan",
+    "amount": 8900,
+    "brandColor": "#F47521",
+    "cancelUrl": "https://www.crunchyroll.com/account/membership",
+    "aliases": [
+      "크런치롤"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "Mega Fan",
+        "amount": 8900
+      }
+    ],
+    "plans": [
+      {
+        "name": "Mega Fan",
+        "amount": 8900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 이동",
+        "description": "Crunchyroll 우측 상단 프로필 > [Settings]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 플랜 확인",
+        "description": "[Membership Plan] 메뉴에서 현재 요금제를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 취소",
+        "description": "화면 하단 [Cancel Membership]을 누르고 취소 설문을 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "mubi",
+    "name": "MUBI",
+    "category": "OTT",
+    "plan": "MUBI 월정액",
+    "amount": 12900,
+    "brandColor": "#051A26",
+    "cancelUrl": "https://mubi.com/login",
+    "aliases": [
+      "뮤비",
+      "독립영화"
+    ],
+    "monogram": "M",
+    "availablePlans": [
+      {
+        "plan": "MUBI 월정액",
+        "amount": 12900
+      }
+    ],
+    "plans": [
+      {
+        "name": "MUBI 월정액",
+        "amount": 12900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 진입",
+        "description": "MUBI 로그인 후 우측 상단 프로필 > [Settings]를 클릭합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 탭 확인",
+        "description": "[Subscription] 탭에서 현재 멤버십 상태를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "[Cancel Subscription]을 누르고 확인 버튼을 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "dazn",
+    "name": "DAZN",
+    "category": "OTT",
+    "plan": "Monthly Pass",
+    "amount": 25000,
+    "brandColor": "#F8F8F8",
+    "cancelUrl": "https://www.dazn.com/ko-KR/account",
+    "aliases": [
+      "다존",
+      "dazn"
+    ],
+    "monogram": "D",
+    "availablePlans": [
+      {
+        "plan": "Monthly Pass",
+        "amount": 25000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Monthly Pass",
+        "amount": 25000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "내 계정 이동",
+        "description": "DAZN 우측 상단 메뉴 > [내 계정(My Account)]으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 섹션 확인",
+        "description": "[구독(Subscription)] 항목에서 현재 요금제를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "[구독 취소(Cancel subscription)]를 클릭하고 확인합니다."
+      }
+    ]
+  },
+  {
+    "id": "melon",
+    "name": "Melon",
+    "category": "음악",
+    "plan": "스트리밍 클럽",
+    "amount": 8900,
+    "brandColor": "#00CD3C",
+    "cancelUrl": "https://member.melon.com",
+    "aliases": [
+      "멜론",
+      "melon"
+    ],
+    "monogram": "M",
+    "availablePlans": [
+      {
+        "plan": "스트리밍 클럽",
+        "amount": 8900
+      }
+    ],
+    "plans": [
+      {
+        "name": "스트리밍 클럽",
+        "amount": 8900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "내 정보 이동",
+        "description": "멜론 로그인 후 상단 [내 정보] 클릭 (모바일은 서랍 > [내 정보])."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용권 해지신청",
+        "description": "[이용권/쿠폰/캐시] 탭에서 [이용권 해지신청]을 누르고 비밀번호를 입력합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기결제 해지 완료",
+        "description": "하단 [정기결제 해지] 클릭 후 유지 혜택 팝업에서 [혜택 포기]를 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "spotify",
+    "name": "Spotify",
+    "category": "음악",
+    "plan": "개인",
+    "amount": 10900,
+    "brandColor": "#1DB954",
+    "cancelUrl": "https://www.spotify.com/kr-ko/account/overview/",
+    "aliases": [
+      "스포티파이",
+      "spotify"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "개인",
+        "amount": 10900
+      }
+    ],
+    "plans": [
+      {
+        "name": "개인",
+        "amount": 10900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 개요 접속",
+        "description": "Spotify 계정 페이지(spotify.com/account)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 변경 클릭",
+        "description": "[내 요금제] 카드 우측의 [요금제 변경] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "프리미엄 취소",
+        "description": "페이지 맨 아래로 스크롤하여 [Spotify 취소] > [프리미엄 취소하기]를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "genie",
+    "name": "Genie Music",
+    "category": "음악",
+    "plan": "스마트 음악감상",
+    "amount": 8400,
+    "brandColor": "#0093FF",
+    "cancelUrl": "https://www.genie.co.kr/my",
+    "aliases": [
+      "지니",
+      "지니뮤직"
+    ],
+    "monogram": "G",
+    "availablePlans": [
+      {
+        "plan": "스마트 음악감상",
+        "amount": 8400
+      }
+    ],
+    "plans": [
+      {
+        "name": "스마트 음악감상",
+        "amount": 8400,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "지니뮤직 우측 상단 [마이페이지] > [내 정보]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용권 내역 확인",
+        "description": "[이용권 내역/영수증] 탭에서 사용 중인 이용권을 찾습니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지신청 완료",
+        "description": "이용권 우측 [해지신청]을 누르고 비밀번호 확인 후 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "flo",
+    "name": "FLO",
+    "category": "음악",
+    "plan": "올인원 무제한",
+    "amount": 7900,
+    "brandColor": "#3F3FFF",
+    "cancelUrl": "https://www.music-flo.com/mypage/voucher",
+    "aliases": [
+      "플로",
+      "flo"
+    ],
+    "monogram": "F",
+    "availablePlans": [
+      {
+        "plan": "올인원 무제한",
+        "amount": 7900
+      }
+    ],
+    "plans": [
+      {
+        "name": "올인원 무제한",
+        "amount": 7900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 진입",
+        "description": "FLO 앱 우측 상단 톱니바퀴 [설정] > [이용권 관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용권 상세 확인",
+        "description": "이용 중인 이용권 우측 [상세] 버튼을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 예약 완료",
+        "description": "화면 맨 아래 [이용권 해지 예약]을 누르고 확인을 마칩니다."
+      }
+    ]
+  },
+  {
+    "id": "bugs",
+    "name": "Bugs",
+    "category": "음악",
+    "plan": "모바일 무제한",
+    "amount": 7900,
+    "brandColor": "#E60000",
+    "cancelUrl": "https://music.bugs.co.kr",
+    "aliases": [
+      "벅스",
+      "bugs"
+    ],
+    "monogram": "B",
+    "availablePlans": [
+      {
+        "plan": "모바일 무제한",
+        "amount": 7900
+      }
+    ],
+    "plans": [
+      {
+        "name": "모바일 무제한",
+        "amount": 7900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "내 정보 이동",
+        "description": "벅스 로그인 후 상단 [내 정보] > [이용권 관리]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "자동결제 관리",
+        "description": "이용 중인 상품 우측의 [자동결제 관리/해지]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 계속하기",
+        "description": "할인 혜택 안내를 지나 [해지 계속하기]를 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "vibe",
+    "name": "NAVER VIBE",
+    "category": "음악",
+    "plan": "무제한 듣기",
+    "amount": 8500,
+    "brandColor": "#FF0055",
+    "cancelUrl": "https://vibe.naver.com/membership",
+    "aliases": [
+      "바이브",
+      "vibe",
+      "네이버바이브"
+    ],
+    "monogram": "N",
+    "availablePlans": [
+      {
+        "plan": "무제한 듣기",
+        "amount": 8500
+      }
+    ],
+    "plans": [
+      {
+        "name": "무제한 듣기",
+        "amount": 8500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "멤버십 관리 이동",
+        "description": "NAVER VIBE 로그인 후 [마이페이지] > [멤버십 관리]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 멤버십 선택",
+        "description": "구독 중인 VIBE 멤버십 우측 [관리] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 클릭",
+        "description": "[멤버십 해지]를 누른 후 [정기결제 해지하기]를 최종 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "applemusic",
+    "name": "Apple Music",
+    "category": "음악",
+    "plan": "개인 멤버십",
+    "amount": 8900,
+    "brandColor": "#FA233B",
+    "cancelUrl": "https://music.apple.com/account/settings",
+    "aliases": [
+      "애플뮤직",
+      "apple music"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "개인 멤버십",
+        "amount": 8900
+      }
+    ],
+    "plans": [
+      {
+        "name": "개인 멤버십",
+        "amount": 8900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 설정 진입",
+        "description": "Apple Music 앱 우측 상단 프로필 > [계정 설정]을 터치합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 메뉴 선택",
+        "description": "[구독 관리(Subscriptions)] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "[Apple Music] 선택 후 하단 [구독 취소]를 누르고 확인합니다."
+      }
+    ]
+  },
+  {
+    "id": "ytmusic",
+    "name": "YouTube Music",
+    "category": "음악",
+    "plan": "Music Premium",
+    "amount": 11990,
+    "brandColor": "#FF0000",
+    "cancelUrl": "https://www.youtube.com/paid_memberships",
+    "aliases": [
+      "유튜브뮤직",
+      "yt music"
+    ],
+    "monogram": "Y",
+    "availablePlans": [
+      {
+        "plan": "Music Premium",
+        "amount": 11990
+      }
+    ],
+    "plans": [
+      {
+        "name": "Music Premium",
+        "amount": 11990,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "구매 항목 및 멤버십",
+        "description": "YouTube Music 프로필 > [구매 항목 및 멤버십]을 선택합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 관리 터치",
+        "description": "[Music Premium] 멤버십 우측 [관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "그대로 취소",
+        "description": "[비활성화] 클릭 후 '일시중지' 대신 하단 [그대로 취소]를 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "tidal",
+    "name": "TIDAL",
+    "category": "음악",
+    "plan": "HiFi Plus",
+    "amount": 14000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://my.tidal.com/account/subscription",
+    "aliases": [
+      "타이달",
+      "tidal"
+    ],
+    "monogram": "T",
+    "availablePlans": [
+      {
+        "plan": "HiFi Plus",
+        "amount": 14000
+      }
+    ],
+    "plans": [
+      {
+        "name": "HiFi Plus",
+        "amount": 14000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 페이지 이동",
+        "description": "TIDAL 계정 페이지(my.tidal.com)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 탭 확인",
+        "description": "좌측 메뉴에서 [Subscription]을 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 확정",
+        "description": "화면 하단의 [Cancel Subscription]을 누르고 취소를 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "bubble-sm",
+    "name": "DearU Bubble",
+    "category": "음악",
+    "plan": "1인권 월정액",
+    "amount": 4500,
+    "brandColor": "#FF3366",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "버블",
+      "sm버블",
+      "jyp버블",
+      "디어유버블"
+    ],
+    "monogram": "D",
+    "availablePlans": [
+      {
+        "plan": "1인권 월정액",
+        "amount": 4500
+      }
+    ],
+    "plans": [
+      {
+        "name": "1인권 월정액",
+        "amount": 4500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Google Play 구독 이동",
+        "description": "Google Play 스토어 앱 실행 후 우측 상단 프로필을 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "정기 결제 메뉴",
+        "description": "[결제 및 정기 결제] > [정기 결제] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "[DearU bubble]을 선택하고 하단 [구독 취소]를 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "fromm",
+    "name": "fromm",
+    "category": "음악",
+    "plan": "1인 메시지권",
+    "amount": 4500,
+    "brandColor": "#7B2CBF",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "프롬",
+      "fromm"
+    ],
+    "monogram": "f",
+    "availablePlans": [
+      {
+        "plan": "1인 메시지권",
+        "amount": 4500
+      }
+    ],
+    "plans": [
+      {
+        "name": "1인 메시지권",
+        "amount": 4500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 구독 진입",
+        "description": "Google Play 스토어 앱 > 우측 상단 프로필을 터치합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "정기 결제 선택",
+        "description": "[결제 및 정기 결제] > [정기 결제]로 들어갑니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "fromm 해지 완료",
+        "description": "[fromm] 구독을 선택하고 하단 [구독 취소]를 터치합니다."
+      }
+    ]
+  },
+  {
+    "id": "podbbang",
+    "name": "팟빵 오디오매거진",
+    "category": "음악",
+    "plan": "팟빵 프리미엄",
+    "amount": 9900,
+    "brandColor": "#E61B48",
+    "cancelUrl": "https://www.podbbang.com/mypage/subscription",
+    "aliases": [
+      "팟빵",
+      "팟캐스트"
+    ],
+    "monogram": "팟",
+    "availablePlans": [
+      {
+        "plan": "팟빵 프리미엄",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "팟빵 프리미엄",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "팟빵 웹/앱 로그인 후 [마이페이지] > [구독 관리]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 채널 확인",
+        "description": "정기구독 중인 매거진 및 유료 채널 목록을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기결제 해지",
+        "description": "채널 우측의 [정기결제 해지] 버튼을 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "welaaa",
+    "name": "윌라 오디오북",
+    "category": "음악",
+    "plan": "오디오북 무제한",
+    "amount": 9900,
+    "brandColor": "#00E277",
+    "cancelUrl": "https://www.welaaa.com/my/membership",
+    "aliases": [
+      "윌라",
+      "오디오북"
+    ],
+    "monogram": "윌",
+    "availablePlans": [
+      {
+        "plan": "오디오북 무제한",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "오디오북 무제한",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "멤버십 관리 이동",
+        "description": "윌라 로그인 후 [마이페이지] > [멤버십 관리] 메뉴로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "해지신청 선택",
+        "description": "이용 중인 멤버십 항목 우측 [해지신청]을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 확정",
+        "description": "유지 혜택 안내를 지나 하단 [해지하기]를 누르면 완료됩니다."
+      }
+    ]
+  },
+  {
+    "id": "storytel",
+    "name": "Storytel",
+    "category": "음악",
+    "plan": "무제한 스트리밍",
+    "amount": 11900,
+    "brandColor": "#FF6633",
+    "cancelUrl": "https://www.storytel.com/kr/login",
+    "aliases": [
+      "스토리텔",
+      "storytel"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "무제한 스트리밍",
+        "amount": 11900
+      }
+    ],
+    "plans": [
+      {
+        "name": "무제한 스트리밍",
+        "amount": 11900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 관리 로그인",
+        "description": "스토리텔 계정 페이지(storytel.com/kr/login)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 선택",
+        "description": "[내 계정] 메뉴에서 [구독 관리]를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "[구독 취소]를 누르고 취소 사유를 선택해 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "millie",
+    "name": "밀리의 서재",
+    "category": "도서/웹툰",
+    "plan": "전자책 정기구독",
+    "amount": 9900,
+    "brandColor": "#F8B62D",
+    "cancelUrl": "https://www.millie.co.kr/v3/mypage/subscription",
+    "aliases": [
+      "밀리",
+      "밀리의서재"
+    ],
+    "monogram": "밀",
+    "availablePlans": [
+      {
+        "plan": "전자책 정기구독",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "전자책 정기구독",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "구독 관리 이동",
+        "description": "밀리의 서재 로그인 후 하단 [관리] > [구독 관리]를 터치합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 해지 신청",
+        "description": "[결제/구독 관리] > [구독 해지 신청]을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "지금 바로 해지",
+        "description": "해지 방어 혜택 화면 맨 아래로 스크롤하여 [지금 바로 해지하기]를 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "ridiselect",
+    "name": "리디셀렉트",
+    "category": "도서/웹툰",
+    "plan": "리디셀렉트 월정액",
+    "amount": 4900,
+    "brandColor": "#1F8CE6",
+    "cancelUrl": "https://select.ridibooks.com/settings",
+    "aliases": [
+      "리디",
+      "리디셀렉트"
+    ],
+    "monogram": "리",
+    "availablePlans": [
+      {
+        "plan": "리디셀렉트 월정액",
+        "amount": 4900
+      }
+    ],
+    "plans": [
+      {
+        "name": "리디셀렉트 월정액",
+        "amount": 4900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이리디 셀렉트 관리",
+        "description": "리디 로그인 후 [마이리디] > [리디셀렉트 관리]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "셀렉트 해지 신청",
+        "description": "구독 정보 카드 하단의 [셀렉트 해지 신청] 링크를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 예약/즉시 해지",
+        "description": "안내 화면 하단 [해지 예약하기] 또는 [즉시 해지]를 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "longblack",
+    "name": "롱블랙",
+    "category": "도서/웹툰",
+    "plan": "월간 멤버십",
+    "amount": 4900,
+    "brandColor": "#000000",
+    "cancelUrl": "https://www.longblack.co/settings",
+    "aliases": [
+      "롱블랙",
+      "longblack"
+    ],
+    "monogram": "롱",
+    "availablePlans": [
+      {
+        "plan": "월간 멤버십",
+        "amount": 4900
+      }
+    ],
+    "plans": [
+      {
+        "name": "월간 멤버십",
+        "amount": 4900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 이동",
+        "description": "롱블랙 로그인 후 우측 상단 프로필 > [설정]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 관리 확인",
+        "description": "[멤버십 관리] 탭에서 현재 멤버십 결제 정보를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지",
+        "description": "[멤버십 해지하기]를 클릭하고 확인 버튼을 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "the-joongang-plus",
+    "name": "더중앙플러스",
+    "category": "도서/웹툰",
+    "plan": "디지털 유료구독",
+    "amount": 9000,
+    "brandColor": "#E60000",
+    "cancelUrl": "https://www.joongang.co.kr/plus",
+    "aliases": [
+      "중앙일보",
+      "더중앙"
+    ],
+    "monogram": "더",
+    "availablePlans": [
+      {
+        "plan": "디지털 유료구독",
+        "amount": 9000
+      }
+    ],
+    "plans": [
+      {
+        "name": "디지털 유료구독",
+        "amount": 9000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "중앙플러스 관리",
+        "description": "중앙일보 로그인 후 [마이페이지] > [더중앙플러스]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "결제/해지 관리 선택",
+        "description": "이용 중인 멤버십 항목 우측 [결제/해지 관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지 완료",
+        "description": "하단 [멤버십 해지하기]를 클릭하여 정기결제를 취소합니다."
+      }
+    ]
+  },
+  {
+    "id": "nyt-digital",
+    "name": "The New York Times",
+    "category": "도서/웹툰",
+    "plan": "All Access",
+    "amount": 6000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://www.nytimes.com/subscription/cancel",
+    "aliases": [
+      "뉴욕타임스",
+      "nyt"
+    ],
+    "monogram": "T",
+    "availablePlans": [
+      {
+        "plan": "All Access",
+        "amount": 6000
+      }
+    ],
+    "plans": [
+      {
+        "name": "All Access",
+        "amount": 6000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "취소 페이지 이동",
+        "description": "NYT 해지 페이지(nytimes.com/subscription/cancel)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 상태 확인",
+        "description": "취소할 Digital Subscription을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "취소 절차 진행",
+        "description": "할인 제안을 지나 [Continue to Cancel]을 눌러 취소를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "wsj-digital",
+    "name": "The Wall Street Journal",
+    "category": "도서/웹툰",
+    "plan": "Digital Access",
+    "amount": 12000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://customercenter.wsj.com/manage-subscription",
+    "aliases": [
+      "월스트리트저널",
+      "wsj"
+    ],
+    "monogram": "T",
+    "availablePlans": [
+      {
+        "plan": "Digital Access",
+        "amount": 12000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Digital Access",
+        "amount": 12000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Customer Center 접속",
+        "description": "WSJ 고객센터(customercenter.wsj.com)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 선택",
+        "description": "[Manage Subscription] 메뉴 항목을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "[Cancel Subscription]을 누르고 확인 단계를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "ft-digital",
+    "name": "Financial Times",
+    "category": "도서/웹툰",
+    "plan": "Standard Digital",
+    "amount": 45000,
+    "brandColor": "#FFF1E5",
+    "cancelUrl": "https://www.ft.com/myaccount/subscription/overview",
+    "aliases": [
+      "파이낸셜타임스",
+      "ft"
+    ],
+    "monogram": "F",
+    "availablePlans": [
+      {
+        "plan": "Standard Digital",
+        "amount": 45000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Standard Digital",
+        "amount": 45000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "My Account 진입",
+        "description": "FT.com 우측 상단 [My Account] > [Settings]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 및 결제 확인",
+        "description": "[Subscription & Billing] 탭에서 이용 플랜을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 확정",
+        "description": "[Cancel Subscription]을 클릭하고 단계를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "the-economist",
+    "name": "The Economist",
+    "category": "도서/웹툰",
+    "plan": "Digital Access",
+    "amount": 29000,
+    "brandColor": "#E3120B",
+    "cancelUrl": "https://www.economist.com/manage/my-subscription",
+    "aliases": [
+      "이코노미스트",
+      "economist"
+    ],
+    "monogram": "T",
+    "availablePlans": [
+      {
+        "plan": "Digital Access",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Digital Access",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Manage Subscription",
+        "description": "The Economist 계정(economist.com/manage/my-subscription)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 세부사항 확인",
+        "description": "이용 중인 Digital Access 플랜 정보를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "[Cancel Subscription] 링크를 누르고 취소 절차를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "audible",
+    "name": "Audible",
+    "category": "도서/웹툰",
+    "plan": "Audible Plus",
+    "amount": 11000,
+    "brandColor": "#FF9900",
+    "cancelUrl": "https://www.audible.com/account/overview",
+    "aliases": [
+      "오디블",
+      "audible"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "Audible Plus",
+        "amount": 11000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Audible Plus",
+        "amount": 11000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Account Details 진입",
+        "description": "Audible 로그인 후 상단 [Hi, 이름!] > [Account Details]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 상세 확인",
+        "description": "[View membership details] 아래 [Cancel membership]을 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "취소 확정",
+        "description": "할인 혜택 유지 제안을 지나 [Continue canceling]을 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "scribd",
+    "name": "Scribd",
+    "category": "도서/웹툰",
+    "plan": "Monthly Pass",
+    "amount": 13000,
+    "brandColor": "#1E7B85",
+    "cancelUrl": "https://www.scribd.com/account-settings",
+    "aliases": [
+      "스크립드",
+      "scribd"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "Monthly Pass",
+        "amount": 13000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Monthly Pass",
+        "amount": 13000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Account Settings 이동",
+        "description": "Scribd 우측 상단 프로필 > [Account Settings]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "결제 상세 확인",
+        "description": "[Membership & Payment Details] 섹션으로 스크롤합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 종료",
+        "description": "[End My Membership] 링크를 누르고 취소 단계를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "speak",
+    "name": "Speak",
+    "category": "교육/어학",
+    "plan": "프리미엄 연간 (월환산)",
+    "amount": 29000,
+    "brandColor": "#0055FF",
+    "cancelUrl": "https://app.usespeak.com/settings/subscription",
+    "aliases": [
+      "스픽",
+      "speak",
+      "영어스피킹"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "프리미엄 연간 (월환산)",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "프리미엄 연간 (월환산)",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 이동",
+        "description": "Speak 앱 우측 상단 프로필 > 톱니바퀴 [설정]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 선택",
+        "description": "[멤버십 관리] 또는 [구독 관리] 메뉴를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "스토어 결제창(Google Play/App Store)에서 [구독 취소]를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "duolingo",
+    "name": "Duolingo Super",
+    "category": "교육/어학",
+    "plan": "Super Duolingo",
+    "amount": 9900,
+    "brandColor": "#58CC02",
+    "cancelUrl": "https://www.duolingo.com/settings/super",
+    "aliases": [
+      "듀오링고",
+      "duolingo"
+    ],
+    "monogram": "D",
+    "availablePlans": [
+      {
+        "plan": "Super Duolingo",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "Super Duolingo",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 이동",
+        "description": "듀오링고 우측 상단 프로필 > [설정] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "Super Duolingo 선택",
+        "description": "우측 사이드바에서 [Super Duolingo] 탭을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 관리 및 취소",
+        "description": "[구독 관리] > [구독 취소]를 누르고 확인 단계를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "ringle",
+    "name": "Ringle",
+    "category": "교육/어학",
+    "plan": "정기구독 플랜",
+    "amount": 159000,
+    "brandColor": "#2D3748",
+    "cancelUrl": "https://www.ringleplus.com/ko/student/landing/home",
+    "aliases": [
+      "링글",
+      "ringle"
+    ],
+    "monogram": "R",
+    "availablePlans": [
+      {
+        "plan": "정기구독 플랜",
+        "amount": 159000
+      }
+    ],
+    "plans": [
+      {
+        "name": "정기구독 플랜",
+        "amount": 159000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "링글 로그인 후 [마이페이지] > [수강권/결제 관리]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "정기구독 확인",
+        "description": "이용 중인 정기구독 수강권 내역을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기구독 해지 신청",
+        "description": "[정기구독 해지 신청]을 누르고 해지 확인을 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "cambly",
+    "name": "Cambly",
+    "category": "교육/어학",
+    "plan": "주 3회 30분",
+    "amount": 129000,
+    "brandColor": "#FFC800",
+    "cancelUrl": "https://www.cambly.com/en/student/settings#subscription",
+    "aliases": [
+      "캠블리",
+      "cambly"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "주 3회 30분",
+        "amount": 129000
+      }
+    ],
+    "plans": [
+      {
+        "name": "주 3회 30분",
+        "amount": 129000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 설정 진입",
+        "description": "캠블리 우측 상단 프로필 > [계정 설정] > [플랜]으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "플랜 취소 링크",
+        "description": "[플랜 관리] 영역에서 [플랜 취소] 링크를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소 확정",
+        "description": "취소 사유를 선택하고 [플랜 취소 확정]을 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "santatoeic",
+    "name": "산타토익",
+    "category": "교육/어학",
+    "plan": "AI 무제한패스",
+    "amount": 29000,
+    "brandColor": "#E02128",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "산타토익"
+    ],
+    "monogram": "산",
+    "availablePlans": [
+      {
+        "plan": "AI 무제한패스",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "AI 무제한패스",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 구독 진입",
+        "description": "Google Play 스토어 앱 실행 후 프로필 > [결제 및 정기 결제]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "정기 결제 선택",
+        "description": "[정기 결제] 목록에서 [산타 / Riiid] 항목을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "하단의 [구독 취소]를 누르고 취소 사유를 선택해 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "malhaeboca",
+    "name": "말해보카",
+    "category": "교육/어학",
+    "plan": "연간 프리미엄 (월환산)",
+    "amount": 8900,
+    "brandColor": "#FFCC00",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "말해보카"
+    ],
+    "monogram": "말",
+    "availablePlans": [
+      {
+        "plan": "연간 프리미엄 (월환산)",
+        "amount": 8900
+      }
+    ],
+    "plans": [
+      {
+        "name": "연간 프리미엄 (월환산)",
+        "amount": 8900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 정기 결제",
+        "description": "Google Play 스토어 앱 > 우측 상단 프로필 > [결제 및 정기 결제]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "말해보카 선택",
+        "description": "[정기 결제] 목록에서 [말해보카]를 터치합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "하단 [구독 취소]를 누르고 취소 사유를 선택하여 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "class101",
+    "name": "CLASS101+",
+    "category": "교육/어학",
+    "plan": "연간 구독 (월환산)",
+    "amount": 18900,
+    "brandColor": "#FF5600",
+    "cancelUrl": "https://class101.net/ko/mypage/subscription",
+    "aliases": [
+      "클래스101",
+      "class101"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "연간 구독 (월환산)",
+        "amount": 18900
+      }
+    ],
+    "plans": [
+      {
+        "name": "연간 구독 (월환산)",
+        "amount": 18900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "클래스101 로그인 후 [마이페이지] > [구독 관리]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 해지하기 선택",
+        "description": "현재 이용 중인 [CLASS101+] 플랜 우측 [구독 해지하기]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 완료",
+        "description": "혜택 유지 제안을 지나 [해지 신청하기]를 최종 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "fastcampus",
+    "name": "패스트캠퍼스",
+    "category": "교육/어학",
+    "plan": "올인원 구독권",
+    "amount": 39000,
+    "brandColor": "#F44336",
+    "cancelUrl": "https://fastcampus.co.kr",
+    "aliases": [
+      "패스트캠퍼스",
+      "패캠"
+    ],
+    "monogram": "패",
+    "availablePlans": [
+      {
+        "plan": "올인원 구독권",
+        "amount": 39000
+      }
+    ],
+    "plans": [
+      {
+        "name": "올인원 구독권",
+        "amount": 39000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "내 강의실 이동",
+        "description": "패스트캠퍼스 로그인 후 [내 강의실] > [결제/구독 내역]으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 이용권 관리",
+        "description": "구독형 이용권 항목 우측 [관리] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 해지 신청",
+        "description": "[구독 해지 신청]을 누르고 해지 확인을 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "inflearn",
+    "name": "인프런",
+    "category": "교육/어학",
+    "plan": "인프런패스",
+    "amount": 29000,
+    "brandColor": "#1DC078",
+    "cancelUrl": "https://www.inflearn.com/my-courses",
+    "aliases": [
+      "인프런",
+      "inflearn"
+    ],
+    "monogram": "인",
+    "availablePlans": [
+      {
+        "plan": "인프런패스",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "인프런패스",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "인프런 로그인 후 [마이페이지] > [수강 바우처/결제 내역]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 패스 확인",
+        "description": "이용 중인 인프런패스 또는 멤버십 항목을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동결제 해지",
+        "description": "[자동결제 해지] 버튼을 누르고 확인을 마칩니다."
+      }
+    ]
+  },
+  {
+    "id": "coursera",
+    "name": "Coursera Plus",
+    "category": "교육/어학",
+    "plan": "Coursera Plus",
+    "amount": 69000,
+    "brandColor": "#0056D2",
+    "cancelUrl": "https://www.coursera.org/my-purchases",
+    "aliases": [
+      "코세라",
+      "coursera"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "Coursera Plus",
+        "amount": 69000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Coursera Plus",
+        "amount": 69000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "My Purchases 이동",
+        "description": "Coursera 우측 상단 프로필 > [My Purchases] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 탭 확인",
+        "description": "[Subscriptions] 탭에서 Coursera Plus 항목을 찾습니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "Cancel Subscription",
+        "description": "[Cancel Subscription]을 누르고 취소 설문을 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "naverplus",
+    "name": "네이버플러스 멤버십",
+    "category": "쇼핑",
+    "plan": "월간 이용권",
+    "amount": 4900,
+    "brandColor": "#03C75A",
+    "cancelUrl": "https://nid.naver.com/membership/my",
+    "aliases": [
+      "네이버멤버십",
+      "네이버플러스"
+    ],
+    "monogram": "네",
+    "availablePlans": [
+      {
+        "plan": "월간 이용권",
+        "amount": 4900
+      }
+    ],
+    "plans": [
+      {
+        "name": "월간 이용권",
+        "amount": 4900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "멤버십 설정 진입",
+        "description": "네이버플러스 멤버십 MY 페이지 우측 상단 톱니바퀴 [설정]을 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 관리 선택",
+        "description": "[네이버플러스 멤버십 관리] 메뉴를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기결제 해지하기",
+        "description": "하단 [네이버플러스 멤버십 해지하기] > [정기결제 해지하기]를 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "baemin-club",
+    "name": "배민클럽",
+    "category": "쇼핑",
+    "plan": "배민클럽 월정액",
+    "amount": 3990,
+    "brandColor": "#2AC1BC",
+    "cancelUrl": "https://baemin.me/club",
+    "aliases": [
+      "배민클럽",
+      "배달의민족"
+    ],
+    "monogram": "배",
+    "availablePlans": [
+      {
+        "plan": "배민클럽 월정액",
+        "amount": 3990
+      }
+    ],
+    "plans": [
+      {
+        "name": "배민클럽 월정액",
+        "amount": 3990,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "My배민 배민클럽",
+        "description": "배달의민족 앱 우측 하단 [My배민] > [배민클럽] 배너를 터치합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 관리 선택",
+        "description": "배민클럽 화면 우측 상단 [설정] 또는 [멤버십 관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 완료",
+        "description": "하단 [배민클럽 해지하기]를 누르고 혜택 포기 확인을 마칩니다."
+      }
+    ]
+  },
+  {
+    "id": "yogipass",
+    "name": "요기패스X",
+    "category": "쇼핑",
+    "plan": "요기패스X",
+    "amount": 2900,
+    "brandColor": "#FA0050",
+    "cancelUrl": "https://www.yogiyo.co.kr/mobile/#/mypage/",
+    "aliases": [
+      "요기패스",
+      "요기요"
+    ],
+    "monogram": "요",
+    "availablePlans": [
+      {
+        "plan": "요기패스X",
+        "amount": 2900
+      }
+    ],
+    "plans": [
+      {
+        "name": "요기패스X",
+        "amount": 2900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이요기요 진입",
+        "description": "요기요 앱 우측 하단 [마이요기요] 탭을 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요기패스X 관리",
+        "description": "[요기패스X 관리] 메뉴를 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 완료",
+        "description": "하단 [요기패스X 해지하기]를 누르고 해지 사유를 선택해 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "kurly-pass",
+    "name": "컬리멤버스",
+    "category": "쇼핑",
+    "plan": "컬리멤버스 월정액",
+    "amount": 1900,
+    "brandColor": "#5F0080",
+    "cancelUrl": "https://www.kurly.com/mypage/membership",
+    "aliases": [
+      "컬리멤버스",
+      "마켓컬리",
+      "컬리패스"
+    ],
+    "monogram": "컬",
+    "availablePlans": [
+      {
+        "plan": "컬리멤버스 월정액",
+        "amount": 1900
+      }
+    ],
+    "plans": [
+      {
+        "name": "컬리멤버스 월정액",
+        "amount": 1900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이컬리 진입",
+        "description": "마켓컬리 앱 우측 하단 [마이컬리] > [컬리멤버스] 메뉴를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버스 관리 선택",
+        "description": "멤버십 화면 맨 아래로 스크롤하여 [컬리멤버스 관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지 완료",
+        "description": "[멤버십 해지]를 누르고 [해지 신청하기]를 선택해 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "coupang",
+    "name": "쿠팡 와우 멤버십",
+    "category": "쇼핑",
+    "plan": "와우 멤버십",
+    "amount": 7890,
+    "brandColor": "#0073E6",
+    "cancelUrl": "https://loyalty.coupang.com/loyalty/sign-up/home",
+    "aliases": [
+      "쿠팡",
+      "와우",
+      "쿠팡와우"
+    ],
+    "monogram": "쿠",
+    "availablePlans": [
+      {
+        "plan": "와우 멤버십",
+        "amount": 7890
+      }
+    ],
+    "plans": [
+      {
+        "name": "와우 멤버십",
+        "amount": 7890,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "와우 멤버십 진입",
+        "description": "쿠팡 앱 우측 하단 [마이쿠팡] > [와우 멤버십]을 선택합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "해지하기 터치",
+        "description": "화면 맨 아래로 스크롤을 끝까지 내려 [해지하기] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "혜택 포기 및 확정",
+        "description": "[내가 누린 혜택 포기할게요] 선택 후 [해지 신청하기]를 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "nintendo-online",
+    "name": "Nintendo Switch Online",
+    "category": "게임/엔터",
+    "plan": "개인 플랜 12개월 (월환산)",
+    "amount": 20000,
+    "brandColor": "#E60012",
+    "cancelUrl": "https://ec.nintendo.com/my/membership",
+    "aliases": [
+      "닌텐도",
+      "스위치온라인"
+    ],
+    "monogram": "N",
+    "availablePlans": [
+      {
+        "plan": "개인 플랜 12개월 (월환산)",
+        "amount": 20000
+      }
+    ],
+    "plans": [
+      {
+        "name": "개인 플랜 12개월 (월환산)",
+        "amount": 20000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "숍 메뉴 접속",
+        "description": "닌텐도 어카운트 숍 메뉴(ec.nintendo.com/my/membership)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용 현황 확인",
+        "description": "[Nintendo Switch Online] 이용 현황을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동 연장 갱신 중지",
+        "description": "[자동 연장 결제 갱신 중지] 버튼을 눌러 해지를 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "ps-plus",
+    "name": "PlayStation Plus",
+    "category": "게임/엔터",
+    "plan": "에센셜",
+    "amount": 7500,
+    "brandColor": "#003791",
+    "cancelUrl": "https://store.playstation.com/ko-kr/subscriptions",
+    "aliases": [
+      "플스플러스",
+      "ps plus"
+    ],
+    "monogram": "P",
+    "availablePlans": [
+      {
+        "plan": "에센셜",
+        "amount": 7500
+      }
+    ],
+    "plans": [
+      {
+        "name": "에센셜",
+        "amount": 7500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "정기 구독 관리",
+        "description": "PlayStation Store 로그인 후 프로필 > [정기 구독 서비스 관리]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "PS Plus 선택",
+        "description": "[PlayStation Plus] 항목을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동 갱신 끄기",
+        "description": "[자동 갱신 끄기] 또는 [구독 취소]를 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "xbox-gamepass",
+    "name": "Xbox Game Pass Ultimate",
+    "category": "게임/엔터",
+    "plan": "Ultimate",
+    "amount": 13500,
+    "brandColor": "#107C10",
+    "cancelUrl": "https://account.microsoft.com/services",
+    "aliases": [
+      "게임패스",
+      "엑박게임패스"
+    ],
+    "monogram": "X",
+    "availablePlans": [
+      {
+        "plan": "Ultimate",
+        "amount": 13500
+      }
+    ],
+    "plans": [
+      {
+        "name": "Ultimate",
+        "amount": 13500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "서비스 및 구독 이동",
+        "description": "Microsoft 계정(account.microsoft.com/services)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "Game Pass 관리",
+        "description": "Xbox Game Pass 항목 우측 [관리] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "반복 청구 끄기",
+        "description": "[구독 취소] 또는 [반복 청구 끄기]를 선택하여 해지를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "apple-arcade",
+    "name": "Apple Arcade",
+    "category": "게임/엔터",
+    "plan": "월정액",
+    "amount": 6500,
+    "brandColor": "#FA233B",
+    "cancelUrl": "https://apps.apple.com/account/subscriptions",
+    "aliases": [
+      "애플아케이드"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "월정액",
+        "amount": 6500
+      }
+    ],
+    "plans": [
+      {
+        "name": "월정액",
+        "amount": 6500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "App Store 계정",
+        "description": "App Store 앱 실행 후 우측 상단 [내 프로필]을 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 메뉴 선택",
+        "description": "[구독(Subscriptions)] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "Apple Arcade 취소",
+        "description": "[Apple Arcade]를 선택하고 [구독 취소]를 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "google-play-pass",
+    "name": "Google Play Pass",
+    "category": "게임/엔터",
+    "plan": "월정액",
+    "amount": 6500,
+    "brandColor": "#4285F4",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "플레이패스"
+    ],
+    "monogram": "G",
+    "availablePlans": [
+      {
+        "plan": "월정액",
+        "amount": 6500
+      }
+    ],
+    "plans": [
+      {
+        "name": "월정액",
+        "amount": 6500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 정기 결제",
+        "description": "Google Play 스토어 앱 > 우측 상단 프로필 > [결제 및 정기 결제]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "Play Pass 선택",
+        "description": "[정기 결제] 목록에서 [Google Play Pass]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "하단 [구독 취소]를 누르고 취소 사유를 선택하여 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "ea-play",
+    "name": "EA Play",
+    "category": "게임/엔터",
+    "plan": "EA Play",
+    "amount": 5500,
+    "brandColor": "#000000",
+    "cancelUrl": "https://www.ea.com/ea-play",
+    "aliases": [
+      "ea플레이"
+    ],
+    "monogram": "E",
+    "availablePlans": [
+      {
+        "plan": "EA Play",
+        "amount": 5500
+      }
+    ],
+    "plans": [
+      {
+        "name": "EA Play",
+        "amount": 5500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "EA 계정 설정",
+        "description": "EA 계정 포털(myaccount.ea.com)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "EA Play 탭 확인",
+        "description": "[EA Play] 탭에서 현재 멤버십 상태를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 취소 확정",
+        "description": "[멤버십 취소(Cancel Membership)]를 클릭하고 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "wow-subscription",
+    "name": "World of Warcraft 정액제",
+    "category": "게임/엔터",
+    "plan": "30일 이용권",
+    "amount": 19800,
+    "brandColor": "#C59B27",
+    "cancelUrl": "https://account.battle.net/games",
+    "aliases": [
+      "와우",
+      "블리자드와우",
+      "월드오브워크래프트"
+    ],
+    "monogram": "W",
+    "availablePlans": [
+      {
+        "plan": "30일 이용권",
+        "amount": 19800
+      }
+    ],
+    "plans": [
+      {
+        "name": "30일 이용권",
+        "amount": 19800,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "게임 및 정기 결제",
+        "description": "Battle.net 계정 관리(account.battle.net/games)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "와우 계정 선택",
+        "description": "[게임 및 정기 결제]에서 World of Warcraft 계정을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기 결제 취소",
+        "description": "[관리] > [정기 결제 취소]를 누르고 해지를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "kakaotalk-drive",
+    "name": "카카오톡 톡서랍 플러스",
+    "category": "생활/모빌리티",
+    "plan": "100GB 드라이브",
+    "amount": 990,
+    "brandColor": "#FEE500",
+    "cancelUrl": "https://my.kakao.com/product/DRIVE001",
+    "aliases": [
+      "톡서랍",
+      "카카오톡서랍"
+    ],
+    "monogram": "카",
+    "availablePlans": [
+      {
+        "plan": "100GB 드라이브",
+        "amount": 990
+      }
+    ],
+    "plans": [
+      {
+        "name": "100GB 드라이브",
+        "amount": 990,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "톡서랍 / My구독 이동",
+        "description": "카카오톡 [더보기] > [서랍] 또는 My구독 웹에 접속합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 정보 선택",
+        "description": "우측 상단 프로필 > [구독 정보]에서 톡서랍 플러스를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 확정",
+        "description": "하단 [해지하기]를 누른 뒤 [정기결제 해지]를 선택하여 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "kakaotalk-emoticon",
+    "name": "카카오톡 이모티콘 플러스",
+    "category": "생활/모빌리티",
+    "plan": "이모티콘 무제한",
+    "amount": 3900,
+    "brandColor": "#FEE500",
+    "cancelUrl": "https://my.kakao.com/product/EMOTICON001",
+    "aliases": [
+      "이모티콘플러스",
+      "카카오이모티콘"
+    ],
+    "monogram": "카",
+    "availablePlans": [
+      {
+        "plan": "이모티콘 무제한",
+        "amount": 3900
+      }
+    ],
+    "plans": [
+      {
+        "name": "이모티콘 무제한",
+        "amount": 3900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "이모티콘샵 접속",
+        "description": "카카오 이모티콘샵(e.kakao.com) 로그인 후 우측 상단 [My]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 선택",
+        "description": "[이모티콘 플러스 관리] 메뉴를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 완료",
+        "description": "하단 [해지하기]를 누르고 해지 확인 팝업을 마칩니다."
+      }
+    ]
+  },
+  {
+    "id": "naver-mybox",
+    "name": "네이버 MYBOX",
+    "category": "생활/모빌리티",
+    "plan": "80GB 월정액",
+    "amount": 1650,
+    "brandColor": "#03C75A",
+    "cancelUrl": "https://mybox.naver.com/#/capacity",
+    "aliases": [
+      "마이박스",
+      "네이버mybox"
+    ],
+    "monogram": "네",
+    "availablePlans": [
+      {
+        "plan": "80GB 월정액",
+        "amount": 1650
+      }
+    ],
+    "plans": [
+      {
+        "name": "80GB 월정액",
+        "amount": 1650,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "용량 관리 이동",
+        "description": "네이버 MYBOX 웹 좌측 하단 [용량 관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용권/결제 관리",
+        "description": "[이용권 / 결제 관리] 탭에서 이용 중인 요금제를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "이용권 해지",
+        "description": "[이용권 해지]를 누르고 정기결제 해지를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "strava-sub",
+    "name": "Strava",
+    "category": "생활/모빌리티",
+    "plan": "월정액 멤버십",
+    "amount": 7900,
+    "brandColor": "#FC4C02",
+    "cancelUrl": "https://www.strava.com/subscribe",
+    "aliases": [
+      "스트라바",
+      "strava"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "월정액 멤버십",
+        "amount": 7900
+      }
+    ],
+    "plans": [
+      {
+        "name": "월정액 멤버십",
+        "amount": 7900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 설정 이동",
+        "description": "Strava 웹 우측 상단 프로필 > [설정] > [내 계정]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 섹션 확인",
+        "description": "[멤버십(Membership)] 섹션에서 상태를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 취소 확정",
+        "description": "[멤버십 취소(Cancel Membership)]를 누르고 단계를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "burnfit-pro",
+    "name": "번핏 Pro",
+    "category": "생활/모빌리티",
+    "plan": "월간 프로",
+    "amount": 4900,
+    "brandColor": "#FF5252",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "번핏",
+      "burnfit"
+    ],
+    "monogram": "번",
+    "availablePlans": [
+      {
+        "plan": "월간 프로",
+        "amount": 4900
+      }
+    ],
+    "plans": [
+      {
+        "name": "월간 프로",
+        "amount": 4900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 정기 결제",
+        "description": "Google Play 스토어 앱 > 우측 상단 프로필 > [결제 및 정기 결제]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "번핏 Pro 선택",
+        "description": "[정기 결제] 목록에서 [번핏 - 운동일지 Pro]를 터치합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "하단 [구독 취소]를 누르고 취소 사유를 선택해 완료합니다."
+      }
+    ]
+  }
+]

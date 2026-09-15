@@ -1,0 +1,315 @@
+[
+  {
+    "id": "nintendo-online",
+    "name": "Nintendo Switch Online",
+    "category": "게임/엔터",
+    "plan": "개인 플랜 12개월 (월환산)",
+    "amount": 20000,
+    "brandColor": "#E60012",
+    "cancelUrl": "https://ec.nintendo.com/my/membership",
+    "aliases": [
+      "닌텐도",
+      "스위치온라인"
+    ],
+    "monogram": "N",
+    "availablePlans": [
+      {
+        "plan": "개인 플랜 12개월 (월환산)",
+        "amount": 20000
+      }
+    ],
+    "plans": [
+      {
+        "name": "개인 플랜 12개월 (월환산)",
+        "amount": 20000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "숍 메뉴 접속",
+        "description": "닌텐도 어카운트 숍 메뉴(ec.nintendo.com/my/membership)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용 현황 확인",
+        "description": "[Nintendo Switch Online] 이용 현황을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동 연장 갱신 중지",
+        "description": "[자동 연장 결제 갱신 중지] 버튼을 눌러 해지를 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "ps-plus",
+    "name": "PlayStation Plus",
+    "category": "게임/엔터",
+    "plan": "에센셜",
+    "amount": 7500,
+    "brandColor": "#003791",
+    "cancelUrl": "https://store.playstation.com/ko-kr/subscriptions",
+    "aliases": [
+      "플스플러스",
+      "ps plus"
+    ],
+    "monogram": "P",
+    "availablePlans": [
+      {
+        "plan": "에센셜",
+        "amount": 7500
+      }
+    ],
+    "plans": [
+      {
+        "name": "에센셜",
+        "amount": 7500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "정기 구독 관리",
+        "description": "PlayStation Store 로그인 후 프로필 > [정기 구독 서비스 관리]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "PS Plus 선택",
+        "description": "[PlayStation Plus] 항목을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동 갱신 끄기",
+        "description": "[자동 갱신 끄기] 또는 [구독 취소]를 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "xbox-gamepass",
+    "name": "Xbox Game Pass Ultimate",
+    "category": "게임/엔터",
+    "plan": "Ultimate",
+    "amount": 13500,
+    "brandColor": "#107C10",
+    "cancelUrl": "https://account.microsoft.com/services",
+    "aliases": [
+      "게임패스",
+      "엑박게임패스"
+    ],
+    "monogram": "X",
+    "availablePlans": [
+      {
+        "plan": "Ultimate",
+        "amount": 13500
+      }
+    ],
+    "plans": [
+      {
+        "name": "Ultimate",
+        "amount": 13500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "서비스 및 구독 이동",
+        "description": "Microsoft 계정(account.microsoft.com/services)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "Game Pass 관리",
+        "description": "Xbox Game Pass 항목 우측 [관리] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "반복 청구 끄기",
+        "description": "[구독 취소] 또는 [반복 청구 끄기]를 선택하여 해지를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "apple-arcade",
+    "name": "Apple Arcade",
+    "category": "게임/엔터",
+    "plan": "월정액",
+    "amount": 6500,
+    "brandColor": "#FA233B",
+    "cancelUrl": "https://apps.apple.com/account/subscriptions",
+    "aliases": [
+      "애플아케이드"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "월정액",
+        "amount": 6500
+      }
+    ],
+    "plans": [
+      {
+        "name": "월정액",
+        "amount": 6500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "App Store 계정",
+        "description": "App Store 앱 실행 후 우측 상단 [내 프로필]을 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 메뉴 선택",
+        "description": "[구독(Subscriptions)] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "Apple Arcade 취소",
+        "description": "[Apple Arcade]를 선택하고 [구독 취소]를 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "google-play-pass",
+    "name": "Google Play Pass",
+    "category": "게임/엔터",
+    "plan": "월정액",
+    "amount": 6500,
+    "brandColor": "#4285F4",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "플레이패스"
+    ],
+    "monogram": "G",
+    "availablePlans": [
+      {
+        "plan": "월정액",
+        "amount": 6500
+      }
+    ],
+    "plans": [
+      {
+        "name": "월정액",
+        "amount": 6500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 정기 결제",
+        "description": "Google Play 스토어 앱 > 우측 상단 프로필 > [결제 및 정기 결제]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "Play Pass 선택",
+        "description": "[정기 결제] 목록에서 [Google Play Pass]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "하단 [구독 취소]를 누르고 취소 사유를 선택하여 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "ea-play",
+    "name": "EA Play",
+    "category": "게임/엔터",
+    "plan": "EA Play",
+    "amount": 5500,
+    "brandColor": "#000000",
+    "cancelUrl": "https://www.ea.com/ea-play",
+    "aliases": [
+      "ea플레이"
+    ],
+    "monogram": "E",
+    "availablePlans": [
+      {
+        "plan": "EA Play",
+        "amount": 5500
+      }
+    ],
+    "plans": [
+      {
+        "name": "EA Play",
+        "amount": 5500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "EA 계정 설정",
+        "description": "EA 계정 포털(myaccount.ea.com)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "EA Play 탭 확인",
+        "description": "[EA Play] 탭에서 현재 멤버십 상태를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 취소 확정",
+        "description": "[멤버십 취소(Cancel Membership)]를 클릭하고 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "wow-subscription",
+    "name": "World of Warcraft 정액제",
+    "category": "게임/엔터",
+    "plan": "30일 이용권",
+    "amount": 19800,
+    "brandColor": "#C59B27",
+    "cancelUrl": "https://account.battle.net/games",
+    "aliases": [
+      "와우",
+      "블리자드와우",
+      "월드오브워크래프트"
+    ],
+    "monogram": "W",
+    "availablePlans": [
+      {
+        "plan": "30일 이용권",
+        "amount": 19800
+      }
+    ],
+    "plans": [
+      {
+        "name": "30일 이용권",
+        "amount": 19800,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "게임 및 정기 결제",
+        "description": "Battle.net 계정 관리(account.battle.net/games)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "와우 계정 선택",
+        "description": "[게임 및 정기 결제]에서 World of Warcraft 계정을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기 결제 취소",
+        "description": "[관리] > [정기 결제 취소]를 누르고 해지를 완료합니다."
+      }
+    ]
+  }
+]

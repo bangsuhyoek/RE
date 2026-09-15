@@ -24,17 +24,17 @@ function VisualPromoCarousel({ promotions, onOpenPromotion }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef(null);
 
-  const heroPromo = promotions.find((p) => p.id === "lgu-nerget") || promotions[0];
+  const heroPromo = promotions.find((p) => p.id === "tving-naver" || p.id === "naverplus-netflix") || promotions[0];
   const promo1 = promotions.find((p) => p.kind === "경쟁사 프로모" || p.id === "youtube-promo") || promotions[1] || promotions[0];
   const promo2 = promotions.find((p) => p.kind === "연간 전환 팁" || p.id === "spotify-annual") || promotions[2] || promotions[1];
 
   const slides = [
     {
-      id: "lgu-nerget",
+      id: "tving-naver",
       promo: heroPromo,
-      tag: "LG U+ 너겟 요금제",
-      title: "통신비 줄이고,\nOTT는 무료로!",
-      btnText: "혜택 받아가기",
+      tag: "네이버플러스 멤버십 제휴",
+      title: "네이버 멤버십으로,\n티빙·넷플릭스 ₩0!",
+      btnText: "무료 연동 혜택 보기",
       bgGradient: "from-blue-50/50 via-white to-white border-blue-100/80",
       btnColor: "bg-[#3182F6] text-white hover:bg-blue-600",
       visual: (
@@ -253,6 +253,11 @@ export function PromotionScreen({ subscriptions, promotions, onOpenPromotion }) 
                     <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-sm">
                       {promotion.kind}
                     </span>
+                    {promotion.benefitPeriod && (
+                      <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-sm">
+                        {promotion.benefitPeriod}
+                      </span>
+                    )}
                     {isTargetMatched && (
                       <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-sm">
                         <Sparkles size={10} /> 추천

@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-15T09:30:41.100Z",
+  "policy": {
+    "publishPolicy": "운영자 검수 전에는 앱에 공개하지 않음",
+    "acceptedSource": "서비스 공식 도메인에서 렌더링된 혜택 문구",
+    "excluded": [
+      "로그인/해지 페이지의 일반 문구",
+      "종료·마감 혜택",
+      "혜택 없음 또는 할인 미적용 문구",
+      "근거 없는 금액·기간 추정"
+    ]
+  },
+  "summary": {
+    "serviceCount": 3,
+    "servicesWithCandidates": 2,
+    "candidatePromotionCount": 6,
+    "noActivePromotionFound": 1,
+    "unavailable": 0
+  },
+  "services": [
+    {
+      "serviceId": "adobe",
+      "serviceName": "Adobe Creative Cloud",
+      "category": "SaaS",
+      "status": "candidate_with_evidence",
+      "checkedAt": "2026-09-15T09:30:38.634Z",
+      "candidates": [
+        {
+          "url": "https://www.adobe.com/kr/creativecloud/buy/students.html",
+          "title": "등록된 공식 페이지",
+          "ok": true,
+          "finalUrl": "https://www.adobe.com/kr/education/students/creativecloud.html",
+          "pageTitle": "학생 및 교사용 Adobe Creative Cloud Pro | Adobe Creative Cloud",
+          "error": null,
+          "evidenceCount": 1
+        },
+        {
+          "url": "https://www.adobe.com/kr/creativecloud/plans.html",
+          "title": "등록된 공식 페이지",
+          "ok": true,
+          "finalUrl": "https://www.adobe.com/kr/creativecloud/plans.html",
+          "pageTitle": "Adobe Creative Cloud 플랜, 가격, 멤버십",
+          "error": null,
+          "evidenceCount": 1
+        }
+      ],
+      "promotions": [
+        {
+          "id": "adobe-86a4026a507b",
+          "title": "Adobe Creative Cloud",
+          "category": "학생/교육 할인",
+          "kind": "학생·교육 할인",
+          "description": "학생 및 교사 개요 Creative Cloud Pro 기능 플랜 비교 구매하기 로그인 Home / 교육 기관 / Creative Cloud 모든 앱 학생을 위한 Creative Cloud 모든 앱 66% 할인 혜택 Photoshop, Illustrator, Premiere 등 20개 이상의 업계 최고 수준 앱과 Adobe Firefly의 책임 있는 AI 기능을 모두 이용해 보세요. 교사도 이용할 수 있습니다. 연간 플랜, 매월 지불 기준 첫해 정가 ₩78,100/월 또는 에 ₩26,400/월(부가세 포함)입니다. 약관을 확인하세요. 구매하기 Creative Cloud 모든 앱의 무한한 가능성을 경험해보세요 포토 콜라주로​ 감성 디테일 쌓기 자세히 보기 이미지는 기본, ​ 사진까지 영상으로 생성 자세히 보기 클릭 한 번으로​ 2D 캐릭터를 3D로 자세히 보기 영상을 위한 ​ 트렌디한 타이틀 자세히 보기 PDF로 완성하는​ 나만의 스터디북​ 자",
+          "sourceServiceIds": [
+            "adobe"
+          ],
+          "link": "https://www.adobe.com/kr/education/students/creativecloud.html",
+          "offerPrice": 78100,
+          "originalPrice": null,
+          "saving": null,
+          "verificationStatus": "pending_review",
+          "status": "pending_review",
+          "evidence": {
+            "sourceType": "official_service_page",
+            "sourceUrl": "https://www.adobe.com/kr/education/students/creativecloud.html",
+            "pageTitle": "학생 및 교사용 Adobe Creative Cloud Pro | Adobe Creative Cloud",
+            "capturedAt": "2026-09-15T09:30:36.475Z",
+            "screenshotPath": "outputs/promotion-audit/screenshots/adobe-0d63526f93be.png",
+            "text": "학생 및 교사 개요 Creative Cloud Pro 기능 플랜 비교 구매하기 로그인 Home / 교육 기관 / Creative Cloud 모든 앱 학생을 위한 Creative Cloud 모든 앱 66% 할인 혜택 Photoshop, Illustrator, Premiere 등 20개 이상의 업계 최고 수준 앱과 Adobe Firefly의 책임 있는 AI 기능을 모두 이용해 보세요. 교사도 이용할 수 있습니다. 연간 플랜, 매월 지불 기준 첫해 정가 ₩78,100/월 또는 에 ₩26,400/월(부가세 포함)입니다. 약관을 확인하세요. 구매하기 Creative Cloud 모든 앱의 무한한 가능성을 경험해보세요 포토 콜라주로​ 감성 디테일 쌓기 자세히 보기 이미지는 기본, ​ 사진까지 영상으로 생성 자세히 보기 클릭 한 번으로​ 2D 캐릭터를 3D로 자세히 보기 영상을 위한 ​ 트렌디한 타이틀 자세히 보기 PDF로 완성하는​ 나만의 스터디북​ 자"
+          }
+        },
+        {
+          "id": "adobe-48b38ae495ad",
+          "title": "Adobe Creative Cloud",
+          "category": "학생/교육 할인",
+          "kind": "학생·교육 할인",
+          "description": "Creative Cloud 앱과 다양한 서비스에 대한 플랜 및 가격 모든 플랜, 부담 없이 시작하세요. 구매 후 14일 이내에는 언제든지 무료로 취소하실 수 있습니다. 인기 생성형 AI 플랜 비교 → Firefly 생성형 AI 플랜 비교 → 포토 플랜 비교 → 디자인 및 일러스트레이션 플랜 비교 → 개인 기업 학생 및 교사 초중고등학교 및 대학교",
+          "sourceServiceIds": [
+            "adobe"
+          ],
+          "link": "https://www.adobe.com/kr/creativecloud/plans.html",
+          "offerPrice": null,
+          "originalPrice": null,
+          "saving": null,
+          "verificationStatus": "pending_review",
+          "status": "pending_review",
+          "evidence": {
+            "sourceType": "official_service_page",
+            "sourceUrl": "https://www.adobe.com/kr/creativecloud/plans.html",
+            "pageTitle": "Adobe Creative Cloud 플랜, 가격, 멤버십",
+            "capturedAt": "2026-09-15T09:30:38.627Z",
+            "screenshotPath": "outputs/promotion-audit/screenshots/adobe-61429d704638.png",
+            "text": "Creative Cloud 앱과 다양한 서비스에 대한 플랜 및 가격 모든 플랜, 부담 없이 시작하세요. 구매 후 14일 이내에는 언제든지 무료로 취소하실 수 있습니다. 인기 생성형 AI 플랜 비교 → Firefly 생성형 AI 플랜 비교 → 포토 플랜 비교 → 디자인 및 일러스트레이션 플랜 비교 → 개인 기업 학생 및 교사 초중고등학교 및 대학교"
+          }
+        }
+      ]
+    },
+    {
+      "serviceId": "primevideo",
+      "serviceName": "Amazon Prime Video",
+      "category": "OTT",
+      "status": "no_active_promotion_found",
+      "checkedAt": "2026-09-15T09:30:36.503Z",
+      "candidates": [
+        {
+          "url": "https://www.primevideo.com/settings/your-account/",
+          "title": "등록된 공식 페이지",
+          "ok": true,
+          "finalUrl": "https://www.amazon.co.jp/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Ffe.primevideo.com%2Fauth%2Freturn%3F_t%3D1sg35s1FUHtBSCS1Qse78PuU6MLJRkrXW1DySY2kocQ1UWAAAAAQAAAABqqRA4cmF3AAAAAPgWC9WfHH8iB-olH_E9xQ%26ref_%3Dav_auth_ap%26location%3D%2Fsettings%2Fyour-account%3Fref_%253Datv_auth_red_aft%2526_authLoop%253D1&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=amzn_prime_video_sso_fe&openid.mode=checkid_setup&countryCode=KR&siteState=357-7764111-8958663&language=ko_KR&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0",
+          "pageTitle": "Amazon 로그인",
+          "error": null,
+          "evidenceCount": 0
+        }
+      ],
+      "promotions": []
+    },
+    {
+      "serviceId": "spotify",
+      "serviceName": "Spotify",
+      "category": "음악",
+      "status": "candidate_with_evidence",
+      "checkedAt": "2026-09-15T09:30:41.099Z",
+      "candidates": [
+        {
+          "url": "https://www.spotify.com/kr-ko/premium/",
+          "title": "등록된 공식 페이지",
+          "ok": true,
+          "finalUrl": "https://www.spotify.com/kr-ko/premium/",
+          "pageTitle": "Spotify Premium (대한민국) - ₩0의 요금으로 3개월 이용해보기",
+          "error": null,
+          "evidenceCount": 4
+        },
+        {
+          "url": "https://support.spotify.com/kr-ko/article/premium-plans/",
+          "title": "등록된 공식 페이지",
+          "ok": true,
+          "finalUrl": "https://www.spotify.com/kr-ko/premium/",
+          "pageTitle": "Spotify Premium (대한민국) - ₩0의 요금으로 3개월 이용해보기",
+          "error": null,
+          "evidenceCount": 4
+        }
+      ],
+      "promotions": [
+        {
+          "id": "spotify-55beb4e0729c",
+          "title": "Spotify",
+          "category": "무료 체험",
+          "kind": "무료 체험",
+          "description": "South Korea (English) ✕ Close 콘텐츠로 건너뛰기 Spotify - 홈 Premium 요금제 지원 다운로드하기 가입하기 로그인하기 3개월에 ₩0으로 Premium을 즐겨보세요 광고 없는 음악 감상, 오프라인 재생 등 다양한 혜택을 누려보세요. 언제든 해지 가능합니다. 이 혜택은 8일 후에 종료됩니다 ₩0의 요금으로 3개월 이용해보기 모든 요금제 보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. 차이를 경험해 보세요 Premium을 사용하여 마음껏 음악을 감상하세요. 언제든 해지 가능합니다. 제공되는 혜택 Spotify 무료 요금제 Spotify Premium 요금제 수백만 개의 곡 감상 광고 없는 음악 감상 순서",
+          "sourceServiceIds": [
+            "spotify"
+          ],
+          "link": "https://www.spotify.com/kr-ko/premium/",
+          "offerPrice": 0,
+          "originalPrice": null,
+          "saving": null,
+          "verificationStatus": "pending_review",
+          "status": "pending_review",
+          "evidence": {
+            "sourceType": "official_service_page",
+            "sourceUrl": "https://www.spotify.com/kr-ko/premium/",
+            "pageTitle": "Spotify Premium (대한민국) - ₩0의 요금으로 3개월 이용해보기",
+            "capturedAt": "2026-09-15T09:30:41.083Z",
+            "screenshotPath": "outputs/promotion-audit/screenshots/spotify-6661241e0684.png",
+            "text": "South Korea (English) ✕ Close 콘텐츠로 건너뛰기 Spotify - 홈 Premium 요금제 지원 다운로드하기 가입하기 로그인하기 3개월에 ₩0으로 Premium을 즐겨보세요 광고 없는 음악 감상, 오프라인 재생 등 다양한 혜택을 누려보세요. 언제든 해지 가능합니다. 이 혜택은 8일 후에 종료됩니다 ₩0의 요금으로 3개월 이용해보기 모든 요금제 보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. 차이를 경험해 보세요 Premium을 사용하여 마음껏 음악을 감상하세요. 언제든 해지 가능합니다. 제공되는 혜택 Spotify 무료 요금제 Spotify Premium 요금제 수백만 개의 곡 감상 광고 없는 음악 감상 순서"
+          }
+        },
+        {
+          "id": "spotify-b36d29172f2a",
+          "title": "Spotify",
+          "category": "무료 체험",
+          "kind": "무료 체험",
+          "description": "용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. 차이를 경험해 보세요 Premium을 사용하여 마음껏 음악을 감상하세요. 언제든 해지 가능합니다. 제공되는 혜택 Spotify 무료 요금제 Spotify Premium 요금제 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 어떤 상황에도 합리적인 요금제 Premium 요금제를 선택하고 휴대폰, 스피커 및 기타 기기에서 제한 없이 광고 없는 음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험",
+          "sourceServiceIds": [
+            "spotify"
+          ],
+          "link": "https://www.spotify.com/kr-ko/premium/",
+          "offerPrice": 0,
+          "originalPrice": null,
+          "saving": null,
+          "verificationStatus": "pending_review",
+          "status": "pending_review",
+          "evidence": {
+            "sourceType": "official_service_page",
+            "sourceUrl": "https://www.spotify.com/kr-ko/premium/",
+            "pageTitle": "Spotify Premium (대한민국) - ₩0의 요금으로 3개월 이용해보기",
+            "capturedAt": "2026-09-15T09:30:41.083Z",
+            "screenshotPath": "outputs/promotion-audit/screenshots/spotify-6661241e0684.png",
+            "text": "용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. 차이를 경험해 보세요 Premium을 사용하여 마음껏 음악을 감상하세요. 언제든 해지 가능합니다. 제공되는 혜택 Spotify 무료 요금제 Spotify Premium 요금제 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 어떤 상황에도 합리적인 요금제 Premium 요금제를 선택하고 휴대폰, 스피커 및 기타 기기에서 제한 없이 광고 없는 음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험"
+          }
+        },
+        {
+          "id": "spotify-a72ce194268c",
+          "title": "Spotify",
+          "category": "구독료 할인",
+          "kind": "구독료 할인",
+          "description": "및 기타 기기에서 제한 없이 광고 없는 음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험 기간 종료 후 매월 ₩11,990 (부가세 포함) 결제 Premium 계정 1개 다운로드하여 오프라인에서 감상(베이직 제외) 무손실 오디오 품질 언제든 해지 가능 ₩0의 요금으로 3개월 이용해보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. Premium 베이직 매월 ₩8,690 (부가세 포함) Premium 베이직 계정 1개 다운로드 기능을 사용할 수 없음 뛰어난 음질 언제든 해지 가능 Premium 베이",
+          "sourceServiceIds": [
+            "spotify"
+          ],
+          "link": "https://www.spotify.com/kr-ko/premium/",
+          "offerPrice": 0,
+          "originalPrice": null,
+          "saving": null,
+          "verificationStatus": "pending_review",
+          "status": "pending_review",
+          "evidence": {
+            "sourceType": "official_service_page",
+            "sourceUrl": "https://www.spotify.com/kr-ko/premium/",
+            "pageTitle": "Spotify Premium (대한민국) - ₩0의 요금으로 3개월 이용해보기",
+            "capturedAt": "2026-09-15T09:30:41.083Z",
+            "screenshotPath": "outputs/promotion-audit/screenshots/spotify-6661241e0684.png",
+            "text": "및 기타 기기에서 제한 없이 광고 없는 음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험 기간 종료 후 매월 ₩11,990 (부가세 포함) 결제 Premium 계정 1개 다운로드하여 오프라인에서 감상(베이직 제외) 무손실 오디오 품질 언제든 해지 가능 ₩0의 요금으로 3개월 이용해보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. Premium 베이직 매월 ₩8,690 (부가세 포함) Premium 베이직 계정 1개 다운로드 기능을 사용할 수 없음 뛰어난 음질 언제든 해지 가능 Premium 베이"
+          }
+        },
+        {
+          "id": "spotify-67a396cc1869",
+          "title": "Spotify",
+          "category": "구독료 할인",
+          "kind": "구독료 할인",
+          "description": "음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험 기간 종료 후 매월 ₩11,990 (부가세 포함) 결제 Premium 계정 1개 다운로드하여 오프라인에서 감상(베이직 제외) 무손실 오디오 품질 언제든 해지 가능 ₩0의 요금으로 3개월 이용해보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. Premium 베이직 매월 ₩8,690 (부가세 포함) Premium 베이직 계정 1개 다운로드 기능을 사용할 수 없음 뛰어난 음질 언제든 해지 가능 Premium 베이직 시작하기 약관이 적용됩니다. 1개월 ",
+          "sourceServiceIds": [
+            "spotify"
+          ],
+          "link": "https://www.spotify.com/kr-ko/premium/",
+          "offerPrice": 0,
+          "originalPrice": null,
+          "saving": null,
+          "verificationStatus": "pending_review",
+          "status": "pending_review",
+          "evidence": {
+            "sourceType": "official_service_page",
+            "sourceUrl": "https://www.spotify.com/kr-ko/premium/",
+            "pageTitle": "Spotify Premium (대한민국) - ₩0의 요금으로 3개월 이용해보기",
+            "capturedAt": "2026-09-15T09:30:41.083Z",
+            "screenshotPath": "outputs/promotion-audit/screenshots/spotify-6661241e0684.png",
+            "text": "음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험 기간 종료 후 매월 ₩11,990 (부가세 포함) 결제 Premium 계정 1개 다운로드하여 오프라인에서 감상(베이직 제외) 무손실 오디오 품질 언제든 해지 가능 ₩0의 요금으로 3개월 이용해보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. Premium 베이직 매월 ₩8,690 (부가세 포함) Premium 베이직 계정 1개 다운로드 기능을 사용할 수 없음 뛰어난 음질 언제든 해지 가능 Premium 베이직 시작하기 약관이 적용됩니다. 1개월 "
+          }
+        }
+      ]
+    }
+  ],
+  "promotions": [
+    {
+      "id": "adobe-86a4026a507b",
+      "title": "Adobe Creative Cloud",
+      "category": "학생/교육 할인",
+      "kind": "학생·교육 할인",
+      "description": "학생 및 교사 개요 Creative Cloud Pro 기능 플랜 비교 구매하기 로그인 Home / 교육 기관 / Creative Cloud 모든 앱 학생을 위한 Creative Cloud 모든 앱 66% 할인 혜택 Photoshop, Illustrator, Premiere 등 20개 이상의 업계 최고 수준 앱과 Adobe Firefly의 책임 있는 AI 기능을 모두 이용해 보세요. 교사도 이용할 수 있습니다. 연간 플랜, 매월 지불 기준 첫해 정가 ₩78,100/월 또는 에 ₩26,400/월(부가세 포함)입니다. 약관을 확인하세요. 구매하기 Creative Cloud 모든 앱의 무한한 가능성을 경험해보세요 포토 콜라주로​ 감성 디테일 쌓기 자세히 보기 이미지는 기본, ​ 사진까지 영상으로 생성 자세히 보기 클릭 한 번으로​ 2D 캐릭터를 3D로 자세히 보기 영상을 위한 ​ 트렌디한 타이틀 자세히 보기 PDF로 완성하는​ 나만의 스터디북​ 자",
+      "sourceServiceIds": [
+        "adobe"
+      ],
+      "link": "https://www.adobe.com/kr/education/students/creativecloud.html",
+      "offerPrice": 78100,
+      "originalPrice": null,
+      "saving": null,
+      "verificationStatus": "pending_review",
+      "status": "pending_review",
+      "evidence": {
+        "sourceType": "official_service_page",
+        "sourceUrl": "https://www.adobe.com/kr/education/students/creativecloud.html",
+        "pageTitle": "학생 및 교사용 Adobe Creative Cloud Pro | Adobe Creative Cloud",
+        "capturedAt": "2026-09-15T09:30:36.475Z",
+        "screenshotPath": "outputs/promotion-audit/screenshots/adobe-0d63526f93be.png",
+        "text": "학생 및 교사 개요 Creative Cloud Pro 기능 플랜 비교 구매하기 로그인 Home / 교육 기관 / Creative Cloud 모든 앱 학생을 위한 Creative Cloud 모든 앱 66% 할인 혜택 Photoshop, Illustrator, Premiere 등 20개 이상의 업계 최고 수준 앱과 Adobe Firefly의 책임 있는 AI 기능을 모두 이용해 보세요. 교사도 이용할 수 있습니다. 연간 플랜, 매월 지불 기준 첫해 정가 ₩78,100/월 또는 에 ₩26,400/월(부가세 포함)입니다. 약관을 확인하세요. 구매하기 Creative Cloud 모든 앱의 무한한 가능성을 경험해보세요 포토 콜라주로​ 감성 디테일 쌓기 자세히 보기 이미지는 기본, ​ 사진까지 영상으로 생성 자세히 보기 클릭 한 번으로​ 2D 캐릭터를 3D로 자세히 보기 영상을 위한 ​ 트렌디한 타이틀 자세히 보기 PDF로 완성하는​ 나만의 스터디북​ 자"
+      }
+    },
+    {
+      "id": "adobe-48b38ae495ad",
+      "title": "Adobe Creative Cloud",
+      "category": "학생/교육 할인",
+      "kind": "학생·교육 할인",
+      "description": "Creative Cloud 앱과 다양한 서비스에 대한 플랜 및 가격 모든 플랜, 부담 없이 시작하세요. 구매 후 14일 이내에는 언제든지 무료로 취소하실 수 있습니다. 인기 생성형 AI 플랜 비교 → Firefly 생성형 AI 플랜 비교 → 포토 플랜 비교 → 디자인 및 일러스트레이션 플랜 비교 → 개인 기업 학생 및 교사 초중고등학교 및 대학교",
+      "sourceServiceIds": [
+        "adobe"
+      ],
+      "link": "https://www.adobe.com/kr/creativecloud/plans.html",
+      "offerPrice": null,
+      "originalPrice": null,
+      "saving": null,
+      "verificationStatus": "pending_review",
+      "status": "pending_review",
+      "evidence": {
+        "sourceType": "official_service_page",
+        "sourceUrl": "https://www.adobe.com/kr/creativecloud/plans.html",
+        "pageTitle": "Adobe Creative Cloud 플랜, 가격, 멤버십",
+        "capturedAt": "2026-09-15T09:30:38.627Z",
+        "screenshotPath": "outputs/promotion-audit/screenshots/adobe-61429d704638.png",
+        "text": "Creative Cloud 앱과 다양한 서비스에 대한 플랜 및 가격 모든 플랜, 부담 없이 시작하세요. 구매 후 14일 이내에는 언제든지 무료로 취소하실 수 있습니다. 인기 생성형 AI 플랜 비교 → Firefly 생성형 AI 플랜 비교 → 포토 플랜 비교 → 디자인 및 일러스트레이션 플랜 비교 → 개인 기업 학생 및 교사 초중고등학교 및 대학교"
+      }
+    },
+    {
+      "id": "spotify-55beb4e0729c",
+      "title": "Spotify",
+      "category": "무료 체험",
+      "kind": "무료 체험",
+      "description": "South Korea (English) ✕ Close 콘텐츠로 건너뛰기 Spotify - 홈 Premium 요금제 지원 다운로드하기 가입하기 로그인하기 3개월에 ₩0으로 Premium을 즐겨보세요 광고 없는 음악 감상, 오프라인 재생 등 다양한 혜택을 누려보세요. 언제든 해지 가능합니다. 이 혜택은 8일 후에 종료됩니다 ₩0의 요금으로 3개월 이용해보기 모든 요금제 보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. 차이를 경험해 보세요 Premium을 사용하여 마음껏 음악을 감상하세요. 언제든 해지 가능합니다. 제공되는 혜택 Spotify 무료 요금제 Spotify Premium 요금제 수백만 개의 곡 감상 광고 없는 음악 감상 순서",
+      "sourceServiceIds": [
+        "spotify"
+      ],
+      "link": "https://www.spotify.com/kr-ko/premium/",
+      "offerPrice": 0,
+      "originalPrice": null,
+      "saving": null,
+      "verificationStatus": "pending_review",
+      "status": "pending_review",
+      "evidence": {
+        "sourceType": "official_service_page",
+        "sourceUrl": "https://www.spotify.com/kr-ko/premium/",
+        "pageTitle": "Spotify Premium (대한민국) - ₩0의 요금으로 3개월 이용해보기",
+        "capturedAt": "2026-09-15T09:30:41.083Z",
+        "screenshotPath": "outputs/promotion-audit/screenshots/spotify-6661241e0684.png",
+        "text": "South Korea (English) ✕ Close 콘텐츠로 건너뛰기 Spotify - 홈 Premium 요금제 지원 다운로드하기 가입하기 로그인하기 3개월에 ₩0으로 Premium을 즐겨보세요 광고 없는 음악 감상, 오프라인 재생 등 다양한 혜택을 누려보세요. 언제든 해지 가능합니다. 이 혜택은 8일 후에 종료됩니다 ₩0의 요금으로 3개월 이용해보기 모든 요금제 보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. 차이를 경험해 보세요 Premium을 사용하여 마음껏 음악을 감상하세요. 언제든 해지 가능합니다. 제공되는 혜택 Spotify 무료 요금제 Spotify Premium 요금제 수백만 개의 곡 감상 광고 없는 음악 감상 순서"
+      }
+    },
+    {
+      "id": "spotify-b36d29172f2a",
+      "title": "Spotify",
+      "category": "무료 체험",
+      "kind": "무료 체험",
+      "description": "용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. 차이를 경험해 보세요 Premium을 사용하여 마음껏 음악을 감상하세요. 언제든 해지 가능합니다. 제공되는 혜택 Spotify 무료 요금제 Spotify Premium 요금제 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 어떤 상황에도 합리적인 요금제 Premium 요금제를 선택하고 휴대폰, 스피커 및 기타 기기에서 제한 없이 광고 없는 음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험",
+      "sourceServiceIds": [
+        "spotify"
+      ],
+      "link": "https://www.spotify.com/kr-ko/premium/",
+      "offerPrice": 0,
+      "originalPrice": null,
+      "saving": null,
+      "verificationStatus": "pending_review",
+      "status": "pending_review",
+      "evidence": {
+        "sourceType": "official_service_page",
+        "sourceUrl": "https://www.spotify.com/kr-ko/premium/",
+        "pageTitle": "Spotify Premium (대한민국) - ₩0의 요금으로 3개월 이용해보기",
+        "capturedAt": "2026-09-15T09:30:41.083Z",
+        "screenshotPath": "outputs/promotion-audit/screenshots/spotify-6661241e0684.png",
+        "text": "용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. 차이를 경험해 보세요 Premium을 사용하여 마음껏 음악을 감상하세요. 언제든 해지 가능합니다. 제공되는 혜택 Spotify 무료 요금제 Spotify Premium 요금제 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 어떤 상황에도 합리적인 요금제 Premium 요금제를 선택하고 휴대폰, 스피커 및 기타 기기에서 제한 없이 광고 없는 음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험"
+      }
+    },
+    {
+      "id": "spotify-a72ce194268c",
+      "title": "Spotify",
+      "category": "구독료 할인",
+      "kind": "구독료 할인",
+      "description": "및 기타 기기에서 제한 없이 광고 없는 음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험 기간 종료 후 매월 ₩11,990 (부가세 포함) 결제 Premium 계정 1개 다운로드하여 오프라인에서 감상(베이직 제외) 무손실 오디오 품질 언제든 해지 가능 ₩0의 요금으로 3개월 이용해보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. Premium 베이직 매월 ₩8,690 (부가세 포함) Premium 베이직 계정 1개 다운로드 기능을 사용할 수 없음 뛰어난 음질 언제든 해지 가능 Premium 베이",
+      "sourceServiceIds": [
+        "spotify"
+      ],
+      "link": "https://www.spotify.com/kr-ko/premium/",
+      "offerPrice": 0,
+      "originalPrice": null,
+      "saving": null,
+      "verificationStatus": "pending_review",
+      "status": "pending_review",
+      "evidence": {
+        "sourceType": "official_service_page",
+        "sourceUrl": "https://www.spotify.com/kr-ko/premium/",
+        "pageTitle": "Spotify Premium (대한민국) - ₩0의 요금으로 3개월 이용해보기",
+        "capturedAt": "2026-09-15T09:30:41.083Z",
+        "screenshotPath": "outputs/promotion-audit/screenshots/spotify-6661241e0684.png",
+        "text": "및 기타 기기에서 제한 없이 광고 없는 음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험 기간 종료 후 매월 ₩11,990 (부가세 포함) 결제 Premium 계정 1개 다운로드하여 오프라인에서 감상(베이직 제외) 무손실 오디오 품질 언제든 해지 가능 ₩0의 요금으로 3개월 이용해보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. Premium 베이직 매월 ₩8,690 (부가세 포함) Premium 베이직 계정 1개 다운로드 기능을 사용할 수 없음 뛰어난 음질 언제든 해지 가능 Premium 베이"
+      }
+    },
+    {
+      "id": "spotify-67a396cc1869",
+      "title": "Spotify",
+      "category": "구독료 할인",
+      "kind": "구독료 할인",
+      "description": "음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험 기간 종료 후 매월 ₩11,990 (부가세 포함) 결제 Premium 계정 1개 다운로드하여 오프라인에서 감상(베이직 제외) 무손실 오디오 품질 언제든 해지 가능 ₩0의 요금으로 3개월 이용해보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. Premium 베이직 매월 ₩8,690 (부가세 포함) Premium 베이직 계정 1개 다운로드 기능을 사용할 수 없음 뛰어난 음질 언제든 해지 가능 Premium 베이직 시작하기 약관이 적용됩니다. 1개월 ",
+      "sourceServiceIds": [
+        "spotify"
+      ],
+      "link": "https://www.spotify.com/kr-ko/premium/",
+      "offerPrice": 0,
+      "originalPrice": null,
+      "saving": null,
+      "verificationStatus": "pending_review",
+      "status": "pending_review",
+      "evidence": {
+        "sourceType": "official_service_page",
+        "sourceUrl": "https://www.spotify.com/kr-ko/premium/",
+        "pageTitle": "Spotify Premium (대한민국) - ₩0의 요금으로 3개월 이용해보기",
+        "capturedAt": "2026-09-15T09:30:41.083Z",
+        "screenshotPath": "outputs/promotion-audit/screenshots/spotify-6661241e0684.png",
+        "text": "음악을 들으세요. 다양한 방법으로 요금을 결제하세요. 언제든 해지 가능합니다. 이외 7개 이상 모든 Premium 요금제에는 아래의 혜택이 포함됩니다 수백만 개의 곡 감상 광고 없는 음악 감상 순서에 상관없이 재생 친구와 함께 실시간으로 감상 재생목록 관리 K-Pop 리스닝 파티 3개월 이용 시 ₩0 Premium 개인 3개월 이용 시 ₩0 체험 기간 종료 후 매월 ₩11,990 (부가세 포함) 결제 Premium 계정 1개 다운로드하여 오프라인에서 감상(베이직 제외) 무손실 오디오 품질 언제든 해지 가능 ₩0의 요금으로 3개월 이용해보기 개인 요금제에만 적용됩니다. 체험 기간 이후에 구독 유지를 선택하면 매월 ₩11,990이 부과됩니다(부가세 포함). 이용 자격이 제한되어 있으며 약관이 적용됩니다. 이 혜택은 2026년 9월 23일에 종료됩니다. Premium 베이직 매월 ₩8,690 (부가세 포함) Premium 베이직 계정 1개 다운로드 기능을 사용할 수 없음 뛰어난 음질 언제든 해지 가능 Premium 베이직 시작하기 약관이 적용됩니다. 1개월 "
+      }
+    }
+  ]
+}

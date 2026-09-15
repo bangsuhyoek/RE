@@ -1,0 +1,451 @@
+[
+  {
+    "id": "speak",
+    "name": "Speak",
+    "category": "교육/어학",
+    "plan": "프리미엄 연간 (월환산)",
+    "amount": 29000,
+    "brandColor": "#0055FF",
+    "cancelUrl": "https://app.usespeak.com/settings/subscription",
+    "aliases": [
+      "스픽",
+      "speak",
+      "영어스피킹"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "프리미엄 연간 (월환산)",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "프리미엄 연간 (월환산)",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 이동",
+        "description": "Speak 앱 우측 상단 프로필 > 톱니바퀴 [설정]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 선택",
+        "description": "[멤버십 관리] 또는 [구독 관리] 메뉴를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "스토어 결제창(Google Play/App Store)에서 [구독 취소]를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "duolingo",
+    "name": "Duolingo Super",
+    "category": "교육/어학",
+    "plan": "Super Duolingo",
+    "amount": 9900,
+    "brandColor": "#58CC02",
+    "cancelUrl": "https://www.duolingo.com/settings/super",
+    "aliases": [
+      "듀오링고",
+      "duolingo"
+    ],
+    "monogram": "D",
+    "availablePlans": [
+      {
+        "plan": "Super Duolingo",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "Super Duolingo",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 이동",
+        "description": "듀오링고 우측 상단 프로필 > [설정] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "Super Duolingo 선택",
+        "description": "우측 사이드바에서 [Super Duolingo] 탭을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 관리 및 취소",
+        "description": "[구독 관리] > [구독 취소]를 누르고 확인 단계를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "ringle",
+    "name": "Ringle",
+    "category": "교육/어학",
+    "plan": "정기구독 플랜",
+    "amount": 159000,
+    "brandColor": "#2D3748",
+    "cancelUrl": "https://www.ringleplus.com/ko/student/landing/home",
+    "aliases": [
+      "링글",
+      "ringle"
+    ],
+    "monogram": "R",
+    "availablePlans": [
+      {
+        "plan": "정기구독 플랜",
+        "amount": 159000
+      }
+    ],
+    "plans": [
+      {
+        "name": "정기구독 플랜",
+        "amount": 159000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "링글 로그인 후 [마이페이지] > [수강권/결제 관리]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "정기구독 확인",
+        "description": "이용 중인 정기구독 수강권 내역을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기구독 해지 신청",
+        "description": "[정기구독 해지 신청]을 누르고 해지 확인을 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "cambly",
+    "name": "Cambly",
+    "category": "교육/어학",
+    "plan": "주 3회 30분",
+    "amount": 129000,
+    "brandColor": "#FFC800",
+    "cancelUrl": "https://www.cambly.com/en/student/settings#subscription",
+    "aliases": [
+      "캠블리",
+      "cambly"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "주 3회 30분",
+        "amount": 129000
+      }
+    ],
+    "plans": [
+      {
+        "name": "주 3회 30분",
+        "amount": 129000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 설정 진입",
+        "description": "캠블리 우측 상단 프로필 > [계정 설정] > [플랜]으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "플랜 취소 링크",
+        "description": "[플랜 관리] 영역에서 [플랜 취소] 링크를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소 확정",
+        "description": "취소 사유를 선택하고 [플랜 취소 확정]을 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "santatoeic",
+    "name": "산타토익",
+    "category": "교육/어학",
+    "plan": "AI 무제한패스",
+    "amount": 29000,
+    "brandColor": "#E02128",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "산타토익"
+    ],
+    "monogram": "산",
+    "availablePlans": [
+      {
+        "plan": "AI 무제한패스",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "AI 무제한패스",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 구독 진입",
+        "description": "Google Play 스토어 앱 실행 후 프로필 > [결제 및 정기 결제]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "정기 결제 선택",
+        "description": "[정기 결제] 목록에서 [산타 / Riiid] 항목을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "하단의 [구독 취소]를 누르고 취소 사유를 선택해 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "malhaeboca",
+    "name": "말해보카",
+    "category": "교육/어학",
+    "plan": "연간 프리미엄 (월환산)",
+    "amount": 8900,
+    "brandColor": "#FFCC00",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "말해보카"
+    ],
+    "monogram": "말",
+    "availablePlans": [
+      {
+        "plan": "연간 프리미엄 (월환산)",
+        "amount": 8900
+      }
+    ],
+    "plans": [
+      {
+        "name": "연간 프리미엄 (월환산)",
+        "amount": 8900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 정기 결제",
+        "description": "Google Play 스토어 앱 > 우측 상단 프로필 > [결제 및 정기 결제]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "말해보카 선택",
+        "description": "[정기 결제] 목록에서 [말해보카]를 터치합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "하단 [구독 취소]를 누르고 취소 사유를 선택하여 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "class101",
+    "name": "CLASS101+",
+    "category": "교육/어학",
+    "plan": "연간 구독 (월환산)",
+    "amount": 18900,
+    "brandColor": "#FF5600",
+    "cancelUrl": "https://class101.net/ko/mypage/subscription",
+    "aliases": [
+      "클래스101",
+      "class101"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "연간 구독 (월환산)",
+        "amount": 18900
+      }
+    ],
+    "plans": [
+      {
+        "name": "연간 구독 (월환산)",
+        "amount": 18900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "클래스101 로그인 후 [마이페이지] > [구독 관리]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 해지하기 선택",
+        "description": "현재 이용 중인 [CLASS101+] 플랜 우측 [구독 해지하기]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 완료",
+        "description": "혜택 유지 제안을 지나 [해지 신청하기]를 최종 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "fastcampus",
+    "name": "패스트캠퍼스",
+    "category": "교육/어학",
+    "plan": "올인원 구독권",
+    "amount": 39000,
+    "brandColor": "#F44336",
+    "cancelUrl": "https://fastcampus.co.kr",
+    "aliases": [
+      "패스트캠퍼스",
+      "패캠"
+    ],
+    "monogram": "패",
+    "availablePlans": [
+      {
+        "plan": "올인원 구독권",
+        "amount": 39000
+      }
+    ],
+    "plans": [
+      {
+        "name": "올인원 구독권",
+        "amount": 39000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "내 강의실 이동",
+        "description": "패스트캠퍼스 로그인 후 [내 강의실] > [결제/구독 내역]으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 이용권 관리",
+        "description": "구독형 이용권 항목 우측 [관리] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 해지 신청",
+        "description": "[구독 해지 신청]을 누르고 해지 확인을 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "inflearn",
+    "name": "인프런",
+    "category": "교육/어학",
+    "plan": "인프런패스",
+    "amount": 29000,
+    "brandColor": "#1DC078",
+    "cancelUrl": "https://www.inflearn.com/my-courses",
+    "aliases": [
+      "인프런",
+      "inflearn"
+    ],
+    "monogram": "인",
+    "availablePlans": [
+      {
+        "plan": "인프런패스",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "인프런패스",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "인프런 로그인 후 [마이페이지] > [수강 바우처/결제 내역]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 패스 확인",
+        "description": "이용 중인 인프런패스 또는 멤버십 항목을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동결제 해지",
+        "description": "[자동결제 해지] 버튼을 누르고 확인을 마칩니다."
+      }
+    ]
+  },
+  {
+    "id": "coursera",
+    "name": "Coursera Plus",
+    "category": "교육/어학",
+    "plan": "Coursera Plus",
+    "amount": 69000,
+    "brandColor": "#0056D2",
+    "cancelUrl": "https://www.coursera.org/my-purchases",
+    "aliases": [
+      "코세라",
+      "coursera"
+    ],
+    "monogram": "C",
+    "availablePlans": [
+      {
+        "plan": "Coursera Plus",
+        "amount": 69000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Coursera Plus",
+        "amount": 69000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "My Purchases 이동",
+        "description": "Coursera 우측 상단 프로필 > [My Purchases] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 탭 확인",
+        "description": "[Subscriptions] 탭에서 Coursera Plus 항목을 찾습니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "Cancel Subscription",
+        "description": "[Cancel Subscription]을 누르고 취소 설문을 완료합니다."
+      }
+    ]
+  }
+]

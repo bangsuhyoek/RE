@@ -1,0 +1,58 @@
+[
+  {
+    "category": "SaaS",
+    "slug": "saas",
+    "displayName": "SaaS / 개발자 도구 / AI / 클라우드",
+    "count": 28,
+    "file": "/catalog/categories/saas.json"
+  },
+  {
+    "category": "OTT",
+    "slug": "ott",
+    "displayName": "OTT / 동영상 스트리밍",
+    "count": 15,
+    "file": "/catalog/categories/ott.json"
+  },
+  {
+    "category": "음악",
+    "slug": "music",
+    "displayName": "음원 스트리밍 & 디지털 팬덤",
+    "count": 14,
+    "file": "/catalog/categories/music.json"
+  },
+  {
+    "category": "도서/웹툰",
+    "slug": "books_news",
+    "displayName": "디지털 도서 & 오디오북 & 뉴스 저널",
+    "count": 10,
+    "file": "/catalog/categories/books_news.json"
+  },
+  {
+    "category": "교육/어학",
+    "slug": "education",
+    "displayName": "온라인 어학 & 교육",
+    "count": 10,
+    "file": "/catalog/categories/education.json"
+  },
+  {
+    "category": "쇼핑",
+    "slug": "shopping",
+    "displayName": "디지털 플랫폼 & 배달/쇼핑 멤버십",
+    "count": 5,
+    "file": "/catalog/categories/shopping.json"
+  },
+  {
+    "category": "게임/엔터",
+    "slug": "game",
+    "displayName": "게임 & 콘솔 디지털 네트워크",
+    "count": 7,
+    "file": "/catalog/categories/game.json"
+  },
+  {
+    "category": "생활/모빌리티",
+    "slug": "lifestyle",
+    "displayName": "모바일 앱 & 메신저 플랫폼 디지털 기능",
+    "count": 5,
+    "file": "/catalog/categories/lifestyle.json"
+  }
+]

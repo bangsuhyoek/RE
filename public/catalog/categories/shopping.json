@@ -1,0 +1,229 @@
+[
+  {
+    "id": "naverplus",
+    "name": "네이버플러스 멤버십",
+    "category": "쇼핑",
+    "plan": "월간 이용권",
+    "amount": 4900,
+    "brandColor": "#03C75A",
+    "cancelUrl": "https://nid.naver.com/membership/my",
+    "aliases": [
+      "네이버멤버십",
+      "네이버플러스"
+    ],
+    "monogram": "네",
+    "availablePlans": [
+      {
+        "plan": "월간 이용권",
+        "amount": 4900
+      }
+    ],
+    "plans": [
+      {
+        "name": "월간 이용권",
+        "amount": 4900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "멤버십 설정 진입",
+        "description": "네이버플러스 멤버십 MY 페이지 우측 상단 톱니바퀴 [설정]을 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 관리 선택",
+        "description": "[네이버플러스 멤버십 관리] 메뉴를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기결제 해지하기",
+        "description": "하단 [네이버플러스 멤버십 해지하기] > [정기결제 해지하기]를 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "baemin-club",
+    "name": "배민클럽",
+    "category": "쇼핑",
+    "plan": "배민클럽 월정액",
+    "amount": 3990,
+    "brandColor": "#2AC1BC",
+    "cancelUrl": "https://baemin.me/club",
+    "aliases": [
+      "배민클럽",
+      "배달의민족"
+    ],
+    "monogram": "배",
+    "availablePlans": [
+      {
+        "plan": "배민클럽 월정액",
+        "amount": 3990
+      }
+    ],
+    "plans": [
+      {
+        "name": "배민클럽 월정액",
+        "amount": 3990,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "My배민 배민클럽",
+        "description": "배달의민족 앱 우측 하단 [My배민] > [배민클럽] 배너를 터치합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 관리 선택",
+        "description": "배민클럽 화면 우측 상단 [설정] 또는 [멤버십 관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 완료",
+        "description": "하단 [배민클럽 해지하기]를 누르고 혜택 포기 확인을 마칩니다."
+      }
+    ]
+  },
+  {
+    "id": "yogipass",
+    "name": "요기패스X",
+    "category": "쇼핑",
+    "plan": "요기패스X",
+    "amount": 2900,
+    "brandColor": "#FA0050",
+    "cancelUrl": "https://www.yogiyo.co.kr/mobile/#/mypage/",
+    "aliases": [
+      "요기패스",
+      "요기요"
+    ],
+    "monogram": "요",
+    "availablePlans": [
+      {
+        "plan": "요기패스X",
+        "amount": 2900
+      }
+    ],
+    "plans": [
+      {
+        "name": "요기패스X",
+        "amount": 2900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이요기요 진입",
+        "description": "요기요 앱 우측 하단 [마이요기요] 탭을 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요기패스X 관리",
+        "description": "[요기패스X 관리] 메뉴를 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 완료",
+        "description": "하단 [요기패스X 해지하기]를 누르고 해지 사유를 선택해 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "kurly-pass",
+    "name": "컬리멤버스",
+    "category": "쇼핑",
+    "plan": "컬리멤버스 월정액",
+    "amount": 1900,
+    "brandColor": "#5F0080",
+    "cancelUrl": "https://www.kurly.com/mypage/membership",
+    "aliases": [
+      "컬리멤버스",
+      "마켓컬리",
+      "컬리패스"
+    ],
+    "monogram": "컬",
+    "availablePlans": [
+      {
+        "plan": "컬리멤버스 월정액",
+        "amount": 1900
+      }
+    ],
+    "plans": [
+      {
+        "name": "컬리멤버스 월정액",
+        "amount": 1900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이컬리 진입",
+        "description": "마켓컬리 앱 우측 하단 [마이컬리] > [컬리멤버스] 메뉴를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버스 관리 선택",
+        "description": "멤버십 화면 맨 아래로 스크롤하여 [컬리멤버스 관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지 완료",
+        "description": "[멤버십 해지]를 누르고 [해지 신청하기]를 선택해 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "coupang",
+    "name": "쿠팡 와우 멤버십",
+    "category": "쇼핑",
+    "plan": "와우 멤버십",
+    "amount": 7890,
+    "brandColor": "#0073E6",
+    "cancelUrl": "https://loyalty.coupang.com/loyalty/sign-up/home",
+    "aliases": [
+      "쿠팡",
+      "와우",
+      "쿠팡와우"
+    ],
+    "monogram": "쿠",
+    "availablePlans": [
+      {
+        "plan": "와우 멤버십",
+        "amount": 7890
+      }
+    ],
+    "plans": [
+      {
+        "name": "와우 멤버십",
+        "amount": 7890,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "와우 멤버십 진입",
+        "description": "쿠팡 앱 우측 하단 [마이쿠팡] > [와우 멤버십]을 선택합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "해지하기 터치",
+        "description": "화면 맨 아래로 스크롤을 끝까지 내려 [해지하기] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "혜택 포기 및 확정",
+        "description": "[내가 누린 혜택 포기할게요] 선택 후 [해지 신청하기]를 누릅니다."
+      }
+    ]
+  }
+]

@@ -1,0 +1,227 @@
+[
+  {
+    "id": "kakaotalk-drive",
+    "name": "카카오톡 톡서랍 플러스",
+    "category": "생활/모빌리티",
+    "plan": "100GB 드라이브",
+    "amount": 990,
+    "brandColor": "#FEE500",
+    "cancelUrl": "https://my.kakao.com/product/DRIVE001",
+    "aliases": [
+      "톡서랍",
+      "카카오톡서랍"
+    ],
+    "monogram": "카",
+    "availablePlans": [
+      {
+        "plan": "100GB 드라이브",
+        "amount": 990
+      }
+    ],
+    "plans": [
+      {
+        "name": "100GB 드라이브",
+        "amount": 990,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "톡서랍 / My구독 이동",
+        "description": "카카오톡 [더보기] > [서랍] 또는 My구독 웹에 접속합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 정보 선택",
+        "description": "우측 상단 프로필 > [구독 정보]에서 톡서랍 플러스를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 확정",
+        "description": "하단 [해지하기]를 누른 뒤 [정기결제 해지]를 선택하여 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "kakaotalk-emoticon",
+    "name": "카카오톡 이모티콘 플러스",
+    "category": "생활/모빌리티",
+    "plan": "이모티콘 무제한",
+    "amount": 3900,
+    "brandColor": "#FEE500",
+    "cancelUrl": "https://my.kakao.com/product/EMOTICON001",
+    "aliases": [
+      "이모티콘플러스",
+      "카카오이모티콘"
+    ],
+    "monogram": "카",
+    "availablePlans": [
+      {
+        "plan": "이모티콘 무제한",
+        "amount": 3900
+      }
+    ],
+    "plans": [
+      {
+        "name": "이모티콘 무제한",
+        "amount": 3900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "이모티콘샵 접속",
+        "description": "카카오 이모티콘샵(e.kakao.com) 로그인 후 우측 상단 [My]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 선택",
+        "description": "[이모티콘 플러스 관리] 메뉴를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 완료",
+        "description": "하단 [해지하기]를 누르고 해지 확인 팝업을 마칩니다."
+      }
+    ]
+  },
+  {
+    "id": "naver-mybox",
+    "name": "네이버 MYBOX",
+    "category": "생활/모빌리티",
+    "plan": "80GB 월정액",
+    "amount": 1650,
+    "brandColor": "#03C75A",
+    "cancelUrl": "https://mybox.naver.com/#/capacity",
+    "aliases": [
+      "마이박스",
+      "네이버mybox"
+    ],
+    "monogram": "네",
+    "availablePlans": [
+      {
+        "plan": "80GB 월정액",
+        "amount": 1650
+      }
+    ],
+    "plans": [
+      {
+        "name": "80GB 월정액",
+        "amount": 1650,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "용량 관리 이동",
+        "description": "네이버 MYBOX 웹 좌측 하단 [용량 관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용권/결제 관리",
+        "description": "[이용권 / 결제 관리] 탭에서 이용 중인 요금제를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "이용권 해지",
+        "description": "[이용권 해지]를 누르고 정기결제 해지를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "strava-sub",
+    "name": "Strava",
+    "category": "생활/모빌리티",
+    "plan": "월정액 멤버십",
+    "amount": 7900,
+    "brandColor": "#FC4C02",
+    "cancelUrl": "https://www.strava.com/subscribe",
+    "aliases": [
+      "스트라바",
+      "strava"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "월정액 멤버십",
+        "amount": 7900
+      }
+    ],
+    "plans": [
+      {
+        "name": "월정액 멤버십",
+        "amount": 7900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 설정 이동",
+        "description": "Strava 웹 우측 상단 프로필 > [설정] > [내 계정]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 섹션 확인",
+        "description": "[멤버십(Membership)] 섹션에서 상태를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 취소 확정",
+        "description": "[멤버십 취소(Cancel Membership)]를 누르고 단계를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "burnfit-pro",
+    "name": "번핏 Pro",
+    "category": "생활/모빌리티",
+    "plan": "월간 프로",
+    "amount": 4900,
+    "brandColor": "#FF5252",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "번핏",
+      "burnfit"
+    ],
+    "monogram": "번",
+    "availablePlans": [
+      {
+        "plan": "월간 프로",
+        "amount": 4900
+      }
+    ],
+    "plans": [
+      {
+        "name": "월간 프로",
+        "amount": 4900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 정기 결제",
+        "description": "Google Play 스토어 앱 > 우측 상단 프로필 > [결제 및 정기 결제]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "번핏 Pro 선택",
+        "description": "[정기 결제] 목록에서 [번핏 - 운동일지 Pro]를 터치합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "하단 [구독 취소]를 누르고 취소 사유를 선택해 완료합니다."
+      }
+    ]
+  }
+]

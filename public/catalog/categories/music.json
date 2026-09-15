@@ -1,0 +1,635 @@
+[
+  {
+    "id": "melon",
+    "name": "Melon",
+    "category": "음악",
+    "plan": "스트리밍 클럽",
+    "amount": 8900,
+    "brandColor": "#00CD3C",
+    "cancelUrl": "https://member.melon.com",
+    "aliases": [
+      "멜론",
+      "melon"
+    ],
+    "monogram": "M",
+    "availablePlans": [
+      {
+        "plan": "스트리밍 클럽",
+        "amount": 8900
+      }
+    ],
+    "plans": [
+      {
+        "name": "스트리밍 클럽",
+        "amount": 8900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "내 정보 이동",
+        "description": "멜론 로그인 후 상단 [내 정보] 클릭 (모바일은 서랍 > [내 정보])."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용권 해지신청",
+        "description": "[이용권/쿠폰/캐시] 탭에서 [이용권 해지신청]을 누르고 비밀번호를 입력합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기결제 해지 완료",
+        "description": "하단 [정기결제 해지] 클릭 후 유지 혜택 팝업에서 [혜택 포기]를 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "spotify",
+    "name": "Spotify",
+    "category": "음악",
+    "plan": "개인",
+    "amount": 10900,
+    "brandColor": "#1DB954",
+    "cancelUrl": "https://www.spotify.com/kr-ko/account/overview/",
+    "aliases": [
+      "스포티파이",
+      "spotify"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "개인",
+        "amount": 10900
+      }
+    ],
+    "plans": [
+      {
+        "name": "개인",
+        "amount": 10900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 개요 접속",
+        "description": "Spotify 계정 페이지(spotify.com/account)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 변경 클릭",
+        "description": "[내 요금제] 카드 우측의 [요금제 변경] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "프리미엄 취소",
+        "description": "페이지 맨 아래로 스크롤하여 [Spotify 취소] > [프리미엄 취소하기]를 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "genie",
+    "name": "Genie Music",
+    "category": "음악",
+    "plan": "스마트 음악감상",
+    "amount": 8400,
+    "brandColor": "#0093FF",
+    "cancelUrl": "https://www.genie.co.kr/my",
+    "aliases": [
+      "지니",
+      "지니뮤직"
+    ],
+    "monogram": "G",
+    "availablePlans": [
+      {
+        "plan": "스마트 음악감상",
+        "amount": 8400
+      }
+    ],
+    "plans": [
+      {
+        "name": "스마트 음악감상",
+        "amount": 8400,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "지니뮤직 우측 상단 [마이페이지] > [내 정보]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용권 내역 확인",
+        "description": "[이용권 내역/영수증] 탭에서 사용 중인 이용권을 찾습니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지신청 완료",
+        "description": "이용권 우측 [해지신청]을 누르고 비밀번호 확인 후 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "flo",
+    "name": "FLO",
+    "category": "음악",
+    "plan": "올인원 무제한",
+    "amount": 7900,
+    "brandColor": "#3F3FFF",
+    "cancelUrl": "https://www.music-flo.com/mypage/voucher",
+    "aliases": [
+      "플로",
+      "flo"
+    ],
+    "monogram": "F",
+    "availablePlans": [
+      {
+        "plan": "올인원 무제한",
+        "amount": 7900
+      }
+    ],
+    "plans": [
+      {
+        "name": "올인원 무제한",
+        "amount": 7900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 진입",
+        "description": "FLO 앱 우측 상단 톱니바퀴 [설정] > [이용권 관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "이용권 상세 확인",
+        "description": "이용 중인 이용권 우측 [상세] 버튼을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 예약 완료",
+        "description": "화면 맨 아래 [이용권 해지 예약]을 누르고 확인을 마칩니다."
+      }
+    ]
+  },
+  {
+    "id": "bugs",
+    "name": "Bugs",
+    "category": "음악",
+    "plan": "모바일 무제한",
+    "amount": 7900,
+    "brandColor": "#E60000",
+    "cancelUrl": "https://music.bugs.co.kr",
+    "aliases": [
+      "벅스",
+      "bugs"
+    ],
+    "monogram": "B",
+    "availablePlans": [
+      {
+        "plan": "모바일 무제한",
+        "amount": 7900
+      }
+    ],
+    "plans": [
+      {
+        "name": "모바일 무제한",
+        "amount": 7900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "내 정보 이동",
+        "description": "벅스 로그인 후 상단 [내 정보] > [이용권 관리]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "자동결제 관리",
+        "description": "이용 중인 상품 우측의 [자동결제 관리/해지]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 계속하기",
+        "description": "할인 혜택 안내를 지나 [해지 계속하기]를 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "vibe",
+    "name": "NAVER VIBE",
+    "category": "음악",
+    "plan": "무제한 듣기",
+    "amount": 8500,
+    "brandColor": "#FF0055",
+    "cancelUrl": "https://vibe.naver.com/membership",
+    "aliases": [
+      "바이브",
+      "vibe",
+      "네이버바이브"
+    ],
+    "monogram": "N",
+    "availablePlans": [
+      {
+        "plan": "무제한 듣기",
+        "amount": 8500
+      }
+    ],
+    "plans": [
+      {
+        "name": "무제한 듣기",
+        "amount": 8500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "멤버십 관리 이동",
+        "description": "NAVER VIBE 로그인 후 [마이페이지] > [멤버십 관리]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 멤버십 선택",
+        "description": "구독 중인 VIBE 멤버십 우측 [관리] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 클릭",
+        "description": "[멤버십 해지]를 누른 후 [정기결제 해지하기]를 최종 선택합니다."
+      }
+    ]
+  },
+  {
+    "id": "applemusic",
+    "name": "Apple Music",
+    "category": "음악",
+    "plan": "개인 멤버십",
+    "amount": 8900,
+    "brandColor": "#FA233B",
+    "cancelUrl": "https://music.apple.com/account/settings",
+    "aliases": [
+      "애플뮤직",
+      "apple music"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "개인 멤버십",
+        "amount": 8900
+      }
+    ],
+    "plans": [
+      {
+        "name": "개인 멤버십",
+        "amount": 8900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 설정 진입",
+        "description": "Apple Music 앱 우측 상단 프로필 > [계정 설정]을 터치합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 메뉴 선택",
+        "description": "[구독 관리(Subscriptions)] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "[Apple Music] 선택 후 하단 [구독 취소]를 누르고 확인합니다."
+      }
+    ]
+  },
+  {
+    "id": "ytmusic",
+    "name": "YouTube Music",
+    "category": "음악",
+    "plan": "Music Premium",
+    "amount": 11990,
+    "brandColor": "#FF0000",
+    "cancelUrl": "https://www.youtube.com/paid_memberships",
+    "aliases": [
+      "유튜브뮤직",
+      "yt music"
+    ],
+    "monogram": "Y",
+    "availablePlans": [
+      {
+        "plan": "Music Premium",
+        "amount": 11990
+      }
+    ],
+    "plans": [
+      {
+        "name": "Music Premium",
+        "amount": 11990,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "구매 항목 및 멤버십",
+        "description": "YouTube Music 프로필 > [구매 항목 및 멤버십]을 선택합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 관리 터치",
+        "description": "[Music Premium] 멤버십 우측 [관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "그대로 취소",
+        "description": "[비활성화] 클릭 후 '일시중지' 대신 하단 [그대로 취소]를 누릅니다."
+      }
+    ]
+  },
+  {
+    "id": "tidal",
+    "name": "TIDAL",
+    "category": "음악",
+    "plan": "HiFi Plus",
+    "amount": 14000,
+    "brandColor": "#000000",
+    "cancelUrl": "https://my.tidal.com/account/subscription",
+    "aliases": [
+      "타이달",
+      "tidal"
+    ],
+    "monogram": "T",
+    "availablePlans": [
+      {
+        "plan": "HiFi Plus",
+        "amount": 14000
+      }
+    ],
+    "plans": [
+      {
+        "name": "HiFi Plus",
+        "amount": 14000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 페이지 이동",
+        "description": "TIDAL 계정 페이지(my.tidal.com)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 탭 확인",
+        "description": "좌측 메뉴에서 [Subscription]을 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 확정",
+        "description": "화면 하단의 [Cancel Subscription]을 누르고 취소를 확정합니다."
+      }
+    ]
+  },
+  {
+    "id": "bubble-sm",
+    "name": "DearU Bubble",
+    "category": "음악",
+    "plan": "1인권 월정액",
+    "amount": 4500,
+    "brandColor": "#FF3366",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "버블",
+      "sm버블",
+      "jyp버블",
+      "디어유버블"
+    ],
+    "monogram": "D",
+    "availablePlans": [
+      {
+        "plan": "1인권 월정액",
+        "amount": 4500
+      }
+    ],
+    "plans": [
+      {
+        "name": "1인권 월정액",
+        "amount": 4500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Google Play 구독 이동",
+        "description": "Google Play 스토어 앱 실행 후 우측 상단 프로필을 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "정기 결제 메뉴",
+        "description": "[결제 및 정기 결제] > [정기 결제] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "[DearU bubble]을 선택하고 하단 [구독 취소]를 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "fromm",
+    "name": "fromm",
+    "category": "음악",
+    "plan": "1인 메시지권",
+    "amount": 4500,
+    "brandColor": "#7B2CBF",
+    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "aliases": [
+      "프롬",
+      "fromm"
+    ],
+    "monogram": "f",
+    "availablePlans": [
+      {
+        "plan": "1인 메시지권",
+        "amount": 4500
+      }
+    ],
+    "plans": [
+      {
+        "name": "1인 메시지권",
+        "amount": 4500,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 구독 진입",
+        "description": "Google Play 스토어 앱 > 우측 상단 프로필을 터치합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "정기 결제 선택",
+        "description": "[결제 및 정기 결제] > [정기 결제]로 들어갑니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "fromm 해지 완료",
+        "description": "[fromm] 구독을 선택하고 하단 [구독 취소]를 터치합니다."
+      }
+    ]
+  },
+  {
+    "id": "podbbang",
+    "name": "팟빵 오디오매거진",
+    "category": "음악",
+    "plan": "팟빵 프리미엄",
+    "amount": 9900,
+    "brandColor": "#E61B48",
+    "cancelUrl": "https://www.podbbang.com/mypage/subscription",
+    "aliases": [
+      "팟빵",
+      "팟캐스트"
+    ],
+    "monogram": "팟",
+    "availablePlans": [
+      {
+        "plan": "팟빵 프리미엄",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "팟빵 프리미엄",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "팟빵 웹/앱 로그인 후 [마이페이지] > [구독 관리]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 채널 확인",
+        "description": "정기구독 중인 매거진 및 유료 채널 목록을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기결제 해지",
+        "description": "채널 우측의 [정기결제 해지] 버튼을 눌러 완료합니다."
+      }
+    ]
+  },
+  {
+    "id": "welaaa",
+    "name": "윌라 오디오북",
+    "category": "음악",
+    "plan": "오디오북 무제한",
+    "amount": 9900,
+    "brandColor": "#00E277",
+    "cancelUrl": "https://www.welaaa.com/my/membership",
+    "aliases": [
+      "윌라",
+      "오디오북"
+    ],
+    "monogram": "윌",
+    "availablePlans": [
+      {
+        "plan": "오디오북 무제한",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "오디오북 무제한",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "멤버십 관리 이동",
+        "description": "윌라 로그인 후 [마이페이지] > [멤버십 관리] 메뉴로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "해지신청 선택",
+        "description": "이용 중인 멤버십 항목 우측 [해지신청]을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지하기 확정",
+        "description": "유지 혜택 안내를 지나 하단 [해지하기]를 누르면 완료됩니다."
+      }
+    ]
+  },
+  {
+    "id": "storytel",
+    "name": "Storytel",
+    "category": "음악",
+    "plan": "무제한 스트리밍",
+    "amount": 11900,
+    "brandColor": "#FF6633",
+    "cancelUrl": "https://www.storytel.com/kr/login",
+    "aliases": [
+      "스토리텔",
+      "storytel"
+    ],
+    "monogram": "S",
+    "availablePlans": [
+      {
+        "plan": "무제한 스트리밍",
+        "amount": 11900
+      }
+    ],
+    "plans": [
+      {
+        "name": "무제한 스트리밍",
+        "amount": 11900,
+        "billingCycle": "매월",
+        "quality": "HD"
+      }
+    ],
+    "guideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 관리 로그인",
+        "description": "스토리텔 계정 페이지(storytel.com/kr/login)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 선택",
+        "description": "[내 계정] 메뉴에서 [구독 관리]를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "[구독 취소]를 누르고 취소 사유를 선택해 확정합니다."
+      }
+    ]
+  }
+]

@@ -1,0 +1,65 @@
+{
+  "version": "2026.09.14-1915",
+  "updatedAt": "2026-09-15T08:41:43.265Z",
+  "itemCount": 94,
+  "checksum": "0542a1882c645c022b806e5fbe37168847acf5249926cf87b9bda1c172abac34",
+  "services": [
+    {
+      "id": "netflix",
+      "name": "Netflix",
+      "category": "OTT",
+      "plan": "프리미엄",
+      "amount": 17000
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube Premium",
+      "category": "OTT",
+      "plan": "개인 멤버십",
+      "amount": 14900
+    },
+    {
+      "id": "coupang",
+      "name": "쿠팡 와우",
+      "category": "쇼핑",
+      "plan": "와우 멤버십",
+      "amount": 7890
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "category": "음악",
+      "plan": "개인",
+      "amount": 11990
+    },
+    {
+      "id": "disney",
+      "name": "Disney+",
+      "category": "OTT",
+      "plan": "스탠다드",
+      "amount": 9900
+    },
+    {
+      "id": "tving",
+      "name": "TVING",
+      "category": "OTT",
+      "plan": "광고형 스탠다드",
+      "amount": 5500
+    },
+    {
+      "id": "chatgpt",
+      "name": "ChatGPT Plus",
+      "category": "소프트웨어",
+      "plan": "ChatGPT Plus",
+      "amount": 29000
+    },
+    {
+      "id": "millie",
+      "name": "밀리의 서재",
+      "category": "생산성",
+      "plan": "전자책 정기구독",
+      "amount": 9900
+    }
+  ],
+  "generator": "SubMate Solution 3 Batch Crawler"
+}
