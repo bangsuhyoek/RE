@@ -6,13 +6,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.getcapacitor.BridgeActivity;
-import com.submate.app.CancelBrowserPlugin;
 import kr.co.re.subscription.payment.PaymentCapturePlugin;
 
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        registerPlugin(CancelBrowserPlugin.class);
         registerPlugin(PaymentCapturePlugin.class);
         super.onCreate(savedInstanceState);
 
