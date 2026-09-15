@@ -1,4 +1,4 @@
-package com.submate.app;
+package kr.co.re.subscription;
 
 import android.os.Bundle;
 import android.view.View;
