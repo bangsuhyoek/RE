@@ -13,7 +13,7 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import kr.co.re.subscription.MainActivity;
-import com.submate.app.R;
+import kr.co.re.subscription.R;
 
 public final class PaymentNotificationHelper {
     private static final String TAG = "REPaymentNotif";
