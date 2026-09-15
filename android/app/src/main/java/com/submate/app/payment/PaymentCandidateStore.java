@@ -1,4 +1,4 @@
-package com.submate.app.payment;
+package kr.co.re.subscription.payment;
 
 import android.content.Context;
 import android.content.SharedPreferences;
