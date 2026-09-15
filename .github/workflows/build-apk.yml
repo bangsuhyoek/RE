@@ -77,6 +77,25 @@ jobs:
             v1.0.6-native.sha256
           if-no-files-found: error
 
+      - name: Export Android build tools for APK repair
+        run: |
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          echo "Using build tools: $BT"
+          mkdir -p tool-export/lib
+          cp "$BT/apksigner" tool-export/
+          cp "$BT/zipalign" tool-export/
+          cp "$BT/aapt2" tool-export/
+          cp "$BT/dexdump" tool-export/ || true
+          cp "$BT/lib/apksigner.jar" tool-export/lib/
+          chmod +x tool-export/apksigner tool-export/zipalign tool-export/aapt2 tool-export/dexdump 2>/dev/null || true
+
+      - name: Upload Android build tools
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-tools-repair
+          path: tool-export
+          if-no-files-found: error
+
   smoke:
     needs: build
     runs-on: ubuntu-latest
