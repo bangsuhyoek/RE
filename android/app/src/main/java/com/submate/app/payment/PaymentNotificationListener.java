@@ -1,4 +1,4 @@
-package com.submate.app.payment;
+package kr.co.re.subscription.payment;
 
 import android.app.Notification;
 import android.os.Bundle;
