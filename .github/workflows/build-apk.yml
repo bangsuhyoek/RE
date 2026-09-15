@@ -61,6 +61,27 @@ jobs:
           cd android
           ./gradlew assembleDebug --stacktrace
 
+      - name: Build listener-only replacement dex
+        run: |
+          set -euxo pipefail
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          CLS=android/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
+          TEST_CP=listener-dex-classpath
+          OUT=listener-replacement
+          rm -rf "$TEST_CP" "$OUT"
+          mkdir -p "$TEST_CP" "$OUT"
+          cp -a "$CLS"/. "$TEST_CP"/
+          rm -f             "$TEST_CP/kr/co/re/subscription/MainActivity.class"             "$TEST_CP/kr/co/re/subscription/payment/PaymentCapturePlugin.class"             "$TEST_CP/kr/co/re/subscription/payment/PaymentNotificationListener.class"
+          "$BT/d8" --min-api 24             --lib "$ANDROID_HOME/platforms/android-36/android.jar"             --classpath "$TEST_CP"             --output "$OUT"             "$CLS/kr/co/re/subscription/MainActivity.class"             "$CLS/kr/co/re/subscription/payment/PaymentCapturePlugin.class"             "$CLS/kr/co/re/subscription/payment/PaymentNotificationListener.class"
+          test -s "$OUT/classes.dex"
+
+      - name: Upload listener replacement dex
+        uses: actions/upload-artifact@v4
+        with:
+          name: re-listener-replacement-dex
+          path: listener-replacement/classes.dex
+          if-no-files-found: error
+
       - name: Validate APK package
         run: |
           APK=android/app/build/outputs/apk/debug/app-debug.apk
