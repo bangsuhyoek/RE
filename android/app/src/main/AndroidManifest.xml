@@ -11,7 +11,7 @@
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
-            android:name="com.submate.app.MainActivity"
+            android:name="kr.co.re.subscription.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
@@ -73,7 +73,7 @@
         </service>
 
         <service
-            android:name="com.submate.app.payment.PaymentNotificationListener"
+            android:name="kr.co.re.subscription.payment.PaymentNotificationListener"
             android:label="RE. 구독 결제 알림 도우미"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
