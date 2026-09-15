@@ -7,11 +7,43 @@ import android.service.notification.StatusBarNotification;
 import android.util.Log;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PaymentNotificationListener extends NotificationListenerService {
     private static final String TAG = "REPaymentListener";
     private static final Map<String, Long> RECENT = new ConcurrentHashMap<>();
     private static final long DEDUP_MS = 5L * 60L * 1000L;
+    private static final AtomicBoolean CONNECTED = new AtomicBoolean(false);
+    private static volatile long lastConnectedAt = 0L;
+
+    public static boolean isConnected() {
+        return CONNECTED.get();
+    }
+
+    public static long getLastConnectedAt() {
+        return lastConnectedAt;
+    }
+
+    @Override
+    public void onListenerConnected() {
+        super.onListenerConnected();
+        CONNECTED.set(true);
+        lastConnectedAt = System.currentTimeMillis();
+        Log.i(TAG, "listener connected");
+    }
+
+    @Override
+    public void onListenerDisconnected() {
+        CONNECTED.set(false);
+        Log.w(TAG, "listener disconnected");
+        super.onListenerDisconnected();
+    }
+
+    @Override
+    public void onDestroy() {
+        CONNECTED.set(false);
+        super.onDestroy();
+    }
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
