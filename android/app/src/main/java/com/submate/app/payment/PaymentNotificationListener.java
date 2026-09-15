@@ -85,7 +85,12 @@ public class PaymentNotificationListener extends NotificationListenerService {
         String candidateId = PaymentCandidateStore.save(this, parsed);
         Log.i(TAG, "detected service=" + parsed.serviceName + " amount=" + parsed.amount + " candidate=" + candidateId);
 
-        // Important: storage/preferences never gate the phone alert.
-        PaymentNotificationHelper.dispatch(this, candidateId, parsed);
+        // Detection/storage continue even when the user disables RE candidate alerts.
+        // The preference only gates the visible heads-up notification.
+        if (PaymentCapturePreferences.candidateNotificationsEnabled(this)) {
+            PaymentNotificationHelper.dispatch(this, candidateId, parsed);
+        } else {
+            Log.d(TAG, "candidate alert suppressed by user preference");
+        }
     }
 }
