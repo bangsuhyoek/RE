@@ -1,6 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
+    sourceSets {
+        main.java.exclude 'com/submate/app/CancelBrowserActivity.java'
+        main.java.exclude 'com/submate/app/CancelBrowserPlugin.java'
+        main.java.exclude 'com/submate/app/OverlayGuideService.java'
+    }
     namespace = "kr.co.re.subscription"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
