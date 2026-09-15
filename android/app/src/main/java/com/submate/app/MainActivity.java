@@ -5,7 +5,8 @@ import android.view.View;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import com.getcapacitor.BridgeActivity;\nimport com.submate.app.CancelBrowserPlugin;
+import com.getcapacitor.BridgeActivity;
+import com.submate.app.CancelBrowserPlugin;
 import kr.co.re.subscription.payment.PaymentCapturePlugin;
 
 public class MainActivity extends BridgeActivity {
