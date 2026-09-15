@@ -10,7 +10,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,67 +40,57 @@ jobs:
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: zulu
           java-version: '21'
 
       - name: Use preinstalled Android SDK
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
           sdkmanager --list_installed | sed -n '1,120p'
 
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      - name: Grant execute permission for gradlew
+      - name: Grant execute permission
         run: chmod +x android/gradlew
 
-      - name: Build Debug APK
+      - name: Build debug and release APKs
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug assembleRelease --stacktrace
 
-      - name: Build listener-only replacement dex
+      - name: Validate native APKs
         run: |
           set -euxo pipefail
+          DEBUG=android/app/build/outputs/apk/debug/app-debug.apk
+          RELEASE=android/app/build/outputs/apk/release/app-release-unsigned.apk
+          test -s "$DEBUG"
+          test -s "$RELEASE"
+          unzip -t "$DEBUG" >/dev/null
+          unzip -t "$RELEASE" >/dev/null
           BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
-          CLS=android/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
-          TEST_CP=listener-dex-classpath
-          OUT=listener-replacement
-          rm -rf "$TEST_CP" "$OUT"
-          mkdir -p "$TEST_CP" "$OUT"
-          cp -a "$CLS"/. "$TEST_CP"/
-          rm -f             "$TEST_CP/kr/co/re/subscription/MainActivity.class"             "$TEST_CP/kr/co/re/subscription/payment/PaymentCapturePlugin.class"             "$TEST_CP/kr/co/re/subscription/payment/PaymentNotificationListener.class"
-          "$BT/d8" --min-api 24             --lib "$ANDROID_HOME/platforms/android-36/android.jar"             --classpath "$TEST_CP"             --output "$OUT"             "$CLS/kr/co/re/subscription/MainActivity.class"             "$CLS/kr/co/re/subscription/payment/PaymentCapturePlugin.class"             "$CLS/kr/co/re/subscription/payment/PaymentNotificationListener.class"
-          test -s "$OUT/classes.dex"
+          "$BT/aapt2" dump badging "$RELEASE" | tee release-badging.txt
+          grep -q "package: name='kr.co.re.subscription' versionCode='202' versionName='2.0.2'" release-badging.txt
+          if "$BT/aapt2" dump permissions "$RELEASE" | grep -E "SYSTEM_ALERT_WINDOW|android.permission.CAMERA"; then
+            echo "Forbidden/unused permission found in release APK" >&2
+            exit 1
+          fi
+          sha256sum "$DEBUG" "$RELEASE" | tee native-apk.sha256
 
-      - name: Upload listener replacement dex
+      - name: Upload native APKs
         uses: actions/upload-artifact@v4
         with:
-          name: re-listener-replacement-dex
-          path: listener-replacement/classes.dex
-          if-no-files-found: error
-
-      - name: Validate APK package
-        run: |
-          APK=android/app/build/outputs/apk/debug/app-debug.apk
-          test -s "$APK"
-          unzip -t "$APK" >/dev/null
-          sha256sum "$APK" | tee v1.0.6-native.sha256
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: re-v1.0.6-native-debug-apk
+          name: re-v2.0.2-native-apks
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
-            v1.0.6-native.sha256
+            android/app/build/outputs/apk/release/app-release-unsigned.apk
+            release-badging.txt
+            native-apk.sha256
           if-no-files-found: error
 
-      - name: Export Android build tools for APK repair
+      - name: Export Android build tools
         run: |
           BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
-          echo "Using build tools: $BT"
           mkdir -p tool-export/lib
           cp "$BT/apksigner" tool-export/
           cp "$BT/zipalign" tool-export/
@@ -113,7 +102,7 @@ jobs:
       - name: Upload Android build tools
         uses: actions/upload-artifact@v4
         with:
-          name: android-build-tools-repair
+          name: android-build-tools-v2.0.2
           path: tool-export
           if-no-files-found: error
 
@@ -121,10 +110,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download APK Artifact
+      - name: Download APK artifact
         uses: actions/download-artifact@v4
         with:
-          name: re-v1.0.6-native-debug-apk
+          name: re-v2.0.2-native-apks
           path: artifact
 
       - name: Android launch smoke test
@@ -136,14 +125,12 @@ jobs:
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: >-
-            APK=$(find artifact -type f -name '*.apk' -print -quit) &&
+            APK=$(find artifact -type f -name 'app-debug.apk' -print -quit) &&
             test -n "$APK" &&
-            test -s "$APK" &&
             adb install -r "$APK" &&
             adb logcat -c &&
             adb shell am force-stop kr.co.re.subscription &&
             LAUNCHER=$(adb shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER kr.co.re.subscription | tr -d '\r' | tail -n 1) &&
-            echo "Resolved launcher: $LAUNCHER" &&
             test -n "$LAUNCHER" &&
             adb shell am start -n "$LAUNCHER" &&
             sleep 8 &&
