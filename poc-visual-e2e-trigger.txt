@@ -1,1 +1,1 @@
-visual retry with stable launcher and geometry-aware checker
+visual burst retry for actual simultaneous Heads-up and concierge frame
