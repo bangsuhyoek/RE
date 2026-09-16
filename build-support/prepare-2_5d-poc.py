@@ -107,6 +107,10 @@ def install_poc_native_templates() -> None:
         ROOT / "poc-src-templates" / "debug" / "PocPaymentReceiver.java",
         debug_java / "PocPaymentReceiver.java",
     )
+    shutil.copy2(
+        ROOT / "poc-src-templates" / "debug" / "PocPaymentTriggerActivity.java",
+        debug_java / "PocPaymentTriggerActivity.java",
+    )
     debug_manifest = OUT / "android" / "app" / "src" / "debug" / "AndroidManifest.xml"
     debug_manifest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "poc-src-templates" / "debug" / "AndroidManifest.xml", debug_manifest)
