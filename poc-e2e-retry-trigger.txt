@@ -1,1 +1,1 @@
-retry validated APK with explicit receiver and filtered logcat
+retry latest validated APK after resolver-table assertion fix
