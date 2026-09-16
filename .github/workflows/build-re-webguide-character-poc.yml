@@ -72,17 +72,18 @@ jobs:
           unzip -t "$GITHUB_WORKSPACE/RE-WebGuide-Naver-Character-PoC.apk"
           sha256sum "$GITHUB_WORKSPACE/RE-WebGuide-Naver-Character-PoC.apk"
 
-      - name: Inspect packaged manifest
+      - name: Verify APK package and signature
         shell: bash
         run: |
           set -euo pipefail
           APK="$GITHUB_WORKSPACE/RE-WebGuide-Naver-Character-PoC.apk"
-          if command -v apkanalyzer >/dev/null 2>&1; then
-            echo "Application ID:"
-            apkanalyzer manifest application-id "$APK"
-            echo "Permissions:"
-            apkanalyzer manifest permissions "$APK"
-          fi
+          AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          "$AAPT" dump badging "$APK" | grep -E "^package:|^sdkVersion:|^targetSdkVersion:|^uses-permission:"
+          echo "--- permissions ---"
+          "$AAPT" dump permissions "$APK"
+          echo "--- signature ---"
+          "$APKSIGNER" verify --verbose "$APK"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
