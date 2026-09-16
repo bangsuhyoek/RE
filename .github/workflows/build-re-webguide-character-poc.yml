@@ -23,7 +23,7 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/re-webguide-poc
           cat poc/re-webguide-character/source.b64.part* | tr -d '\n\r' | base64 --decode > /tmp/RE-WebGuide-Naver-Character-PoC-source.zip
-          echo "58ecf9a5fd64802ddc4d3e83c3a9354c99a69eca5d49d05d7c0d84577a0ce2c3  /tmp/RE-WebGuide-Naver-Character-PoC-source.zip" | sha256sum -c -
+          echo "a90c0c3274b285219eef141938c79389561aaf3424befd50337af4f5d064f26e  /tmp/RE-WebGuide-Naver-Character-PoC-source.zip" | sha256sum -c -
           unzip -q /tmp/RE-WebGuide-Naver-Character-PoC-source.zip -d /tmp/re-webguide-poc
 
       - name: Security guardrails
