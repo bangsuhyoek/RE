@@ -91,6 +91,9 @@ export function mapDbToSubscription(row) {
     nextBillingDate: row.next_billing_date || null,
     renewalReviewedFor: row.renewal_reviewed_for || null,
     isTrial: row.status === 'trial',
+    currency: row.currency || 'KRW',
+    originalAmount: row.original_amount != null ? Number(row.original_amount) : null,
+    planId: row.plan_id || null,
   };
 }
 
@@ -99,11 +102,14 @@ export function mapSubscriptionToDb(sub, userId) {
     user_id: userId,
     subscription_id: sub.subscriptionId || sub.id,
     service_id: sub.id && (sub.id.startsWith('manual-') || sub.id.startsWith('custom-')) ? null : sub.id,
+    plan_id: sub.planId || null,
     service_name: sub.name,
     plan_name: sub.plan,
     category: sub.category || '기타',
     amount_krw: Number(sub.amount) || 0,
     gross_amount_krw: Number(sub.grossAmount ?? sub.amount) || 0,
+    currency: sub.currency || 'KRW',
+    original_amount: sub.originalAmount != null ? Number(sub.originalAmount) : null,
     sharing_enabled: Boolean(sub.sharingEnabled),
     share_count: sub.sharingEnabled ? (Number(sub.shareCount) || null) : null,
     due_day: Number(sub.dueDay) || 1,

@@ -141,13 +141,18 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
       notify?.("이미 등록된 구독입니다. 기존 카드에서 정보를 수정해 주세요.");
       return false;
     }
-    const matched = serviceCatalog.find((service) =>
-      service.name.toLowerCase() === data.name.trim().toLowerCase() || service.id === data.id
-    );
+    const queryName = (data.name || "").trim().toLowerCase().replace(/\s+/g, "");
+    const matched = serviceCatalog.find((service) => {
+      if (data.id && service.id === data.id) return true;
+      if (service.name.toLowerCase().replace(/\s+/g, "") === queryName) return true;
+      if ((service.aliases || []).some((a) => a.toLowerCase().replace(/\s+/g, "") === queryName)) return true;
+      return false;
+    });
     const subId = `manual-${Date.now()}`;
     const record = {
       ...data,
       id: matched?.id || `custom-${Date.now()}`,
+      serviceId: matched?.id || data.serviceId || data.id,
       monogram: data.monogram || matched?.monogram || data.name.trim().slice(0, 1).toUpperCase(),
       category: data.category || matched?.category || "기타",
       cancelUrl: data.cancelUrl || matched?.cancelUrl || "https://google.com",
@@ -206,12 +211,17 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     notify?.("사전 알림을 모두 껐어요.");
   }, []);
 
-  const startCancellation = useCallback((subscriptionId, promotion = null) => {
+  const startCancellation = useCallback((subscriptionId, promotion = null, options = {}) => {
     const target = subscriptions.find((subscription) =>
       subscription.subscriptionId === subscriptionId || subscription.id === subscriptionId
     );
     if (!target) return;
-    setCancelTarget({ id: target.subscriptionId, subscription: target, promotion });
+    setCancelTarget({
+      id: target.subscriptionId,
+      subscription: target,
+      promotion,
+      autoOpen: Boolean(options?.autoOpen),
+    });
   }, [subscriptions]);
 
   const closeCancellation = useCallback(() => {

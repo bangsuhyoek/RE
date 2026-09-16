@@ -28,6 +28,27 @@ export const clearStoredValue = (key) => {
 export const removeDemoSubscriptions = (items) =>
   items.filter((subscription) => !String(subscription.subscriptionId || "").startsWith("seed-"));
 
+export const DEFAULT_USERS = [
+  {
+    accountId: "testuser",
+    password: "test1234!",
+    nickname: "테스트유저",
+    createdAt: "2026-09-16T00:00:00.000Z",
+  },
+  {
+    accountId: "test",
+    password: "test1234!",
+    nickname: "테스트",
+    createdAt: "2026-09-16T00:00:00.000Z",
+  },
+  {
+    accountId: "submate",
+    password: "test1234!",
+    nickname: "섭메이트",
+    createdAt: "2026-09-16T00:00:00.000Z",
+  },
+];
+
 export const getStoredUsers = () => {
   return readStoredValue(storageKeys.users, []);
 };
@@ -46,5 +67,7 @@ export const saveUser = (user) => {
 
 export const findUser = (accountId) => {
   const users = getStoredUsers();
-  return users.find((u) => u.accountId?.toLowerCase() === accountId?.toLowerCase()) || null;
+  const found = users.find((u) => u.accountId?.toLowerCase() === accountId?.toLowerCase());
+  if (found) return found;
+  return DEFAULT_USERS.find((u) => u.accountId?.toLowerCase() === accountId?.toLowerCase()) || null;
 };

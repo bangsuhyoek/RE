@@ -20,7 +20,7 @@ const baseSteps = [
   "해지 신청 후 완료 화면 확인하기",
 ];
 
-export function CancelModal({ subscription: rawSub, promotion, onClose, onComplete, onToast }) {
+export function CancelModal({ subscription: rawSub, promotion, autoOpen = false, onClose, onComplete, onToast }) {
   // DB 구독 데이터에 guideSteps나 cancelUrl이 누락되어도 serviceCatalog에서 100% 매칭 보강
   const subscription = useMemo(() => {
     const targetName = (rawSub.name || "").toLowerCase().replace(/\s+/g, "");
@@ -44,7 +44,7 @@ export function CancelModal({ subscription: rawSub, promotion, onClose, onComple
 
   const [checked, setChecked] = useState(() => new Array(steps.length).fill(false));
   const [celebrating, setCelebrating] = useState(false);
-  const [showBrowserModal, setShowBrowserModal] = useState(false);
+  const [showBrowserModal, setShowBrowserModal] = useState(() => Boolean(autoOpen && rawSub.cancelUrl));
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
   const [cancelSessionActive, setCancelSessionActive] = useState(false);
 
@@ -66,6 +66,12 @@ export function CancelModal({ subscription: rawSub, promotion, onClose, onComple
     if (!subscription.cancelUrl) return;
 
     setCancelSessionActive(true);
+    if (!Capacitor.isNativePlatform()) {
+      window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
+      setShowBrowserModal(true);
+      return;
+    }
+
     const res = await openCancelBrowser({
       serviceId: subscription.id,
       serviceName: subscription.name,
@@ -79,6 +85,7 @@ export function CancelModal({ subscription: rawSub, promotion, onClose, onComple
     }
 
     if (res?.action === "FALLBACK_WEB") {
+      window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
       setShowBrowserModal(true);
       return;
     }
@@ -212,6 +219,7 @@ export function CancelModal({ subscription: rawSub, promotion, onClose, onComple
     return (
       <CancelBrowserModal
         subscription={subscription}
+        autoOpened={autoOpen}
         onClose={() => {
           setShowBrowserModal(false);
           onToast("해지 화면을 닫았어요. 해지를 완료하셨다면 아래 완료 버튼을 눌러주세요.");

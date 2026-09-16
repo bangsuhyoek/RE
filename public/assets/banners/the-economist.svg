@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <rect width="800" height="450" fill="#3B0402"/>
+  <g transform="translate(310, 110)">
+    <rect width="180" height="180" rx="45" fill="#E3120B"/>
+    <g transform="translate(55, 45) scale(3.8)"><text x="0" y="20" fill="#FFFFFF" font-family="serif" font-size="24" font-weight="bold" font-style="italic">E</text></g>
+  </g>
+</svg>

@@ -479,3 +479,15 @@ input[type="number"] {
   scrollbar-width: none !important;
 }
 
+@keyframes tutorialFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+.animate-tutorial-float {
+  animation: tutorialFloat 3s ease-in-out infinite;
+}
+

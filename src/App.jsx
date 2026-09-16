@@ -451,14 +451,19 @@ export default function App() {
   };
 
   const handlePromotion = useCallback((promotion) => {
-    const source = subscriptions.find((subscription) => promotion.sourceServiceIds.includes(subscription.id));
-    if (source) {
-      startCancellation(source.subscriptionId, promotion);
-      return;
+    if (promotion?.link) {
+      if (isNativePlatform()) {
+        Browser.open({ url: promotion.link }).catch(() => {
+          window.open(promotion.link, "_blank", "noopener,noreferrer");
+        });
+      } else {
+        window.open(promotion.link, "_blank", "noopener,noreferrer");
+      }
+      notify("제휴 혜택 페이지를 열었어요.");
+    } else {
+      navigate("promotions");
     }
-    window.open(promotion.link, "_blank", "noopener,noreferrer");
-    notify("제휴 혜택 페이지를 새 탭에서 열었어요.");
-  }, [subscriptions, startCancellation, notify]);
+  }, [navigate, notify]);
 
   let content;
   if (screen.route === "landing") {
@@ -627,6 +632,7 @@ export default function App() {
         <CancelModal
           subscription={cancelSubscription}
           promotion={cancelTarget?.promotion}
+          autoOpen={cancelTarget?.autoOpen}
           onClose={closeCancellation}
           onComplete={(id, saved) => finishCancellation(id, saved, () => {
             if (screen.route === "detail") navigate("subscriptions");

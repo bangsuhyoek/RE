@@ -132,6 +132,121 @@ export const SERVICE_IMAGES = {
   coupang: "/assets/services/coupang.svg",
   spotify: "/assets/services/spotify.svg",
   chatgpt: "/assets/services/chatgpt.svg",
+  "claude-pro": "/assets/services/claude-pro.svg",
+  claude: "/assets/services/claude-pro.svg",
+  "perplexity-pro": "/assets/services/perplexity-pro.svg",
+  perplexity: "/assets/services/perplexity-pro.svg",
+  midjourney: "/assets/services/midjourney.svg",
+  "runway-gen": "/assets/services/runway-gen.svg",
+  runway: "/assets/services/runway-gen.svg",
+  "v0-vercel": "/assets/services/v0-vercel.svg",
+  v0: "/assets/services/v0-vercel.svg",
+  figma: "/assets/services/figma.svg",
+  canva: "/assets/services/canva.svg",
+  framer: "/assets/services/framer.svg",
+  webflow: "/assets/services/webflow.svg",
+  "cursor-ai": "/assets/services/cursor-ai.svg",
+  cursor: "/assets/services/cursor-ai.svg",
+  "github-copilot": "/assets/services/github-copilot.svg",
+  copilot: "/assets/services/github-copilot.svg",
+  "jetbrains-all": "/assets/services/jetbrains-all.svg",
+  jetbrains: "/assets/services/jetbrains-all.svg",
+  "deepl-pro": "/assets/services/deepl-pro.svg",
+  deepl: "/assets/services/deepl-pro.svg",
+  grammarly: "/assets/services/grammarly.svg",
+  "slack-pro": "/assets/services/slack-pro.svg",
+  slack: "/assets/services/slack-pro.svg",
+  "zoom-pro": "/assets/services/zoom-pro.svg",
+  zoom: "/assets/services/zoom-pro.svg",
+  ms365: "/assets/services/ms365.svg",
+  microsoft: "/assets/services/ms365.svg",
+  "google-one": "/assets/services/google-one.svg",
+  google: "/assets/services/google-one.svg",
+  dropbox: "/assets/services/dropbox.svg",
+  evernote: "/assets/services/evernote.svg",
+  todoist: "/assets/services/todoist.svg",
+  "1password": "/assets/services/1password.svg",
+  nordvpn: "/assets/services/nordvpn.svg",
+  notion: "/assets/services/notion.svg",
+  "adobe-lightroom": "/assets/services/adobe-lightroom.svg",
+  lightroom: "/assets/services/adobe-lightroom.svg",
+  wavve: "/assets/services/wavve.svg",
+  coupangplay: "/assets/services/coupangplay.svg",
+  laftel: "/assets/services/laftel.svg",
+  appletv: "/assets/services/appletv.svg",
+  primevideo: "/assets/services/primevideo.svg",
+  spotvnow: "/assets/services/spotvnow.svg",
+  spotv: "/assets/services/spotvnow.svg",
+  weverse: "/assets/services/weverse.svg",
+  crunchyroll: "/assets/services/crunchyroll.svg",
+  mubi: "/assets/services/mubi.svg",
+  dazn: "/assets/services/dazn.svg",
+  melon: "/assets/services/melon.svg",
+  genie: "/assets/services/genie.svg",
+  bugs: "/assets/services/bugs.svg",
+  vibe: "/assets/services/vibe.svg",
+  applemusic: "/assets/services/applemusic.svg",
+  ytmusic: "/assets/services/ytmusic.svg",
+  tidal: "/assets/services/tidal.svg",
+  "bubble-sm": "/assets/services/bubble-sm.svg",
+  bubble: "/assets/services/bubble-sm.svg",
+  fromm: "/assets/services/fromm.svg",
+  podbbang: "/assets/services/podbbang.svg",
+  welaaa: "/assets/services/welaaa.svg",
+  storytel: "/assets/services/storytel.svg",
+  ridiselect: "/assets/services/ridiselect.svg",
+  ridi: "/assets/services/ridiselect.svg",
+  longblack: "/assets/services/longblack.svg",
+  "the-joongang-plus": "/assets/services/the-joongang-plus.svg",
+  joongang: "/assets/services/the-joongang-plus.svg",
+  "nyt-digital": "/assets/services/nyt-digital.svg",
+  nyt: "/assets/services/nyt-digital.svg",
+  "wsj-digital": "/assets/services/wsj-digital.svg",
+  wsj: "/assets/services/wsj-digital.svg",
+  "ft-digital": "/assets/services/ft-digital.svg",
+  ft: "/assets/services/ft-digital.svg",
+  "the-economist": "/assets/services/the-economist.svg",
+  economist: "/assets/services/the-economist.svg",
+  audible: "/assets/services/audible.svg",
+  scribd: "/assets/services/scribd.svg",
+  speak: "/assets/services/speak.svg",
+  duolingo: "/assets/services/duolingo.svg",
+  ringle: "/assets/services/ringle.svg",
+  cambly: "/assets/services/cambly.svg",
+  santatoeic: "/assets/services/santatoeic.svg",
+  malhaeboca: "/assets/services/malhaeboca.svg",
+  class101: "/assets/services/class101.svg",
+  fastcampus: "/assets/services/fastcampus.svg",
+  inflearn: "/assets/services/inflearn.svg",
+  coursera: "/assets/services/coursera.svg",
+  naverplus: "/assets/services/naverplus.svg",
+  "baemin-club": "/assets/services/baemin-club.svg",
+  baemin: "/assets/services/baemin-club.svg",
+  yogipass: "/assets/services/yogipass.svg",
+  yogiyo: "/assets/services/yogipass.svg",
+  "kurly-pass": "/assets/services/kurly-pass.svg",
+  kurly: "/assets/services/kurly-pass.svg",
+  "nintendo-online": "/assets/services/nintendo-online.svg",
+  nintendo: "/assets/services/nintendo-online.svg",
+  "ps-plus": "/assets/services/ps-plus.svg",
+  playstation: "/assets/services/ps-plus.svg",
+  "xbox-gamepass": "/assets/services/xbox-gamepass.svg",
+  xbox: "/assets/services/xbox-gamepass.svg",
+  "apple-arcade": "/assets/services/apple-arcade.svg",
+  arcade: "/assets/services/apple-arcade.svg",
+  "google-play-pass": "/assets/services/google-play-pass.svg",
+  "ea-play": "/assets/services/ea-play.svg",
+  ea: "/assets/services/ea-play.svg",
+  "wow-subscription": "/assets/services/wow-subscription.svg",
+  wow: "/assets/services/wow-subscription.svg",
+  "kakaotalk-drive": "/assets/services/kakaotalk-drive.svg",
+  "kakaotalk-emoticon": "/assets/services/kakaotalk-emoticon.svg",
+  "naver-mybox": "/assets/services/naver-mybox.svg",
+  mybox: "/assets/services/naver-mybox.svg",
+  "strava-sub": "/assets/services/strava-sub.svg",
+  strava: "/assets/services/strava-sub.svg",
+  "burnfit-pro": "/assets/services/burnfit-pro.svg",
+  burnfit: "/assets/services/burnfit-pro.svg",
   tving: "/assets/services/tving.svg",
   disney: "/assets/services/disney.svg",
   millie: "/assets/services/millie.svg",
@@ -166,6 +281,88 @@ export function ServiceMark({
       (cleanName.includes("youtube") || cleanName.includes("유튜브") ? SERVICE_IMAGES.youtube : null) ||
       (cleanName.includes("coupang") || cleanName.includes("쿠팡") ? SERVICE_IMAGES.coupang : null) ||
       (cleanName.includes("spotify") || cleanName.includes("스포티") ? SERVICE_IMAGES.spotify : null) ||
+      (cleanName.includes("claude") || cleanName.includes("클로드") ? SERVICE_IMAGES["claude-pro"] : null) ||
+      (cleanName.includes("perplexity") || cleanName.includes("퍼플렉") ? SERVICE_IMAGES["perplexity-pro"] : null) ||
+      (cleanName.includes("midjourney") || cleanName.includes("미드저니") ? SERVICE_IMAGES.midjourney : null) ||
+      (cleanName.includes("runway") || cleanName.includes("런웨이") ? SERVICE_IMAGES["runway-gen"] : null) ||
+      (cleanName.includes("v0") || cleanName.includes("브이제로") ? SERVICE_IMAGES["v0-vercel"] : null) ||
+      (cleanName.includes("figma") || cleanName.includes("피그마") ? SERVICE_IMAGES.figma : null) ||
+      (cleanName.includes("canva") || cleanName.includes("캔바") ? SERVICE_IMAGES.canva : null) ||
+      (cleanName.includes("framer") || cleanName.includes("프레이머") ? SERVICE_IMAGES.framer : null) ||
+      (cleanName.includes("webflow") || cleanName.includes("웹플로우") ? SERVICE_IMAGES.webflow : null) ||
+      (cleanName.includes("cursor") || cleanName.includes("커서") ? SERVICE_IMAGES["cursor-ai"] : null) ||
+      (cleanName.includes("copilot") || cleanName.includes("코파일럿") ? SERVICE_IMAGES["github-copilot"] : null) ||
+      (cleanName.includes("jetbrains") || cleanName.includes("젯브레인") ? SERVICE_IMAGES["jetbrains-all"] : null) ||
+      (cleanName.includes("deepl") || cleanName.includes("딥엘") ? SERVICE_IMAGES["deepl-pro"] : null) ||
+      (cleanName.includes("grammarly") || cleanName.includes("그래머리") ? SERVICE_IMAGES.grammarly : null) ||
+      (cleanName.includes("slack") || cleanName.includes("슬랙") ? SERVICE_IMAGES["slack-pro"] : null) ||
+      (cleanName.includes("zoom") || cleanName.includes("줌") ? SERVICE_IMAGES["zoom-pro"] : null) ||
+      (cleanName.includes("ms365") || cleanName.includes("오피스") || cleanName.includes("마이크로소프트") ? SERVICE_IMAGES.ms365 : null) ||
+      (cleanName.includes("google-one") || cleanName.includes("구글원") || cleanName.includes("google one") ? SERVICE_IMAGES["google-one"] : null) ||
+      (cleanName.includes("dropbox") || cleanName.includes("드롭박스") ? SERVICE_IMAGES.dropbox : null) ||
+      (cleanName.includes("evernote") || cleanName.includes("에버노트") ? SERVICE_IMAGES.evernote : null) ||
+      (cleanName.includes("todoist") || cleanName.includes("투두이스트") ? SERVICE_IMAGES.todoist : null) ||
+      (cleanName.includes("1password") || cleanName.includes("원패스워드") ? SERVICE_IMAGES["1password"] : null) ||
+      (cleanName.includes("nordvpn") || cleanName.includes("노드vpn") ? SERVICE_IMAGES.nordvpn : null) ||
+      (cleanName.includes("notion") || cleanName.includes("노션") ? SERVICE_IMAGES.notion : null) ||
+      (cleanName.includes("lightroom") || cleanName.includes("라이트룸") ? SERVICE_IMAGES["adobe-lightroom"] : null) ||
+      (cleanName.includes("wavve") || cleanName.includes("웨이브") ? SERVICE_IMAGES.wavve : null) ||
+      (cleanName.includes("coupangplay") || cleanName.includes("쿠팡플레이") ? SERVICE_IMAGES.coupangplay : null) ||
+      (cleanName.includes("laftel") || cleanName.includes("라프텔") ? SERVICE_IMAGES.laftel : null) ||
+      (cleanName.includes("appletv") || cleanName.includes("애플tv") ? SERVICE_IMAGES.appletv : null) ||
+      (cleanName.includes("prime") || cleanName.includes("프라임비디오") ? SERVICE_IMAGES.primevideo : null) ||
+      (cleanName.includes("spotv") || cleanName.includes("스포티비") ? SERVICE_IMAGES.spotvnow : null) ||
+      (cleanName.includes("weverse") || cleanName.includes("위버스") ? SERVICE_IMAGES.weverse : null) ||
+      (cleanName.includes("crunchyroll") || cleanName.includes("크런치롤") ? SERVICE_IMAGES.crunchyroll : null) ||
+      (cleanName.includes("mubi") || cleanName.includes("무비") ? SERVICE_IMAGES.mubi : null) ||
+      (cleanName.includes("dazn") || cleanName.includes("다존") ? SERVICE_IMAGES.dazn : null) ||
+      (cleanName.includes("melon") || cleanName.includes("멜론") ? SERVICE_IMAGES.melon : null) ||
+      (cleanName.includes("genie") || cleanName.includes("지니") ? SERVICE_IMAGES.genie : null) ||
+      (cleanName.includes("bugs") || cleanName.includes("벅스") ? SERVICE_IMAGES.bugs : null) ||
+      (cleanName.includes("vibe") || cleanName.includes("바이브") ? SERVICE_IMAGES.vibe : null) ||
+      (cleanName.includes("applemusic") || cleanName.includes("애플뮤직") ? SERVICE_IMAGES.applemusic : null) ||
+      (cleanName.includes("ytmusic") || cleanName.includes("유튜브뮤직") ? SERVICE_IMAGES.ytmusic : null) ||
+      (cleanName.includes("tidal") || cleanName.includes("타이달") ? SERVICE_IMAGES.tidal : null) ||
+      (cleanName.includes("bubble") || cleanName.includes("버블") ? SERVICE_IMAGES["bubble-sm"] : null) ||
+      (cleanName.includes("fromm") || cleanName.includes("프롬") ? SERVICE_IMAGES.fromm : null) ||
+      (cleanName.includes("podbbang") || cleanName.includes("팟빵") ? SERVICE_IMAGES.podbbang : null) ||
+      (cleanName.includes("welaaa") || cleanName.includes("윌라") ? SERVICE_IMAGES.welaaa : null) ||
+      (cleanName.includes("storytel") || cleanName.includes("스토리텔") ? SERVICE_IMAGES.storytel : null) ||
+      (cleanName.includes("ridi") || cleanName.includes("리디") ? SERVICE_IMAGES.ridiselect : null) ||
+      (cleanName.includes("longblack") || cleanName.includes("롱블랙") ? SERVICE_IMAGES.longblack : null) ||
+      (cleanName.includes("joongang") || cleanName.includes("중앙일보") || cleanName.includes("더중앙") ? SERVICE_IMAGES["the-joongang-plus"] : null) ||
+      (cleanName.includes("nyt") || cleanName.includes("뉴욕타임스") ? SERVICE_IMAGES["nyt-digital"] : null) ||
+      (cleanName.includes("wsj") || cleanName.includes("월스트리트") ? SERVICE_IMAGES["wsj-digital"] : null) ||
+      (cleanName.includes("ft") || cleanName.includes("파이낸셜타임스") ? SERVICE_IMAGES["ft-digital"] : null) ||
+      (cleanName.includes("economist") || cleanName.includes("이코노미스트") ? SERVICE_IMAGES["the-economist"] : null) ||
+      (cleanName.includes("audible") || cleanName.includes("오디블") ? SERVICE_IMAGES.audible : null) ||
+      (cleanName.includes("scribd") || cleanName.includes("스크립드") ? SERVICE_IMAGES.scribd : null) ||
+      (cleanName.includes("speak") || cleanName.includes("스픽") ? SERVICE_IMAGES.speak : null) ||
+      (cleanName.includes("duolingo") || cleanName.includes("듀오링고") ? SERVICE_IMAGES.duolingo : null) ||
+      (cleanName.includes("ringle") || cleanName.includes("링글") ? SERVICE_IMAGES.ringle : null) ||
+      (cleanName.includes("cambly") || cleanName.includes("캠블리") ? SERVICE_IMAGES.cambly : null) ||
+      (cleanName.includes("산타") || cleanName.includes("santatoeic") ? SERVICE_IMAGES.santatoeic : null) ||
+      (cleanName.includes("말해보카") || cleanName.includes("malhaeboca") ? SERVICE_IMAGES.malhaeboca : null) ||
+      (cleanName.includes("클래스101") || cleanName.includes("class101") ? SERVICE_IMAGES.class101 : null) ||
+      (cleanName.includes("패스트캠퍼스") || cleanName.includes("패캠") ? SERVICE_IMAGES.fastcampus : null) ||
+      (cleanName.includes("인프런") || cleanName.includes("inflearn") ? SERVICE_IMAGES.inflearn : null) ||
+      (cleanName.includes("coursera") || cleanName.includes("코세라") ? SERVICE_IMAGES.coursera : null) ||
+      (cleanName.includes("네이버플러스") || cleanName.includes("네이버멤버십") ? SERVICE_IMAGES.naverplus : null) ||
+      (cleanName.includes("배민") || cleanName.includes("배달의민족") ? SERVICE_IMAGES["baemin-club"] : null) ||
+      (cleanName.includes("요기패스") || cleanName.includes("요기요") ? SERVICE_IMAGES.yogipass : null) ||
+      (cleanName.includes("컬리") || cleanName.includes("마켓컬리") ? SERVICE_IMAGES["kurly-pass"] : null) ||
+      (cleanName.includes("닌텐도") || cleanName.includes("nintendo") ? SERVICE_IMAGES["nintendo-online"] : null) ||
+      (cleanName.includes("플스") || cleanName.includes("playstation") || cleanName.includes("ps-plus") ? SERVICE_IMAGES["ps-plus"] : null) ||
+      (cleanName.includes("게임패스") || cleanName.includes("xbox") ? SERVICE_IMAGES["xbox-gamepass"] : null) ||
+      (cleanName.includes("아케이드") || cleanName.includes("arcade") ? SERVICE_IMAGES["apple-arcade"] : null) ||
+      (cleanName.includes("플레이패스") || cleanName.includes("play-pass") ? SERVICE_IMAGES["google-play-pass"] : null) ||
+      (cleanName.includes("ea") || cleanName.includes("ea-play") ? SERVICE_IMAGES["ea-play"] : null) ||
+      (cleanName.includes("와우") || cleanName.includes("warcraft") ? SERVICE_IMAGES["wow-subscription"] : null) ||
+      (cleanName.includes("톡서랍") ? SERVICE_IMAGES["kakaotalk-drive"] : null) ||
+      (cleanName.includes("이모티콘") ? SERVICE_IMAGES["kakaotalk-emoticon"] : null) ||
+      (cleanName.includes("mybox") || cleanName.includes("마이박스") ? SERVICE_IMAGES["naver-mybox"] : null) ||
+      (cleanName.includes("strava") || cleanName.includes("스트라바") ? SERVICE_IMAGES["strava-sub"] : null) ||
+      (cleanName.includes("번핏") || cleanName.includes("burnfit") ? SERVICE_IMAGES["burnfit-pro"] : null) ||
       (cleanName.includes("chatgpt") || cleanName.includes("gpt") ? SERVICE_IMAGES.chatgpt : null) ||
       (cleanName.includes("tving") || cleanName.includes("티빙") ? SERVICE_IMAGES.tving : null) ||
       (cleanName.includes("disney") || cleanName.includes("디즈니") ? SERVICE_IMAGES.disney : null) ||
@@ -656,7 +853,7 @@ export function SubscriptionCard({
     >
       <div className="flex items-center gap-4 min-w-0 flex-1">
         <ServiceMark
-          serviceId={subscription.id}
+          serviceId={subscription.serviceId || subscription.id}
           name={subscription.name}
           monogram={monogram}
           image={subscription.image || subscription.attachments?.[0]}

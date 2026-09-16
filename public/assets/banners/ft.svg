@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <rect width="800" height="450" fill="#2E1E14"/>
+  <g transform="translate(310, 110)">
+    <rect width="180" height="180" rx="45" fill="#FFF1E5" stroke="#E4E4E7" stroke-width="2"/>
+    <g transform="translate(40, 50) scale(3.8)"><text x="0" y="18" fill="#0D7680" font-family="serif" font-size="20" font-weight="900" letter-spacing="-0.5">FT</text></g>
+  </g>
+</svg>

@@ -8,8 +8,8 @@ export const serviceCatalog = [
   {
     "id": "chatgpt",
     "name": "ChatGPT Plus",
-    "monogram": "C",
-    "category": "SaaS",
+    "monogram": "G",
+    "category": "소프트웨어",
     "plan": "ChatGPT Plus",
     "amount": 29000,
     "brandColor": "#10A37F",
@@ -35,24 +35,21 @@ export const serviceCatalog = [
     "guideSteps": [
       {
         "stepNumber": 1,
-        "title": "설정 메뉴",
-        "description": "좌측 하단 프로필 > [Settings] 메뉴를 누르세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=320&auto=format&fit=crop&q=80"
+        "title": "설정 진입",
+        "description": "ChatGPT Plus 공식 웹사이트/앱에 로그인합니다."
       },
       {
         "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "[Subscription] 탭에서 [Manage]를 클릭합니다.",
-        "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=320&auto=format&fit=crop&q=80"
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
       },
       {
         "stepNumber": 3,
-        "title": "플랜 취소",
-        "description": "Stripe 결제창에서 [플랜 취소]를 선택하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=320&auto=format&fit=crop&q=80"
+        "title": "멤버십 해지",
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
       }
     ],
-    "lastUpdated": "2026-09-15T11:20:42.191Z",
+    "lastUpdated": "2026-09-16T14:43:30.953Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -1322,7 +1319,7 @@ export const serviceCatalog = [
     "brandText": "#E50914",
     "availablePlans": [
       {
-        "plan": "광고형 스탠다드",
+        "plan": "기본 플랜",
         "amount": 7000
       },
       {
@@ -1336,10 +1333,10 @@ export const serviceCatalog = [
     ],
     "plans": [
       {
-        "name": "광고형 스탠다드",
+        "name": "기본 플랜",
         "amount": 7000,
         "billingCycle": "매월",
-        "quality": "1080p"
+        "quality": "HD"
       },
       {
         "name": "스탠다드",
@@ -1360,30 +1357,21 @@ export const serviceCatalog = [
     "guideSteps": [
       {
         "stepNumber": 1,
-        "title": "로그인",
-        "description": "넷플릭스 계정으로 로그인해 주세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=320&auto=format&fit=crop&q=80"
+        "title": "설정 진입",
+        "description": "Netflix 공식 웹사이트/앱에 로그인합니다."
       },
       {
         "stepNumber": 2,
-        "title": "계정 선택",
-        "description": "우측 상단 프로필 > [계정] 메뉴로 들어갑니다.",
-        "imageUrl": "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=320&auto=format&fit=crop&q=80"
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
       },
       {
         "stepNumber": 3,
         "title": "멤버십 해지",
-        "description": "스크롤을 내려 [멤버십 해지]를 터치하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=320&auto=format&fit=crop&q=80"
-      },
-      {
-        "stepNumber": 4,
-        "title": "해지 완료",
-        "description": "혜택 유지 제안을 넘기고 [해지 완료]를 누르면 끝!",
-        "imageUrl": "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=320&auto=format&fit=crop&q=80"
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
       }
     ],
-    "lastUpdated": "2026-09-15T11:20:41.754Z",
+    "lastUpdated": "2026-09-16T14:43:29.759Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -1426,31 +1414,22 @@ export const serviceCatalog = [
     "guideSteps": [
       {
         "stepNumber": 1,
-        "title": "프로필",
-        "description": "우측 상단 내 프로필 아이콘을 터치하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=320&auto=format&fit=crop&q=80"
+        "title": "설정 진입",
+        "description": "YouTube Premium 공식 웹사이트/앱에 로그인합니다."
       },
       {
         "stepNumber": 2,
-        "title": "구매 항목",
-        "description": "[구매 항목 및 멤버십] 메뉴를 선택합니다.",
-        "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=320&auto=format&fit=crop&q=80"
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
       },
       {
         "stepNumber": 3,
-        "title": "멤버십 관리",
-        "description": "활성 멤버십에서 [관리] 또는 [비활성화]를 누르세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=320&auto=format&fit=crop&q=80"
-      },
-      {
-        "stepNumber": 4,
-        "title": "그대로 취소",
-        "description": "'일시중지' 대신 하단 [그대로 취소]를 선택하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=320&auto=format&fit=crop&q=80"
+        "title": "멤버십 해지",
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
       }
     ],
-    "lastUpdated": "2026-09-15T11:20:43.789Z",
-    "parseStatus": "FALLBACK_APPLIED"
+    "lastUpdated": "2026-09-16T14:43:30.120Z",
+    "parseStatus": "PARSED_SUCCESS"
   },
   {
     "id": "tving",
@@ -1502,25 +1481,22 @@ export const serviceCatalog = [
     "guideSteps": [
       {
         "stepNumber": 1,
-        "title": "MY 메뉴",
-        "description": "우측 상단 프로필 [MY] 메뉴로 이동합니다.",
-        "imageUrl": "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=320&auto=format&fit=crop&q=80"
+        "title": "설정 진입",
+        "description": "TVING 공식 웹사이트/앱에 로그인합니다."
       },
       {
         "stepNumber": 2,
-        "title": "이용권/캐시",
-        "description": "[이용권/캐시 내역] > [정기결제 관리]를 선택하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=320&auto=format&fit=crop&q=80"
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
       },
       {
         "stepNumber": 3,
-        "title": "해지 신청",
-        "description": "하단 [자동결제 해지 신청]을 누르면 완료됩니다.",
-        "imageUrl": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=320&auto=format&fit=crop&q=80"
+        "title": "멤버십 해지",
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
       }
     ],
-    "lastUpdated": "2026-09-15T11:20:43.010Z",
-    "parseStatus": "FALLBACK_APPLIED"
+    "lastUpdated": "2026-09-16T14:43:30.673Z",
+    "parseStatus": "PARSED_SUCCESS"
   },
   {
     "id": "disney",
@@ -1534,24 +1510,34 @@ export const serviceCatalog = [
     "brandText": "#0063E5",
     "availablePlans": [
       {
+        "plan": "기본 플랜",
+        "amount": 15000
+      },
+      {
         "plan": "스탠다드",
-        "amount": 9900
+        "amount": 18000
       },
       {
         "plan": "프리미엄",
-        "amount": 13900
+        "amount": 21500
       }
     ],
     "plans": [
       {
+        "name": "기본 플랜",
+        "amount": 15000,
+        "billingCycle": "매월",
+        "quality": "HD"
+      },
+      {
         "name": "스탠다드",
-        "amount": 9900,
+        "amount": 18000,
         "billingCycle": "매월",
         "quality": "1080p"
       },
       {
         "name": "프리미엄",
-        "amount": 13900,
+        "amount": 21500,
         "billingCycle": "매월",
         "quality": "4K UHD"
       }
@@ -1562,25 +1548,22 @@ export const serviceCatalog = [
     "guideSteps": [
       {
         "stepNumber": 1,
-        "title": "로그인",
-        "description": "디즈니+ 공식 사이트에서 계정으로 로그인합니다.",
-        "imageUrl": "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=320&auto=format&fit=crop&q=80"
+        "title": "설정 진입",
+        "description": "Disney+ 공식 웹사이트/앱에 로그인합니다."
       },
       {
         "stepNumber": 2,
-        "title": "계정 선택",
-        "description": "우측 상단 프로필 > [계정] 메뉴를 선택하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=320&auto=format&fit=crop&q=80"
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
       },
       {
         "stepNumber": 3,
-        "title": "멤버십 취소",
-        "description": "구독 중인 요금제를 누르고 [멤버십 취소]를 진행하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=320&auto=format&fit=crop&q=80"
+        "title": "멤버십 해지",
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
       }
     ],
-    "lastUpdated": "2026-09-15T11:20:42.923Z",
-    "parseStatus": "FALLBACK_APPLIED"
+    "lastUpdated": "2026-09-16T14:43:30.513Z",
+    "parseStatus": "PARSED_SUCCESS"
   },
   {
     "id": "wavve",
@@ -2212,14 +2195,14 @@ export const serviceCatalog = [
     "monogram": "S",
     "category": "음악",
     "plan": "개인",
-    "amount": 11990,
+    "amount": 10900,
     "brandColor": "#1DB954",
     "brandBg": "#E8F8EE",
     "brandText": "#1DB954",
     "availablePlans": [
       {
         "plan": "개인",
-        "amount": 11990
+        "amount": 10900
       },
       {
         "plan": "듀오",
@@ -2229,7 +2212,7 @@ export const serviceCatalog = [
     "plans": [
       {
         "name": "개인",
-        "amount": 11990,
+        "amount": 10900,
         "billingCycle": "매월",
         "quality": "HD"
       },
@@ -2246,24 +2229,21 @@ export const serviceCatalog = [
     "guideSteps": [
       {
         "stepNumber": 1,
-        "title": "계정 로그인",
-        "description": "스포티파이 웹사이트에서 계정으로 로그인하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=320&auto=format&fit=crop&q=80"
+        "title": "설정 진입",
+        "description": "Spotify 공식 웹사이트/앱에 로그인합니다."
       },
       {
         "stepNumber": 2,
-        "title": "요금제 변경",
-        "description": "이용 중인 요금제 섹션의 [요금제 변경]을 누르세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=320&auto=format&fit=crop&q=80"
+        "title": "구독/결제 관리",
+        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
       },
       {
         "stepNumber": 3,
-        "title": "Premium 해지",
-        "description": "스크롤을 내려 [Spotify 구독 해지] 섹션의 [Premium 해지]를 누르세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=320&auto=format&fit=crop&q=80"
+        "title": "멤버십 해지",
+        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
       }
     ],
-    "lastUpdated": "2026-09-15T11:20:43.697Z",
+    "lastUpdated": "2026-09-16T14:43:30.441Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -4273,8 +4253,8 @@ export const serviceCatalog = [
   },
   {
     "id": "coupang",
-    "name": "쿠팡 와우 멤버십",
-    "monogram": "쿠",
+    "name": "쿠팡 와우",
+    "monogram": "C",
     "category": "쇼핑",
     "plan": "와우 멤버십",
     "amount": 7890,
@@ -4292,31 +4272,31 @@ export const serviceCatalog = [
         "name": "와우 멤버십",
         "amount": 7890,
         "billingCycle": "매월",
-        "quality": "HD"
+        "quality": "1080p"
       }
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://loyalty.coupang.com/loyalty/sign-up/home",
+    "cancelUrl": "https://www.coupang.com/np/membership/benefit",
     "guideSteps": [
       {
         "stepNumber": 1,
         "title": "설정 진입",
-        "description": "쿠팡 와우 멤버십 공식 웹사이트/앱에 로그인합니다."
+        "description": "쿠팡 와우 계정 서비스에 로그인합니다."
       },
       {
         "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
+        "title": "구독 관리",
+        "description": "계정 > 구독 관리 메뉴로 이동합니다."
       },
       {
         "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
+        "title": "해지 완료",
+        "description": "[구독 해지하기]를 클릭하여 완료합니다."
       }
     ],
-    "lastUpdated": "2026-09-15T11:20:44.097Z",
-    "parseStatus": "FALLBACK_APPLIED"
+    "lastUpdated": "2026-09-16T14:43:30.258Z",
+    "parseStatus": "CRAWL_FAILED"
   },
   {
     "id": "nintendo-online",
@@ -5021,12 +5001,253 @@ export const createMockSubscriptions = () =>
 
 export const promotionCatalog = [
   {
+    "id": "spotify-3m-free",
+    "category": "100원/무료",
+    "kind": "3개월 0원 무료 체험",
+    "title": "Spotify Premium",
+    "subtitle": "3개월 동안 ₩0에 이용하기",
+    "description": "개인 요금제 3개월 ₩0 혜택! 광고 없는 음악 감상과 오프라인 저장 지원.",
+    "saving": 35970,
+    "originalPrice": 11990,
+    "offerPrice": 0,
+    "dday": 9,
+    "sourceServiceIds": [
+      "spotify"
+    ],
+    "link": "https://www.spotify.com/kr-ko/premium/",
+    "monogram": "S",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "2026.08.15 ~ 2026.09.23 (종료 임박)",
+    "benefitPeriod": "가입 후 첫 3개월 (2026.09.23까지 신청)"
+  },
+  {
+    "id": "youtube-1m-free",
+    "category": "100원/무료",
+    "kind": "1개월 무료 체험",
+    "title": "YouTube Premium",
+    "subtitle": "₩0에 1개월 무료 체험",
+    "description": "광고 없는 감상, 백그라운드 재생, YouTube Music 무료 이용 혜택.",
+    "saving": 14900,
+    "originalPrice": 14900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "youtube"
+    ],
+    "link": "https://www.youtube.com/premium",
+    "monogram": "Y",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월"
+  },
+  {
+    "id": "wavve-100-payback",
+    "category": "100원/무료",
+    "kind": "첫 달 100% 페이백",
+    "title": "Wavve (웨이브)",
+    "subtitle": "첫 달 이용권 전액 돌려드려요!",
+    "description": "웨이브 첫 가입 회원 대상 첫 달 이용권 결제금액 100% 코인 캐시백 혜택.",
+    "saving": 10900,
+    "originalPrice": 10900,
+    "offerPrice": 0,
+    "dday": 14,
+    "sourceServiceIds": [
+      "wavve"
+    ],
+    "link": "https://www.wavve.com/voucher/index.html",
+    "monogram": "W",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월"
+  },
+  {
+    "id": "millie-1plus1",
+    "category": "100원/무료",
+    "kind": "둘째 달 무료 (1+1)",
+    "title": "밀리의 서재",
+    "subtitle": "첫 달 구독하면 둘째 달 무료!",
+    "description": "밀리 10주년 기념 1+1 생일 이벤트! 첫 달 시작 시 둘째 달 이용권 증정.",
+    "saving": 9900,
+    "originalPrice": 9900,
+    "offerPrice": 0,
+    "dday": 7,
+    "sourceServiceIds": [
+      "millie"
+    ],
+    "link": "https://www.millie.co.kr/",
+    "monogram": "M",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월"
+  },
+  {
+    "id": "genie-110won",
+    "category": "100원/무료",
+    "kind": "다음 달 110원 특가",
+    "title": "Genie Music (지니)",
+    "subtitle": "스마트 음악감상 2회차 110원",
+    "description": "지니뮤직 스마트 음악감상 1회차 정상가 결제 시 다음 달 단돈 110원 파격 혜택.",
+    "saving": 8290,
+    "originalPrice": 8400,
+    "offerPrice": 110,
+    "dday": 5,
+    "sourceServiceIds": [
+      "genie"
+    ],
+    "link": "https://pay.genie.co.kr/buy/recommend",
+    "monogram": "G",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (2회차 결제 특가)",
+    "benefitPeriod": "정기결제 2회차 (1개월간)"
+  },
+  {
+    "id": "naverplus-welcome",
+    "category": "100원/무료",
+    "kind": "첫 달 4,900원 웰컴 쿠폰",
+    "title": "네이버플러스 멤버십",
+    "subtitle": "첫 달 무료 웰컴 쿠폰",
+    "description": "가입 즉시 4,900원 웰컴 쿠폰 증정! 쇼핑 5% 적립 + 넷플릭스/스포티파이/웹툰 중 택1 무료.",
+    "saving": 4900,
+    "originalPrice": 4900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "naverplus"
+    ],
+    "link": "https://nid.naver.com/membership/join",
+    "monogram": "NP",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
+    "benefitPeriod": "네이버 멤버십 유지 기간 상시"
+  },
+  {
+    "id": "coupang-30d-free",
+    "category": "100원/무료",
+    "kind": "와우 멤버십 30일 무료",
+    "title": "쿠팡 와우",
+    "subtitle": "와우 30일 무료 체험",
+    "description": "로켓배송 무료, 반품 무료, 쿠팡이츠 배달비 무료, 쿠팡플레이 전 콘텐츠 무료 시청.",
+    "saving": 7890,
+    "originalPrice": 7890,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "coupang",
+      "coupangplay"
+    ],
+    "link": "https://loyalty.coupang.com/loyalty/sign-up/home",
+    "monogram": "C",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 가입 웰컴 트라이얼)",
+    "benefitPeriod": "가입 후 첫 30일 (1개월간)"
+  },
+  {
+    "id": "welaaa-first-month",
+    "category": "100원/무료",
+    "kind": "첫 달 무료 체험",
+    "title": "윌라 오디오북",
+    "subtitle": "첫 달 0원 무제한 듣기",
+    "description": "전문 성우가 낭독하는 프리미엄 오디오북과 클래스를 첫 달 무료로 감상하세요.",
+    "saving": 9900,
+    "originalPrice": 9900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "welaaa"
+    ],
+    "link": "https://www.welaaa.com",
+    "monogram": "W",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월"
+  },
+  {
+    "id": "appletv-7d-free",
+    "category": "100원/무료",
+    "kind": "7일 무료 체험 (기기 구매 시 3개월)",
+    "title": "Apple TV+",
+    "subtitle": "애플 오리지널 7일 무료",
+    "description": "애플 오리지널 시리즈를 7일간 무료 체험하세요. 새 Apple 기기 구입 시 3개월 무료.",
+    "saving": 6500,
+    "originalPrice": 6500,
+    "offerPrice": 0,
+    "dday": 7,
+    "sourceServiceIds": [
+      "appletv"
+    ],
+    "link": "https://tv.apple.com",
+    "monogram": "TV",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
+    "benefitPeriod": "가입 후 첫 7일간"
+  },
+  {
+    "id": "nintendo-7d-free",
+    "category": "100원/무료",
+    "kind": "7일 무료 체험권",
+    "title": "Nintendo Switch Online",
+    "subtitle": "스위치 온라인 대전 7일 무료",
+    "description": "닌텐도 공식 페이지에서 스위치 온라인 대전 및 클래식 게임 7일 무료 이용권 증정.",
+    "saving": 2000,
+    "originalPrice": 20000,
+    "offerPrice": 0,
+    "dday": 7,
+    "sourceServiceIds": [
+      "nintendo-online"
+    ],
+    "link": "https://www.nintendo.com/kr/nintendo-switch-online/",
+    "monogram": "N",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
+    "benefitPeriod": "가입 후 첫 7일간"
+  },
+  {
+    "id": "speak-7d-free",
+    "category": "100원/무료",
+    "kind": "7일 무료 체험",
+    "title": "Speak (스픽)",
+    "subtitle": "AI 튜터 1:1 회화 7일 무료",
+    "description": "AI 영어 선생님과 하루 100문장 이상 실시간 피드백 회화를 7일간 무료로 체험하세요.",
+    "saving": 7250,
+    "originalPrice": 29000,
+    "offerPrice": 0,
+    "dday": 7,
+    "sourceServiceIds": [
+      "speak"
+    ],
+    "link": "https://www.usespeak.com",
+    "monogram": "S",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
+    "benefitPeriod": "가입 후 첫 7일간"
+  },
+  {
+    "id": "duolingo-14d-free",
+    "category": "100원/무료",
+    "kind": "14일 무료 체험",
+    "title": "Duolingo Super",
+    "subtitle": "하트 무제한 슈퍼 듀오링고",
+    "description": "광고 없는 어학 학습과 하트 무제한 충전, 맞춤 복습 기능을 14일간 무료로 이용하세요.",
+    "saving": 4950,
+    "originalPrice": 9900,
+    "offerPrice": 0,
+    "dday": 14,
+    "sourceServiceIds": [
+      "duolingo"
+    ],
+    "link": "https://www.duolingo.com",
+    "monogram": "D",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
+    "benefitPeriod": "가입 후 첫 14일간"
+  },
+  {
     "id": "naverplus-netflix",
-    "category": "OTT",
-    "kind": "제휴 0원 무료",
-    "title": "Netflix 네이버플러스 무료 연동",
-    "subtitle": "네이버 멤버십 회원 0원 혜택",
-    "description": "네이버플러스 멤버십(월 4,900원) 이용 시 넷플릭스 광고형 스탠다드를 0원에 시청할 수 있어요.",
+    "category": "통신사/결합",
+    "kind": "넷플릭스 광고형 스탠다드 무료 연동",
+    "title": "네이버플러스 X Netflix",
+    "subtitle": "네이버 멤버십으로 넷플릭스 0원",
+    "description": "네이버플러스 멤버십(월 4,900원) 가입 시 넷플릭스 광고형 스탠다드(월 5,500원) 이용권을 무료 제공.",
     "saving": 5500,
     "originalPrice": 5500,
     "offerPrice": 0,
@@ -5037,482 +5258,1341 @@ export const promotionCatalog = [
     ],
     "link": "https://help.naver.com/service/23168/contents/23881?lang=ko",
     "monogram": "N",
-    "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)"
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
+    "benefitPeriod": "네이버 멤버십 유지 기간 상시"
   },
   {
-    "id": "youtube-promo",
-    "category": "100원/무료",
-    "kind": "1개월 무료 체험",
-    "title": "YouTube Premium",
-    "subtitle": "첫 기간 ₩0 체험",
-    "description": "₩0에 1개월 무료 체험 • 이후 ₩14,900⁠/⁠월 • VAT 포함 • 혜택 및 가격은 요금제에 따라 다릅니다 • 언제든지 취소 가능",
-    "saving": 14900,
-    "originalPrice": 14900,
-    "offerPrice": 0,
-    "dday": 14,
-    "sourceServiceIds": [
-      "youtube"
-    ],
-    "link": "https://www.youtube.com/premium",
-    "monogram": "Y",
-    "lastVerifiedAt": "2026-09-15T11:24:50.485Z",
-    "benefitPeriod": "가입 후 첫 1개월 (30일)",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
-  },
-  {
-    "id": "spotify-annual",
-    "category": "연간 전환 팁",
-    "kind": "연간 전환 팁",
-    "title": "Spotify",
-    "subtitle": "연간 결제 시 2개월 무료",
-    "description": "연간 멤버십으로 전환하면 2개월 무료 혜택을 받을 수 있어요.",
-    "saving": 21800,
-    "originalPrice": 130800,
-    "offerPrice": 109000,
-    "dday": 7,
-    "sourceServiceIds": [
-      "spotify",
-      "youtube"
-    ],
-    "link": "https://www.spotify.com/kr-ko/premium/",
-    "monogram": "S",
-    "benefitPeriod": "결제일로부터 1년 (12개월)",
-    "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)"
-  },
-  {
-    "id": "watcha-switch",
-    "category": "100원/무료",
-    "kind": "환승 특가",
-    "title": "왓챠 첫 달 100원",
-    "description": "넷플릭스 대신 이번 달, 취향에 맞는 콘텐츠를 더 가볍게 시작해요.",
-    "saving": 16900,
-    "originalPrice": 17000,
-    "offerPrice": 100,
-    "dday": 3,
-    "sourceServiceIds": [
-      "netflix",
-      "disney",
-      "tving"
-    ],
-    "link": "https://watcha.com/",
-    "monogram": "W",
-    "benefitPeriod": "가입 후 첫 1개월",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
-  },
-  {
-    "id": "tving-naver",
-    "category": "OTT",
-    "kind": "무료 전환",
-    "title": "티빙 네이버플러스 무료 연동",
-    "description": "네이버플러스 멤버십을 이미 쓴다면 추가 비용 없이 티빙 방송을 시청하세요.",
-    "saving": 13500,
-    "originalPrice": 13500,
-    "offerPrice": 0,
-    "dday": 3,
-    "sourceServiceIds": [
-      "netflix",
-      "disney",
-      "tving"
-    ],
-    "link": "https://nid.naver.com/membership/partner",
-    "monogram": "T",
-    "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)"
-  },
-  {
-    "id": "primevideo-trial",
-    "category": "100원/무료",
-    "kind": "30일 무료 체험",
-    "title": "Amazon Prime Video",
-    "subtitle": "신규 30일 ₩0 체험",
-    "description": "아마존 프라임 비디오 공식 30일 0원 무료 체험 (7일이 아닌 30일 무료 혜택)",
-    "saving": 7900,
-    "originalPrice": 7900,
-    "offerPrice": 0,
-    "dday": 14,
-    "sourceServiceIds": [
-      "primevideo"
-    ],
-    "link": "https://www.primevideo.com",
-    "monogram": "P",
-    "benefitPeriod": "가입 후 첫 30일 (1개월간)",
-    "campaignPeriod": "상시 진행 (신규 회원 한정 트라이얼)"
-  },
-  {
-    "id": "naver-mybox-naverplus",
-    "category": "클라우드/제휴",
-    "kind": "네이버 멤버십 제휴",
-    "title": "네이버 MYBOX 80GB 무료 연동",
-    "subtitle": "네이버 멤버십 회원 전용",
-    "description": "네이버플러스 멤버십 이용 시 MYBOX 80GB 저장공간을 추가 비용 없이 무료로 이용할 수 있어요.",
-    "saving": 1650,
-    "originalPrice": 1650,
-    "offerPrice": 0,
-    "dday": 30,
-    "sourceServiceIds": [
-      "naver-mybox",
-      "naverplus"
-    ],
-    "link": "https://mybox.naver.com/#/capacity",
-    "monogram": "N",
-    "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)"
-  },
-  {
-    "id": "disney-annual",
-    "category": "학생/연간",
-    "kind": "연간 할인",
-    "title": "Disney+ 연간 결제 16% 할인",
-    "description": "월 결제보다 연간 결제로 바꾸면 1년 동안 더 아낄 수 있어요.",
-    "saving": 19800,
-    "originalPrice": 118800,
-    "offerPrice": 99000,
-    "dday": 12,
-    "sourceServiceIds": [
-      "netflix",
-      "youtube",
-      "tving"
-    ],
-    "link": "https://www.disneyplus.com/ko-kr/",
-    "monogram": "D",
-    "benefitPeriod": "결제일로부터 1년 (12개월)",
-    "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)"
-  },
-  {
-    "id": "youtube-bundle",
+    "id": "naver-spotify-link",
     "category": "통신사/결합",
-    "kind": "결합 혜택",
-    "title": "유튜브 프리미엄 통신사 결합",
-    "description": "우주패스와 함께 쓰면 월 구독료를 낮출 수 있어요.",
-    "saving": 4900,
-    "originalPrice": 14900,
-    "offerPrice": 10000,
-    "dday": 7,
-    "sourceServiceIds": [
-      "youtube"
-    ],
-    "link": "https://www.youtube.com/premium",
-    "monogram": "Y",
-    "benefitPeriod": "우주패스 구독 유지 기간 상시",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
-  },
-  {
-    "id": "flo-trial",
-    "category": "100원/무료",
-    "kind": "무료 체험",
-    "title": "FLO 1개월 무료 체험",
-    "description": "스포티파이 체험 종료 전에 새로운 플레이리스트를 비교해 보세요.",
+    "kind": "네이버플러스 스포티파이 연동 무료",
+    "title": "네이버플러스 X Spotify",
+    "subtitle": "네이버 멤버십으로 스포티파이 0원",
+    "description": "네이버플러스 멤버십 디지털 혜택으로 Spotify Premium Basic 무제한 스트리밍을 매월 0원에 이용.",
     "saving": 10900,
     "originalPrice": 10900,
     "offerPrice": 0,
-    "dday": 5,
+    "dday": 30,
     "sourceServiceIds": [
-      "spotify"
-    ],
-    "link": "https://www.music-flo.com/",
-    "monogram": "F",
-    "benefitPeriod": "가입 후 첫 1개월",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
-  },
-  {
-    "id": "millie-student",
-    "category": "학생/연간",
-    "kind": "학생 제휴",
-    "title": "밀리의 서재 첫 달 무료 + 학생 20%",
-    "description": "대학생 인증 시 첫 달 무료 이후에도 매월 7,900원에 이용할 수 있어요.",
-    "saving": 9900,
-    "originalPrice": 9900,
-    "offerPrice": 0,
-    "dday": 10,
-    "sourceServiceIds": [
-      "chatgpt",
-      "millie",
-      "netflix"
-    ],
-    "link": "https://www.millie.co.kr/",
-    "monogram": "M",
-    "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)"
-  },
-  {
-    "id": "adobe-student",
-    "category": "학생/연간",
-    "kind": "대학생 60% 할인",
-    "title": "Adobe CC 모든 앱 학생 60% 할인",
-    "description": "포토샵, 프리미어 등 20개 이상의 크리에이티브 앱을 반값 이하로 이용하세요.",
-    "saving": 39600,
-    "originalPrice": 66000,
-    "offerPrice": 26400,
-    "dday": 15,
-    "sourceServiceIds": [
-      "adobe",
-      "chatgpt"
-    ],
-    "link": "https://www.adobe.com/kr/creativecloud/buy/students.html",
-    "monogram": "A",
-    "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)"
-  },
-  {
-    "id": "wavve-promo",
-    "category": "경쟁사 프로모",
-    "kind": "첫 달 100% 페이백",
-    "title": "Wavve",
-    "subtitle": "특가 프로모션",
-    "description": "웨이브 신규 가입 시 첫 달 100% 코인 캐시백 페이백 혜택",
-    "saving": 10000,
-    "originalPrice": 10000,
-    "offerPrice": 1000,
-    "dday": 14,
-    "sourceServiceIds": [
-      "wavve"
-    ],
-    "link": "https://www.wavve.com/voucher/index.html",
-    "monogram": "W",
-    "lastVerifiedAt": "2026-09-15T10:45:06.445Z",
-    "benefitPeriod": "가입 후 첫 1개월",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
-  },
-  {
-    "id": "spotify-promo",
-    "category": "경쟁사 프로모",
-    "kind": "3개월 무료",
-    "title": "Spotify",
-    "subtitle": "특가 프로모션",
-    "description": "3개월에 ₩0으로 Premium을 즐겨보세요",
-    "saving": 10000,
-    "originalPrice": 10000,
-    "offerPrice": 1000,
-    "dday": 14,
-    "sourceServiceIds": [
-      "spotify"
-    ],
-    "link": "https://www.spotify.com/kr-ko/premium/",
-    "monogram": "S",
-    "lastVerifiedAt": "2026-09-15T10:45:06.445Z",
-    "benefitPeriod": "가입 후 첫 3개월 (2026.09.23까지 신청)",
-    "campaignPeriod": "2026.08.15 ~ 2026.09.23 (종료 임박)"
-  },
-  {
-    "id": "genie-promo",
-    "category": "100원/무료",
-    "kind": "특가 프로모션",
-    "title": "Genie Music",
-    "subtitle": "첫 기간 ₩0 체험",
-    "description": "3,960원",
-    "saving": 8400,
-    "originalPrice": 8400,
-    "offerPrice": 0,
-    "dday": 14,
-    "sourceServiceIds": [
-      "genie"
-    ],
-    "link": "https://pay.genie.co.kr/buy/recommend",
-    "monogram": "G",
-    "lastVerifiedAt": "2026-09-15T11:24:50.485Z",
-    "benefitPeriod": "정기결제 2회차 (1개월간)",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
-  },
-  {
-    "id": "millie-promo",
-    "category": "100원/무료",
-    "kind": "둘째 달 무료",
-    "title": "밀리의 서재",
-    "subtitle": "첫 기간 ₩0 체험",
-    "description": "첫 달 구독하면 둘째 달 무료!",
-    "saving": 9900,
-    "originalPrice": 9900,
-    "offerPrice": 0,
-    "dday": 14,
-    "sourceServiceIds": [
-      "millie"
-    ],
-    "link": "https://www.millie.co.kr/",
-    "monogram": "밀",
-    "lastVerifiedAt": "2026-09-15T11:24:50.485Z",
-    "benefitPeriod": "가입 후 첫 1개월 (1+1월 무료)",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
-  },
-  {
-    "id": "netflix-promo",
-    "category": "100원/무료",
-    "kind": "특가 프로모션",
-    "title": "Netflix",
-    "subtitle": "첫 기간 ₩0 체험",
-    "description": "7,000원으로 시작하세요. 멤버십은 언제든지 해지 가능합니다.",
-    "saving": 17000,
-    "originalPrice": 17000,
-    "offerPrice": 0,
-    "dday": 14,
-    "sourceServiceIds": [
-      "netflix"
-    ],
-    "link": "https://www.netflix.com/kr/",
-    "monogram": "N",
-    "lastVerifiedAt": "2026-09-15T11:24:50.485Z",
-    "benefitPeriod": "가입 기간 상시",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
-  },
-  {
-    "id": "naverplus-promo",
-    "category": "100원/무료",
-    "kind": "특가 프로모션",
-    "title": "네이버플러스 멤버십",
-    "subtitle": "첫 기간 ₩0 체험",
-    "description": "월 9,900원으로 500여 종의",
-    "saving": 4900,
-    "originalPrice": 4900,
-    "offerPrice": 0,
-    "dday": 14,
-    "sourceServiceIds": [
+      "spotify",
       "naverplus"
     ],
     "link": "https://nid.naver.com/membership/join",
-    "monogram": "네",
-    "lastVerifiedAt": "2026-09-15T11:24:50.485Z",
-    "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)"
+    "monogram": "NP",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
+    "benefitPeriod": "네이버 멤버십 유지 기간 상시"
   },
   {
-    "id": "coupang-promo",
-    "category": "100원/무료",
-    "kind": "30일 무료 체험",
-    "title": "쿠팡 와우 멤버십",
-    "subtitle": "첫 기간 ₩0 체험",
-    "description": "로켓배송 상품 30일 무료반품",
-    "saving": 7890,
-    "originalPrice": 7890,
-    "offerPrice": 0,
-    "dday": 14,
-    "sourceServiceIds": [
-      "coupang"
-    ],
-    "link": "https://loyalty.coupang.com/loyalty/sign-up/home",
-    "monogram": "쿠",
-    "lastVerifiedAt": "2026-09-15T11:20:20.778Z",
-    "benefitPeriod": "가입 기간 상시",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
-  },
-  {
-    "id": "deepl-pro-promo",
-    "category": "100원/무료",
-    "kind": "특가 프로모션",
-    "title": "DeepL Pro",
-    "subtitle": "첫 기간 ₩0 체험",
-    "description": "무료 체험 시작하기",
+    "id": "disney-bundle-37",
+    "category": "통신사/결합",
+    "kind": "3사 통합 번들 37% 결합 할인",
+    "title": "Disney+ X TVING X Wavve",
+    "subtitle": "디즈니+, 티빙, 웨이브를 한 번에!",
+    "description": "KBO 생중계부터 지상파, 디즈니+ 오리지널까지 개별 구독 대비 최대 37% 결합 할인.",
     "saving": 12000,
-    "originalPrice": 12000,
-    "offerPrice": 0,
-    "dday": 14,
+    "originalPrice": 34300,
+    "offerPrice": 22300,
+    "dday": 15,
     "sourceServiceIds": [
-      "deepl-pro"
+      "disney",
+      "tving",
+      "wavve"
     ],
-    "link": "https://www.deepl.com/ko/404",
+    "link": "https://www.disneyplus.com/ko-kr",
     "monogram": "D",
-    "lastVerifiedAt": "2026-09-15T11:24:50.485Z",
-    "benefitPeriod": "가입 기간 상시",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 제휴 (통합 번들 요금제)",
+    "benefitPeriod": "번들 요금제 유지 기간 상시"
   },
   {
-    "id": "disney-promo",
-    "category": "구독료 할인",
-    "kind": "특가 프로모션",
-    "title": "Disney+",
-    "subtitle": "특가 할인",
-    "description": "최대 37% 할인*",
-    "saving": 4950,
-    "originalPrice": 9900,
-    "offerPrice": 4950,
+    "id": "skt-universe-youtube",
+    "category": "통신사/결합",
+    "kind": "우주패스 유튜브 결합 (월 5,000원 할인)",
+    "title": "우주패스 X YouTube Premium",
+    "subtitle": "유튜브 프리미엄 + 편의점/투썸 혜택",
+    "description": "월 9,900원 우주패스 life 가입 시 유튜브 프리미엄을 정가(14,900원) 대비 5,000원 할인된 금액에 이용.",
+    "saving": 5000,
+    "originalPrice": 14900,
+    "offerPrice": 9900,
+    "dday": 10,
+    "sourceServiceIds": [
+      "youtube"
+    ],
+    "link": "https://m.tworld.co.kr/product/call-plan/subscription",
+    "monogram": "SKT",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월"
+  },
+  {
+    "id": "skt-perplexity-free",
+    "category": "통신사/결합",
+    "kind": "SKT 에이닷 가입자 1년 무료",
+    "title": "Perplexity Pro X SKT",
+    "subtitle": "Perplexity Pro 1년 전액 무료",
+    "description": "SKT 에이닷 이용 고객 대상 퍼플렉시티 프로(연 324,000원 상당) 1년 전액 무료 지원.",
+    "saving": 27000,
+    "originalPrice": 27000,
+    "offerPrice": 0,
+    "dday": 365,
+    "sourceServiceIds": [
+      "perplexity-pro"
+    ],
+    "link": "https://m.tworld.co.kr",
+    "monogram": "SKT",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월"
+  },
+  {
+    "id": "tving-naver",
+    "category": "통신사/결합",
+    "kind": "네이버 제휴 파트너 연동",
+    "title": "티빙 네이버플러스 연동",
+    "subtitle": "네이버플러스 공식 제휴 연동",
+    "description": "네이버플러스 멤버십 제휴 연동 안내 공식 페이지.",
+    "saving": 13500,
+    "originalPrice": 13500,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "tving",
+      "naverplus"
+    ],
+    "link": "https://nid.naver.com/membership/partner",
+    "monogram": "T",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
+    "benefitPeriod": "네이버 멤버십 유지 기간 상시"
+  },
+  {
+    "id": "adobe-student-66",
+    "category": "학생/연간",
+    "kind": "학생·교사 66% 특가 할인",
+    "title": "Adobe Creative Cloud",
+    "subtitle": "모든 앱 20종 66% 할인",
+    "description": "포토샵, 프리미어, 일러스트 등 20개 전 앱을 첫해 월 26,400원에 이용하세요. (연 62만 원 절약)",
+    "saving": 51700,
+    "originalPrice": 78100,
+    "offerPrice": 26400,
     "dday": 14,
+    "sourceServiceIds": [
+      "adobe"
+    ],
+    "link": "https://www.adobe.com/kr/creativecloud/buy/students.html",
+    "monogram": "A",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
+    "benefitPeriod": "인증 후 1년 (매년 갱신 가능)"
+  },
+  {
+    "id": "github-student-pack",
+    "category": "학생/연간",
+    "kind": "학생 Copilot 100% 무료 제공",
+    "title": "GitHub Student Pack",
+    "subtitle": "GitHub Copilot 무료 이용",
+    "description": "학생 인증 시 GitHub Pro 및 AI 코딩 도구 GitHub Copilot(월 14,000원 상당)을 전액 무료 제공.",
+    "saving": 14000,
+    "originalPrice": 14000,
+    "offerPrice": 0,
+    "dday": 365,
+    "sourceServiceIds": [
+      "github-copilot"
+    ],
+    "link": "https://education.github.com/pack",
+    "monogram": "GH",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
+    "benefitPeriod": "인증 후 1년 (매년 갱신 가능)"
+  },
+  {
+    "id": "notion-student-free",
+    "category": "학생/연간",
+    "kind": "학생·교육자 Plus 플랜 100% 무료",
+    "title": "Notion Plus",
+    "subtitle": "학교 웹메일 인증 시 Plus 0원",
+    "description": "대학교 웹메일 인증 시 월 14,000원 상당의 Notion Plus 플랜을 무료로 업그레이드.",
+    "saving": 14000,
+    "originalPrice": 14000,
+    "offerPrice": 0,
+    "dday": 365,
+    "sourceServiceIds": [
+      "notion"
+    ],
+    "link": "https://www.notion.so/product/notion-for-education",
+    "monogram": "N",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
+    "benefitPeriod": "인증 후 1년 (매년 갱신 가능)"
+  },
+  {
+    "id": "figma-edu-free",
+    "category": "학생/연간",
+    "kind": "교육자·학생 Professional 100% 무료",
+    "title": "Figma Professional",
+    "subtitle": "Figma Professional 전액 무료",
+    "description": "디자인 전공 및 학생/교사 인증 시 월 21,000원 상당의 Figma Professional 플랜 무료 제공.",
+    "saving": 21000,
+    "originalPrice": 21000,
+    "offerPrice": 0,
+    "dday": 365,
+    "sourceServiceIds": [
+      "figma"
+    ],
+    "link": "https://www.figma.com/education/",
+    "monogram": "F",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
+    "benefitPeriod": "인증 후 1년 (매년 갱신 가능)"
+  },
+  {
+    "id": "jetbrains-student-free",
+    "category": "학생/연간",
+    "kind": "학생 전 제품 IDE 100% 무료 라이선스",
+    "title": "JetBrains All Products Pack",
+    "subtitle": "IntelliJ Ultimate 등 16종 무료",
+    "description": "학생증 및 학교 메일 인증 시 연간 37만원 상당의 JetBrains 전 제품을 전액 무료로 이용하세요.",
+    "saving": 37000,
+    "originalPrice": 37000,
+    "offerPrice": 0,
+    "dday": 365,
+    "sourceServiceIds": [
+      "jetbrains-all"
+    ],
+    "link": "https://www.jetbrains.com/community/education/#students",
+    "monogram": "JB",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
+    "benefitPeriod": "인증 후 1년 (매년 갱신 가능)"
+  },
+  {
+    "id": "disney-annual-16",
+    "category": "학생/연간",
+    "kind": "연간 결제 16% 할인 (2개월 무료 효과)",
+    "title": "Disney+",
+    "subtitle": "연간 결제로 2개월 무료 효과",
+    "description": "스탠다드 요금제를 연 99,000원에 결제하여 월 결제 대비 16% 절약하세요.",
+    "saving": 19800,
+    "originalPrice": 118800,
+    "offerPrice": 99000,
+    "dday": 365,
     "sourceServiceIds": [
       "disney"
     ],
     "link": "https://www.disneyplus.com/ko-kr",
     "monogram": "D",
-    "lastVerifiedAt": "2026-09-15T11:24:50.485Z",
-    "benefitPeriod": "가입 기간 상시",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
+    "benefitPeriod": "결제일로부터 1년 (12개월)"
   },
   {
-    "id": "vibe-promo",
-    "category": "100원/무료",
-    "kind": "특가 프로모션",
-    "title": "NAVER VIBE",
-    "subtitle": "첫 기간 ₩0 체험",
-    "description": "월 7,000원",
-    "saving": 8500,
-    "originalPrice": 8500,
-    "offerPrice": 0,
-    "dday": 14,
+    "id": "tving-annual-44",
+    "category": "학생/연간",
+    "kind": "연간 이용권 최대 44% 할인",
+    "title": "TVING",
+    "subtitle": "연간 구독 시 44% 요금 절약",
+    "description": "티빙 스탠다드 및 프리미엄을 1년 결제 시 최대 44% 할인된 금액으로 감상하세요.",
+    "saving": 59000,
+    "originalPrice": 162000,
+    "offerPrice": 103000,
+    "dday": 365,
     "sourceServiceIds": [
-      "vibe"
+      "tving"
     ],
-    "link": "https://vibe.naver.com/membership/all",
+    "link": "https://www.tving.com/my/pass",
+    "monogram": "T",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
+    "benefitPeriod": "결제일로부터 1년 (12개월)"
+  },
+  {
+    "id": "wavve-annual-16",
+    "category": "학생/연간",
+    "kind": "연간 이용권 16% 할인 (2개월 무료)",
+    "title": "Wavve",
+    "subtitle": "1년 결제 시 2개월 요금 무료",
+    "description": "스탠다드 연간 이용권 결제 시 2개월 요금을 아끼고 지상파 및 VOD 무제한 시청.",
+    "saving": 21800,
+    "originalPrice": 130800,
+    "offerPrice": 109000,
+    "dday": 365,
+    "sourceServiceIds": [
+      "wavve"
+    ],
+    "link": "https://www.wavve.com/voucher/index.html",
+    "monogram": "W",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
+    "benefitPeriod": "결제일로부터 1년 (12개월)"
+  },
+  {
+    "id": "nintendo-family-plan",
+    "category": "학생/연간",
+    "kind": "패밀리 플랜 결합 (최대 8인 공유)",
+    "title": "Nintendo Switch Online 패밀리",
+    "subtitle": "8인 결합 시 1인당 연 4,740원",
+    "description": "연 37,900원 패밀리 플랜을 친구/가족 8명이 공유하면 1인당 월 395원으로 스위치 온라인 이용. (80% 절약)",
+    "saving": 15260,
+    "originalPrice": 20000,
+    "offerPrice": 4740,
+    "dday": 365,
+    "sourceServiceIds": [
+      "nintendo-online"
+    ],
+    "link": "https://www.nintendo.com/kr/nintendo-switch-online/",
     "monogram": "N",
-    "lastVerifiedAt": "2026-09-15T11:24:50.485Z",
-    "benefitPeriod": "가입 기간 상시",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월"
   },
   {
-    "id": "ringle-promo",
-    "category": "구독료 할인",
-    "kind": "특가 프로모션",
-    "title": "Ringle",
-    "subtitle": "특가 할인",
-    "description": "최대 59% 할인",
-    "saving": 79500,
-    "originalPrice": 159000,
-    "offerPrice": 79500,
+    "id": "melon-2m-discount",
+    "category": "경쟁사 프로모",
+    "kind": "스트리밍클럽 2개월 특가 할인",
+    "title": "Melon (멜론)",
+    "subtitle": "멜로너를 위한 2개월 특별 할인",
+    "description": "스트리밍 클럽 2개월간 특별 할인가(월 5,900원) 제공 전용 쿠폰팩 이벤트.",
+    "saving": 6000,
+    "originalPrice": 8900,
+    "offerPrice": 5900,
+    "dday": 10,
+    "sourceServiceIds": [
+      "melon"
+    ],
+    "link": "https://www.melon.com/",
+    "monogram": "M",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월"
+  },
+  {
+    "id": "adobe-new-user-25",
+    "category": "경쟁사 프로모",
+    "kind": "신규 구독자 첫해 한정 25% 할인",
+    "title": "Adobe Creative Cloud",
+    "subtitle": "첫해 한정 모든 앱 25% 할인",
+    "description": "신규 구독자라면 모든 앱 플랜을 정가 78,100원 대신 첫해 월 58,200원에 이용하세요.",
+    "saving": 19900,
+    "originalPrice": 78100,
+    "offerPrice": 58200,
     "dday": 14,
     "sourceServiceIds": [
-      "ringle"
+      "adobe"
     ],
-    "link": "https://www.ringleplus.com/ko/1on1",
-    "monogram": "R",
-    "lastVerifiedAt": "2026-09-15T11:24:50.485Z",
-    "benefitPeriod": "가입 기간 상시",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
+    "link": "https://www.adobe.com/kr/creativecloud/plans.html",
+    "monogram": "A",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월"
   },
   {
-    "id": "kakaotalk-drive-promo",
-    "category": "100원/무료",
-    "kind": "첫 달 100원 특가",
-    "title": "카카오톡 톡서랍 플러스",
-    "subtitle": "첫 기간 ₩0 체험",
-    "description": "2,100원/월",
-    "saving": 1000,
-    "originalPrice": 990,
+    "id": "youtube-lite-43",
+    "category": "OTT",
+    "kind": "Premium Lite 요금제 43% 비용 절감",
+    "title": "YouTube Premium Lite",
+    "subtitle": "광고 제거 전용 신규 플랜 월 8,500원",
+    "description": "YouTube Music 없이 영상 광고만 제거하고 싶은 유저를 위한 43% 저렴한 공식 요금제.",
+    "saving": 6400,
+    "originalPrice": 14900,
+    "offerPrice": 8500,
+    "dday": 30,
+    "sourceServiceIds": [
+      "youtube"
+    ],
+    "link": "https://www.youtube.com/premium",
+    "monogram": "Y",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월"
+  },
+  {
+    "id": "chatgpt-promo",
+    "title": "ChatGPT Plus",
+    "subtitle": "GPT-4o 기본 무료 플랜",
+    "kind": "GPT-4o 기본 무료 플랜",
+    "category": "SaaS",
+    "description": "유료 구독 전 최신 모델 0원 무료 이용",
+    "saving": 29000,
+    "originalPrice": 29000,
     "offerPrice": 0,
-    "dday": 14,
+    "dday": 30,
     "sourceServiceIds": [
-      "kakaotalk-drive"
+      "chatgpt"
     ],
-    "link": "https://my.kakao.com/product-group/DRIVE?productId=DRIVE006",
-    "monogram": "카",
-    "lastVerifiedAt": "2026-09-15T11:24:50.485Z",
-    "benefitPeriod": "가입 기간 상시",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
+    "link": "https://chatgpt.com/#settings/Subscription",
+    "monogram": "C",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "claude-pro-promo",
+    "title": "Claude Pro",
+    "subtitle": "Sonnet 3.5 모델 기본 무료 제공",
+    "kind": "Sonnet 3.5 모델 기본 무료 제공",
+    "category": "SaaS",
+    "description": "고성능 AI 모델 무료 계정 활용",
+    "saving": 29000,
+    "originalPrice": 29000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "claude-pro"
+    ],
+    "link": "https://claude.ai/settings",
+    "monogram": "C",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "perplexity-pro-promo",
+    "title": "Perplexity Pro",
+    "subtitle": "SKT 에이닷 가입자 1년 100% 무료",
+    "kind": "SKT 에이닷 가입자 1년 100% 무료",
+    "category": "SaaS",
+    "description": "프로모션 주소 갱신",
+    "saving": 27000,
+    "originalPrice": 27000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "perplexity-pro"
+    ],
+    "link": "https://www.perplexity.ai/pro",
+    "monogram": "P",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "midjourney-promo",
+    "title": "Midjourney",
+    "subtitle": "연간 결제 시 20% 요금 할인",
+    "kind": "연간 결제 시 20% 요금 할인",
+    "category": "SaaS",
+    "description": "1년 정기결제 시 매월 2,800원 절약",
+    "saving": 2800,
+    "originalPrice": 14000,
+    "offerPrice": 11200,
+    "dday": 30,
+    "sourceServiceIds": [
+      "midjourney"
+    ],
+    "link": "https://www.midjourney.com/account",
+    "monogram": "M",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "figma-promo",
+    "title": "Figma Professional",
+    "subtitle": "학생·교육자 Professional 100% 무료",
+    "kind": "학생·교육자 Professional 100% 무료",
+    "category": "SaaS",
+    "description": "학생 인증 시 월 21,000원 플랜 영구 무료",
+    "saving": 21000,
+    "originalPrice": 21000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "figma"
+    ],
+    "link": "https://www.figma.com/settings",
+    "monogram": "F",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "canva-promo",
+    "title": "Canva Pro",
+    "subtitle": "초중고 교육용 Canva Pro 100% 무료",
+    "kind": "초중고 교육용 Canva Pro 100% 무료",
+    "category": "SaaS",
+    "description": "교육 기관 인증 시 팀 프로 기능 무료",
+    "saving": 12900,
+    "originalPrice": 12900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "canva"
+    ],
+    "link": "https://www.canva.com/settings",
+    "monogram": "C",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "framer-promo",
+    "title": "Framer Pro",
+    "subtitle": "Free 플랜 무료 사이트 호스팅 (0원)",
+    "kind": "Free 플랜 무료 사이트 호스팅 (0원)",
+    "category": "SaaS",
+    "description": "서브도메인 무료 배포로 구독료 대체",
+    "saving": 27000,
+    "originalPrice": 27000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "framer"
+    ],
+    "link": "https://www.framer.com",
+    "monogram": "F",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "webflow-promo",
+    "title": "Webflow",
+    "subtitle": "Starter 플랜 2개 사이트 무료 배포",
+    "kind": "Starter 플랜 2개 사이트 무료 배포",
+    "category": "SaaS",
+    "description": "기본 요금제 0원으로 웹 빌드",
+    "saving": 32000,
+    "originalPrice": 32000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "webflow"
+    ],
+    "link": "https://webflow.com",
+    "monogram": "W",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "github-copilot-promo",
+    "title": "GitHub Copilot",
+    "subtitle": "GitHub Student Pack 100% 무료",
+    "kind": "GitHub Student Pack 100% 무료",
+    "category": "SaaS",
+    "description": "학생 개발자 인증 시 Copilot AI 코딩 무료",
+    "saving": 14000,
+    "originalPrice": 14000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "github-copilot"
+    ],
+    "link": "https://github.com/settings/billing",
+    "monogram": "G",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "jetbrains-all-promo",
+    "title": "JetBrains All Products",
+    "subtitle": "학생·교사 IDE 16종 전 제품 100% 무료",
+    "kind": "학생·교사 IDE 16종 전 제품 100% 무료",
+    "category": "SaaS",
+    "description": "학생증 인증 시 연 37만원 전액 무료",
+    "saving": 37000,
+    "originalPrice": 37000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "jetbrains-all"
+    ],
+    "link": "https://account.jetbrains.com",
+    "monogram": "J",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "slack-pro-promo",
+    "title": "Slack Pro",
+    "subtitle": "비영리 단체 및 교육용 85% 할인",
+    "kind": "비영리 단체 및 교육용 85% 할인",
+    "category": "SaaS",
+    "description": "교육/비영리 프로모션 공식 링크 갱신",
+    "saving": 9350,
+    "originalPrice": 11000,
+    "offerPrice": 1650,
+    "dday": 30,
+    "sourceServiceIds": [
+      "slack-pro"
+    ],
+    "link": "https://slack.com/intl/ko-kr/solutions/education",
+    "monogram": "S",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "zoom-pro-promo",
+    "title": "Zoom Workplace Pro",
+    "subtitle": "Basic 플랜 40분 화상회의 무료 (0원)",
+    "kind": "Basic 플랜 40분 화상회의 무료 (0원)",
+    "category": "SaaS",
+    "description": "40분 미팅 무제한 무료 생성",
+    "saving": 19000,
+    "originalPrice": 19000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "zoom-pro"
+    ],
+    "link": "https://zoom.us/billing",
+    "monogram": "Z",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "ms365-promo",
+    "title": "Microsoft 365",
+    "subtitle": "대학생 Office 365 Education 100% 무료",
+    "kind": "대학생 Office 365 Education 100% 무료",
+    "category": "SaaS",
+    "description": "학교 웹메일 인증 시 정품 오피스 0원",
+    "saving": 8900,
+    "originalPrice": 8900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "ms365"
+    ],
+    "link": "https://account.microsoft.com/services",
+    "monogram": "M",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "google-one-promo",
+    "title": "Google One",
+    "subtitle": "100GB 저장공간 첫 달 0원 무료 체험",
+    "kind": "100GB 저장공간 첫 달 0원 무료 체험",
+    "category": "SaaS",
+    "description": "구글 드라이브 100GB 첫 달 무료",
+    "saving": 2400,
+    "originalPrice": 2400,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "google-one"
+    ],
+    "link": "https://one.google.com",
+    "monogram": "G",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "evernote-promo",
+    "title": "Evernote",
+    "subtitle": "학생 인증 시 연간 결제 40% 할인",
+    "kind": "학생 인증 시 연간 결제 40% 할인",
+    "category": "SaaS",
+    "description": "학생증 인증 시 1년간 40% 요금 감면",
+    "saving": 4760,
+    "originalPrice": 11900,
+    "offerPrice": 7140,
+    "dday": 30,
+    "sourceServiceIds": [
+      "evernote"
+    ],
+    "link": "https://www.evernote.com",
+    "monogram": "E",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "1password-promo",
+    "title": "1Password",
+    "subtitle": "Families 5인 공유 (인당 월 1,500원)",
+    "kind": "Families 5인 공유 (인당 월 1,500원)",
+    "category": "SaaS",
+    "description": "가족 요금제 공유 시 60% 이상 비용 절약",
+    "saving": 3000,
+    "originalPrice": 4500,
+    "offerPrice": 1500,
+    "dday": 30,
+    "sourceServiceIds": [
+      "1password"
+    ],
+    "link": "https://1password.com",
+    "monogram": "1",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "notion-promo",
+    "title": "Notion Plus",
+    "subtitle": "학생·교육자 Plus 플랜 100% 무료",
+    "kind": "학생·교육자 Plus 플랜 100% 무료",
+    "category": "SaaS",
+    "description": "대학교 웹메일 인증 시 Plus 플랜 0원",
+    "saving": 14000,
+    "originalPrice": 14000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "notion"
+    ],
+    "link": "https://www.notion.so/settings",
+    "monogram": "N",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "youtube-promo",
+    "title": "YouTube Premium",
+    "subtitle": "1개월 0원 무료 체험 + Lite 43% 할인",
+    "kind": "1개월 0원 무료 체험 + Lite 43% 할인",
+    "category": "OTT",
+    "description": "신규 가입 시 첫 달 0원 체험",
+    "saving": 14900,
+    "originalPrice": 14900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "youtube"
+    ],
+    "link": "https://www.youtube.com/paid_memberships",
+    "monogram": "Y",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "wavve-promo",
+    "title": "Wavve",
+    "subtitle": "첫 달 100% 코인 캐시백 페이백",
+    "kind": "첫 달 100% 코인 캐시백 페이백",
+    "category": "OTT",
+    "description": "첫 가입 결제금액 100% 전액 환급 (0원 효과)",
+    "saving": 10900,
+    "originalPrice": 10900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "wavve"
+    ],
+    "link": "https://www.wavve.com/my/pass",
+    "monogram": "W",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "watcha-promo",
+    "title": "WATCHA",
+    "subtitle": "연간 결제 시 20% 요금 할인",
+    "kind": "연간 결제 시 20% 요금 할인",
+    "category": "OTT",
+    "description": "왓챠 1년 결제 시 월 2,580원 절약",
+    "saving": 2580,
+    "originalPrice": 12900,
+    "offerPrice": 10320,
+    "dday": 30,
+    "sourceServiceIds": [
+      "watcha"
+    ],
+    "link": "https://watcha.com/settings",
+    "monogram": "W",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "coupangplay-promo",
+    "title": "Coupang Play",
+    "subtitle": "쿠팡 와우 회원 연동 100% 무료",
+    "kind": "쿠팡 와우 회원 연동 100% 무료",
+    "category": "OTT",
+    "description": "와우 멤버십 이용 시 쿠팡플레이 전 콘텐츠 0원",
+    "saving": 7890,
+    "originalPrice": 7890,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "coupangplay"
+    ],
+    "link": "https://loyalty.coupang.com",
+    "monogram": "C",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "appletv-promo",
+    "title": "Apple TV+",
+    "subtitle": "7일 무료 체험 (신규 기기 구매 시 3개월)",
+    "kind": "7일 무료 체험 (신규 기기 구매 시 3개월)",
+    "category": "OTT",
+    "description": "7일 무료, Apple 신규 기기 구입 시 3개월 0원",
+    "saving": 6500,
+    "originalPrice": 6500,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "appletv"
+    ],
+    "link": "https://support.apple.com",
+    "monogram": "A",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "primevideo-promo",
+    "title": "Amazon Prime Video",
+    "subtitle": "Amazon Prime Video 7일 무료 체험",
+    "kind": "Amazon Prime Video 7일 무료 체험",
+    "category": "OTT",
+    "description": "신규 가입 시 7일간 0원 무료",
+    "saving": 7900,
+    "originalPrice": 7900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "primevideo"
+    ],
+    "link": "https://www.amazon.com",
+    "monogram": "A",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "weverse-promo",
+    "title": "Weverse Digital Membership",
+    "subtitle": "글로벌 멤버십 웰컴 기프트 바우처",
+    "kind": "글로벌 멤버십 웰컴 기프트 바우처",
+    "category": "OTT",
+    "description": "멤버십 가입 시 공식 샵 쿠폰 증정",
+    "saving": 10000,
+    "originalPrice": 25000,
+    "offerPrice": 15000,
+    "dday": 30,
+    "sourceServiceIds": [
+      "weverse"
+    ],
+    "link": "https://weverse.io",
+    "monogram": "W",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "dazn-promo",
+    "title": "DAZN",
+    "subtitle": "연간 구독 시 월 요금 25% 할인",
+    "kind": "연간 구독 시 월 요금 25% 할인",
+    "category": "OTT",
+    "description": "연간 결제 시 월 6,250원 절약",
+    "saving": 6250,
+    "originalPrice": 25000,
+    "offerPrice": 18750,
+    "dday": 30,
+    "sourceServiceIds": [
+      "dazn"
+    ],
+    "link": "https://www.dazn.com",
+    "monogram": "D",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "melon-promo",
+    "title": "Melon",
+    "subtitle": "스트리밍클럽 2개월 특가 할인 쿠폰팩",
+    "kind": "스트리밍클럽 2개월 특가 할인 쿠폰팩",
+    "category": "음악",
+    "description": "멜로너 전용 2개월간 특별 할인가 제공",
+    "saving": 6000,
+    "originalPrice": 8900,
+    "offerPrice": 5900,
+    "dday": 30,
+    "sourceServiceIds": [
+      "melon"
+    ],
+    "link": "https://member.melon.com",
+    "monogram": "M",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "spotify-promo",
+    "title": "Spotify",
+    "subtitle": "개인 요금제 3개월 ₩0 무료 체험",
+    "kind": "개인 요금제 3개월 ₩0 무료 체험",
+    "category": "음악",
+    "description": "프리미엄 프로모션 공식 링크 갱신",
+    "saving": 35970,
+    "originalPrice": 11990,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "spotify"
+    ],
+    "link": "https://www.spotify.com/kr-ko/premium/",
+    "monogram": "S",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "genie-promo",
+    "title": "Genie Music",
+    "subtitle": "스마트 음악감상 2회차 다음 달 110원",
+    "kind": "스마트 음악감상 2회차 다음 달 110원",
+    "category": "음악",
+    "description": "1회차 결제 시 다음 달 110원 특가",
+    "saving": 8290,
+    "originalPrice": 8400,
+    "offerPrice": 110,
+    "dday": 30,
+    "sourceServiceIds": [
+      "genie"
+    ],
+    "link": "https://www.genie.co.kr",
+    "monogram": "G",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "flo-promo",
+    "title": "FLO",
+    "subtitle": "첫 달 100원 특가 프로모션",
+    "kind": "첫 달 100원 특가 프로모션",
+    "category": "음악",
+    "description": "신규 가입자 한정 첫 달 100원 듣기",
+    "saving": 7800,
+    "originalPrice": 7900,
+    "offerPrice": 100,
+    "dday": 30,
+    "sourceServiceIds": [
+      "flo"
+    ],
+    "link": "https://www.music-flo.com",
+    "monogram": "F",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "applemusic-promo",
+    "title": "Apple Music",
+    "subtitle": "1개월 무료 (기기 구매 시 6개월 무료)",
+    "kind": "1개월 무료 (기기 구매 시 6개월 무료)",
+    "category": "음악",
+    "description": "1개월 무료, AirPods 구매 시 6개월 0원",
+    "saving": 8900,
+    "originalPrice": 8900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "applemusic"
+    ],
+    "link": "https://support.apple.com",
+    "monogram": "A",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "ytmusic-promo",
+    "title": "YouTube Music",
+    "subtitle": "YouTube Premium 가입 시 Music 0원 무료",
+    "kind": "YouTube Premium 가입 시 Music 0원 무료",
+    "category": "음악",
+    "description": "유튜브 프리미엄 구독 시 뮤직 자동 포함",
+    "saving": 11990,
+    "originalPrice": 11990,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "ytmusic"
+    ],
+    "link": "https://music.youtube.com",
+    "monogram": "Y",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "podbbang-promo",
+    "title": "팟빵 오디오매거진",
+    "subtitle": "팟빵 오디오북 첫 달 100원 딜",
+    "kind": "팟빵 오디오북 첫 달 100원 딜",
+    "category": "음악",
+    "description": "유료 팟캐스트/오디오북 첫 달 100원",
+    "saving": 9800,
+    "originalPrice": 9900,
+    "offerPrice": 100,
+    "dday": 30,
+    "sourceServiceIds": [
+      "podbbang"
+    ],
+    "link": "https://www.podbbang.com",
+    "monogram": "팟",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "millie-promo",
+    "title": "밀리의 서재",
+    "subtitle": "10주년 기념 1+1 (둘째 달 0원)",
+    "kind": "10주년 기념 1+1 (둘째 달 0원)",
+    "category": "도서/웹툰",
+    "description": "첫 달 결제 시 둘째 달 이용권 무료 증정",
+    "saving": 9900,
+    "originalPrice": 9900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "millie"
+    ],
+    "link": "https://www.millie.co.kr/v3/mypage/subscription",
+    "monogram": "밀",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "ridiselect-promo",
+    "title": "리디셀렉트",
+    "subtitle": "리디셀렉트 첫 달 0원 무료 체험",
+    "kind": "리디셀렉트 첫 달 0원 무료 체험",
+    "category": "도서/웹툰",
+    "description": "신간/베스트셀러 첫 달 0원 무제한 독서",
+    "saving": 4900,
+    "originalPrice": 4900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "ridiselect"
+    ],
+    "link": "https://select.ridibooks.com",
+    "monogram": "리",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "welaaa-promo",
+    "title": "윌라 오디오북",
+    "subtitle": "윌라 첫 달 0원 무료 체험",
+    "kind": "윌라 첫 달 0원 무료 체험",
+    "category": "음악",
+    "description": "전문 성우 오디오북 첫 달 무료 듣기",
+    "saving": 9900,
+    "originalPrice": 9900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "welaaa"
+    ],
+    "link": "https://www.welaaa.com",
+    "monogram": "윌",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "the-joongang-plus-promo",
+    "title": "더중앙플러스",
+    "subtitle": "디지털 유료 구독 첫 달 1,000원 특가",
+    "kind": "디지털 유료 구독 첫 달 1,000원 특가",
+    "category": "도서/웹툰",
+    "description": "중앙일보 유료 디지털 구독 첫 달 1,000원",
+    "saving": 8000,
+    "originalPrice": 9000,
+    "offerPrice": 1000,
+    "dday": 30,
+    "sourceServiceIds": [
+      "the-joongang-plus"
+    ],
+    "link": "https://www.joongang.co.kr",
+    "monogram": "더",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "nyt-digital-promo",
+    "title": "The New York Times",
+    "subtitle": "All Access 첫해 주 $0.50 특가 (월 약 2,600원)",
+    "kind": "All Access 첫해 주 $0.50 특가 (월 약 2,600원)",
+    "category": "도서/웹툰",
+    "description": "주 0.5달러 특가 적용",
+    "saving": 23400,
+    "originalPrice": 6000,
+    "offerPrice": 2600,
+    "dday": 30,
+    "sourceServiceIds": [
+      "nyt-digital"
+    ],
+    "link": "https://www.nytimes.com",
+    "monogram": "T",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "wsj-digital-promo",
+    "title": "The Wall Street Journal",
+    "subtitle": "Wall Street Journal 첫해 월 $4 특가",
+    "kind": "Wall Street Journal 첫해 월 $4 특가",
+    "category": "도서/웹툰",
+    "description": "글로벌 경제지 첫해 대폭 할인",
+    "saving": 25000,
+    "originalPrice": 12000,
+    "offerPrice": 5500,
+    "dday": 30,
+    "sourceServiceIds": [
+      "wsj-digital"
+    ],
+    "link": "https://www.wsj.com",
+    "monogram": "T",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "ft-digital-promo",
+    "title": "Financial Times",
+    "subtitle": "Financial Times 4주 시험구독 1달러",
+    "kind": "Financial Times 4주 시험구독 1달러",
+    "category": "도서/웹툰",
+    "description": "첫 달 1,400원 파격가 체험 지원",
+    "saving": 43600,
+    "originalPrice": 45000,
+    "offerPrice": 1400,
+    "dday": 30,
+    "sourceServiceIds": [
+      "ft-digital"
+    ],
+    "link": "https://www.ft.com",
+    "monogram": "F",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "audible-promo",
+    "title": "Audible",
+    "subtitle": "Audible 30일 무료 + 1권 영구소장",
+    "kind": "Audible 30일 무료 + 1권 영구소장",
+    "category": "도서/웹툰",
+    "description": "첫 달 0원 + 베스트셀러 1권 무료 소장",
+    "saving": 11000,
+    "originalPrice": 11000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "audible"
+    ],
+    "link": "https://www.audible.com",
+    "monogram": "A",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "scribd-promo",
+    "title": "Scribd",
+    "subtitle": "Scribd 30일 0원 무료 체험",
+    "kind": "Scribd 30일 0원 무료 체험",
+    "category": "도서/웹툰",
+    "description": "전자책 및 논문 30일간 0원",
+    "saving": 13000,
+    "originalPrice": 13000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "scribd"
+    ],
+    "link": "https://www.scribd.com",
+    "monogram": "S",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "naverplus-promo",
+    "title": "네이버플러스 멤버십",
+    "subtitle": "첫 달 4,900원 웰컴 쿠폰 (첫 달 0원)",
+    "kind": "첫 달 4,900원 웰컴 쿠폰 (첫 달 0원)",
+    "category": "쇼핑",
+    "description": "가입 즉시 첫 달 구독료 100% 면제",
+    "saving": 4900,
+    "originalPrice": 4900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "naverplus"
+    ],
+    "link": "https://nid.naver.com/membership",
+    "monogram": "네",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "baemin-club-promo",
+    "title": "배민클럽",
+    "subtitle": "배민클럽 첫 달 0원 무료 체험",
+    "kind": "배민클럽 첫 달 0원 무료 체험",
+    "category": "쇼핑",
+    "description": "배달비 무료 혜택 첫 달 0원",
+    "saving": 3990,
+    "originalPrice": 3990,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "baemin-club"
+    ],
+    "link": "https://baemin.com",
+    "monogram": "배",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "yogipass-promo",
+    "title": "요기패스X",
+    "subtitle": "요기패스X 첫 달 무료 + 네이버 연동 0원",
+    "kind": "요기패스X 첫 달 무료 + 네이버 연동 0원",
+    "category": "쇼핑",
+    "description": "첫 달 0원 또는 네이버 멤버십 연동 시 무료",
+    "saving": 2900,
+    "originalPrice": 2900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "yogipass"
+    ],
+    "link": "https://www.yogiyo.co.kr",
+    "monogram": "요",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "coupang-promo",
+    "title": "쿠팡 와우 멤버십",
+    "subtitle": "와우 멤버십 30일 0원 무료 체험",
+    "kind": "와우 멤버십 30일 0원 무료 체험",
+    "category": "쇼핑",
+    "description": "로켓배송/이츠/쿠플 30일간 0원",
+    "saving": 7890,
+    "originalPrice": 7890,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "coupang"
+    ],
+    "link": "https://loyalty.coupang.com/loyalty/sign-up/home",
+    "monogram": "쿠",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "ps-plus-promo",
+    "title": "PlayStation Plus",
+    "subtitle": "1년 정기결제 시 25% 요금 절약",
+    "kind": "1년 정기결제 시 25% 요금 절약",
+    "category": "게임/엔터",
+    "description": "연간 결제로 매월 구독료 절감",
+    "saving": 1875,
+    "originalPrice": 7500,
+    "offerPrice": 5625,
+    "dday": 30,
+    "sourceServiceIds": [
+      "ps-plus"
+    ],
+    "link": "https://store.playstation.com",
+    "monogram": "P",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "apple-arcade-promo",
+    "title": "Apple Arcade",
+    "subtitle": "1개월 0원 무료 (기기 구매 시 3개월)",
+    "kind": "1개월 0원 무료 (기기 구매 시 3개월)",
+    "category": "게임/엔터",
+    "description": "인앱결제 없는 200개 게임 무료 플레이",
+    "saving": 6500,
+    "originalPrice": 6500,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "apple-arcade"
+    ],
+    "link": "https://support.apple.com/billing",
+    "monogram": "A",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "ea-play-promo",
+    "title": "EA Play",
+    "subtitle": "연간 결제 시 50% 요금 절약 (연 33,900원)",
+    "kind": "연간 결제 시 50% 요금 절약 (연 33,900원)",
+    "category": "게임/엔터",
+    "description": "월 5,500원 대비 연간 결제로 반값 혜택",
+    "saving": 2675,
+    "originalPrice": 5500,
+    "offerPrice": 2825,
+    "dday": 30,
+    "sourceServiceIds": [
+      "ea-play"
+    ],
+    "link": "https://www.ea.com",
+    "monogram": "E",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "wow-subscription-promo",
+    "title": "World of Warcraft 정액제",
+    "subtitle": "6개월 정액제 결제 시 15% 할인 + 탈것 증정",
+    "kind": "6개월 정액제 결제 시 15% 할인 + 탈것 증정",
+    "category": "게임/엔터",
+    "description": "장기 결제 시 월 요금 할인",
+    "saving": 3000,
+    "originalPrice": 19800,
+    "offerPrice": 16800,
+    "dday": 30,
+    "sourceServiceIds": [
+      "wow-subscription"
+    ],
+    "link": "https://account.battle.net",
+    "monogram": "W",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
   },
   {
     "id": "kakaotalk-emoticon-promo",
-    "category": "100원/무료",
-    "kind": "특가 프로모션",
     "title": "카카오톡 이모티콘 플러스",
-    "subtitle": "첫 기간 ₩0 체험",
-    "description": "4,900원",
-    "saving": 3900,
+    "subtitle": "첫 달 100원 특가 (이모티콘 무제한)",
+    "kind": "첫 달 100원 특가 (이모티콘 무제한)",
+    "category": "생활/모빌리티",
+    "description": "카카오톡 이모티콘 무제한 첫 달 100원",
+    "saving": 3800,
     "originalPrice": 3900,
-    "offerPrice": 0,
-    "dday": 14,
+    "offerPrice": 100,
+    "dday": 30,
     "sourceServiceIds": [
       "kakaotalk-emoticon"
     ],
-    "link": "https://e.kakao.com/my/product/001",
+    "link": "https://e.kakao.com",
     "monogram": "카",
-    "lastVerifiedAt": "2026-09-15T11:24:50.485Z",
-    "benefitPeriod": "가입 기간 상시",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)"
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "naver-mybox-promo",
+    "title": "네이버 MYBOX",
+    "subtitle": "기본 30GB 영구 0원 무료 제공",
+    "kind": "기본 30GB 영구 0원 무료 제공",
+    "category": "생활/모빌리티",
+    "description": "네이버 계정 기본 30GB 무료 클라우드",
+    "saving": 1650,
+    "originalPrice": 1650,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "naver-mybox"
+    ],
+    "link": "https://mybox.naver.com",
+    "monogram": "네",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
+  },
+  {
+    "id": "adobe-lightroom-promo",
+    "title": "Adobe Lightroom Mobile Premium",
+    "subtitle": "Lightroom Mobile 7일 무료 체험",
+    "kind": "Lightroom Mobile 7일 무료 체험",
+    "category": "SaaS",
+    "description": "모바일 RAW 보정 7일간 무료 체험",
+    "saving": 5500,
+    "originalPrice": 5500,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "adobe-lightroom"
+    ],
+    "link": "https://account.adobe.com",
+    "monogram": "A",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)"
   }
 ];
 

@@ -41,13 +41,30 @@ export class CatalogSyncer {
       throw new Error("Could not find 'export const serviceCatalog = [' in subscriptionData.js");
     }
 
-    // 기존 serviceCatalog 데이터 추출 및 병합
-    // 템플릿화된 JSON 주입 방식으로 serviceCatalog 섹션을 안전하게 최신 데이터로 대체
-    const itemsJson = JSON.stringify(verifiedItems, null, 2);
-
-    // serviceCatalog 분서 위치 찾기: export const serviceCatalog = [...] 까지
     const promotionStartToken = "export const createMockSubscriptions";
     const promotionStartIndex = fileContent.indexOf(promotionStartToken);
+
+    // 기존 serviceCatalog 데이터 추출 및 id 기반 병합 (전체 94개 카탈로그 보존)
+    let existingServices = [];
+    if (promotionStartIndex !== -1) {
+      try {
+        const rawJson = fileContent
+          .substring(catalogStartIndex + catalogStartToken.length - 1, promotionStartIndex)
+          .trim()
+          .replace(/;\s*$/, "");
+        existingServices = JSON.parse(rawJson);
+      } catch (_) {}
+    }
+
+    const serviceMap = new Map(existingServices.map((s) => [s.id, s]));
+    for (const item of verifiedItems) {
+      if (item && item.id) {
+        const existing = serviceMap.get(item.id) || {};
+        serviceMap.set(item.id, { ...existing, ...item });
+      }
+    }
+    const finalServices = serviceMap.size > 0 ? Array.from(serviceMap.values()) : verifiedItems;
+    const itemsJson = JSON.stringify(finalServices, null, 2);
 
     let newCatalogSection = `export const serviceCatalog = ${itemsJson};\n\n`;
 

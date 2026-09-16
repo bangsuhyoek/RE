@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 import {
   ChevronLeft,
   Pencil,
   Sparkles,
   AlertTriangle,
   Clock,
+  ExternalLink,
 } from "lucide-react";
 import {
   BottomSheet,
@@ -275,7 +277,7 @@ export function SubscriptionDetailScreen({
       {/* 2. 서비스 헤더 (공식 브랜드 로고 + 서비스명 + D-Day 뱃지 + 플랜/카테고리) */}
       <div className="flex items-center gap-4 mt-2 mb-5">
         <ServiceMark
-          serviceId={subscription.id}
+          serviceId={subscription.serviceId || subscription.id}
           name={subscription.name}
           monogram={monogram}
           image={subscription.image || subscription.attachments?.[0]}
@@ -405,7 +407,12 @@ export function SubscriptionDetailScreen({
           <div className="space-y-3">
             <button
               type="button"
-              onClick={() => onStartCancel(subscription.subscriptionId, promotion)}
+              onClick={() => {
+                if (subscription.cancelUrl && !Capacitor.isNativePlatform()) {
+                  window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
+                }
+                onStartCancel(subscription.subscriptionId, promotion, { autoOpen: true });
+              }}
               className={`w-full rounded-2xl bg-[#111827] text-white font-bold py-4 text-[16px] text-center active:scale-[0.98] transition-all shadow-sm cursor-pointer hover:bg-black ${
                 highlightCancel ? "ring-2 ring-blue-500 ring-offset-2 animate-pulse" : ""
               }`}

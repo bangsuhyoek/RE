@@ -92,6 +92,14 @@ function findServiceMatch(value, catalog = []) {
 
   if (exactCatalog) return exactCatalog;
 
+  const catalogAliasMatch = catalog.find((service) =>
+    (service.aliases || []).some((alias) => {
+      const key = cleanKey(alias);
+      return query === key || query.includes(key) || key.includes(query);
+    })
+  );
+  if (catalogAliasMatch) return catalogAliasMatch;
+
   const aliasMatch = SERVICE_ALIASES.find((service) =>
     service.aliases.some((alias) => {
       const key = cleanKey(alias);

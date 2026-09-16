@@ -11,6 +11,9 @@ test("mapSubscriptionToDb는 클라이언트 객체를 DB 스키마 컬럼과 sn
     category: "OTT",
     amount: 4250,
     grossAmount: 17000,
+    currency: "USD",
+    originalAmount: 15.99,
+    planId: "netflix-plan-premium",
     sharingEnabled: true,
     shareCount: 4,
     dueDay: 15,
@@ -35,6 +38,9 @@ test("mapSubscriptionToDb는 클라이언트 객체를 DB 스키마 컬럼과 sn
   assert.equal(mapped.plan_name, "프리미엄");
   assert.equal(mapped.amount_krw, 4250);
   assert.equal(mapped.gross_amount_krw, 17000);
+  assert.equal(mapped.currency, "USD");
+  assert.equal(mapped.original_amount, 15.99);
+  assert.equal(mapped.plan_id, "netflix-plan-premium");
   assert.equal(mapped.sharing_enabled, true);
   assert.equal(mapped.share_count, 4);
   assert.equal(mapped.due_day, 15);
@@ -51,6 +57,9 @@ test("mapDbToSubscription은 DB 레코드를 클라이언트 객체로 정확히
     service_name: "YouTube Premium",
     plan_name: "개인",
     category: "OTT",
+    currency: "USD",
+    original_amount: 13.99,
+    plan_id: "youtube-plan-individual",
     amount_krw: 5000,
     gross_amount_krw: 14900,
     sharing_enabled: true,
@@ -85,4 +94,7 @@ test("mapDbToSubscription은 DB 레코드를 클라이언트 객체로 정확히
   assert.equal(clientObj.renewalReviewedFor, "2026-09");
   assert.equal(clientObj.monogram, "Y");
   assert.equal(clientObj.isTrial, false);
+  assert.equal(clientObj.currency, "USD");
+  assert.equal(clientObj.originalAmount, 13.99);
+  assert.equal(clientObj.planId, "youtube-plan-individual");
 });

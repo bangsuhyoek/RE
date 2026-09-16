@@ -17,3 +17,11 @@ output/
 *.xlsx
 *.ndjson
 output_*.json
+
+# Crawler reports & temporary outputs
+public/catalog/*.backup.json
+public/catalog/deleted_invalid_promotions.json
+public/catalog/promotion-crawling-report-94.json
+public/catalog/promotions-archive.json
+public/catalog/promotions-review.json
+public/catalog/reviewed_feedback_summary.json

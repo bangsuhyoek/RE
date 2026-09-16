@@ -1,211 +1,239 @@
-import { useMemo, useState, useRef } from "react";
-import { ArrowRight, ChevronRight, ExternalLink, Sparkles, TrendingDown } from "lucide-react";
-import { Button, Chip, ServiceMark } from "./ui";
-import { formatWon } from "../lib/dates";
+import { useMemo, useState, useEffect } from "react";
+import { Sparkles } from "lucide-react";
+import { MacroPerkBlock, HanddrawnHatchedDivider } from "./MacroPerkBlock";
+import { serviceCatalog } from "../data/subscriptionData";
 
-const filters = [
-  { id: "all", label: "전체" },
-  { id: "100원/무료", label: "100원 · 무료" },
-  { id: "OTT", label: "OTT 환승" },
-  { id: "통신사/결합", label: "통신사 결합" },
-  { id: "학생/연간", label: "학생 · 연간" },
-];
+function getPromoCategories(promotion) {
+  const cats = new Set();
+  if (promotion.category) cats.add(promotion.category);
+  (promotion.sourceServiceIds || []).forEach((sId) => {
+    const matchedService = serviceCatalog.find((s) => s.id === sId);
+    if (matchedService?.category) cats.add(matchedService.category);
+  });
+  return cats;
+}
 
-function resolveFilter(promotion, filter) {
+function resolveFilter(promotion, filter, userSubscribedServiceIds) {
   if (filter === "all") return true;
+  if (filter === "direct") return Boolean(promotion.isDirectMatch);
   if (filter === "100원/무료") return promotion.category === "100원/무료" || promotion.offerPrice === 0 || promotion.offerPrice === 100;
-  if (filter === "OTT") return promotion.category === "OTT" || promotion.id.includes("watcha") || promotion.id.includes("tving") || promotion.id.includes("disney");
-  if (filter === "통신사/결합") return promotion.category === "통신사/결합" || promotion.id.includes("bundle") || promotion.id.includes("nerget");
-  if (filter === "학생/연간") return promotion.category === "학생/연간" || promotion.kind.includes("연간") || promotion.kind.includes("학생");
-  return true;
+  if (filter === "통신사/결합") return promotion.category === "통신사/결합" || promotion.id.includes("bundle") || promotion.id.includes("nerget") || promotion.id.includes("naver");
+  if (filter === "학생/연간") return promotion.category === "학생/연간" || promotion.kind?.includes("연간") || promotion.kind?.includes("학생");
+  
+  const promoCats = getPromoCategories(promotion);
+  return promoCats.has(filter);
 }
 
-function VisualPromoCarousel({ promotions, onOpenPromotion }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const scrollRef = useRef(null);
+function getServiceDisplayInfo(promotion) {
+  const primaryServiceId = promotion.sourceServiceIds?.[0] || promotion.id.split("-")[0];
+  const primaryService = serviceCatalog.find((s) => s.id === primaryServiceId);
 
-  const heroPromo = promotions.find((p) => p.id === "tving-naver" || p.id === "naverplus-netflix") || promotions[0];
-  const promo1 = promotions.find((p) => p.kind === "경쟁사 프로모" || p.id === "youtube-promo") || promotions[1] || promotions[0];
-  const promo2 = promotions.find((p) => p.kind === "연간 전환 팁" || p.id === "spotify-annual") || promotions[2] || promotions[1];
+  const isPartnership =
+    (promotion.sourceServiceIds || []).length > 1 ||
+    (promotion.title || "").includes("X") ||
+    (promotion.kind || "").includes("제휴") ||
+    (promotion.kind || "").includes("결합");
 
-  const slides = [
-    {
-      id: "tving-naver",
-      promo: heroPromo,
-      tag: "네이버플러스 멤버십 제휴",
-      title: "네이버 멤버십으로,\n티빙·넷플릭스 ₩0!",
-      btnText: "무료 연동 혜택 보기",
-      bgGradient: "from-blue-50/50 via-white to-white border-blue-100/80",
-      btnColor: "bg-[#3182F6] text-white hover:bg-blue-600",
-      visual: (
-        <div className="relative mx-auto h-20 w-52 flex items-center justify-center select-none">
-          <div style={{ backgroundColor: "#001D38" }} className="absolute top-4 left-3 w-26 h-14 rounded-xl border border-blue-400/40 text-white p-2 shadow-md -rotate-12 flex items-center justify-center">
-            <span className="text-[11px] font-black tracking-wider text-blue-200">Disney+</span>
-          </div>
-          <div style={{ backgroundColor: "#FF153C" }} className="absolute top-0 right-3 w-26 h-14 rounded-xl text-white p-2 shadow-lg rotate-6 flex items-center justify-center">
-            <span className="text-[13px] font-black tracking-tight">TVING</span>
-          </div>
-          <div className="absolute -top-1 left-9 h-6 w-6 rounded-full bg-[#3182F6] text-white flex items-center justify-center shadow-xs text-[11px] font-bold">✓</div>
-          <div className="absolute bottom-0 right-7 h-5 w-5 rounded-full bg-pink-500 text-white flex items-center justify-center shadow-xs text-[9px] font-black">%</div>
-          <div className="absolute top-3 left-1 h-5 w-5 rounded-full bg-amber-300 text-amber-900 flex items-center justify-center shadow-2xs text-[11px]">😊</div>
-        </div>
-      ),
-    },
-    {
-      id: "youtube-promo",
-      promo: promo1,
-      tag: "경쟁사 환승 특가",
-      title: "광고 없이 몰입하고,\n첫 3개월 ₩100!",
-      btnText: "100원으로 시작하기",
-      bgGradient: "from-red-50/50 via-white to-white border-red-100/80",
-      btnColor: "bg-[#E50914] text-white hover:bg-red-700 shadow-xs",
-      visual: (
-        <div className="relative mx-auto h-20 w-52 flex items-center justify-center select-none">
-          <div style={{ backgroundColor: "#141414" }} className="absolute top-4 left-3 w-26 h-14 rounded-xl border border-gray-700 text-white p-2 shadow-md -rotate-12 flex items-center justify-center">
-            <span className="text-[11px] font-black tracking-wider text-[#E50914]">NETFLIX</span>
-          </div>
-          <div style={{ backgroundColor: "#FF0000" }} className="absolute top-0 right-3 w-26 h-14 rounded-xl text-white p-2 shadow-lg rotate-6 flex items-center justify-center">
-            <span className="text-[12px] font-black tracking-tight text-white flex items-center gap-1">▶ YouTube</span>
-          </div>
-          <div className="absolute -top-1 left-9 h-6 w-6 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-xs text-[9px] font-black">₩100</div>
-          <div className="absolute bottom-0 right-7 h-5 w-5 rounded-full bg-black text-white flex items-center justify-center shadow-xs text-[8px] font-black">HOT</div>
-          <div className="absolute top-3 left-1 h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-2xs text-[10px] font-bold">3달</div>
-        </div>
-      ),
-    },
-    {
-      id: "spotify-annual",
-      promo: promo2,
-      tag: "연간 멤버십 전환 팁",
-      title: "매월 내지 말고,\n1년에 2달 공짜로!",
-      btnText: "연간 혜택 받기",
-      bgGradient: "from-emerald-50/50 via-white to-white border-emerald-100/80",
-      btnColor: "bg-[#1DB954] text-white hover:bg-emerald-600 shadow-xs",
-      visual: (
-        <div className="relative mx-auto h-20 w-52 flex items-center justify-center select-none">
-          <div style={{ backgroundColor: "#121212" }} className="absolute top-4 left-3 w-26 h-14 rounded-xl border border-emerald-500/40 text-white p-2 shadow-md -rotate-12 flex items-center justify-center">
-            <span className="text-[11px] font-black tracking-wider text-[#1DB954]">MUSIC</span>
-          </div>
-          <div style={{ backgroundColor: "#1DB954" }} className="absolute top-0 right-3 w-26 h-14 rounded-xl text-black p-2 shadow-lg rotate-6 flex items-center justify-center">
-            <span className="text-[12px] font-black tracking-tight text-black">Spotify</span>
-          </div>
-          <div className="absolute -top-1 left-9 h-6 w-6 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-xs text-[8px] font-black">FREE</div>
-          <div className="absolute bottom-0 right-7 h-5 w-5 rounded-full bg-black text-white flex items-center justify-center shadow-xs text-[8px] font-black">2달</div>
-          <div className="absolute top-3 left-1 h-5 w-5 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-2xs text-[11px]">🎧</div>
-        </div>
-      ),
-    },
-  ];
+  let serviceName = promotion.title;
+  if (!isPartnership && primaryService?.name) {
+    serviceName = primaryService.name;
+  }
 
-  const handleScroll = () => {
-    if (!scrollRef.current) return;
-    const scrollLeft = scrollRef.current.scrollLeft;
-    const width = scrollRef.current.clientWidth;
-    if (width > 0) {
-      const newIdx = Math.round(scrollLeft / width);
-      setActiveIndex(newIdx);
-    }
+  let solutionTitle = promotion.subtitle;
+  if (!solutionTitle || solutionTitle === promotion.title) {
+    solutionTitle = promotion.kind || promotion.title;
+  }
+
+  return {
+    serviceId: primaryServiceId,
+    serviceName,
+    solutionTitle,
+    isPartnership,
   };
-
-  const scrollToSlide = (idx) => {
-    if (!scrollRef.current) return;
-    const width = scrollRef.current.clientWidth;
-    scrollRef.current.scrollTo({
-      left: idx * width,
-      behavior: "smooth",
-    });
-    setActiveIndex(idx);
-  };
-
-  return (
-    <div className="w-full">
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none rounded-2xl"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {slides.map((s) => (
-          <div
-            key={s.id}
-            className={`w-full shrink-0 snap-center rounded-2xl border bg-gradient-to-b ${s.bgGradient} p-4 sm:p-5 text-center flex flex-col items-center justify-between shadow-2xs`}
-            style={{ minHeight: "245px" }}
-          >
-            <div>
-              {s.visual}
-              <span className="text-[12px] font-extrabold text-[#3182F6] block tracking-tight mt-1">
-                {s.tag}
-              </span>
-              <h3 className="mt-0.5 text-[18px] font-black text-black tracking-tight leading-snug whitespace-pre-line">
-                {s.title}
-              </h3>
-            </div>
-            <button
-              type="button"
-              onClick={() => onOpenPromotion?.(s.promo)}
-              className={`mt-2.5 inline-flex items-center justify-center rounded-full px-5 py-2 text-[13px] font-bold shadow-xs cursor-pointer active:scale-95 transition-all ${s.btnColor}`}
-            >
-              {s.btnText}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* Dots Indicator */}
-      <div className="flex items-center justify-center gap-1.5 mt-2.5">
-        {slides.map((_, idx) => (
-          <button
-            key={idx}
-            type="button"
-            onClick={() => scrollToSlide(idx)}
-            className={`h-1.5 rounded-full transition-all cursor-pointer ${
-              activeIndex === idx ? "w-5 bg-[#3182F6]" : "w-1.5 bg-gray-200"
-            }`}
-            aria-label={`슬라이드 ${idx + 1}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
 }
 
-export function PromotionScreen({ subscriptions, promotions, onOpenPromotion }) {
+function getBadgeInfo(promotion, isUserSubscribed) {
+  const isPartnership =
+    (promotion.sourceServiceIds || []).length > 1 ||
+    (promotion.title || "").includes("X") ||
+    (promotion.kind || "").includes("제휴") ||
+    (promotion.kind || "").includes("결합");
+
+  if (isUserSubscribed && isPartnership) {
+    return { text: "제휴 0원 · 결합 혜택", isHighlight: true };
+  }
+  if (isUserSubscribed && (promotion.kind?.includes("연간") || promotion.category === "학생/연간")) {
+    return { text: "내 구독 연간 절약", isHighlight: true };
+  }
+  if (isUserSubscribed && (promotion.kind?.includes("무료 체험") || promotion.category === "100원/무료")) {
+    return { text: "신규 가입 0원 혜택", isHighlight: false };
+  }
+  if (isUserSubscribed) {
+    return { text: "내 구독 전용 혜택", isHighlight: true };
+  }
+  return { text: promotion.kind || (promotion.category + " 추천"), isHighlight: false };
+}
+
+export function PromotionScreen({ subscriptions = [], promotions = [], onOpenPromotion }) {
   const [filter, setFilter] = useState("all");
-  const ownedIds = useMemo(() => subscriptions.map((sub) => sub.id), [subscriptions]);
+
+  const userSubscribedServiceIds = useMemo(() => {
+    const ids = new Set();
+    subscriptions.forEach((sub) => {
+      const sId = sub.service_id || sub.serviceId || sub.id;
+      if (sId) ids.add(sId);
+      const nameKey = String(sub.name || "").toLowerCase().replace(/\s+/g, "");
+      const matched = serviceCatalog.find(
+        (s) =>
+          s.id === sId ||
+          s.name.toLowerCase().replace(/\s+/g, "") === nameKey ||
+          (s.aliases || []).some((a) => a.toLowerCase().replace(/\s+/g, "") === nameKey)
+      );
+      if (matched) {
+        ids.add(matched.id);
+      }
+    });
+    return ids;
+  }, [subscriptions]);
+
+  const userSubscribedCategories = useMemo(() => {
+    const cats = new Set();
+    subscriptions.forEach((sub) => {
+      const sId = sub.service_id || sub.serviceId || sub.id;
+      const nameKey = String(sub.name || "").toLowerCase().replace(/\s+/g, "");
+      const matched = serviceCatalog.find(
+        (s) =>
+          s.id === sId ||
+          s.name.toLowerCase().replace(/\s+/g, "") === nameKey ||
+          (s.aliases || []).some((a) => a.toLowerCase().replace(/\s+/g, "") === nameKey)
+      );
+      const cat = matched?.category || sub.category;
+      if (cat && cat !== "기타") cats.add(cat);
+    });
+    return cats;
+  }, [subscriptions]);
+
+  const isPersonalized = subscriptions.length > 0;
+
+  const candidatePromotions = useMemo(() => {
+    if (!isPersonalized) {
+      return promotions.map((p) => ({ ...p, isDirectMatch: false, isCategoryMatch: false }));
+    }
+
+    const matched = [];
+    const seenIds = new Set();
+
+    for (const promo of promotions) {
+      const promoCats = getPromoCategories(promo);
+      const isDirectMatch = (promo.sourceServiceIds || []).some((id) =>
+        userSubscribedServiceIds.has(id)
+      );
+      const isCategoryMatch = Array.from(promoCats).some((c) =>
+        userSubscribedCategories.has(c)
+      );
+
+      if (isDirectMatch || isCategoryMatch) {
+        if (!seenIds.has(promo.id)) {
+          seenIds.add(promo.id);
+          matched.push({
+            ...promo,
+            isDirectMatch,
+            isCategoryMatch,
+          });
+        }
+      }
+    }
+
+    matched.sort((a, b) => {
+      if (a.isDirectMatch && !b.isDirectMatch) return -1;
+      if (!a.isDirectMatch && b.isDirectMatch) return 1;
+      return (b.saving || 0) - (a.saving || 0);
+    });
+
+    return matched;
+  }, [isPersonalized, promotions, userSubscribedServiceIds, userSubscribedCategories]);
+
+  const dynamicFilters = useMemo(() => {
+    if (!isPersonalized) {
+      return [
+        { id: "all", label: "전체" },
+        { id: "100원/무료", label: "0원 · 무료" },
+        { id: "OTT", label: "OTT 환승" },
+        { id: "음악", label: "음악" },
+        { id: "통신사/결합", label: "통신사 결합" },
+        { id: "학생/연간", label: "학생 · 연간" },
+      ];
+    }
+
+    const items = [{ id: "all", label: "맞춤 전체" }];
+
+    const hasDirect = candidatePromotions.some((p) => p.isDirectMatch);
+    if (hasDirect) {
+      items.push({ id: "direct", label: "내 구독 혜택" });
+    }
+
+    userSubscribedCategories.forEach((cat) => {
+      items.push({ id: cat, label: cat });
+    });
+
+    const hasFree = candidatePromotions.some(
+      (p) => p.offerPrice === 0 || p.offerPrice === 100 || p.category === "100원/무료"
+    );
+    if (hasFree) {
+      items.push({ id: "100원/무료", label: "0원 · 무료" });
+    }
+
+    return items;
+  }, [isPersonalized, userSubscribedCategories, candidatePromotions]);
+
+  useEffect(() => {
+    const isValid = dynamicFilters.some((f) => f.id === filter);
+    if (!isValid) {
+      setFilter("all");
+    }
+  }, [dynamicFilters, filter]);
 
   const filtered = useMemo(() => {
-    return promotions.filter((promo) => resolveFilter(promo, filter));
-  }, [filter, promotions]);
+    return candidatePromotions.filter((promo) =>
+      resolveFilter(promo, filter, userSubscribedServiceIds)
+    );
+  }, [candidatePromotions, filter, userSubscribedServiceIds]);
+
+  const categorySummary = useMemo(() => {
+    if (!isPersonalized) return "";
+    return Array.from(userSubscribedCategories).join(" · ");
+  }, [isPersonalized, userSubscribedCategories]);
 
   return (
-    <main className="px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-3 select-none">
-      {/* 1. 상단 텍스트 */}
-      <div className="pb-3.5">
-        <p className="text-[13px] text-gray-500 font-medium">
-          내 구독 패턴에 맞춘 알뜰 환승 프로모션과 엄선 제휴 혜택이에요
+    <main className="px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 select-none">
+      {/* 1. 상단 타이틀 & 안내 헤더 */}
+      <div className="pb-4">
+        <div className="flex items-center gap-1.5 text-[12px] font-extrabold text-[#FF6F0F] tracking-tight">
+          <Sparkles size={14} />
+          <span>{isPersonalized ? "내 구독 맞춤 혜택 진단" : "AI 숨은 혜택 발굴 진단"}</span>
+        </div>
+        <h1 className="mt-1 text-[22px] font-black tracking-tight text-[#191F28]">
+          놓치고 있던 숨은 혜택
+        </h1>
+        <p className="mt-1 text-[13.5px] text-[#6B7684] font-medium leading-relaxed">
+          {isPersonalized
+            ? `회원님이 이용 중인 ${categorySummary} 카테고리 기반으로 놓치고 있던 제휴 및 할인 혜택을 분석했어요.`
+            : "구독 중인 서비스가 없어 전체 혜택을 보여드려요. 구독을 추가하시면 딱 맞는 혜택만 골라드려요."}
         </p>
       </div>
 
-      {/* 2. 최상단 히어로 시각화 스와이프 캐러셀 */}
-      <div className="mb-6">
-        <VisualPromoCarousel
-          promotions={promotions}
-          onOpenPromotion={onOpenPromotion}
-        />
-      </div>
-
-      {/* 3. 심플 필터 탭 */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none mb-3" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-        {filters.map((item) => {
+      {/* 2. 심플 필터 탭 */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none mb-4" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+        {dynamicFilters.map((item) => {
           const isSelected = filter === item.id;
           return (
             <button
               key={item.id}
               type="button"
               onClick={() => setFilter(item.id)}
-              className={`px-3.5 py-1.5 rounded-full text-[12px] font-bold shrink-0 transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 transition-all cursor-pointer ${
                 isSelected
-                  ? "bg-[#111827] text-white shadow-xs"
+                  ? "bg-[#191F28] text-white shadow-xs"
                   : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
@@ -215,75 +243,48 @@ export function PromotionScreen({ subscriptions, promotions, onOpenPromotion }) 
         })}
       </div>
 
-      {/* 4. 열린 에디토리얼 프로모션 리스트 (박스형 카드 제거, 깔끔한 헤어라인 리스트) */}
-      <section className="divide-y divide-gray-100/80 border-t border-gray-100/80">
-        {filtered.map((promotion) => {
-          const isTargetMatched = promotion.sourceServiceIds?.some((id) => ownedIds.includes(id));
-          const promoId = promotion.id.toLowerCase();
-          const targetService =
-            promoId.includes("youtube") ? "youtube" :
-            promoId.includes("spotify") ? "spotify" :
-            promoId.includes("watcha") ? "watcha" :
-            promoId.includes("tving") ? "tving" :
-            promoId.includes("disney") ? "disney" :
-            promoId.includes("millie") ? "millie" :
-            promoId.includes("adobe") ? "adobe" :
-            promoId.includes("flo") ? "flo" :
-            promoId.includes("nerget") || promoId.includes("lgu") ? "uplus" :
-            promotion.sourceServiceIds?.[0] || promotion.id.split("-")[0];
+      {/* 3. 손글씨 빗금 구분선 기반 대형 혜택 블록 리스트 */}
+      <section className="mt-2 flex flex-col">
+        {filtered.length === 0 ? (
+          <div className="py-16 text-center text-[#8B95A1]">
+            <p className="text-[15px] font-bold">해당 카테고리의 맞춤 혜택이 없어요.</p>
+            <p className="mt-1 text-[13px]">다른 필터를 선택하거나 전체 혜택을 둘러보세요.</p>
+          </div>
+        ) : (
+          filtered.map((promotion, index) => {
+            const displayInfo = getServiceDisplayInfo(promotion);
+            const badgeInfo = getBadgeInfo(promotion, promotion.isDirectMatch);
 
-          return (
-            <div
-              key={promotion.id}
-              onClick={() => onOpenPromotion(promotion)}
-              className="py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50/40 transition-colors"
-              role="button"
-              tabIndex={0}
-            >
-              <div className="flex items-center gap-3.5 min-w-0 flex-1 pr-3">
-                <ServiceMark
-                  serviceId={targetService}
-                  name={targetService}
-                  monogram={promotion.monogram || promotion.title.slice(0, 1)}
-                  category={promotion.category}
-                  className="h-11 w-11 rounded-full"
+            // 통일된 절약 금액 양식 산출
+            const savingAmount = Number(promotion.saving) || 0;
+            const isAnnual = promotion.kind?.includes("연간") || promotion.category === "학생/연간";
+            const savingText = savingAmount > 0
+              ? (isAnnual ? `연 ${savingAmount.toLocaleString("ko-KR")}원 절약` : `월 ${savingAmount.toLocaleString("ko-KR")}원 절약`)
+              : (promotion.offerPrice === 0 ? "0원 무료" : null);
+
+            const offerPriceText = promotion.offerPrice === 0
+              ? "0원 무료"
+              : (promotion.offerPrice ? `${Number(promotion.offerPrice).toLocaleString("ko-KR")}원` : null);
+
+            return (
+              <div key={promotion.id} className="w-full">
+                <MacroPerkBlock
+                  serviceId={displayInfo.serviceId}
+                  serviceName={displayInfo.serviceName}
+                  solutionTitle={displayInfo.solutionTitle}
+                  description={promotion.description}
+                  savingText={savingText}
+                  offerPriceText={offerPriceText}
+                  isDirectMatch={badgeInfo.isHighlight}
+                  badgeText={badgeInfo.text}
+                  onAction={() => onOpenPromotion(promotion)}
                 />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-sm">
-                      {promotion.kind}
-                    </span>
-                    {promotion.benefitPeriod && (
-                      <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-sm">
-                        {promotion.benefitPeriod}
-                      </span>
-                    )}
-                    {isTargetMatched && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-sm">
-                        <Sparkles size={10} /> 추천
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="text-[15px] font-bold text-black tracking-tight mt-0.5 truncate">
-                    {promotion.title}
-                  </h3>
-                  <p className="text-[12px] text-gray-400 mt-0.5 truncate leading-tight">
-                    {promotion.description}
-                  </p>
-                </div>
+                {/* 마지막 아이템 뒤에는 구분선을 두지 않음 */}
+                {index < filtered.length - 1 && <HanddrawnHatchedDivider />}
               </div>
-
-              <div className="text-right shrink-0">
-                <strong className="block text-[15px] font-black text-[#111827] tracking-tight">
-                  {promotion.offerPrice === 0 ? "0원 무료" : formatWon(promotion.offerPrice)}
-                </strong>
-                <span className="block text-[11px] font-bold text-[#3182F6] mt-0.5">
-                  {formatWon(promotion.saving)} 절약
-                </span>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </section>
     </main>
   );

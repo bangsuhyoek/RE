@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <rect width="800" height="450" fill="#0A0A0A"/>
+  <g transform="translate(310, 110)">
+    <rect width="180" height="180" rx="45" fill="#000000"/>
+    <g transform="translate(25, 52) scale(3.5)"><text x="0" y="18" fill="#FFFFFF" font-family="serif" font-size="16" font-weight="bold" letter-spacing="0.5">WSJ</text></g>
+  </g>
+</svg>

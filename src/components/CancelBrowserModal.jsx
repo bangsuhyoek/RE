@@ -1,5 +1,16 @@
-import { useState, useRef } from "react";
-import { Lock, X, ExternalLink, ArrowRight, CheckCircle2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import {
+  Lock,
+  X,
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  ShieldCheck,
+  Minimize2,
+  CheckCircle2,
+  Compass,
+} from "lucide-react";
 
 function StepUiIllustration({ stepNumber, title, serviceName, large = false }) {
   if (stepNumber === 1) {
@@ -112,10 +123,34 @@ function StepUiIllustration({ stepNumber, title, serviceName, large = false }) {
   );
 }
 
+const TUTORIAL_HINTS = [
+  {
+    locationBadge: "📍 목표 위치: 화면 중앙 로그인 창",
+    dialogue: (name) => `${name} 공식 사이트가 열렸어! 먼저 계정으로 로그인해줘. 이미 로그인되어 있다면 바로 2단계로 넘어가자!`,
+    tip: "소셜 로그인(Google, 카카오 등)을 사용하는 경우 해당 소셜 계정으로 로그인하세요.",
+  },
+  {
+    locationBadge: "📍 목표 위치: 화면 우측 상단 프로필 / 메뉴 (↗)",
+    dialogue: () => `화면 우측 상단(↗)에 있는 프로필 아이콘이나 메뉴(☰)를 눌러서 [계정] 또는 [멤버십 관리] 메뉴를 찾아봐!`,
+    tip: "대부분의 서비스는 우측 상단 프로필 > 계정/설정에 구독 관리 메뉴가 위치해 있어요.",
+  },
+  {
+    locationBadge: "📍 목표 위치: 페이지 하단 스크롤 영역 (⬇)",
+    dialogue: () => `페이지를 아래(⬇)로 쭉 스크롤해봐! 찾기 어렵게 회색 작은 글씨나 링크로 [멤버십 해지]나 [구독 취소]가 숨겨져 있어. 과감하게 눌러줘!`,
+    tip: "해지 버튼은 종종 '혜택 유지' 버튼보다 눈에 덜 띄는 텍스트나 하단 구석에 배치되어 있어요.",
+  },
+  {
+    locationBadge: "📍 목표 위치: 혜택 제안 넘긴 후 최종 완료 팝업 (✓)",
+    dialogue: () => `할인해 주겠다며 붙잡는 혜택 제안들을 넘기고 최종 [해지 완료] 메시지를 확인하면 완벽해! 다 했으면 아래 [해지 완료했습니다]를 눌러줘!`,
+    tip: "최종 완료 화면을 확인한 후 아래 '해지 완료했습니다'를 누르면 절약 금액이 반영돼요.",
+  },
+];
+
 export function CancelBrowserModal({
   subscription,
   onClose,
   onComplete,
+  autoOpened = false,
 }) {
   const defaultSteps = [
     {
@@ -145,8 +180,16 @@ export function CancelBrowserModal({
     : defaultSteps;
 
   const [activeStepIndex, setActiveStepIndex] = useState(0);
-  const currentStep = steps[activeStepIndex] || steps[0];
+  const [minimized, setMinimized] = useState(false);
   const scrollContainerRef = useRef(null);
+  const currentStep = steps[activeStepIndex] || steps[0];
+  const stepHint = TUTORIAL_HINTS[Math.min(activeStepIndex, TUTORIAL_HINTS.length - 1)];
+
+  // 캐릭터 이미지: 마지막 완료 단계는 축하 표정, 그 외에는 가이드 표정
+  const isFinalStep = activeStepIndex === steps.length - 1;
+  const characterImg = isFinalStep
+    ? "/assets/kkudok/character_done.png"
+    : "/assets/kkudok/character_guide.png";
 
   const displayUrl = (() => {
     try {
@@ -155,6 +198,24 @@ export function CancelBrowserModal({
       return "official-cancel-page";
     }
   })();
+
+  const openWebsite = () => {
+    if (subscription.cancelUrl) {
+      window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const handleNext = () => {
+    if (activeStepIndex < steps.length - 1) {
+      handleCardClick(activeStepIndex + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (activeStepIndex > 0) {
+      handleCardClick(activeStepIndex - 1);
+    }
+  };
 
   const handleCardClick = (index) => {
     setActiveStepIndex(index);
@@ -166,29 +227,100 @@ export function CancelBrowserModal({
     }
   };
 
+  // 플로팅 캐릭터 미니 버블 모드 (최소화 상태)
+  if (minimized) {
+    return (
+      <div className="fixed bottom-6 right-4 z-50 flex items-end gap-2 select-none animate-in fade-in slide-in-from-bottom-4 duration-200">
+        {/* 캐릭터 말풍선 프리뷰 툴팁 */}
+        <button
+          type="button"
+          onClick={() => setMinimized(false)}
+          className="rounded-2xl border border-blue-200 bg-white/95 px-3.5 py-2 text-left shadow-xl backdrop-blur-md transition-all active:scale-95 cursor-pointer max-w-[210px]"
+        >
+          <div className="flex items-center gap-1 text-[10px] font-bold text-blue-600">
+            <Sparkles size={11} />
+            <span>꾸독이 해지 가이드</span>
+            <span className="rounded bg-blue-100 px-1 text-[9px] font-extrabold">{activeStepIndex + 1}/{steps.length}</span>
+          </div>
+          <p className="mt-0.5 text-[11px] font-bold text-[#191F28] truncate">
+            {currentStep.title}
+          </p>
+          <p className="text-[10px] text-gray-500 truncate">
+            탭하여 튜토리얼 카드 열기
+          </p>
+        </button>
+
+        {/* 원형 마스코트 플로팅 버튼 */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setMinimized(false)}
+            aria-label="튜토리얼 열기"
+            className="group relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-2xl ring-4 ring-white transition-all active:scale-90 hover:scale-105 cursor-pointer animate-tutorial-float overflow-hidden"
+          >
+            <img
+              src="/assets/kkudok/character_mascot.png"
+              alt="꾸독이"
+              className="h-13 w-13 object-contain drop-shadow"
+            />
+            {/* 스텝 번호 배지 */}
+            <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#FF4D4D] text-[11px] font-black text-white shadow-md ring-2 ring-white">
+              {activeStepIndex + 1}
+            </span>
+          </button>
+          {/* 닫기 (X) */}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="가이드 닫기"
+            className="absolute -top-2 -left-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-700 text-white hover:bg-black shadow-xs cursor-pointer"
+          >
+            <X size={10} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 전체 화면 게임 튜토리얼 컨시어지 뷰
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white select-none animate-in fade-in duration-200">
-      {/* 상단 헤더 */}
+      {/* 상단 툴바 헤더 */}
       <header className="min-h-[calc(52px+env(safe-area-inset-top,0px))] shrink-0 border-b border-gray-200 bg-white px-4 pt-safe flex items-center justify-between shadow-2xs">
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-gray-100 text-black">
-            <Lock size={14} className="text-blue-600" />
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-blue-50 text-blue-600">
+            <Compass size={16} />
           </span>
           <div className="min-w-0">
-            <p className="text-[13px] font-bold text-black leading-tight truncate">
-              {subscription.name} 해지 가이드
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-[13px] font-extrabold text-[#191F28] leading-tight truncate">
+                {subscription.name} 해지 튜토리얼
+              </p>
+              <span className="rounded-full bg-blue-100 px-1.5 py-0.2 text-[9px] font-bold text-blue-700">
+                컨시어지
+              </span>
+            </div>
             <p className="text-[11px] text-gray-400 font-medium leading-tight truncate">
               {displayUrl}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* 최소화 버튼 */}
+          <button
+            type="button"
+            onClick={() => setMinimized(true)}
+            aria-label="미니 버블로 최소화"
+            className="flex items-center gap-1 rounded-xl bg-gray-100 px-2.5 py-1.5 text-[11px] font-bold text-[#4E5968] hover:bg-gray-200 active:scale-95 transition-all cursor-pointer"
+          >
+            <Minimize2 size={13} />
+            <span className="hidden sm:inline">최소화</span>
+          </button>
           <button
             type="button"
             onClick={onComplete}
-            className="rounded-xl bg-[#111827] px-3.5 py-1.5 text-[12px] font-bold text-white shadow-xs hover:bg-black active:scale-95 transition-all cursor-pointer"
+            className="rounded-xl bg-[#191F28] px-3 py-1.5 text-[12px] font-bold text-white shadow-xs hover:bg-black active:scale-95 transition-all cursor-pointer"
           >
             해지 완료
           </button>
@@ -203,24 +335,67 @@ export function CancelBrowserModal({
         </div>
       </header>
 
-      {/* 중앙 메인 안내 & 단계별 UI 시각 가이드 영역 */}
-      <main className="relative flex-1 bg-gray-50 overflow-hidden flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-sm bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center p-5 text-center overflow-hidden">
-          {/* 상단 스텝 라벨 */}
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">
-              {currentStep.stepNumber}단계
-            </span>
-            <h3 className="text-[16px] font-bold text-black">
-              {currentStep.title}
-            </h3>
-          </div>
-          <p className="text-[12px] text-gray-500 mb-4 max-w-[260px] leading-relaxed">
-            {currentStep.description}
-          </p>
+      {/* 중앙 메인 튜토리얼 스테이지 */}
+      <main className="relative flex-1 bg-[#F9FAFB] overflow-y-auto p-4 flex flex-col items-center">
+        <div className="w-full max-w-sm flex flex-col items-center gap-3.5 my-auto pb-4">
+          
+          {/* 게임 튜토리얼 캐릭터 & 말풍선 인터랙션 영역 */}
+          <div className="w-full flex items-start gap-3">
+            {/* 캐릭터 마스코트 아바타 (통통 튀는 애니메이션) */}
+            <div className="shrink-0 flex flex-col items-center">
+              <div className="relative">
+                <img
+                  src={characterImg}
+                  alt="꾸독이"
+                  className="h-24 w-24 object-contain drop-shadow-md animate-tutorial-float transition-all duration-300"
+                />
+                <span className="absolute -bottom-1 -right-1 rounded-full bg-blue-600 px-1.5 py-0.5 text-[9px] font-extrabold text-white shadow-sm ring-1 ring-white">
+                  꾸독이
+                </span>
+              </div>
+            </div>
 
-          {/* 중앙 실제 UI 단계 다이어그램 (AI/스톡 사진 대신 실제 UI 와이어프레임) */}
-          <div className="w-full h-44 rounded-xl overflow-hidden border border-gray-200 mb-4 shadow-2xs">
+            {/* 게임 튜토리얼 대화 말풍선 */}
+            <div className="relative flex-1 rounded-2xl border border-blue-200/80 bg-white p-3.5 shadow-md">
+              {/* 말풍선 꼬리 */}
+              <div className="absolute top-6 -left-2 h-3.5 w-3.5 -rotate-45 border-l border-t border-blue-200/80 bg-white" />
+
+              {/* 말풍선 헤더 */}
+              <div className="flex items-center justify-between gap-1 mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="rounded-md bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    Step {currentStep.stepNumber}
+                  </span>
+                  <span className="text-[13px] font-extrabold text-[#191F28]">
+                    {currentStep.title}
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold text-gray-400">
+                  {activeStepIndex + 1}/{steps.length}
+                </span>
+              </div>
+
+              {/* 게임 튜토리얼 위치 안내 배지 (화면 인식 대신 직관적 위치 가이드) */}
+              <div className="rounded-lg bg-blue-50/80 px-2 py-1 mb-2 border border-blue-100/60">
+                <p className="text-[11px] font-bold text-blue-800 leading-tight">
+                  {stepHint.locationBadge}
+                </p>
+              </div>
+
+              {/* 캐릭터 친근한 대사 */}
+              <p className="text-[12px] font-semibold text-[#333D4B] leading-relaxed">
+                "{stepHint.dialogue(subscription.name)}"
+              </p>
+
+              {/* 추가 팁 */}
+              <p className="mt-2 text-[11px] text-[#8B95A1] leading-normal border-t border-gray-100 pt-1.5">
+                💡 {stepHint.tip}
+              </p>
+            </div>
+          </div>
+
+          {/* 중앙 실제 UI 단계 다이어그램 (표준 UI 와이어프레임) */}
+          <div className="w-full h-40 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
             <StepUiIllustration
               stepNumber={currentStep.stepNumber}
               title={currentStep.title}
@@ -229,26 +404,69 @@ export function CancelBrowserModal({
             />
           </div>
 
-          <a
-            href={subscription.cancelUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#111827] py-3 text-[13px] font-bold text-white shadow-xs hover:bg-black active:scale-98 transition-all cursor-pointer"
-          >
-            {subscription.name} 공식 해지 사이트 열기 <ExternalLink size={14} />
-          </a>
+          {/* 보안 안심 안내 배지 (화면 인식 불가 사유 명시) */}
+          <div className="w-full rounded-xl bg-gray-100/90 px-3 py-2 border border-gray-200/60 flex items-center gap-2">
+            <ShieldCheck size={16} className="text-gray-500 shrink-0" />
+            <p className="text-[10px] text-gray-600 leading-tight">
+              <span className="font-bold text-gray-800">보안 안내:</span> 개인정보 및 금융 보안을 위해 외부 웹 화면을 캡처하거나 인식하지 않고 사전 검증된 튜토리얼 경로로 안내합니다.
+            </p>
+          </div>
+
+          {/* 주요 액션 버튼 */}
+          <div className="w-full space-y-2">
+            <button
+              type="button"
+              onClick={openWebsite}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#191F28] py-3 text-[13px] font-bold text-white shadow-xs hover:bg-black active:scale-98 transition-all cursor-pointer"
+            >
+              <span>{subscription.name} 공식 웹사이트 열기</span>
+              <ExternalLink size={14} />
+            </button>
+
+            {isFinalStep && (
+              <button
+                type="button"
+                onClick={onComplete}
+                className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#3182F6] py-3 text-[13px] font-extrabold text-white shadow-md hover:bg-[#1B64DA] active:scale-98 transition-all cursor-pointer animate-pulse"
+              >
+                <CheckCircle2 size={16} />
+                <span>해지를 완료했습니다 (절약 금액 반영)</span>
+              </button>
+            )}
+          </div>
         </div>
       </main>
 
-      {/* 하단 가이드 도크 (단계별 미니어처 UI 스와이프 리스트) */}
+      {/* 하단 가이드 도크 & 단계별 스와이프 컨트롤 */}
       <section className="shrink-0 border-t border-gray-200 bg-white flex flex-col justify-between px-4 pt-3 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] shadow-sm">
         <div className="flex items-center justify-between gap-2 mb-2">
-          <span className="text-[12px] font-bold text-black">
-            진행 순서 ({activeStepIndex + 1}/{steps.length})
-          </span>
-          <span className="text-[11px] font-medium text-gray-400">
-            카드 탭 시 해당 단계 미리보기
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[12px] font-bold text-[#191F28]">
+              튜토리얼 진행 단계
+            </span>
+            <span className="rounded-full bg-gray-100 px-1.5 py-0.2 text-[10px] font-bold text-gray-600">
+              {activeStepIndex + 1}/{steps.length}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              disabled={activeStepIndex === 0}
+              onClick={handlePrev}
+              className="flex items-center gap-0.5 rounded-lg px-2 py-1 text-[11px] font-bold text-blue-600 hover:bg-blue-50 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+            >
+              <ChevronLeft size={14} /> 이전
+            </button>
+            <button
+              type="button"
+              disabled={activeStepIndex === steps.length - 1}
+              onClick={handleNext}
+              className="flex items-center gap-0.5 rounded-lg px-2 py-1 text-[11px] font-bold text-blue-600 hover:bg-blue-50 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+            >
+              다음 <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
 
         {/* 미니어처 UI 단계 카드 리스트 */}
@@ -269,7 +487,7 @@ export function CancelBrowserModal({
                     ? "ring-2 ring-blue-600 ring-offset-1 shadow-sm scale-[1.02]"
                     : "opacity-60 hover:opacity-90 border border-gray-200"
                 }`}
-                style={{ width: "92px", height: "88px" }}
+                style={{ width: "92px", height: "84px" }}
               >
                 <StepUiIllustration
                   stepNumber={step.stepNumber}

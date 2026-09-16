@@ -160,6 +160,14 @@
             android:gravity="center_vertical"
             android:layout_marginBottom="6dp">
 
+            <ImageView
+                android:id="@+id/ivDockCharacter"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/kkudok_character_mascot"
+                android:contentDescription="꾸독이"
+                android:layout_marginEnd="6dp" />
+
             <TextView
                 android:id="@+id/tvStepBadge"
                 android:layout_width="wrap_content"

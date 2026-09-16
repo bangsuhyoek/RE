@@ -10,8 +10,8 @@
         android:layout_height="56dp"
         android:background="@drawable/bg_bubble_circle"
         android:elevation="8dp"
-        android:padding="12dp"
-        android:src="@drawable/ic_submate_guide"
+        android:padding="6dp"
+        android:src="@drawable/kkudok_character_mascot"
         android:contentDescription="해지 가이드 버블" />
 
     <TextView
