@@ -1,1 +1,1 @@
-retry latest validated APK after resolver-table assertion fix
+diagnose actual overlay removal on latest validated APK
