@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      GOLDEN_WEB_URL: 'https://sdmntprjapaneast.oaiusercontent.com/files/00000000-f590-8209-bef2-617b352b3e39/raw?se=2026-09-16T18%3A29%3A46Z&sp=r&sv=2026-02-06&sr=b&scid=e0caf424-b1fc-57e8-85a1-fffd8098fe94&skoid=03727f49-62d3-42ac-8350-1c0e6559d238&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-15T20%3A25%3A08Z&ske=2026-09-16T20%3A25%3A08Z&sks=b&skv=2026-02-06&sig=59WWCCXmYUi0cH3zgQBru/8a256%2BuRU7l1sCwNZ2rTU%3D'
+      GOLDEN_WEB_URL: 'https://sdmntprjapaneast.oaiusercontent.com/files/00000000-a60c-8209-b949-6804282e7278/raw?se=2026-09-16T18%3A43%3A49Z&sp=r&sv=2026-02-06&sr=b&scid=f1c991e0-88b0-5aed-9ca4-beb944fcec55&skoid=03727f49-62d3-42ac-8350-1c0e6559d238&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-16T18%3A04%3A44Z&ske=2026-09-17T18%3A04%3A44Z&sks=b&skv=2026-02-06&sig=3Go/nXaRbHs02kTDJNVZ37RY/qTkoVArOKYjiPQ9MvY%3D'
       GOLDEN_WEB_SHA256: c419cb9a3088839d4dfa263e9993c301257650cb7d51ec60e43426745d716700
     steps:
       - name: Checkout donor-native baseline
