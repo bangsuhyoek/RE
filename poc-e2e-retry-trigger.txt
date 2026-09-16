@@ -1,1 +1,1 @@
-retry validated APK artifact after slow-emulator hardening
+retry validated APK with explicit receiver and filtered logcat
