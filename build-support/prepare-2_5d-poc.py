@@ -107,10 +107,6 @@ def install_poc_native_templates() -> None:
         ROOT / "poc-src-templates" / "debug" / "PocPaymentReceiver.java",
         debug_java / "PocPaymentReceiver.java",
     )
-    shutil.copy2(
-        ROOT / "poc-src-templates" / "debug" / "PocPaymentTriggerActivity.java",
-        debug_java / "PocPaymentTriggerActivity.java",
-    )
     debug_manifest = OUT / "android" / "app" / "src" / "debug" / "AndroidManifest.xml"
     debug_manifest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "poc-src-templates" / "debug" / "AndroidManifest.xml", debug_manifest)
@@ -142,6 +138,15 @@ def patch_android_config() -> None:
     if "android.permission.SYSTEM_ALERT_WINDOW" not in m:
         m = m.replace("</manifest>", permission + "\n</manifest>")
     m = m.replace('    <uses-permission android:name="android.permission.CAMERA" />\n', "")
+    trigger_activity = """        <activity
+            android:name="kr.co.re.subscription.payment.PocPaymentTriggerActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+"""
+    if "PocPaymentTriggerActivity" not in m:
+        m = m.replace("</application>", trigger_activity + "    </application>")
     manifest.write_text(m, encoding="utf-8")
 
 def patch_web_bridge() -> None:
