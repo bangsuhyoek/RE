@@ -28,6 +28,7 @@ public final class AnimatedConciergeOverlayController {
     private static WindowManager windowManager;
     private static FrameLayout currentRoot;
     private static long shownAt;
+    private static long animationStartedAt;
     private static int generation;
 
     private AnimatedConciergeOverlayController() {}
@@ -57,7 +58,11 @@ public final class AnimatedConciergeOverlayController {
             return false;
         }
 
-        MAIN.post(() -> showOnMain(app, candidateId, payment, eventType));
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            showOnMain(app, candidateId, payment, eventType);
+        } else {
+            MAIN.post(() -> showOnMain(app, candidateId, payment, eventType));
+        }
         return true;
     }
 
@@ -143,6 +148,7 @@ public final class AnimatedConciergeOverlayController {
             windowManager = wm;
             currentRoot = root;
             shownAt = System.currentTimeMillis();
+            animationStartedAt = 0L;
             Log.i(TAG, "show event=" + eventType
                     + " candidate=" + candidateId
                     + " durationMs=" + EXPECTED_DURATION_MS
@@ -155,7 +161,11 @@ public final class AnimatedConciergeOverlayController {
 
             lottie.addAnimatorListener(new Animator.AnimatorListener() {
                 @Override public void onAnimationStart(Animator animation) {
+                    animationStartedAt = System.currentTimeMillis();
                     Log.i(TAG, "animation_start event=" + eventType);
+                    MAIN.postDelayed(() -> {
+                        if (token == generation) removeCurrent("safety_timeout");
+                    }, SAFETY_REMOVE_MS);
                 }
                 @Override public void onAnimationEnd(Animator animation) {
                     if (token == generation) removeCurrent("animation_end");
@@ -164,10 +174,6 @@ public final class AnimatedConciergeOverlayController {
                 @Override public void onAnimationRepeat(Animator animation) {}
             });
             lottie.playAnimation();
-
-            MAIN.postDelayed(() -> {
-                if (token == generation) removeCurrent("safety_timeout");
-            }, SAFETY_REMOVE_MS);
         } catch (Exception error) {
             currentRoot = null;
             windowManager = null;
@@ -181,7 +187,9 @@ public final class AnimatedConciergeOverlayController {
         if (root == null || wm == null) return;
         currentRoot = null;
         windowManager = null;
-        long elapsed = shownAt > 0L ? System.currentTimeMillis() - shownAt : 0L;
+        long base = animationStartedAt > 0L ? animationStartedAt : shownAt;
+        long elapsed = base > 0L ? System.currentTimeMillis() - base : 0L;
+        animationStartedAt = 0L;
         try {
             wm.removeViewImmediate(root);
         } catch (Exception error) {
