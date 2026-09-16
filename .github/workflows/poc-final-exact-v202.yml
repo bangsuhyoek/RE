@@ -123,7 +123,11 @@ jobs:
           set -euo pipefail
           echo "ANDROID_HOME=$ANDROID_HOME"
           test -d "$ANDROID_HOME"
-          sdkmanager --list_installed | sed -n '1,120p'
+          echo "Build tools:"
+          ls -1 "$ANDROID_HOME/build-tools" | tail -n 20
+          echo "Platforms:"
+          ls -1 "$ANDROID_HOME/platforms" | tail -n 20
+          test -d "$ANDROID_HOME/platforms/android-36"
 
       - name: Capacitor sync
         working-directory: poc-build-src
