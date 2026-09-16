@@ -82,30 +82,14 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
-            set -e
-            APK=/tmp/re_webguide_poc/demo-app/build/outputs/apk/debug/demo-app-debug.apk
-            adb install -r "$APK"
+            adb install -r /tmp/re_webguide_poc/demo-app/build/outputs/apk/debug/demo-app-debug.apk
             adb shell am force-stop com.re.webguide.demo
             adb shell am start -W -n com.re.webguide.demo/.DemoActivity
             sleep 2
             mkdir -p poc-runtime
             adb shell uiautomator dump /sdcard/re_launcher.xml
             adb pull /sdcard/re_launcher.xml poc-runtime/launcher.xml
-            python3 - <<'PY'
-            import re, subprocess, xml.etree.ElementTree as ET
-            root=ET.parse("poc-runtime/launcher.xml").getroot()
-            target=None
-            for n in root.iter("node"):
-                if "Web Guide" in n.attrib.get("text","") and "네이버플러스" in n.attrib.get("text",""):
-                    target=n
-                    break
-            if target is None:
-                raise SystemExit("Demo launch button not found")
-            m=re.match(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",target.attrib["bounds"])
-            x=(int(m.group(1))+int(m.group(3)))//2
-            y=(int(m.group(2))+int(m.group(4)))//2
-            subprocess.run(["adb","shell","input","tap",str(x),str(y)],check=True)
-            PY
+            python3 -c 'import re,subprocess,xml.etree.ElementTree as ET; root=ET.parse("poc-runtime/launcher.xml").getroot(); target=next((n for n in root.iter("node") if "Web Guide" in n.attrib.get("text","") and "네이버플러스" in n.attrib.get("text","")),None); assert target is not None,"Demo launch button not found"; m=re.match(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]",target.attrib["bounds"]); x=(int(m.group(1))+int(m.group(3)))//2; y=(int(m.group(2))+int(m.group(4)))//2; subprocess.run(["adb","shell","input","tap",str(x),str(y)],check=True)'
             sleep 12
             adb shell uiautomator dump /sdcard/re_web.xml || true
             adb pull /sdcard/re_web.xml poc-runtime/web.xml || true
