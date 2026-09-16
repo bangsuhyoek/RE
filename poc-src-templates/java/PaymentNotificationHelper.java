@@ -89,7 +89,8 @@ public final class PaymentNotificationHelper {
             int notificationId = !stableId.isEmpty()
                     ? stableId.hashCode()
                     : (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
-            manager.notify(notificationId, builder.build());\n            Log.i(TAG, "posted candidate=" + stableId + " notificationId=" + notificationId + " channel=" + CHANNEL_ID);
+            manager.notify(notificationId, builder.build());
+            Log.i(TAG, "posted candidate=" + stableId + " notificationId=" + notificationId + " channel=" + CHANNEL_ID);
         } catch (Exception e) {
             Log.e(TAG, "notification dispatch failed", e);
         }
