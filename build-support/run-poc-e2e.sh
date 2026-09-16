@@ -14,9 +14,22 @@ timeout 180s adb install -r "$APK"
 timeout 30s adb shell pm grant kr.co.re.subscription android.permission.POST_NOTIFICATIONS
 timeout 30s adb shell appops set kr.co.re.subscription SYSTEM_ALERT_WINDOW allow
 timeout 30s adb shell settings put global heads_up_notifications_enabled 1
-timeout 30s adb shell input keyevent 82 || true
+
+timeout 30s adb shell dumpsys package kr.co.re.subscription > e2e/package.txt
+grep -q "PocPaymentReceiver" e2e/package.txt
+grep -q "PaymentNotificationListener" e2e/package.txt
+
+timeout 60s adb shell am start -W -n kr.co.re.subscription/kr.co.re.subscription.MainActivity > e2e/activity-start.txt || true
+sleep 3
 timeout 30s adb shell input keyevent 3 || true
 sleep 2
+
+capture_re_logs() {
+  local out="$1"
+  timeout 15s adb logcat -d -v epoch \
+    -s REConciergeOverlay:I REPaymentCoordinator:I REPocReceiver:I REPaymentNotif:I AndroidRuntime:E '*:S' \
+    > "$out" || true
+}
 
 wait_for_log() {
   local pattern="$1"
@@ -24,14 +37,14 @@ wait_for_log() {
   local limit="${3:-90}"
   local i
   for ((i=0;i<limit;i++)); do
-    timeout 15s adb logcat -d -v epoch > "$out" || true
+    capture_re_logs "$out"
     if grep -q "$pattern" "$out"; then
       return 0
     fi
     sleep 1
   done
   echo "Timed out waiting for log pattern: $pattern" >&2
-  tail -n 250 "$out" >&2 || true
+  cat "$out" >&2 || true
   return 1
 }
 
@@ -39,26 +52,29 @@ trigger_event_async() {
   local service="$1"
   local concierge="$2"
   local outfile="$3"
-  (
-    timeout 120s adb shell am broadcast       -a kr.co.re.subscription.POC_NEW_SUBSCRIPTION       -p kr.co.re.subscription       --es service "$service"       --ez force_new true       --ez concierge_enabled "$concierge"       --ez candidate_alert_enabled true       > "$outfile" 2>&1
-  ) &
-  echo $!
+  timeout 90s adb shell am broadcast \
+    --receiver-foreground \
+    -n kr.co.re.subscription/kr.co.re.subscription.payment.PocPaymentReceiver \
+    -a kr.co.re.subscription.POC_NEW_SUBSCRIPTION \
+    --es service "$service" \
+    --ez force_new true \
+    --ez concierge_enabled "$concierge" \
+    --ez candidate_alert_enabled true \
+    > "$outfile" 2>&1 &
+  BCAST_PID=$!
 }
 
-# Main path: trigger asynchronously because Android's broadcast command can block
-# on a resource-starved CI emulator even after the app receiver has already run.
 timeout 30s adb logcat -c
-BCAST_PID="$(trigger_event_async netflix true e2e/broadcast-enabled.txt)"
+trigger_event_async netflix true e2e/broadcast-enabled.txt
 wait_for_log "REConciergeOverlay: animation_start" e2e/enabled-live.log 120
 
-# Capture while the animation is active, then once more after it should have ended.
 sleep 0.35
 timeout 25s adb exec-out screencap -p > e2e/overlay_active.png
 sleep 5.65
 timeout 25s adb exec-out screencap -p > e2e/after_overlay.png
 wait "$BCAST_PID" || true
 
-timeout 20s adb logcat -d -v epoch > e2e/enabled.log
+capture_re_logs e2e/enabled.log
 
 grep -q "REPaymentNotif: posted candidate=" e2e/enabled.log
 grep -q "event=NEW_SUBSCRIPTION_DETECTED" e2e/enabled.log
@@ -92,12 +108,12 @@ timeout 30s adb shell dumpsys notification --noredact > e2e/notification.txt
 grep -q "kr.co.re.subscription" e2e/notification.txt
 grep -q "importance=4" e2e/notification.txt
 
-python3 build-support/check-poc-screenshots.py   e2e/overlay_active.png e2e/after_overlay.png e2e/visual-analysis.json
+python3 build-support/check-poc-screenshots.py \
+  e2e/overlay_active.png e2e/after_overlay.png e2e/visual-analysis.json
 
-# Overlay permission denied: candidate + heads-up continue, overlay is suppressed.
 timeout 30s adb shell appops set kr.co.re.subscription SYSTEM_ALERT_WINDOW deny
 timeout 30s adb logcat -c
-BCAST_PID="$(trigger_event_async youtube true e2e/broadcast-denied.txt)"
+trigger_event_async youtube true e2e/broadcast-denied.txt
 wait_for_log "headsUp=true overlay=false" e2e/overlay-denied.log 90
 wait "$BCAST_PID" || true
 grep -q "overlay_permission_missing" e2e/overlay-denied.log
@@ -105,23 +121,23 @@ grep -q "headsUp=true overlay=false" e2e/overlay-denied.log
 timeout 20s adb shell run-as kr.co.re.subscription cat shared_prefs/re_payment_candidates.xml > e2e/candidates-after-denied.xml
 grep -qi "youtube" e2e/candidates-after-denied.xml
 
-# Concierge OFF: candidate + heads-up continue, character is suppressed.
 timeout 30s adb shell appops set kr.co.re.subscription SYSTEM_ALERT_WINDOW allow
 timeout 30s adb logcat -c
-BCAST_PID="$(trigger_event_async netflix false e2e/broadcast-off.txt)"
+trigger_event_async netflix false e2e/broadcast-off.txt
 wait_for_log "conciergeEnabled=false" e2e/concierge-off.log 90
 wait "$BCAST_PID" || true
 grep -q "headsUp=true overlay=false conciergeEnabled=false" e2e/concierge-off.log
 timeout 20s adb shell run-as kr.co.re.subscription cat shared_prefs/re_payment_candidates.xml > e2e/candidates-after-off.xml
 grep -qi "netflix" e2e/candidates-after-off.xml
 
-# Deep-link smoke.
 timeout 30s adb logcat -c
-timeout 45s adb shell am start -a android.intent.action.VIEW   -d "reapp://payment/candidate?id=smoke-final" kr.co.re.subscription   > e2e/deeplink-start.txt
+timeout 45s adb shell am start -a android.intent.action.VIEW \
+  -d "reapp://payment/candidate?id=smoke-final" kr.co.re.subscription \
+  > e2e/deeplink-start.txt
 sleep 3
 timeout 20s adb shell pidof kr.co.re.subscription | tee e2e/pid.txt
 test -s e2e/pid.txt
-timeout 20s adb logcat -d -v epoch > e2e/deeplink.log
+capture_re_logs e2e/deeplink.log
 
 cat e2e/enabled.log e2e/overlay-denied.log e2e/concierge-off.log e2e/deeplink.log > e2e/all.log
 if grep -E "FATAL EXCEPTION|ANR in kr.co.re.subscription" e2e/all.log; then
