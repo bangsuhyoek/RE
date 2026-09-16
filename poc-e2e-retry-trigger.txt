@@ -1,1 +1,1 @@
-retry validated APK artifact after POSIX shell fix
+retry validated APK artifact with checked-in E2E script
