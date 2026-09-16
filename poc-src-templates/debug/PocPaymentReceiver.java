@@ -10,9 +10,13 @@ public class PocPaymentReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        KnownSubscriptionSnapshotStore.syncEmptyForPoc(context);
-        ConciergePreferences.setEnabled(context, true);
-        PaymentCapturePreferences.setCandidateNotificationsEnabled(context, true);
+        boolean forceNew = intent == null || intent.getBooleanExtra("force_new", true);
+        boolean conciergeEnabled = intent == null || intent.getBooleanExtra("concierge_enabled", true);
+        boolean candidateAlertEnabled = intent == null || intent.getBooleanExtra("candidate_alert_enabled", true);
+
+        if (forceNew) KnownSubscriptionSnapshotStore.syncEmptyForPoc(context);
+        ConciergePreferences.setEnabled(context, conciergeEnabled);
+        PaymentCapturePreferences.setCandidateNotificationsEnabled(context, candidateAlertEnabled);
 
         String service = intent != null ? intent.getStringExtra("service") : null;
         if (service == null || service.isEmpty()) service = "netflix";
@@ -34,6 +38,8 @@ public class PocPaymentReceiver extends BroadcastReceiver {
                 + " candidate=" + result.candidateId
                 + " headsUp=" + result.headsUpRequested
                 + " overlay=" + result.overlayRequested
+                + " conciergeEnabled=" + conciergeEnabled
+                + " candidateAlertEnabled=" + candidateAlertEnabled
                 + " candidates=" + PaymentCandidateStore.list(context).length());
     }
 }
