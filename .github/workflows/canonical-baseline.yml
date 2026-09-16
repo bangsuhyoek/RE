@@ -225,8 +225,8 @@ jobs:
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: |
-            set -euxo pipefail
-            APK=$(find artifact -type f -name app-debug.apk -print -quit)
+            set -eu
+            APK=$(find artifact -type f -name canonical-baseline.apk -print -quit)
             adb install -r "$APK"
             adb logcat -c
             adb shell cmd notification allow_listener kr.co.re.subscription/kr.co.re.subscription.payment.PaymentNotificationListener
