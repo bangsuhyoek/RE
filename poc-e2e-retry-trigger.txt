@@ -1,1 +1,1 @@
-diagnose actual overlay removal on latest validated APK
+retry latest validated APK after timing parser fix
