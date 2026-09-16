@@ -1,1 +1,1 @@
-retry validated APK artifact with checked-in E2E script
+retry validated APK artifact after slow-emulator hardening
