@@ -43,11 +43,19 @@ def overlay_rich_web() -> None:
             raise RuntimeError(f"RE_WEB_ASSETS_ZIP not found: {source}")
         with zipfile.ZipFile(source) as zf:
             files = [entry for entry in zf.infolist() if not entry.is_dir()]
-            if not any(entry.filename == "app.js" for entry in files):
+            names = {entry.filename for entry in files}
+            if "app.js" in names:
+                prefix = ""
+            elif "public/app.js" in names:
+                prefix = "public/"
+            else:
                 raise RuntimeError("external v2.0.2 web bundle missing app.js")
             for entry in files:
-                rel = Path(entry.filename)
-                if rel.is_absolute() or ".." in rel.parts:
+                if prefix and not entry.filename.startswith(prefix):
+                    continue
+                raw = entry.filename[len(prefix):] if prefix else entry.filename
+                rel = Path(raw)
+                if not raw or rel.is_absolute() or ".." in rel.parts:
                     raise RuntimeError(f"unsafe web asset path: {entry.filename}")
                 dest = OUT / rel
                 dest.parent.mkdir(parents=True, exist_ok=True)
