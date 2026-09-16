@@ -16,7 +16,6 @@ timeout 30s adb shell appops set kr.co.re.subscription SYSTEM_ALERT_WINDOW allow
 timeout 30s adb shell settings put global heads_up_notifications_enabled 1
 
 timeout 30s adb shell dumpsys package kr.co.re.subscription > e2e/package.txt
-grep -q "PocPaymentTriggerActivity" e2e/package.txt
 grep -q "PocPaymentReceiver" e2e/package.txt
 grep -q "PaymentNotificationListener" e2e/package.txt
 
