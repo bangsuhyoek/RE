@@ -25,22 +25,23 @@ jobs:
           URL="$(cat poc-source-url.txt)"
           curl --fail --location --retry 3 --retry-delay 2 "$URL" -o /tmp/re-v202-web.zip
           test -s /tmp/re-v202-web.zip
-          echo "6b4a3aabe47da93ddc4b1ca252ae32fda242658df9c61a75a72739756370cbc8  /tmp/re-v202-web.zip" | sha256sum -c -
+          echo "c419cb9a3088839d4dfa263e9993c301257650cb7d51ec60e43426745d716700  /tmp/re-v202-web.zip" | sha256sum -c -
           python - <<'PY'
           import zipfile
           p='/tmp/re-v202-web.zip'
           with zipfile.ZipFile(p) as z:
               names=set(z.namelist())
+              prefix='public/' if 'public/app.js' in names else ''
               required={
-                  'app.js','index.html','styles.css','src/native.js','src/re-integration.js',
-                  'assets/concierge/motions/re_motion_15_notification.webp',
-                  'assets/concierge/motions/re_motion_21_subscription_checking.webp',
-                  'assets/concierge/interactions/re_interaction_look.webp'
+                  prefix+'app.js',prefix+'index.html',prefix+'styles.css',prefix+'src/native.js',prefix+'src/re-integration.js',
+                  prefix+'assets/concierge/motions/re_motion_15_notification.webp',
+                  prefix+'assets/concierge/motions/re_motion_21_subscription_checking.webp',
+                  prefix+'assets/concierge/interactions/re_interaction_look.webp'
               }
               missing=sorted(required-names)
               assert not missing, missing
               assert len([n for n in names if n and not n.endswith('/')]) == 133
-              print('Exact WebView source verified:', len(names), 'zip entries')
+              print('Exact WebView source verified:', len(names), 'zip entries, prefix=',prefix)
           PY
 
       - name: Setup Python
