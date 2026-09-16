@@ -13,14 +13,16 @@ timeout 30s adb shell pm grant kr.co.re.subscription android.permission.POST_NOT
 timeout 30s adb shell appops set kr.co.re.subscription SYSTEM_ALERT_WINDOW allow
 timeout 30s adb shell settings put global heads_up_notifications_enabled 1
 
-# Warm the app once, then return to the launcher. The actual visual trigger below
-# is a broadcast receiver so it does not bring RE's Activity/task to the foreground.
+# Warm RE once, then leave the launcher as the stable visual background.
 timeout 30s adb shell am start -W -n kr.co.re.subscription/kr.co.re.subscription.MainActivity > visual-e2e/main-start.txt || true
 sleep 1
 timeout 30s adb shell input keyevent 3 || true
 sleep 1
 
-timeout 15s adb exec-out screencap -p > visual-e2e/baseline.png
+# Device-side screencap avoids the multi-second exec-out transport delay that can
+# cause a short-lived Heads-up notification to disappear before capture.
+timeout 10s adb shell screencap -p /sdcard/re-baseline.png
+timeout 10s adb pull /sdcard/re-baseline.png visual-e2e/baseline.png
 
 timeout 20s adb logcat -c
 timeout 30s adb shell am broadcast \
@@ -33,15 +35,27 @@ timeout 30s adb shell am broadcast \
   --ez candidate_alert_enabled true \
   > visual-e2e/trigger.txt
 
-# Wait until the native animation has really started.
-for i in $(seq 1 40); do
+# Burst-capture several early frames. At least one must contain both the system
+# Heads-up and a visibly rendered concierge frame.
+sleep 0.15
+timeout 10s adb shell screencap -p /sdcard/re-active-1.png
+sleep 0.25
+timeout 10s adb shell screencap -p /sdcard/re-active-2.png
+sleep 0.35
+timeout 10s adb shell screencap -p /sdcard/re-active-3.png
+timeout 10s adb pull /sdcard/re-active-1.png visual-e2e/active-1.png
+timeout 10s adb pull /sdcard/re-active-2.png visual-e2e/active-2.png
+timeout 10s adb pull /sdcard/re-active-3.png visual-e2e/active-3.png
+
+# Collect the native evidence after capture so log polling cannot delay the frame.
+for i in $(seq 1 30); do
   timeout 10s adb logcat -d -v epoch \
     -s REConciergeOverlay:I REPaymentCoordinator:I REPocReceiver:I REPaymentNotif:I AndroidRuntime:E '*:S' \
     > visual-e2e/active.log || true
   if grep -q "REConciergeOverlay: animation_start" visual-e2e/active.log; then
     break
   fi
-  sleep 0.15
+  sleep 0.1
 done
 
 grep -q "REPaymentNotif: posted candidate=" visual-e2e/active.log
@@ -49,23 +63,22 @@ grep -q "headsUp=true overlay=true" visual-e2e/active.log
 grep -q "REConciergeOverlay: animation_start" visual-e2e/active.log
 grep -q "REConciergeOverlay: show event=NEW_SUBSCRIPTION_DETECTED" visual-e2e/active.log
 
-# Give Lottie enough time to draw a visible frame after Animator.onAnimationStart.
-sleep 0.45
-timeout 15s adb exec-out screencap -p > visual-e2e/active.png
-
 timeout 20s adb shell dumpsys notification --noredact > visual-e2e/notification.txt
 grep -q "kr.co.re.subscription" visual-e2e/notification.txt
 grep -q "importance=4" visual-e2e/notification.txt
 
 python3 build-support/check-poc-screenshots.py \
-  visual-e2e/active.png \
   visual-e2e/baseline.png \
   visual-e2e/active.log \
-  visual-e2e/visual-analysis.json
+  visual-e2e/visual-analysis.json \
+  visual-e2e/active-1.png \
+  visual-e2e/active-2.png \
+  visual-e2e/active-3.png
 
-# Preserve a post-animation frame and verify the native window was removed.
+# Verify visual disappearance after animation end.
 sleep 6
-timeout 15s adb exec-out screencap -p > visual-e2e/after.png
+timeout 10s adb shell screencap -p /sdcard/re-after.png
+timeout 10s adb pull /sdcard/re-after.png visual-e2e/after.png
 timeout 10s adb logcat -d -v epoch \
   -s REConciergeOverlay:I REPaymentCoordinator:I REPocReceiver:I REPaymentNotif:I AndroidRuntime:E '*:S' \
   > visual-e2e/final.log || true
@@ -78,18 +91,20 @@ import numpy as np
 from PIL import Image
 
 log=Path('visual-e2e/active.log').read_text(encoding='utf-8',errors='ignore')
-m=re.search(r'bounds=x:(\d+),y:(\d+),w:(\d+),h:(\d+)', log)
+m=re.search(r'bounds=x:(\d+),y:(\d+),w:(\d+),h:(\d+) screen=(\d+)x(\d+) statusBar=(\d+)', log)
 assert m, 'overlay bounds missing'
-x,y,w,h=map(int,m.groups())
+x,y,w,h,sw,sh,status=map(int,m.groups())
+full_y=y+status
 baseline=np.array(Image.open('visual-e2e/baseline.png').convert('RGB'))
 after=np.array(Image.open('visual-e2e/after.png').convert('RGB'))
 assert baseline.shape == after.shape
-roi_b=baseline[y:y+h,x:x+w].astype(np.int16)
-roi_a=after[y:y+h,x:x+w].astype(np.int16)
+roi_b=baseline[full_y:full_y+h,x:x+w].astype(np.int16)
+roi_a=after[full_y:full_y+h,x:x+w].astype(np.int16)
 post_ratio=float((np.max(np.abs(roi_b-roi_a),axis=2)>24).mean())
-Path('visual-e2e/post-removal.json').write_text(json.dumps({'overlay_region_changed_ratio_after_removal':post_ratio},indent=2))
-# The launcher clock can change slightly; the overlay region itself should return
-# very close to the baseline once removeViewImmediate has executed.
+Path('visual-e2e/post-removal.json').write_text(json.dumps({
+  'overlay_screenshot_y': full_y,
+  'overlay_region_changed_ratio_after_removal': post_ratio
+},indent=2))
 assert post_ratio < 0.08, post_ratio
 print('VISUAL_OVERLAY_REMOVAL_PASS', post_ratio)
 PY
