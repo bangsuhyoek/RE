@@ -1,1 +1,1 @@
-run visual non-overlap verification on latest validated APK
+visual retry with stable launcher and geometry-aware checker
