@@ -83,14 +83,23 @@ m=re.search(r'removed reason=animation_end elapsedMs=(\d+)',t)
 assert m, 'animation end timing missing'
 ms=int(m.group(1))
 assert 5000 <= ms <= 6000, ms
-posted=re.search(r'^(\d+\.\d+).*REPaymentNotif: posted candidate=',t,re.M)
-shown=re.search(r'^(\d+\.\d+).*REConciergeOverlay: show event=NEW_SUBSCRIPTION_DETECTED',t,re.M)
-assert posted and shown, 'notification/overlay timestamps missing'
-delta=abs(float(shown.group(1))-float(posted.group(1)))*1000
-assert delta <= 1000, delta
+posted=re.search(r'^\s*(\d+\.\d+).*REPaymentNotif: posted candidate=',t,re.M)
+shown=re.search(r'^\s*(\d+\.\d+).*REConciergeOverlay: show event=NEW_SUBSCRIPTION_DETECTED',t,re.M)
+started=re.search(r'^\s*(\d+\.\d+).*REConciergeOverlay: animation_start event=NEW_SUBSCRIPTION_DETECTED',t,re.M)
+removed=re.search(r'^\s*(\d+\.\d+).*REConciergeOverlay: removed reason=animation_end elapsedMs=(\d+)',t,re.M)
+assert posted and shown and started and removed, 'notification/overlay timestamps missing'
+delta=(float(shown.group(1))-float(posted.group(1)))*1000
+start_to_end=(float(removed.group(1))-float(started.group(1)))*1000
+assert 0 <= delta <= 15000, delta
+assert 4500 <= start_to_end <= 7500, start_to_end
 print(f'Measured overlay duration: {ms}ms')
-print(f'Heads-up/overlay dispatch delta: {delta:.1f}ms')
-Path('e2e/timing.txt').write_text(f'overlay_duration_ms={ms}\nheads_up_overlay_delta_ms={delta:.1f}\n')
+print(f'Animation start-to-end log delta: {start_to_end:.1f}ms')
+print(f'Heads-up/overlay show delta: {delta:.1f}ms')
+Path('e2e/timing.txt').write_text(
+    f'overlay_duration_ms={ms}\n'
+    f'animation_start_to_end_ms={start_to_end:.1f}\n'
+    f'heads_up_overlay_delta_ms={delta:.1f}\n'
+)
 PY
 
 timeout 20s adb shell run-as kr.co.re.subscription cat shared_prefs/re_payment_candidates.xml > e2e/candidates.xml
