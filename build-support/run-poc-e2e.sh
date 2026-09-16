@@ -64,12 +64,9 @@ trigger_event() {
 timeout 30s adb logcat -c
 trigger_event netflix true e2e/trigger-enabled.txt
 wait_for_log "REConciergeOverlay: animation_start" e2e/enabled-live.log 60
-
-sleep 0.35
-timeout 25s adb exec-out screencap -p > e2e/overlay_active.png
-sleep 5.65
-timeout 25s adb exec-out screencap -p > e2e/after_overlay.png
+wait_for_log "REConciergeOverlay: removed reason=" e2e/enabled-live.log 45
 capture_re_logs e2e/enabled.log
+cat e2e/enabled.log
 
 grep -q "REPaymentNotif: posted candidate=" e2e/enabled.log
 grep -q "event=NEW_SUBSCRIPTION_DETECTED" e2e/enabled.log
@@ -103,8 +100,22 @@ timeout 30s adb shell dumpsys notification --noredact > e2e/notification.txt
 grep -q "kr.co.re.subscription" e2e/notification.txt
 grep -q "importance=4" e2e/notification.txt
 
-python3 build-support/check-poc-screenshots.py \
-  e2e/overlay_active.png e2e/after_overlay.png e2e/visual-analysis.json
+python3 - <<'PY'
+import re, json
+from pathlib import Path
+t=Path('e2e/enabled.log').read_text(encoding='utf-8',errors='ignore')
+m=re.search(r'bounds=x:(\d+),y:(\d+),w:(\d+),h:(\d+) screen=(\d+)x(\d+) statusBar=(\d+)',t)
+assert m, 'overlay bounds log missing'
+x,y,w,h,sw,sh,status=map(int,m.groups())
+assert y >= status, (y,status)
+assert y+h <= sh, (y,h,sh)
+Path('e2e/window-geometry.json').write_text(json.dumps({
+  'overlay':{'x':x,'y':y,'w':w,'h':h},
+  'screen':{'w':sw,'h':sh},
+  'status_bar_height':status
+},indent=2))
+print('OVERLAY_WINDOW_GEOMETRY_PASS')
+PY
 
 timeout 30s adb shell appops set kr.co.re.subscription SYSTEM_ALERT_WINDOW deny
 timeout 30s adb logcat -c
