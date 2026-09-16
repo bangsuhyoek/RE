@@ -1,1 +1,1 @@
-retry latest validated APK after timing parser fix
+retry latest validated APK with KVM acceleration
