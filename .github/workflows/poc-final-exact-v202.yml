@@ -159,6 +159,10 @@ jobs:
             exit 1
           fi
 
+          "$BT/aapt2" dump xmltree "$APK" AndroidManifest.xml > apk-manifest-tree.txt
+          grep -q "PocPaymentTriggerActivity" apk-manifest-tree.txt
+          grep -q "PaymentNotificationListener" apk-manifest-tree.txt
+
           "$BT/apksigner" verify --verbose --print-certs "$APK" | tee apk-signature.txt
           grep -q "^Verifies$" apk-signature.txt
           "$BT/zipalign" -c -v 4 "$APK" > zipalign.txt
@@ -209,6 +213,7 @@ jobs:
             RE_v2.0.3_POC1_NEW_SUBSCRIPTION_2.5D.apk
             apk-badging.txt
             apk-permissions.txt
+            apk-manifest-tree.txt
             apk-signature.txt
             zipalign.txt
             apk.sha256
