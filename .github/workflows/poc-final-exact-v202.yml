@@ -159,7 +159,7 @@ jobs:
             exit 1
           fi
 
-          "$BT/aapt2" dump xmltree "$APK" AndroidManifest.xml > apk-manifest-tree.txt
+          "$BT/aapt2" dump xmltree "$APK" --file AndroidManifest.xml > apk-manifest-tree.txt
           grep -q "PocPaymentTriggerActivity" apk-manifest-tree.txt
           grep -q "PaymentNotificationListener" apk-manifest-tree.txt
 
