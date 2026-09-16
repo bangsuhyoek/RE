@@ -53,7 +53,12 @@ jobs:
       - name: Decode isolated project
         run: |
           rm -rf /tmp/re_webguide_poc
-          base64 -d poc-webguide/source.tar.gz.b64 > /tmp/re_webguide_poc.tar.gz
+          python3 - <<'PY'
+          import base64
+          from pathlib import Path
+          src = Path("poc-webguide/source.tar.gz.b64").read_text(encoding="utf-8")
+          Path("/tmp/re_webguide_poc.tar.gz").write_bytes(base64.b64decode(src, validate=False))
+          PY
           tar -xzf /tmp/re_webguide_poc.tar.gz -C /tmp
           test -f /tmp/re_webguide_poc/settings.gradle
 
