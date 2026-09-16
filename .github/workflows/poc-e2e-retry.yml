@@ -55,6 +55,7 @@ jobs:
           script: bash build-support/run-poc-e2e.sh artifact
 
       - name: Upload emulator evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: re-v2.0.3-poc1-emulator-evidence-retry
