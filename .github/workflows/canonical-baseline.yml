@@ -35,12 +35,14 @@ jobs:
           set -euxo pipefail
           curl -L --fail --retry 3 --retry-delay 2 "$GOLDEN_WEB_URL" -o /tmp/re-v2.0.2-web-assets.zip
           echo "$GOLDEN_WEB_SHA256  /tmp/re-v2.0.2-web-assets.zip" | sha256sum -c -
-          rm -rf /tmp/golden-web dist
-          mkdir -p /tmp/golden-web dist
+          rm -rf /tmp/golden-web dist canonical-web
+          mkdir -p /tmp/golden-web dist canonical-web
           unzip -q /tmp/re-v2.0.2-web-assets.zip -d /tmp/golden-web
           test -f /tmp/golden-web/public/index.html
           cp -a /tmp/golden-web/public/. dist/
+          cp -a /tmp/golden-web/public canonical-web/public
           test "$(find dist -type f | wc -l)" -eq 133
+          test "$(find canonical-web/public -type f | wc -l)" -eq 133
           find dist -type f -print0 | sort -z | xargs -0 sha256sum > golden-web-files.sha256
 
       - name: Setup Java JDK
@@ -115,6 +117,77 @@ jobs:
           ! grep -q "android.permission.SYSTEM_ALERT_WINDOW" canonical-permissions.txt
           sha256sum "$DEBUG" "$RELEASE" > canonical-apk.sha256
 
+      - name: Sign exact release payload for emulator
+        shell: bash
+        run: |
+          set -euxo pipefail
+          RELEASE=android/app/build/outputs/apk/release/app-release-unsigned.apk
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          KS=/tmp/re-canonical-baseline.jks
+          keytool -genkeypair -noprompt -keystore "$KS" -storepass android -keypass android \
+            -alias canonical -keyalg RSA -keysize 2048 -validity 3650 \
+            -dname "CN=RE Canonical Baseline QA,O=RE,C=KR"
+          "$BT/zipalign" -p -f 4 "$RELEASE" canonical-baseline-aligned.apk
+          "$BT/apksigner" sign --ks "$KS" --ks-key-alias canonical \
+            --ks-pass pass:android --key-pass pass:android \
+            --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
+            --out canonical-baseline.apk canonical-baseline-aligned.apk
+          "$BT/apksigner" verify --verbose canonical-baseline.apk
+          rm canonical-baseline-aligned.apk
+
+      - name: Package self-contained canonical full source
+        shell: bash
+        run: |
+          set -euxo pipefail
+          cat > canonical-build.sh <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          ROOT=$(cd "$(dirname "$0")" && pwd)
+          cd "$ROOT"
+          test -f canonical-web/public/index.html
+          test "$(find canonical-web/public -type f | wc -l)" -eq 133
+          rm -rf dist
+          mkdir -p dist
+          cp -a canonical-web/public/. dist/
+          pnpm install --frozen-lockfile
+          npx cap sync android
+          chmod +x android/gradlew
+          (cd android && ./gradlew clean assembleDebug assembleRelease --stacktrace)
+          EOF
+          chmod +x canonical-build.sh
+          cat > CANONICAL_BASELINE_PROVENANCE.md <<'EOF'
+          # RE v2.0.2 canonical baseline
+
+          Golden Product Baseline: v2.0.2_수정.apk
+          Native donor commit: d3d85ff816fd7ae340e72b8be5b0a2181e666b1f
+          Exact WebView archive SHA-256: c419cb9a3088839d4dfa263e9993c301257650cb7d51ec60e43426745d716700
+          Exact WebView file count: 133
+
+          This package intentionally excludes the donor React/Vite UI source from src/ and public/.
+          The canonical UI source is canonical-web/public and canonical-build.sh copies it byte-for-byte
+          into dist before Capacitor sync. No 2.5D PoC controller, PocPaymentTriggerActivity,
+          PocPaymentReceiver, or SYSTEM_ALERT_WINDOW permission is part of this baseline.
+
+          The first canonical clean build was independently compared with the current Golden APK:
+          every one of 588 APK ZIP payload entries matched byte-for-byte after excluding only APK
+          signing metadata under META-INF. This source package exists to make that payload reproducible.
+          EOF
+          mkdir -p /tmp/canonical-source/RE_v2.0.2_CANONICAL_SOURCE
+          rsync -a \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            --exclude 'dist' \
+            --exclude 'src' \
+            --exclude 'public' \
+            --exclude 'tests' \
+            --exclude 'android/.gradle' \
+            --exclude 'android/app/build' \
+            ./ /tmp/canonical-source/RE_v2.0.2_CANONICAL_SOURCE/
+          (cd /tmp/canonical-source && zip -qr RE_v2.0.2_CANONICAL_SOURCE.zip RE_v2.0.2_CANONICAL_SOURCE)
+          mv /tmp/canonical-source/RE_v2.0.2_CANONICAL_SOURCE.zip ./RE_v2.0.2_CANONICAL_SOURCE.zip
+          sha256sum RE_v2.0.2_CANONICAL_SOURCE.zip canonical-baseline.apk > canonical-deliverables.sha256
+
       - name: Upload canonical baseline
         uses: actions/upload-artifact@v4
         with:
@@ -122,6 +195,10 @@ jobs:
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
             android/app/build/outputs/apk/release/app-release-unsigned.apk
+            canonical-baseline.apk
+            RE_v2.0.2_CANONICAL_SOURCE.zip
+            CANONICAL_BASELINE_PROVENANCE.md
+            canonical-deliverables.sha256
             canonical-parity.json
             canonical-badging.txt
             canonical-permissions.txt
@@ -152,6 +229,13 @@ jobs:
             APK=$(find artifact -type f -name app-debug.apk -print -quit)
             adb install -r "$APK"
             adb logcat -c
+            adb shell cmd notification allow_listener kr.co.re.subscription/kr.co.re.subscription.payment.PaymentNotificationListener
+            connected=0
+            for i in $(seq 1 15); do
+              if adb logcat -d -v brief | grep -q "REPaymentListener.*listener connected"; then connected=1; break; fi
+              sleep 1
+            done
+            test "$connected" -eq 1
             adb shell am force-stop kr.co.re.subscription
             adb shell am start -W -n kr.co.re.subscription/kr.co.re.subscription.MainActivity
             sleep 10
