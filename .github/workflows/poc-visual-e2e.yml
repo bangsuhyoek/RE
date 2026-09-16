@@ -1,0 +1,61 @@
+name: RE v2.0.3 2.5D PoC Visual Non-Overlap E2E
+
+on:
+  push:
+    branches:
+      - chatgpt/v2.0.3-2.5d-poc
+    paths:
+      - poc-visual-e2e-trigger.txt
+
+jobs:
+  visual-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PoC branch
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install screenshot analysis tooling
+        run: python -m pip install --disable-pip-version-check pillow numpy
+
+      - name: Enable KVM acceleration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+          ls -l /dev/kvm
+
+      - name: Download latest validated APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: re-v2.0.3-poc1-exact-v202
+          path: artifact
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 35094390967
+
+      - name: Run visual non-overlap E2E
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_2
+          cores: 4
+          ram-size: 4096M
+          heap-size: 512M
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash build-support/run-poc-visual-e2e.sh artifact
+
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: re-v2.0.3-poc1-visual-evidence
+          path: visual-e2e
+          if-no-files-found: error
