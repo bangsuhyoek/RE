@@ -96,9 +96,13 @@ jobs:
         working-directory: poc-build-src
         run: pnpm install --frozen-lockfile
 
-      - name: Run automated tests
-        working-directory: poc-build-src
-        run: pnpm test
+      - name: Validate current v2.0.2 plus PoC contracts
+        run: |
+          set -euo pipefail
+          python build-support/validate-2_5d-poc.py poc-build-src
+          node --check poc-build-src/app.js
+          node --check poc-build-src/src/re-integration.js
+          node --check poc-build-src/src/native.js
 
       - name: Build WebView
         working-directory: poc-build-src
