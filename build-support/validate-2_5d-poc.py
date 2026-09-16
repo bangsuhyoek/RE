@@ -27,7 +27,7 @@ app = read("app.js")
 integration = read("src/re-integration.js")
 native = read("src/native.js")
 
-require(gradle, 'namespace "kr.co.re.subscription"', "namespace")
+require(gradle, 'namespace = "kr.co.re.subscription"', "namespace")
 require(gradle, 'applicationId "kr.co.re.subscription"', "applicationId")
 require(gradle, "versionCode 203", "versionCode")
 require(gradle, 'versionName "2.0.3-poc1"', "versionName")
