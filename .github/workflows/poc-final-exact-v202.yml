@@ -219,6 +219,17 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout PoC branch
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install screenshot analysis tooling
+        run: python -m pip install --disable-pip-version-check pillow numpy
+
       - name: Download built APK
         uses: actions/download-artifact@v4
         with:
@@ -230,83 +241,18 @@ jobs:
         with:
           api-level: 33
           arch: x86_64
-          profile: pixel_4
+          profile: pixel_2
+          cores: 4
+          ram-size: 4096M
+          heap-size: 512M
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: |
-            set -eu
-            mkdir -p e2e
-            APK=$(find artifact -type f -name '*.apk' -print -quit)
-            test -n "$APK"
-            adb install -r "$APK"
-            adb shell monkey -p kr.co.re.subscription -c android.intent.category.LAUNCHER 1
-            sleep 2
-            adb shell pm grant kr.co.re.subscription android.permission.POST_NOTIFICATIONS
-            adb shell appops set kr.co.re.subscription SYSTEM_ALERT_WINDOW allow
-            adb shell settings put global heads_up_notifications_enabled 1
-            adb shell input keyevent 3
-            sleep 1
-
-            adb logcat -c
-            adb shell am broadcast -a kr.co.re.subscription.POC_NEW_SUBSCRIPTION -p kr.co.re.subscription --es service netflix --ez force_new true --ez concierge_enabled true --ez candidate_alert_enabled true
-            sleep 1
-            adb exec-out screencap -p > e2e/overlay_1s.png
-            sleep 5
-            adb exec-out screencap -p > e2e/after_6s.png
-            adb logcat -d -v epoch > e2e/enabled.log
-
-            grep -q "REPaymentNotif: posted candidate=" e2e/enabled.log
-            grep -q "event=NEW_SUBSCRIPTION_DETECTED" e2e/enabled.log
-            grep -q "headsUp=true overlay=true" e2e/enabled.log
-            grep -q "REConciergeOverlay: animation_start" e2e/enabled.log
-            grep -q "REConciergeOverlay: removed reason=animation_end" e2e/enabled.log
-            python - <<'PY'
-            import re
-            t=open('e2e/enabled.log',encoding='utf-8',errors='ignore').read()
-            m=re.search(r'removed reason=animation_end elapsedMs=(\d+)',t)
-            assert m, 'animation end timing missing'
-            ms=int(m.group(1))
-            assert 5000 <= ms <= 6000, ms
-            print('Measured overlay duration:',ms,'ms')
-            PY
-            adb shell run-as kr.co.re.subscription cat shared_prefs/re_payment_candidates.xml > e2e/candidates.xml
-            grep -qi "netflix" e2e/candidates.xml
-            adb shell dumpsys notification --noredact > e2e/notification.txt
-            grep -q "kr.co.re.subscription" e2e/notification.txt
-            grep -q "importance=4" e2e/notification.txt
-
-            adb shell appops set kr.co.re.subscription SYSTEM_ALERT_WINDOW deny
-            adb logcat -c
-            adb shell am broadcast -a kr.co.re.subscription.POC_NEW_SUBSCRIPTION -p kr.co.re.subscription --es service youtube --ez force_new true --ez concierge_enabled true --ez candidate_alert_enabled true
-            sleep 1
-            adb logcat -d -v epoch > e2e/overlay-denied.log
-            grep -q "overlay_permission_missing" e2e/overlay-denied.log
-            grep -q "headsUp=true overlay=false" e2e/overlay-denied.log
-
-            adb shell appops set kr.co.re.subscription SYSTEM_ALERT_WINDOW allow
-            adb logcat -c
-            adb shell am broadcast -a kr.co.re.subscription.POC_NEW_SUBSCRIPTION -p kr.co.re.subscription --es service netflix --ez force_new true --ez concierge_enabled false --ez candidate_alert_enabled true
-            sleep 1
-            adb logcat -d -v epoch > e2e/concierge-off.log
-            grep -q "headsUp=true overlay=false conciergeEnabled=false" e2e/concierge-off.log
-
-            adb logcat -c
-            adb shell am start -a android.intent.action.VIEW -d "reapp://payment/candidate?id=smoke-final" kr.co.re.subscription
-            sleep 2
-            adb shell pidof kr.co.re.subscription | tee e2e/pid.txt
-            test -s e2e/pid.txt
-            adb logcat -d -v epoch > e2e/deeplink.log
-
-            cat e2e/enabled.log e2e/overlay-denied.log e2e/concierge-off.log e2e/deeplink.log > e2e/all.log
-            if grep -E "FATAL EXCEPTION|ANR in kr.co.re.subscription" e2e/all.log; then
-              echo "Crash/ANR detected" >&2
-              exit 1
-            fi
-            echo "EMULATOR_E2E_PASS" | tee e2e/result.txt
+          script: bash build-support/run-poc-e2e.sh artifact
 
       - name: Upload emulator evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: re-v2.0.3-poc1-emulator-evidence
           path: e2e
-          if-no-files-found: error
+          if-no-files-found: warn
