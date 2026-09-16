@@ -1,0 +1,1 @@
+run visual non-overlap verification on latest validated APK
