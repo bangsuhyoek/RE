@@ -118,8 +118,12 @@ jobs:
           distribution: zulu
           java-version: '21'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Use preinstalled Android SDK
+        run: |
+          set -euo pipefail
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          test -d "$ANDROID_HOME"
+          sdkmanager --list_installed | sed -n '1,120p'
 
       - name: Capacitor sync
         working-directory: poc-build-src
