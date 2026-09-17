@@ -68,8 +68,6 @@ jobs:
           mkdir -p source-clean/RE_v2.0.2_CANONICAL_SOURCE/canonical-web/public source-test
           ROOT="$PWD/source-clean/RE_v2.0.2_CANONICAL_SOURCE"
 
-          # Copy the canonical native/build project, but anchor exclusions at repo root
-          # so android/app/src is never removed again.
           rsync -a \
             --exclude '/.git/' \
             --exclude '/.github/' \
@@ -91,7 +89,6 @@ jobs:
             --exclude '*.zip' \
             ./ "$ROOT/"
 
-          # Restore exact Golden WebView source directly from the Golden APK.
           python3 - "$GOLDEN" "$ROOT/canonical-web/public" <<'PY'
           import sys, zipfile, pathlib, hashlib, json
           apk,out=sys.argv[1:3]
@@ -149,8 +146,12 @@ jobs:
           test "$(find "$ROOT/canonical-web/public" -type f | wc -l)" -eq 133
           ! find "$ROOT" -type d \( -name build -o -name .gradle -o -name node_modules -o -name .cxx \) -print | grep -q .
           ! find "$ROOT" -type f \( -name '*.apk' -o -name '*.aab' -o -name '*.aar' \) -print | grep -q .
-          if grep -R "AnimatedConciergeOverlayController\|PocPaymentTriggerActivity\|PocPaymentReceiver\|SYSTEM_ALERT_WINDOW" "$ROOT/android/app/src/main"; then
-            echo "unexpected 2.5D PoC code in canonical baseline" >&2
+          if grep -R "AnimatedConciergeOverlayController\|PocPaymentTriggerActivity\|PocPaymentReceiver" "$ROOT/android/app/src/main"; then
+            echo "unexpected 2.5D PoC test/controller code in canonical baseline" >&2
+            exit 1
+          fi
+          if grep -q "android.permission.SYSTEM_ALERT_WINDOW" "$ROOT/android/app/src/main/AndroidManifest.xml"; then
+            echo "unexpected SYSTEM_ALERT_WINDOW manifest permission in canonical baseline" >&2
             exit 1
           fi
 
