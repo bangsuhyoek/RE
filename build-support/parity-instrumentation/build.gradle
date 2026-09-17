@@ -12,12 +12,11 @@ android {
     defaultConfig {
         applicationId 'com.re.cardtest'
         minSdk 23
-        targetSdk 30
+        targetSdk 28
         versionCode 1
         versionName '1.0'
     }
 }
-
 
 allprojects {
     repositories {
