@@ -3,3 +3,4 @@ purpose=golden-vs-rebuilt-runtime-parity
 retry-after-parity-harness-repository-fix
 retry-common-sign-runtime-copies
 retry-after-evidence-storage-hardening
+retry-shell-accessible-evidence-path
