@@ -14,3 +14,4 @@ retry-shell-identity-deeplink
 retry-resolver-verified-unforced-deeplink
 retry-unquoted-ui-automation-deeplink
 retry-appurlopen-diagnostic
+retry-collect-both-cases-after-golden-failure
