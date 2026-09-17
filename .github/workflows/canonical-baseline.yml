@@ -1,9 +1,6 @@
 name: RE v2.0.2 Canonical Baseline
 
 on:
-  push:
-    branches:
-      - chatgpt/v2.0.3-canonical-baseline
   workflow_dispatch:
 
 jobs:
