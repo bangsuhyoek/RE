@@ -13,3 +13,4 @@ retry-external-deeplink-from-qa-process
 retry-shell-identity-deeplink
 retry-resolver-verified-unforced-deeplink
 retry-unquoted-ui-automation-deeplink
+retry-appurlopen-diagnostic
