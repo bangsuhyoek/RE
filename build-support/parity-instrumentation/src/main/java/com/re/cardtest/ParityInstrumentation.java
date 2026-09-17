@@ -11,6 +11,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,8 +45,8 @@ public class ParityInstrumentation extends Instrumentation {
         Bundle result = new Bundle();
         int code = Activity.RESULT_CANCELED;
         try {
-            outDir = new File(getContext().getExternalFilesDir(null), "parity");
-            if (!outDir.exists() && !outDir.mkdirs()) throw new IllegalStateException("cannot create evidence directory");
+            outDir = new File(Environment.getExternalStorageDirectory(), "REParity");
+            if (!outDir.exists() && !outDir.mkdirs()) throw new IllegalStateException("cannot create evidence directory: " + outDir);
 
             Intent launch = getTargetContext().getPackageManager().getLaunchIntentForPackage(TARGET);
             if (launch == null) throw new IllegalStateException("launch intent missing");
