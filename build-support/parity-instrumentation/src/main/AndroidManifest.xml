@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <application android:label="RE parity QA" android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+    <instrumentation
+        android:name=".ParityInstrumentation"
+        android:targetPackage="kr.co.re.subscription"
+        android:label="RE canonical parity instrumentation"
+        android:functionalTest="true" />
+</manifest>
