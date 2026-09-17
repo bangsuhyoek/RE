@@ -8,3 +8,4 @@ retry-api33-compatible-webview
 retry-internal-run-as-evidence
 retry-target-external-evidence-path
 retry-qa-notification-publisher-uid
+retry-unicode-safe-payment-notification
