@@ -1,0 +1,150 @@
+name: RE v2.0.2 Canonical Source Clean Rebuild
+
+on:
+  push:
+    branches:
+      - chatgpt/v2.0.3-canonical-baseline
+    paths:
+      - .github/workflows/canonical-source-clean.yml
+      - canonical-source-clean-trigger.txt
+  workflow_dispatch:
+
+jobs:
+  clean-rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout canonical branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: '21'
+
+      - name: Download proven canonical artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: re-v2.0.2-canonical-baseline
+          path: artifact
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 35135721151
+
+      - name: Download exact Golden Product Baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: re-v2.0.2-golden-product-baseline
+          path: golden
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 35171158055
+
+      - name: Clean canonical source package
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== artifact paths ==="
+          find artifact -type f -print | sort
+          SRC_ZIP=$(find artifact -type f -name 'RE_v2.0.2_CANONICAL_SOURCE.zip' -print -quit)
+          test -n "$SRC_ZIP"
+          test -s "$SRC_ZIP"
+          rm -rf source-clean source-test
+          mkdir -p source-clean source-test
+          unzip -q "$SRC_ZIP" -d source-clean
+          ROOT=$(find source-clean -mindepth 1 -maxdepth 1 -type d -name 'RE_v2.0.2_CANONICAL_SOURCE' -print -quit)
+          test -n "$ROOT"
+          test -f "$ROOT/canonical-build.sh"
+          test -f "$ROOT/canonical-web/public/index.html"
+
+          rm -rf "$ROOT/node_modules" "$ROOT/.gradle" "$ROOT/.idea" "$ROOT/outputs"
+          rm -f "$ROOT/SubMate-debug-latest.zip"
+          rm -f "$ROOT"/canonical-*.txt "$ROOT"/canonical-*.json "$ROOT"/canonical-*.sha256 "$ROOT"/golden-web-files.sha256
+          rm -f "$ROOT"/build_prd_doc.py "$ROOT"/build_prd_v2.py
+
+          while IFS= read -r -d '' d; do rm -rf "$d"; done < <(find "$ROOT" -type d \( -name build -o -name .gradle -o -name node_modules -o -name .cxx \) -print0)
+          find "$ROOT" -type f \( -name '*.apk' -o -name '*.aab' -o -name '*.aar' \) -delete
+
+          test ! -d "$ROOT/src"
+          test ! -d "$ROOT/public"
+          test "$(find "$ROOT/canonical-web/public" -type f | wc -l)" -eq 133
+          ! find "$ROOT" -type d \( -name build -o -name .gradle -o -name node_modules -o -name .cxx \) -print | grep -q .
+          ! find "$ROOT" -type f \( -name '*.apk' -o -name '*.aab' -o -name '*.aar' \) -print | grep -q .
+          ! grep -R "AnimatedConciergeOverlayController\|PocPaymentTriggerActivity\|PocPaymentReceiver\|SYSTEM_ALERT_WINDOW" "$ROOT/android/app/src/main" || false
+
+          (cd source-clean && zip -qr ../RE_v2.0.2_CANONICAL_SOURCE_CLEAN.zip RE_v2.0.2_CANONICAL_SOURCE)
+          sha256sum RE_v2.0.2_CANONICAL_SOURCE_CLEAN.zip | tee clean-source.sha256
+          unzip -q RE_v2.0.2_CANONICAL_SOURCE_CLEAN.zip -d source-test
+          TEST_ROOT="$PWD/source-test/RE_v2.0.2_CANONICAL_SOURCE"
+          test -x "$TEST_ROOT/canonical-build.sh"
+          echo "CLEAN_SOURCE_ROOT=$TEST_ROOT"
+
+      - name: Clean unzip to clean build
+        shell: bash
+        run: |
+          set -euo pipefail
+          TEST_ROOT="$PWD/source-test/RE_v2.0.2_CANONICAL_SOURCE"
+          (cd "$TEST_ROOT" && ./canonical-build.sh)
+          DEBUG="$TEST_ROOT/android/app/build/outputs/apk/debug/app-debug.apk"
+          RELEASE="$TEST_ROOT/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          test -s "$DEBUG"
+          test -s "$RELEASE"
+          unzip -t "$DEBUG" >/dev/null
+          unzip -t "$RELEASE" >/dev/null
+          sha256sum "$DEBUG" "$RELEASE" | tee clean-rebuild-apks.sha256
+
+      - name: Verify clean rebuild parity against Golden
+        shell: bash
+        run: |
+          set -euo pipefail
+          TEST_ROOT="$PWD/source-test/RE_v2.0.2_CANONICAL_SOURCE"
+          RELEASE="$TEST_ROOT/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          GOLDEN=$(find golden -type f -name 'v2.0.2_수정.apk' -print -quit)
+          test -n "$GOLDEN"
+          test -s "$GOLDEN"
+          echo "c52bd20769fb84d8d4d882c7a985f3f792aa038184750dce9a86104efe77e7ac  $GOLDEN" | sha256sum -c -
+          python3 - "$RELEASE" "$GOLDEN" <<'PY'
+          import sys, zipfile, hashlib, json, pathlib
+          rebuilt,golden=sys.argv[1:3]
+          def payload(path):
+              with zipfile.ZipFile(path) as z:
+                  return {n:hashlib.sha256(z.read(n)).hexdigest()
+                          for n in z.namelist()
+                          if not n.startswith("META-INF/") and not n.endswith("/")}
+          r=payload(rebuilt); g=payload(golden)
+          report={
+              "golden_count":len(g),
+              "rebuilt_count":len(r),
+              "missing_in_rebuilt":sorted(set(g)-set(r)),
+              "extra_in_rebuilt":sorted(set(r)-set(g)),
+              "changed":sorted(k for k in set(g)&set(r) if g[k]!=r[k]),
+          }
+          report["pass"]=not report["missing_in_rebuilt"] and not report["extra_in_rebuilt"] and not report["changed"]
+          pathlib.Path("clean-source-payload-parity.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
+          print(json.dumps(report,ensure_ascii=False,indent=2))
+          if not report["pass"]: raise SystemExit(1)
+          PY
+          echo "CANONICAL_SOURCE_CLEAN_BUILD=PASS" | tee clean-source-result.txt
+
+      - name: Upload cleaned canonical source evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: re-v2.0.2-canonical-source-clean
+          path: |
+            RE_v2.0.2_CANONICAL_SOURCE_CLEAN.zip
+            clean-source.sha256
+            clean-rebuild-apks.sha256
+            clean-source-payload-parity.json
+            clean-source-result.txt
+          if-no-files-found: error
+          retention-days: 90
