@@ -2,14 +2,8 @@ package com.re.cardtest;
 
 import android.app.Activity;
 import android.app.Instrumentation;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
@@ -47,11 +41,6 @@ public class ParityInstrumentation extends Instrumentation {
         Bundle result = new Bundle();
         int code = Activity.RESULT_CANCELED;
         try {
-            // Instrumentation executes in the target app process/UID. Writing to the
-            // QA package's private files directory therefore fails even though `run-as
-            // com.re.cardtest` works from adb. Store evidence in the target app's
-            // app-specific external directory instead; it needs no storage permission
-            // and can be pulled by adb on the emulator without changing the target APK.
             File evidenceRoot = getTargetContext().getExternalFilesDir(null);
             if (evidenceRoot == null) throw new IllegalStateException("target external files directory unavailable");
             outDir = new File(evidenceRoot, "parity");
@@ -69,14 +58,16 @@ public class ParityInstrumentation extends Instrumentation {
 
             String bootstrap = jsString(eval(
                 "(()=>{" +
-                "window.__reParity={deepLink:'',candidates:null};" +
+                "window.__reParity={deepLink:'',appUrlOpen:'',launchUrl:'',candidates:null};" +
                 "window.addEventListener('re:payment-candidate',e=>{window.__reParity.deepLink=String(e.detail?.id||'');});" +
+                "const app=window.Capacitor?.Plugins?.App;" +
+                "if(app?.addListener){Promise.resolve(app.addListener('appUrlOpen',e=>{window.__reParity.appUrlOpen=String(e?.url||'');})).catch(()=>{});}" +
                 "const r=window.REIntegrations;" +
                 "if(!r)return 'NO_RE_INTEGRATIONS';" +
                 "if(r.auth){r.auth.getSession=async()=>({authenticated:true});r.auth.provider=async()=>({authenticated:true});}" +
                 "if(r.data){r.data.mountScreen=async({root})=>{if(root)root.querySelectorAll('[data-fixture]').forEach(n=>n.removeAttribute('data-fixture'));return {mounted:true};};}" +
                 "if(r.actions){r.actions['open-subscription']=async({service})=>({ok:true,route:'subscription-detail',silent:true});}" +
-                "return 'OK';" +
+                "return app?'OK':'NO_APP_PLUGIN';" +
                 "})()"
             ));
             require("OK".equals(bootstrap), "integration bootstrap=" + bootstrap);
@@ -132,12 +123,7 @@ public class ParityInstrumentation extends Instrumentation {
             require(candidateState.contains("Netflix") && candidateState.contains("17000"), "candidate runtime result=" + candidateState);
             record("payment_candidate", "PASS");
 
-            // UiAutomation.executeShellCommand does not provide normal host-shell quote
-            // stripping. Passing the URI surrounded by single quotes made those quote
-            // characters part of the argument on this path, so Android could not match
-            // the otherwise-correct reapp:// intent filter. Use one whitespace-free URI
-            // token with no shell quotes, verify the resolver first, then launch it as
-            // the external shell identity without forcing the package.
+            eval("(()=>{window.__reParity.deepLink='';window.__reParity.appUrlOpen='';window.__reParity.launchUrl='';return 'CLEARED';})()");
             String deepUri = "reapp://payment/candidate?id=baseline-smoke&source=parity-shell";
             String resolveCommand = "cmd package resolve-activity --brief -a android.intent.action.VIEW " +
                     "-c android.intent.category.DEFAULT -c android.intent.category.BROWSABLE -d " + deepUri;
@@ -152,8 +138,15 @@ public class ParityInstrumentation extends Instrumentation {
             Log.i(TAG, "deep_link_shell=" + deepOutput.replace('\n', ' '));
             require(!deepOutput.contains("Error:"), "deep link shell=" + deepOutput);
             Thread.sleep(1400L);
+
+            eval("(()=>{const app=window.Capacitor?.Plugins?.App;if(!app?.getLaunchUrl){window.__reParity.launchUrl='NO_GET_LAUNCH_URL';return 'NO_GET_LAUNCH_URL';}app.getLaunchUrl().then(r=>window.__reParity.launchUrl=String(r?.url||'')).catch(e=>window.__reParity.launchUrl='ERR:'+String(e));return 'STARTED';})()");
+            Thread.sleep(500L);
             String deepId = jsString(eval("window.__reParity.deepLink||''"));
-            require("baseline-smoke".equals(deepId), "deep link id=" + deepId + " resolver=" + resolveOutput + " shell=" + deepOutput);
+            String appUrlOpen = jsString(eval("window.__reParity.appUrlOpen||''"));
+            String launchUrl = jsString(eval("window.__reParity.launchUrl||''"));
+            record("deep_link_appUrlOpen", appUrlOpen.isEmpty() ? "EMPTY" : appUrlOpen);
+            record("deep_link_getLaunchUrl", launchUrl.isEmpty() ? "EMPTY" : launchUrl);
+            require("baseline-smoke".equals(deepId), "deep link id=" + deepId + " appUrlOpen=" + appUrlOpen + " launchUrl=" + launchUrl + " resolver=" + resolveOutput + " shell=" + deepOutput);
             record("deep_link", "PASS");
 
             record("result", "PASS");
@@ -172,10 +165,6 @@ public class ParityInstrumentation extends Instrumentation {
     }
 
     private void postPaymentNotification() {
-        // Instrumentation executes with the target app UID, so using getContext()
-        // to post a notification as com.re.cardtest causes Package/UID security
-        // enforcement to fail. Delegate the notification to an exported receiver
-        // in the QA package so Android posts it under the QA package UID.
         Intent publish = new Intent("com.re.cardtest.POST_PAYMENT");
         publish.setClassName("com.re.cardtest", "com.re.cardtest.NotificationPublisher");
         getTargetContext().sendBroadcast(publish);
@@ -189,9 +178,7 @@ public class ParityInstrumentation extends Instrumentation {
              ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[4096];
             int read;
-            while ((read = input.read(buffer)) != -1) {
-                output.write(buffer, 0, read);
-            }
+            while ((read = input.read(buffer)) != -1) output.write(buffer, 0, read);
             return output.toString("UTF-8");
         }
     }
@@ -203,17 +190,14 @@ public class ParityInstrumentation extends Instrumentation {
         if (bitmap == null) throw new IllegalStateException("screenshot null: " + name);
         File output = new File(outDir, name + ".png");
         try (FileOutputStream stream = new FileOutputStream(output)) {
-            if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)) {
-                throw new IllegalStateException("screenshot compression failed: " + name);
-            }
+            if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)) throw new IllegalStateException("screenshot compression failed: " + name);
         }
         bitmap.recycle();
         record("visual_" + name, "PASS");
     }
 
     private void normalizeVisibleScreen() throws Exception {
-        eval("(()=>{document.querySelectorAll('.bottom-sheet,.toast,.re-concierge-handoff').forEach(n=>{n.hidden=true;n.classList.remove('is-open','is-active','open');});" +
-                "const s=document.querySelector('.app-screen:not([hidden]) .screen-content');if(s)s.scrollTop=0;window.scrollTo(0,0);return document.querySelector('#app')?.dataset.screen||'';})()");
+        eval("(()=>{document.querySelectorAll('.bottom-sheet,.toast,.re-concierge-handoff').forEach(n=>{n.hidden=true;n.classList.remove('is-open','is-active','open');});const s=document.querySelector('.app-screen:not([hidden]) .screen-content');if(s)s.scrollTop=0;window.scrollTo(0,0);return document.querySelector('#app')?.dataset.screen||'';})()");
     }
 
     private void jsClick(String selector) throws Exception {
