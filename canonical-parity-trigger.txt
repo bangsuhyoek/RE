@@ -5,3 +5,4 @@ retry-common-sign-runtime-copies
 retry-after-evidence-storage-hardening
 retry-shell-accessible-evidence-path
 retry-api33-compatible-webview
+retry-internal-run-as-evidence
