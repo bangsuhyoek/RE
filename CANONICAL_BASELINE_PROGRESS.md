@@ -27,47 +27,56 @@
 7. `35171406840`: WebView restoration passed, then clean rebuild failed because `android/app/src/main/AndroidManifest.xml` was absent; same packaging root cause confirmed.
 8. `35173781288`: API 30 emulator WebView could not parse the exact Golden vendor JavaScript bundle; emulator compatibility failure, not app failure. Runtime parity moved to API 33.
 9. `35174291655`: API 33 shared external path `/sdcard/REParity` was blocked by scoped-storage (`EPERM`); QA evidence-path failure, not app failure.
-10. `35174767608`: QA instrumentation attempted to write to `com.re.cardtest` private internal storage, but Android instrumentation executes in the target app process/UID. `getContext().getFilesDir()` therefore pointed at a directory the target UID could not create. Test-infrastructure UID/context mismatch, not app failure.
-11. `35175728666`: screenshots/evidence path reached the target app external directory, but the instrumentation then posted the synthetic payment notification through `getContext()` (`com.re.cardtest`) while executing as the target UID, causing `SecurityException: Package com.re.cardtest is not owned by uid 10126`. Notification test-harness package/UID mismatch, not app failure.
+10. `35174767608`: QA instrumentation attempted to write to `com.re.cardtest` private internal storage, but Android instrumentation executes in the target app process/UID. Test-infrastructure UID/context mismatch, not app failure.
+11. `35175728666`: instrumentation posted the synthetic notification under the wrong UID and Android rejected it with `SecurityException`; QA notification-publisher infrastructure failure.
+12. `35176184869`: QA publisher UID path worked and the real RE NotificationListener received the notification, but the synthetic title/body stored in `NotificationPublisher.java` had been corrupted to question marks (`title=????`, body contained `17,000?`). Runtime log proved `received package=com.re.cardtest ...` followed by `ignored: parser rejected notification`; `PaymentParser` requires a KRW amount ending in `원`, so no candidate was created. This is malformed QA test input, not an app baseline failure.
 
 ## Recurrence prevention applied
 - Golden APK is stored as a reusable GitHub Actions artifact instead of relying on a temporary signed URL for runtime parity.
 - Runtime parity prints and validates actual artifact paths before use.
 - APK inputs are checked with `test -n`, `test -s`, SHA-256 and payload parity before emulator runtime.
 - Golden, rebuilt and QA instrumentation runtime copies are common-signed without changing non-signing payload.
-- Emulator runner script explicitly waits for device boot and package-manager readiness.
+- Emulator runner explicitly waits for device boot and package-manager readiness.
 - Runtime parity uses API 33 so the exact Golden WebView bundle runs on a compatible WebView.
 - Canonical source packaging uses root-anchored exclusions so `android/app/src` is not accidentally removed.
-- QA evidence now writes from the instrumentation process to the target app's app-specific external files directory (`/sdcard/Android/data/kr.co.re.subscription/files/parity`) and the runner pulls evidence with adb. This matches the target UID used by Android instrumentation and avoids the prior QA-private-dir mismatch.
+- QA evidence writes to the target app-specific external files directory and is pulled with adb.
+- Synthetic payment notification is posted by an exported receiver in the QA package, so it originates from the QA package UID.
+- Synthetic payment strings now use Java Unicode escapes to avoid source/transport encoding corruption. The canonical body is `Netflix 정기결제 17,000원 승인`.
 - Test harness failures are treated separately from app failures.
 
 ## Current checkpoint
-- Last completed runtime parity run: `35175728666` ? FAILURE
-- Last successful step: `Enable KVM acceleration`
-- First failing step: `Run Golden vs rebuilt functional and visual parity`
-- Exact failure: `SecurityException: Package com.re.cardtest is not owned by uid 10126`
-- Classification: QA/instrumentation notification-publisher infrastructure failure
-- App baseline failure proven: NO
-- Evidence-path fix status: passed far enough to produce/upload runtime evidence; no repeat of the prior evidence-directory creation failure.
-- Minimal fix applied:
-  - added QA-package `NotificationPublisher` broadcast receiver
-  - instrumentation now sends an explicit broadcast to the QA receiver instead of calling `NotificationManager` as `com.re.cardtest` from the target UID
-  - synthetic card notification therefore originates from the QA package UID while the target listener remains unchanged
-- Current code-fix commit: `00bb086`
-- Next single step: trigger one new Golden-vs-rebuilt runtime parity run and follow it until `completed`.
+- Last completed runtime parity run: `35176184869` — FAILURE
+- Last successful workflow step: `Enable KVM acceleration`
+- First failing workflow step: `Run Golden vs rebuilt functional and visual parity`
+- Golden runtime progress before failure:
+  - Home screen/capture: PASS
+  - Concierge toggle: PASS
+  - Subscriptions screen/capture: PASS
+  - Subscription detail screen/capture: PASS
+  - Benefits screen/capture: PASS
+  - Notifications screen/capture: PASS
+  - My Page screen/capture: PASS
+  - NotificationListener connection: PASS
+  - Synthetic notification reached listener: PASS (`package=com.re.cardtest`)
+  - Parser: FAIL because QA body was malformed (`17,000?` instead of `17,000원`)
+  - Candidate count: 0
+- Classification: QA test-input encoding corruption; app baseline failure proven: NO
+- Minimal fix applied: `NotificationPublisher.java` now emits Unicode-safe `신한카드 승인` / `Netflix 정기결제 17,000원 승인` and logs the posted payload.
+- Fix commit: `4ef3dd6d56b57936fa5046b53a8e737f5ac50c2f`
+- Next single step: trigger a new Golden-vs-rebuilt runtime parity run and follow it to `completed`.
 
 ## Required final gates still pending
 - Functional runtime parity: PENDING
-- Home visual parity: PENDING
+- Home visual parity: PENDING (Golden capture exists; Golden vs rebuilt comparison not yet completed)
 - Subscriptions visual parity: PENDING
 - Subscription detail visual parity: PENDING
 - Benefits visual parity: PENDING
 - Notifications visual parity: PENDING
 - My Page visual parity: PENDING
-- NotificationListener runtime connection: PENDING
+- NotificationListener runtime connection: PARTIAL PASS (Golden proven; rebuilt pending)
 - Payment path / candidate storage: PENDING
 - Deep Link: PENDING
-- Concierge ON/OFF: PENDING
+- Concierge ON/OFF: PARTIAL PASS (Golden proven; rebuilt pending)
 - Crash / ANR: PENDING
 
 Do not integrate 2.5D until all pending runtime and visual gates pass and `BASELINE PARITY = PASS` is recorded.
