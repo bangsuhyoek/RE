@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: zulu
           java-version: '21'
@@ -186,7 +186,10 @@ jobs:
       - name: Run Golden vs rebuilt functional and visual parity
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          # API 30 ships WebView 83, which cannot parse logical-assignment syntax
+          # used by the exact Golden Supabase vendor bundle. API 33 is also the
+          # already-proven PoC E2E environment and provides a compatible WebView.
+          api-level: 33
           arch: x86_64
           profile: pixel_4
           cores: 4
