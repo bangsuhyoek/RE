@@ -1,2 +1,3 @@
 run=1
 purpose=golden-vs-rebuilt-runtime-parity
+retry-after-parity-harness-repository-fix
