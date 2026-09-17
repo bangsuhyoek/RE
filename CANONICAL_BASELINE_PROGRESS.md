@@ -28,6 +28,7 @@
 8. `35173781288`: API 30 emulator WebView could not parse the exact Golden vendor JavaScript bundle; emulator compatibility failure, not app failure. Runtime parity moved to API 33.
 9. `35174291655`: API 33 shared external path `/sdcard/REParity` was blocked by scoped-storage (`EPERM`); QA evidence-path failure, not app failure.
 10. `35174767608`: QA instrumentation attempted to write to `com.re.cardtest` private internal storage, but Android instrumentation executes in the target app process/UID. `getContext().getFilesDir()` therefore pointed at a directory the target UID could not create. Test-infrastructure UID/context mismatch, not app failure.
+11. `35175728666`: screenshots/evidence path reached the target app external directory, but the instrumentation then posted the synthetic payment notification through `getContext()` (`com.re.cardtest`) while executing as the target UID, causing `SecurityException: Package com.re.cardtest is not owned by uid 10126`. Notification test-harness package/UID mismatch, not app failure.
 
 ## Recurrence prevention applied
 - Golden APK is stored as a reusable GitHub Actions artifact instead of relying on a temporary signed URL for runtime parity.
@@ -41,17 +42,19 @@
 - Test harness failures are treated separately from app failures.
 
 ## Current checkpoint
-- Last completed runtime parity run: `35174767608` — FAILURE
+- Last completed runtime parity run: `35175728666` ? FAILURE
 - Last successful step: `Enable KVM acceleration`
 - First failing step: `Run Golden vs rebuilt functional and visual parity`
-- Exact failure: `cannot create evidence directory: /data/user/0/com.re.cardtest/files/parity`
-- Classification: QA/instrumentation evidence-path infrastructure failure
+- Exact failure: `SecurityException: Package com.re.cardtest is not owned by uid 10126`
+- Classification: QA/instrumentation notification-publisher infrastructure failure
 - App baseline failure proven: NO
+- Evidence-path fix status: passed far enough to produce/upload runtime evidence; no repeat of the prior evidence-directory creation failure.
 - Minimal fix applied:
-  - instrumentation evidence path changed to target app app-specific external files directory
-  - runner evidence extraction changed from `run-as com.re.cardtest` to direct adb pull from target app external files
-- Current branch HEAD after fix: `1c5bd6e6fe9e9dd7d391e2afd058ad4e9b2076db`
-- Next single step: trigger one new Golden-vs-rebuilt runtime parity run from the current HEAD and follow it until `completed`.
+  - added QA-package `NotificationPublisher` broadcast receiver
+  - instrumentation now sends an explicit broadcast to the QA receiver instead of calling `NotificationManager` as `com.re.cardtest` from the target UID
+  - synthetic card notification therefore originates from the QA package UID while the target listener remains unchanged
+- Current code-fix commit: `00bb086`
+- Next single step: trigger one new Golden-vs-rebuilt runtime parity run and follow it until `completed`.
 
 ## Required final gates still pending
 - Functional runtime parity: PENDING
