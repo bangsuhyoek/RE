@@ -5,6 +5,7 @@ ARTIFACT_DIR="${1:?artifact dir required}"
 GOLDEN_APK="${2:?golden apk required}"
 QA_APK="${3:?qa instrumentation apk required}"
 TARGET="kr.co.re.subscription"
+QA_PACKAGE="com.re.cardtest"
 LISTENER="$TARGET/kr.co.re.subscription.payment.PaymentNotificationListener"
 REBUILT_APK=$(find "$ARTIFACT_DIR" -type f -name canonical-baseline.apk -print -quit)
 
@@ -45,18 +46,35 @@ configure_system_ui() {
   adb shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4 >/dev/null 2>&1 || true
 }
 
+collect_qa_evidence() {
+  local out="$1"
+  mkdir -p "$out/screens"
+  adb shell run-as "$QA_PACKAGE" ls -la files/parity > "$out/evidence-files.txt" 2>&1 || true
+  for file in home.png subscriptions.png subscription-detail.png benefits.png notifications.png my-page.png runtime-report.txt; do
+    local dest="$out/screens/$file"
+    if adb exec-out run-as "$QA_PACKAGE" cat "files/parity/$file" > "$dest" 2>/dev/null; then
+      test -s "$dest" || rm -f "$dest"
+    else
+      rm -f "$dest"
+    fi
+  done
+}
+
 run_case() {
   local label="$1"
   local apk="$2"
   local out="e2e/$label"
-  local ext="/sdcard/REParity"
 
   adb uninstall "$TARGET" >/dev/null 2>&1 || true
-  adb uninstall com.re.cardtest >/dev/null 2>&1 || true
+  adb uninstall "$QA_PACKAGE" >/dev/null 2>&1 || true
   adb install "$apk" | tee "$out/install-target.txt"
   adb install "$QA_APK" | tee "$out/install-instrumentation.txt"
-  adb shell pm grant com.re.cardtest android.permission.WRITE_EXTERNAL_STORAGE >/dev/null 2>&1 || true
-  adb shell pm grant com.re.cardtest android.permission.READ_EXTERNAL_STORAGE >/dev/null 2>&1 || true
+  adb shell pm grant "$QA_PACKAGE" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1 || true
+
+  # QA APK is a debug build, so run-as must work before starting the test.
+  adb shell run-as "$QA_PACKAGE" id | tee "$out/run-as.txt"
+  adb shell run-as "$QA_PACKAGE" rm -rf files/parity >/dev/null 2>&1 || true
+  adb shell run-as "$QA_PACKAGE" mkdir -p files/parity
 
   configure_system_ui
   adb logcat -c
@@ -66,26 +84,19 @@ run_case() {
   fi
   sleep 2
 
-  adb shell rm -rf "$ext" >/dev/null 2>&1 || true
-  adb shell mkdir -p "$ext"
-  adb shell chmod 777 "$ext" || true
-  adb shell ls -ld "$ext" | tee "$out/evidence-dir.txt"
-
   set +e
-  adb shell am instrument -w com.re.cardtest/.ParityInstrumentation | tee "$out/instrumentation.txt"
+  adb shell am instrument -w "$QA_PACKAGE/.ParityInstrumentation" | tee "$out/instrumentation.txt"
   local inst_status=${PIPESTATUS[0]}
   set -e
 
+  # Always collect test-app internal evidence before assertions, including failures.
+  collect_qa_evidence "$out"
   adb logcat -d -v time > "$out/logcat.txt"
   adb shell dumpsys package "$TARGET" > "$out/package.txt"
   adb shell dumpsys notification --noredact > "$out/notification.txt" || adb shell dumpsys notification > "$out/notification.txt"
   adb shell dumpsys activity activities > "$out/activity.txt"
   adb shell uiautomator dump /sdcard/window.xml >/dev/null 2>&1 || true
   adb pull /sdcard/window.xml "$out/window.xml" >/dev/null 2>&1 || true
-  mkdir -p "$out/screens"
-  adb shell ls -la "$ext" | tee "$out/evidence-files.txt" || true
-  adb pull "$ext/." "$out/screens/" >/dev/null
-
   sha256sum "$apk" > "$out/apk.sha256"
 
   test "$inst_status" -eq 0
