@@ -29,7 +29,8 @@
 9. `35174291655`: API 33 shared external path `/sdcard/REParity` was blocked by scoped-storage (`EPERM`); QA evidence-path failure, not app failure.
 10. `35174767608`: QA instrumentation attempted to write to `com.re.cardtest` private internal storage, but Android instrumentation executes in the target app process/UID. Test-infrastructure UID/context mismatch, not app failure.
 11. `35175728666`: instrumentation posted the synthetic notification under the wrong UID and Android rejected it with `SecurityException`; QA notification-publisher infrastructure failure.
-12. `35176184869`: QA publisher UID path worked and the real RE NotificationListener received the notification, but the synthetic title/body stored in `NotificationPublisher.java` had been corrupted to question marks (`title=????`, body contained `17,000?`). Runtime log proved `received package=com.re.cardtest ...` followed by `ignored: parser rejected notification`; `PaymentParser` requires a KRW amount ending in `원`, so no candidate was created. This is malformed QA test input, not an app baseline failure.
+12. `35176184869`: QA publisher UID path worked, but the synthetic title/body had been corrupted to question marks (`title=????`, body contained `17,000?`). The real RE listener received the QA notification and logged `ignored: parser rejected notification`, so no candidate was created. Malformed QA input, not an app failure.
+13. `35179448328`: Unicode-safe QA payment input fixed the prior failure. Golden runtime then proved `listener connected`, received `package=com.re.cardtest`, parsed `Netflix / 17000`, saved a candidate, and passed `payment_candidate`. The next failure was `deep link id=`. The harness was dispatching this link from the target instrumentation process itself. This does not model a real external deep-link caller, so the next diagnostic uses the QA app process to dispatch the same `reapp://payment/candidate?id=baseline-smoke` intent externally before deciding whether any product code is wrong.
 
 ## Recurrence prevention applied
 - Golden APK is stored as a reusable GitHub Actions artifact instead of relying on a temporary signed URL for runtime parity.
@@ -41,14 +42,16 @@
 - Canonical source packaging uses root-anchored exclusions so `android/app/src` is not accidentally removed.
 - QA evidence writes to the target app-specific external files directory and is pulled with adb.
 - Synthetic payment notification is posted by an exported receiver in the QA package, so it originates from the QA package UID.
-- Synthetic payment strings now use Java Unicode escapes to avoid source/transport encoding corruption. The canonical body is `Netflix 정기결제 17,000원 승인`.
+- Synthetic payment strings use Java Unicode escapes to avoid source/transport encoding corruption.
+- Candidate deep-link diagnosis now also dispatches the test deep link from the QA app process, which matches a real external caller better than target-process self-dispatch.
 - Test harness failures are treated separately from app failures.
 
 ## Current checkpoint
-- Last completed runtime parity run: `35176184869` — FAILURE
-- Last successful workflow step: `Enable KVM acceleration`
-- First failing workflow step: `Run Golden vs rebuilt functional and visual parity`
-- Golden runtime progress before failure:
+- Last completed runtime parity run: `35179448328` — FAILURE
+- Run HEAD: `14047d1fef2db1ec802245c318ec472d84f245ac`
+- Last successful runtime gate: Golden `payment_candidate=PASS`
+- First runtime failure after that: `deep link id=`
+- Golden evidence already proven in this run:
   - Home screen/capture: PASS
   - Concierge toggle: PASS
   - Subscriptions screen/capture: PASS
@@ -57,24 +60,25 @@
   - Notifications screen/capture: PASS
   - My Page screen/capture: PASS
   - NotificationListener connection: PASS
-  - Synthetic notification reached listener: PASS (`package=com.re.cardtest`)
-  - Parser: FAIL because QA body was malformed (`17,000?` instead of `17,000원`)
-  - Candidate count: 0
-- Classification: QA test-input encoding corruption; app baseline failure proven: NO
-- Minimal fix applied: `NotificationPublisher.java` now emits Unicode-safe `신한카드 승인` / `Netflix 정기결제 17,000원 승인` and logs the posted payload.
-- Fix commit: `4ef3dd6d56b57936fa5046b53a8e737f5ac50c2f`
-- Next single step: trigger a new Golden-vs-rebuilt runtime parity run and follow it to `completed`.
+  - QA notification published from `com.re.cardtest`: PASS
+  - Listener received QA notification: PASS
+  - Parser output `Netflix / 17000`: PASS
+  - Candidate store write / bridge read: PASS
+- Current deep-link classification: test-harness dispatch method is still being isolated; app baseline failure is NOT yet proven.
+- Minimal diagnostic fix applied: `NotificationPublisher` schedules the candidate deep link from the QA app process (external caller) after the real notification is posted.
+- Diagnostic fix commit: `3608be56e7c2b50a892f9cdca66902be17a94af1`
+- Next single step: trigger a new Golden-vs-rebuilt runtime parity run, follow it to `completed`, then classify only the next first failure if one remains.
 
 ## Required final gates still pending
 - Functional runtime parity: PENDING
-- Home visual parity: PENDING (Golden capture exists; Golden vs rebuilt comparison not yet completed)
+- Home visual parity: PENDING (Golden capture exists; Golden vs rebuilt comparison pending)
 - Subscriptions visual parity: PENDING
 - Subscription detail visual parity: PENDING
 - Benefits visual parity: PENDING
 - Notifications visual parity: PENDING
 - My Page visual parity: PENDING
 - NotificationListener runtime connection: PARTIAL PASS (Golden proven; rebuilt pending)
-- Payment path / candidate storage: PENDING
+- Payment path / candidate storage: PARTIAL PASS (Golden proven; rebuilt pending)
 - Deep Link: PENDING
 - Concierge ON/OFF: PARTIAL PASS (Golden proven; rebuilt pending)
 - Crash / ANR: PENDING
