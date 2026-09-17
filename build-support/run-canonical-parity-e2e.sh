@@ -17,6 +17,8 @@ test -s "$QA_APK"
 
 mkdir -p e2e/golden e2e/rebuilt
 
+declare -A CASE_FAILURES
+
 wait_for_emulator() {
   adb wait-for-device
   local booted=0
@@ -61,10 +63,18 @@ collect_qa_evidence() {
   done
 }
 
+check_or_record_failure() {
+  local label="$1"
+  local message="$2"
+  CASE_FAILURES[$label]="${CASE_FAILURES[$label]:-}${CASE_FAILURES[$label]:+; }$message"
+  echo "CASE_GATE_FAIL[$label]=$message"
+}
+
 run_case() {
   local label="$1"
   local apk="$2"
   local out="e2e/$label"
+  CASE_FAILURES[$label]=""
 
   adb uninstall "$TARGET" >/dev/null 2>&1 || true
   adb uninstall "$QA_PACKAGE" >/dev/null 2>&1 || true
@@ -72,9 +82,6 @@ run_case() {
   adb install "$QA_APK" | tee "$out/install-instrumentation.txt"
   adb shell pm grant "$QA_PACKAGE" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1 || true
 
-  # Instrumentation runs with the target app UID, not the QA package UID.
-  # Evidence is therefore written under the target app's app-specific external
-  # files directory and pulled by adb after the instrumentation finishes.
   adb shell rm -rf "$EVIDENCE_DIR" >/dev/null 2>&1 || true
 
   configure_system_ui
@@ -90,7 +97,9 @@ run_case() {
   local inst_status=${PIPESTATUS[0]}
   set -e
 
-  # Always collect evidence before assertions, including failures.
+  # Always collect evidence before evaluating gates. This deliberately lets the
+  # rebuilt case run even when the Golden case exposes a known product-level
+  # functional failure, so parity can be distinguished from functionality.
   collect_qa_evidence "$out"
   adb logcat -d -v time > "$out/logcat.txt"
   adb shell dumpsys package "$TARGET" > "$out/package.txt"
@@ -100,29 +109,44 @@ run_case() {
   adb pull /sdcard/window.xml "$out/window.xml" >/dev/null 2>&1 || true
   sha256sum "$apk" > "$out/apk.sha256"
 
-  test "$inst_status" -eq 0
-  grep -q "RE_PARITY_RESULT=PASS" "$out/instrumentation.txt"
-  grep -q "listener connected" "$out/logcat.txt"
-  grep -q "detected service=Netflix amount=17000" "$out/logcat.txt"
-  grep -q "re_payment_candidates_v106_runtime" "$out/notification.txt"
-  grep -q "결제 내역을 확인했어요" "$out/notification.txt"
-  ! grep -E "FATAL EXCEPTION|ANR in $TARGET|Process: $TARGET" "$out/logcat.txt"
+  [ "$inst_status" -eq 0 ] || check_or_record_failure "$label" "instrumentation_exit=$inst_status"
+  grep -q "RE_PARITY_RESULT=PASS" "$out/instrumentation.txt" || check_or_record_failure "$label" "instrumentation_result_not_pass"
+  grep -q "listener connected" "$out/logcat.txt" || check_or_record_failure "$label" "listener_not_connected"
+  grep -q "detected service=Netflix amount=17000" "$out/logcat.txt" || check_or_record_failure "$label" "payment_not_detected"
+  grep -q "re_payment_candidates_v106_runtime" "$out/notification.txt" || check_or_record_failure "$label" "candidate_channel_missing"
+  grep -q "결제 내역을 확인했어요" "$out/notification.txt" || check_or_record_failure "$label" "candidate_notification_missing"
+  if grep -E "FATAL EXCEPTION|ANR in $TARGET|Process: $TARGET" "$out/logcat.txt"; then
+    check_or_record_failure "$label" "crash_or_anr"
+  fi
 
   for name in home subscriptions subscription-detail benefits notifications my-page; do
-    test -s "$out/screens/$name.png"
+    test -s "$out/screens/$name.png" || check_or_record_failure "$label" "missing_screen_$name"
   done
-  test -s "$out/screens/runtime-report.txt"
+  test -s "$out/screens/runtime-report.txt" || check_or_record_failure "$label" "missing_runtime_report"
+
+  printf '%s\n' "${CASE_FAILURES[$label]}" > "$out/case-failures.txt"
 }
 
 wait_for_emulator
 run_case golden "$GOLDEN_APK"
 run_case rebuilt "$REBUILT_APK"
 
-diff -u e2e/golden/screens/runtime-report.txt e2e/rebuilt/screens/runtime-report.txt > e2e/runtime-report.diff || {
-  cat e2e/runtime-report.diff
-  exit 1
-}
+OVERALL_FAIL=0
 
+if test -s e2e/golden/screens/runtime-report.txt && test -s e2e/rebuilt/screens/runtime-report.txt; then
+  if ! diff -u e2e/golden/screens/runtime-report.txt e2e/rebuilt/screens/runtime-report.txt > e2e/runtime-report.diff; then
+    cat e2e/runtime-report.diff
+    echo "RUNTIME_REPORT_PARITY=FAIL"
+    OVERALL_FAIL=1
+  else
+    echo "RUNTIME_REPORT_PARITY=PASS"
+  fi
+else
+  echo "RUNTIME_REPORT_PARITY=UNAVAILABLE"
+  OVERALL_FAIL=1
+fi
+
+set +e
 python3 - <<'PY'
 from pathlib import Path
 from PIL import Image, ImageChops, ImageEnhance
@@ -133,6 +157,10 @@ report = {"thresholds":{"changed_pct":0.05,"mean_abs":0.5,"rms":1.0},"screens":{
 for name in names:
     gp=Path("e2e/golden/screens")/(name+".png")
     rp=Path("e2e/rebuilt/screens")/(name+".png")
+    if not gp.exists() or not rp.exists():
+        report["screens"][name]={"pass":False,"reason":"missing"}
+        report["pass"]=False
+        continue
     g=np.asarray(Image.open(gp).convert("RGB"),dtype=np.int16)
     r=np.asarray(Image.open(rp).convert("RGB"),dtype=np.int16)
     if g.shape != r.shape:
@@ -158,33 +186,56 @@ print(json.dumps(report,ensure_ascii=False,indent=2))
 if not report["pass"]:
     sys.exit(1)
 PY
+VISUAL_STATUS=$?
+set -e
+[ "$VISUAL_STATUS" -eq 0 ] || OVERALL_FAIL=1
 
+set +e
 python3 - <<'PY'
 from pathlib import Path
-import json, re
+import json, re, sys
 out={}
 for label in ("golden","rebuilt"):
-    log=Path(f"e2e/{label}/logcat.txt").read_text(errors="replace")
-    notif=Path(f"e2e/{label}/notification.txt").read_text(errors="replace")
-    runtime=Path(f"e2e/{label}/screens/runtime-report.txt").read_text(errors="replace")
+    log=Path(f"e2e/{label}/logcat.txt").read_text(errors="replace") if Path(f"e2e/{label}/logcat.txt").exists() else ""
+    notif=Path(f"e2e/{label}/notification.txt").read_text(errors="replace") if Path(f"e2e/{label}/notification.txt").exists() else ""
+    rp=Path(f"e2e/{label}/screens/runtime-report.txt")
+    runtime=rp.read_text(errors="replace") if rp.exists() else ""
     out[label]={
       "listener_connected": "listener connected" in log,
       "payment_detected": "detected service=Netflix amount=17000" in log,
       "candidate_notification": "re_payment_candidates_v106_runtime" in notif and "결제 내역을 확인했어요" in notif,
       "concierge_toggle": "concierge_toggle=PASS" in runtime,
-      "deep_link": "deep_link=PASS" in runtime,
+      "deep_link_native_appUrlOpen": "deep_link_appUrlOpen=reapp://payment/candidate?id=baseline-smoke&source=parity-shell" in runtime,
+      "deep_link_product_event": "deep_link=PASS" in runtime,
       "payment_candidate": "payment_candidate=PASS" in runtime,
       "crash_or_anr": bool(re.search(r"FATAL EXCEPTION|ANR in kr\.co\.re\.subscription|Process: kr\.co\.re\.subscription", log)),
     }
-out["pass"]=all(
+out["behavior_parity"] = all(out["golden"].get(k) == out["rebuilt"].get(k) for k in out["golden"])
+out["functional_pass"]=all(
     v["listener_connected"] and v["payment_detected"] and v["candidate_notification"]
-    and v["concierge_toggle"] and v["deep_link"] and v["payment_candidate"] and not v["crash_or_anr"]
-    for v in out.values() if isinstance(v,dict)
+    and v["concierge_toggle"] and v["deep_link_native_appUrlOpen"] and v["deep_link_product_event"]
+    and v["payment_candidate"] and not v["crash_or_anr"]
+    for v in (out["golden"],out["rebuilt"])
 )
 Path("e2e/functional-parity.json").write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(out,ensure_ascii=False,indent=2))
-if not out["pass"]:
-    raise SystemExit(1)
+if not out["functional_pass"]:
+    sys.exit(1)
 PY
+FUNCTIONAL_STATUS=$?
+set -e
+[ "$FUNCTIONAL_STATUS" -eq 0 ] || OVERALL_FAIL=1
 
-echo "BASELINE_RUNTIME_PARITY=PASS" | tee e2e/result.txt
+for label in golden rebuilt; do
+  if [ -n "${CASE_FAILURES[$label]}" ]; then
+    OVERALL_FAIL=1
+  fi
+done
+
+if [ "$OVERALL_FAIL" -eq 0 ]; then
+  echo "BASELINE_RUNTIME_PARITY=PASS" | tee e2e/result.txt
+  exit 0
+fi
+
+echo "BASELINE_RUNTIME_PARITY=NOT_YET_PASS" | tee e2e/result.txt
+exit 1
