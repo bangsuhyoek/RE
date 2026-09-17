@@ -8,6 +8,7 @@ TARGET="kr.co.re.subscription"
 QA_PACKAGE="com.re.cardtest"
 LISTENER="$TARGET/kr.co.re.subscription.payment.PaymentNotificationListener"
 REBUILT_APK=$(find "$ARTIFACT_DIR" -type f -name canonical-baseline.apk -print -quit)
+EVIDENCE_DIR="/sdcard/Android/data/$TARGET/files/parity"
 
 test -n "$REBUILT_APK"
 test -s "$REBUILT_APK"
@@ -49,10 +50,10 @@ configure_system_ui() {
 collect_qa_evidence() {
   local out="$1"
   mkdir -p "$out/screens"
-  adb shell run-as "$QA_PACKAGE" ls -la files/parity > "$out/evidence-files.txt" 2>&1 || true
+  adb shell ls -la "$EVIDENCE_DIR" > "$out/evidence-files.txt" 2>&1 || true
   for file in home.png subscriptions.png subscription-detail.png benefits.png notifications.png my-page.png runtime-report.txt; do
     local dest="$out/screens/$file"
-    if adb exec-out run-as "$QA_PACKAGE" cat "files/parity/$file" > "$dest" 2>/dev/null; then
+    if adb pull "$EVIDENCE_DIR/$file" "$dest" >/dev/null 2>&1; then
       test -s "$dest" || rm -f "$dest"
     else
       rm -f "$dest"
@@ -71,10 +72,10 @@ run_case() {
   adb install "$QA_APK" | tee "$out/install-instrumentation.txt"
   adb shell pm grant "$QA_PACKAGE" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1 || true
 
-  # QA APK is a debug build, so run-as must work before starting the test.
-  adb shell run-as "$QA_PACKAGE" id | tee "$out/run-as.txt"
-  adb shell run-as "$QA_PACKAGE" rm -rf files/parity >/dev/null 2>&1 || true
-  adb shell run-as "$QA_PACKAGE" mkdir -p files/parity
+  # Instrumentation runs with the target app UID, not the QA package UID.
+  # Evidence is therefore written under the target app's app-specific external
+  # files directory and pulled by adb after the instrumentation finishes.
+  adb shell rm -rf "$EVIDENCE_DIR" >/dev/null 2>&1 || true
 
   configure_system_ui
   adb logcat -c
@@ -89,7 +90,7 @@ run_case() {
   local inst_status=${PIPESTATUS[0]}
   set -e
 
-  # Always collect test-app internal evidence before assertions, including failures.
+  # Always collect evidence before assertions, including failures.
   collect_qa_evidence "$out"
   adb logcat -d -v time > "$out/logcat.txt"
   adb shell dumpsys package "$TARGET" > "$out/package.txt"
