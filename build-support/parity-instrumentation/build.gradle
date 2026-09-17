@@ -1,0 +1,19 @@
+buildscript {
+    repositories { google(); mavenCentral() }
+    dependencies { classpath 'com.android.tools.build:gradle:8.13.0' }
+}
+
+apply plugin: 'com.android.application'
+
+android {
+    namespace 'com.re.cardtest'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.re.cardtest'
+        minSdk 23
+        targetSdk 30
+        versionCode 1
+        versionName '1.0'
+    }
+}
