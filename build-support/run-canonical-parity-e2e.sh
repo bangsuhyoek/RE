@@ -49,7 +49,7 @@ run_case() {
   local label="$1"
   local apk="$2"
   local out="e2e/$label"
-  local ext="/sdcard/Android/data/com.re.cardtest/files/parity"
+  local ext="/sdcard/REParity"
 
   adb uninstall "$TARGET" >/dev/null 2>&1 || true
   adb uninstall com.re.cardtest >/dev/null 2>&1 || true
