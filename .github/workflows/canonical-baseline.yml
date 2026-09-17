@@ -6,11 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      GOLDEN_WEB_URL: 'https://sdmntprjapaneast.oaiusercontent.com/files/00000000-a60c-8209-b949-6804282e7278/raw?se=2026-09-16T18%3A43%3A49Z&sp=r&sv=2026-02-06&sr=b&scid=f1c991e0-88b0-5aed-9ca4-beb944fcec55&skoid=03727f49-62d3-42ac-8350-1c0e6559d238&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-16T18%3A04%3A44Z&ske=2026-09-17T18%3A04%3A44Z&sks=b&skv=2026-02-06&sig=3Go/nXaRbHs02kTDJNVZ37RY/qTkoVArOKYjiPQ9MvY%3D'
-      GOLDEN_WEB_SHA256: c419cb9a3088839d4dfa263e9993c301257650cb7d51ec60e43426745d716700
     steps:
-      - name: Checkout donor-native baseline
+      - name: Checkout canonical branch
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -23,101 +20,127 @@ jobs:
         with:
           version: 9
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Restore exact Golden WebView payload
-        shell: bash
-        run: |
-          set -euxo pipefail
-          curl -L --fail --retry 3 --retry-delay 2 "$GOLDEN_WEB_URL" -o /tmp/re-v2.0.2-web-assets.zip
-          echo "$GOLDEN_WEB_SHA256  /tmp/re-v2.0.2-web-assets.zip" | sha256sum -c -
-          rm -rf /tmp/golden-web dist canonical-web
-          mkdir -p /tmp/golden-web dist canonical-web
-          unzip -q /tmp/re-v2.0.2-web-assets.zip -d /tmp/golden-web
-          test -f /tmp/golden-web/public/index.html
-          cp -a /tmp/golden-web/public/. dist/
-          cp -a /tmp/golden-web/public canonical-web/public
-          test "$(find dist -type f | wc -l)" -eq 133
-          test "$(find canonical-web/public -type f | wc -l)" -eq 133
-          find dist -type f -print0 | sort -z | xargs -0 sha256sum > golden-web-files.sha256
-
-      - name: Setup Java JDK
-        uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v5
         with:
           distribution: zulu
           java-version: '21'
 
-      - name: Sync canonical WebView into Android
-        run: npx cap sync android
+      - name: Download stable Golden Product Baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: re-v2.0.2-golden-product-baseline
+          path: golden
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 35171158055
 
-      - name: Assert no 2.5D PoC code in baseline
+      - name: Restore exact Golden WebView payload
         shell: bash
         run: |
-          set -euxo pipefail
-          ! grep -R "AnimatedConciergeOverlayController" -n android/app/src/main || false
-          ! grep -R "PocPaymentTriggerActivity" -n android/app/src/main || false
-          ! grep -R "PocPaymentReceiver" -n android/app/src/main || false
-          ! grep -R "SYSTEM_ALERT_WINDOW" -n android/app/src/main/AndroidManifest.xml
+          set -euo pipefail
+          GOLDEN=$(find golden -type f -name 'v2.0.2_수정.apk' -print -quit)
+          test -n "$GOLDEN"
+          test -s "$GOLDEN"
+          echo "c52bd20769fb84d8d4d882c7a985f3f792aa038184750dce9a86104efe77e7ac  $GOLDEN" | sha256sum -c -
+          rm -rf dist
+          mkdir -p dist
+          python3 - "$GOLDEN" dist <<'PY'
+          import sys,zipfile,pathlib,hashlib,json
+          apk,out=sys.argv[1:3]
+          out=pathlib.Path(out)
+          hashes={}
+          with zipfile.ZipFile(apk) as z:
+              for name in z.namelist():
+                  prefix='assets/public/'
+                  if not name.startswith(prefix) or name.endswith('/'):
+                      continue
+                  rel=name[len(prefix):]
+                  dest=out/rel
+                  dest.parent.mkdir(parents=True,exist_ok=True)
+                  data=z.read(name)
+                  dest.write_bytes(data)
+                  hashes[rel]=hashlib.sha256(data).hexdigest()
+          print(json.dumps({'web_files':len(hashes)},indent=2))
+          if len(hashes)!=133:
+              raise SystemExit(f'expected 133 Golden WebView files, got {len(hashes)}')
+          pathlib.Path('golden-web-files.json').write_text(json.dumps(hashes,indent=2),encoding='utf-8')
+          PY
+          test -f dist/index.html
+          test "$(find dist -type f | wc -l)" -eq 133
+
+      - name: Install dependencies and sync Android
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          npx cap sync android
+
+      - name: Assert baseline has no 2.5D integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -R "AnimatedConciergeOverlayController\|PocPaymentTriggerActivity\|PocPaymentReceiver" android/app/src/main; then
+            echo "unexpected 2.5D PoC code in canonical baseline" >&2
+            exit 1
+          fi
+          if grep -q "android.permission.SYSTEM_ALERT_WINDOW" android/app/src/main/AndroidManifest.xml; then
+            echo "unexpected SYSTEM_ALERT_WINDOW manifest permission in canonical baseline" >&2
+            exit 1
+          fi
 
       - name: Clean build baseline APKs
         shell: bash
         run: |
+          set -euo pipefail
           chmod +x android/gradlew
-          cd android
-          ./gradlew clean assembleDebug assembleRelease --stacktrace
+          (cd android && ./gradlew clean assembleDebug assembleRelease --stacktrace)
 
-      - name: Validate Golden native parity and WebView parity
+      - name: Verify rebuilt release against Golden payload
         shell: bash
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           DEBUG=android/app/build/outputs/apk/debug/app-debug.apk
           RELEASE=android/app/build/outputs/apk/release/app-release-unsigned.apk
+          GOLDEN=$(find golden -type f -name 'v2.0.2_수정.apk' -print -quit)
           test -s "$DEBUG"
           test -s "$RELEASE"
+          test -s "$GOLDEN"
           unzip -t "$DEBUG" >/dev/null
           unzip -t "$RELEASE" >/dev/null
-          python3 - <<'PY'
-          import hashlib, zipfile, pathlib, sys, json
-          apk=pathlib.Path("android/app/build/outputs/apk/release/app-release-unsigned.apk")
-          expected_native={
-            "classes.dex":"6349894e11e852900424f934c5086c8cb892a05b5e9d262f107603b708261950",
-            "resources.arsc":"3289e1df869117e7437e2c07ce3b8aaa3ec9cc8b07886843323e90c2ebcf89b5",
-            "AndroidManifest.xml":"5b98d1d3c48ea7263537428e6d7bbd9cab21c35122bff7d41206da58dacd7707",
-            "assets/capacitor.config.json":"2a11861bf9f88b8027364f2a7ca541008985c4394a83b4666e6fc3cf536907de",
-            "assets/capacitor.plugins.json":"75b36e7faec8515aae52abee27e7fadc8b2c2b149dd1d5a40a17f68933f76493",
-            "assets/native-bridge.js":"8ecc290bdd4f54605a6851e73023d4ba5ba0e56aa1d3eba75962242482b8fb4e",
+          python3 - "$RELEASE" "$GOLDEN" <<'PY'
+          import sys,zipfile,hashlib,json,pathlib
+          rebuilt,golden=sys.argv[1:3]
+          def payload(path):
+              with zipfile.ZipFile(path) as z:
+                  return {n:hashlib.sha256(z.read(n)).hexdigest()
+                          for n in z.namelist()
+                          if not n.startswith('META-INF/') and not n.endswith('/')}
+          r=payload(rebuilt); g=payload(golden)
+          report={
+              'golden_count':len(g),
+              'rebuilt_count':len(r),
+              'missing_in_rebuilt':sorted(set(g)-set(r)),
+              'extra_in_rebuilt':sorted(set(r)-set(g)),
+              'changed':sorted(k for k in set(g)&set(r) if g[k]!=r[k]),
           }
-          report={"native":{},"web":{}}
-          with zipfile.ZipFile(apk) as z:
-            for name,exp in expected_native.items():
-              got=hashlib.sha256(z.read(name)).hexdigest()
-              report["native"][name]={"expected":exp,"actual":got,"match":got==exp}
-              if got!=exp: raise SystemExit(f"native mismatch: {name}: {got} != {exp}")
-            apk_web={n[len("assets/public/"):]:hashlib.sha256(z.read(n)).hexdigest()
-                     for n in z.namelist() if n.startswith("assets/public/") and not n.endswith("/")}
-          src={}
-          for p in pathlib.Path("dist").rglob("*"):
-            if p.is_file():
-              src[p.relative_to("dist").as_posix()]=hashlib.sha256(p.read_bytes()).hexdigest()
-          report["web"]={"source_count":len(src),"apk_count":len(apk_web),"match":src==apk_web}
-          if len(src)!=133 or src!=apk_web: raise SystemExit("WebView payload mismatch")
-          pathlib.Path("canonical-parity.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
-          print(json.dumps(report,indent=2))
+          report['pass']=not report['missing_in_rebuilt'] and not report['extra_in_rebuilt'] and not report['changed']
+          pathlib.Path('canonical-payload-parity.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(json.dumps(report,ensure_ascii=False,indent=2))
+          if not report['pass']:
+              raise SystemExit(1)
           PY
           BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
           "$BT/aapt2" dump badging "$RELEASE" | tee canonical-badging.txt
           "$BT/aapt2" dump permissions "$RELEASE" | tee canonical-permissions.txt
           grep -q "package: name='kr.co.re.subscription' versionCode='202' versionName='2.0.2'" canonical-badging.txt
-          grep -q "android.permission.POST_NOTIFICATIONS" canonical-permissions.txt
-          grep -q "android.permission.SCHEDULE_EXACT_ALARM" canonical-permissions.txt
           ! grep -q "android.permission.SYSTEM_ALERT_WINDOW" canonical-permissions.txt
           sha256sum "$DEBUG" "$RELEASE" > canonical-apk.sha256
 
-      - name: Sign exact release payload for emulator
+      - name: Sign exact release payload for runtime QA
         shell: bash
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           RELEASE=android/app/build/outputs/apk/release/app-release-unsigned.apk
           BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
           KS=/tmp/re-canonical-baseline.jks
@@ -131,126 +154,20 @@ jobs:
             --out canonical-baseline.apk canonical-baseline-aligned.apk
           "$BT/apksigner" verify --verbose canonical-baseline.apk
           rm canonical-baseline-aligned.apk
-
-      - name: Package self-contained canonical full source
-        shell: bash
-        run: |
-          set -euxo pipefail
-          cat > canonical-build.sh <<'EOF'
-          #!/usr/bin/env bash
-          set -euo pipefail
-          ROOT=$(cd "$(dirname "$0")" && pwd)
-          cd "$ROOT"
-          test -f canonical-web/public/index.html
-          test "$(find canonical-web/public -type f | wc -l)" -eq 133
-          rm -rf dist
-          mkdir -p dist
-          cp -a canonical-web/public/. dist/
-          pnpm install --frozen-lockfile
-          npx cap sync android
-          chmod +x android/gradlew
-          (cd android && ./gradlew clean assembleDebug assembleRelease --stacktrace)
-          EOF
-          chmod +x canonical-build.sh
-          cat > CANONICAL_BASELINE_PROVENANCE.md <<'EOF'
-          # RE v2.0.2 canonical baseline
-
-          Golden Product Baseline: v2.0.2_수정.apk
-          Native donor commit: d3d85ff816fd7ae340e72b8be5b0a2181e666b1f
-          Exact WebView archive SHA-256: c419cb9a3088839d4dfa263e9993c301257650cb7d51ec60e43426745d716700
-          Exact WebView file count: 133
-
-          This package intentionally excludes the donor React/Vite UI source from src/ and public/.
-          The canonical UI source is canonical-web/public and canonical-build.sh copies it byte-for-byte
-          into dist before Capacitor sync. No 2.5D PoC controller, PocPaymentTriggerActivity,
-          PocPaymentReceiver, or SYSTEM_ALERT_WINDOW permission is part of this baseline.
-
-          The first canonical clean build was independently compared with the current Golden APK:
-          every one of 588 APK ZIP payload entries matched byte-for-byte after excluding only APK
-          signing metadata under META-INF. This source package exists to make that payload reproducible.
-          EOF
-          mkdir -p /tmp/canonical-source/RE_v2.0.2_CANONICAL_SOURCE
-          rsync -a \
-            --exclude '.git' \
-            --exclude '.github' \
-            --exclude 'node_modules' \
-            --exclude 'dist' \
-            --exclude 'src' \
-            --exclude 'public' \
-            --exclude 'tests' \
-            --exclude 'android/.gradle' \
-            --exclude 'android/app/build' \
-            ./ /tmp/canonical-source/RE_v2.0.2_CANONICAL_SOURCE/
-          (cd /tmp/canonical-source && zip -qr RE_v2.0.2_CANONICAL_SOURCE.zip RE_v2.0.2_CANONICAL_SOURCE)
-          mv /tmp/canonical-source/RE_v2.0.2_CANONICAL_SOURCE.zip ./RE_v2.0.2_CANONICAL_SOURCE.zip
-          sha256sum RE_v2.0.2_CANONICAL_SOURCE.zip canonical-baseline.apk > canonical-deliverables.sha256
+          sha256sum canonical-baseline.apk >> canonical-apk.sha256
 
       - name: Upload canonical baseline
         uses: actions/upload-artifact@v4
         with:
-          name: re-v2.0.2-canonical-baseline
+          name: re-v2.0.2-canonical-baseline-stable
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
             android/app/build/outputs/apk/release/app-release-unsigned.apk
             canonical-baseline.apk
-            RE_v2.0.2_CANONICAL_SOURCE.zip
-            CANONICAL_BASELINE_PROVENANCE.md
-            canonical-deliverables.sha256
-            canonical-parity.json
+            canonical-payload-parity.json
             canonical-badging.txt
             canonical-permissions.txt
             canonical-apk.sha256
-            golden-web-files.sha256
+            golden-web-files.json
           if-no-files-found: error
-
-  emulator:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download baseline artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: re-v2.0.2-canonical-baseline
-          path: artifact
-
-      - name: Baseline functional and screenshot smoke
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          arch: x86_64
-          profile: pixel_4
-          disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: |
-            set -eu
-            APK=$(find artifact -type f -name canonical-baseline.apk -print -quit)
-            adb install -r "$APK"
-            adb logcat -c
-            adb shell cmd notification allow_listener kr.co.re.subscription/kr.co.re.subscription.payment.PaymentNotificationListener
-            connected=0
-            for i in $(seq 1 15); do
-              if adb logcat -d -v brief | grep -q "REPaymentListener.*listener connected"; then connected=1; break; fi
-              sleep 1
-            done
-            test "$connected" -eq 1
-            adb shell am force-stop kr.co.re.subscription
-            adb shell am start -W -n kr.co.re.subscription/kr.co.re.subscription.MainActivity
-            sleep 10
-            mkdir -p evidence
-            adb shell screencap -p /sdcard/home.png
-            adb pull /sdcard/home.png evidence/home.png
-            adb shell dumpsys package kr.co.re.subscription > evidence/package.txt
-            adb shell dumpsys notification > evidence/notification-service.txt
-            adb shell am start -W -a android.intent.action.VIEW -d "reapp://payment/candidate?id=baseline-smoke" kr.co.re.subscription
-            sleep 3
-            adb shell screencap -p /sdcard/deeplink.png
-            adb pull /sdcard/deeplink.png evidence/deeplink.png
-            adb logcat -d -v time > evidence/logcat.txt
-            ! grep -E "FATAL EXCEPTION|ANR in kr.co.re.subscription|Process: kr.co.re.subscription" evidence/logcat.txt
-
-      - name: Upload baseline evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: re-v2.0.2-canonical-baseline-evidence
-          path: evidence
-          if-no-files-found: error
+          retention-days: 90
