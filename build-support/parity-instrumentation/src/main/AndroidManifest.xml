@@ -3,7 +3,11 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="RE parity QA"
-        android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <receiver
+            android:name=".NotificationPublisher"
+            android:exported="true" />
+    </application>
     <instrumentation
         android:name=".ParityInstrumentation"
         android:targetPackage="kr.co.re.subscription"

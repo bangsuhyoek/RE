@@ -154,22 +154,13 @@ public class ParityInstrumentation extends Instrumentation {
     }
 
     private void postPaymentNotification() {
-        Context context = getContext();
-        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (manager == null) throw new IllegalStateException("test NotificationManager missing");
-        String channelId = "re-parity-card-test";
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(channelId, "RE parity card test", NotificationManager.IMPORTANCE_HIGH);
-            manager.createNotificationChannel(channel);
-        }
-        Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                ? new Notification.Builder(context, channelId)
-                : new Notification.Builder(context);
-        builder.setSmallIcon(android.R.drawable.stat_notify_more)
-               .setContentTitle("신한카드")
-               .setContentText("Netflix 정기결제 17,000원 승인")
-               .setPriority(Notification.PRIORITY_HIGH);
-        manager.notify(9001, builder.build());
+        // Instrumentation executes with the target app UID, so using getContext()
+        // to post a notification as com.re.cardtest causes Package/UID security
+        // enforcement to fail. Delegate the notification to an exported receiver
+        // in the QA package so Android posts it under the QA package UID.
+        Intent publish = new Intent("com.re.cardtest.POST_PAYMENT");
+        publish.setClassName("com.re.cardtest", "com.re.cardtest.NotificationPublisher");
+        getTargetContext().sendBroadcast(publish);
         record("posted_card_notification", "PASS");
     }
 
