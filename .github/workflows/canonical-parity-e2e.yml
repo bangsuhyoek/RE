@@ -109,6 +109,72 @@ jobs:
           if not report["pass"]: raise SystemExit(1)
           PY
 
+      - name: Prepare common-signed runtime copies for instrumentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          REBUILT=$(find artifact -type f -name canonical-baseline.apk -print -quit)
+          GOLDEN=$(find golden -type f -name 'v2.0.2_수정.apk' -print -quit)
+          test -n "$REBUILT"
+          test -s "$REBUILT"
+          test -n "$GOLDEN"
+          test -s "$GOLDEN"
+          test -s qa-parity.apk
+
+          mkdir -p runtime/rebuilt runtime
+          KS="$PWD/runtime/parity-runtime.jks"
+          keytool -genkeypair -noprompt \
+            -keystore "$KS" -storepass paritypass -keypass paritypass \
+            -alias parity -keyalg RSA -keysize 2048 -validity 365 \
+            -dname "CN=RE Canonical Parity QA,O=RE,C=KR"
+
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          test -x "$BT/zipalign"
+          test -x "$BT/apksigner"
+
+          resign() {
+            local input="$1"
+            local output="$2"
+            local work
+            work=$(mktemp -d)
+            cp "$input" "$work/input.apk"
+            zip -qd "$work/input.apk" 'META-INF/*.RSA' 'META-INF/*.DSA' 'META-INF/*.EC' 'META-INF/*.SF' 'META-INF/*.MF' || true
+            "$BT/zipalign" -p -f 4 "$work/input.apk" "$work/aligned.apk"
+            "$BT/apksigner" sign \
+              --ks "$KS" --ks-key-alias parity \
+              --ks-pass pass:paritypass --key-pass pass:paritypass \
+              --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
+              --out "$output" "$work/aligned.apk"
+            "$BT/apksigner" verify --verbose --print-certs "$output"
+            rm -rf "$work"
+          }
+
+          resign "$REBUILT" runtime/rebuilt/canonical-baseline.apk
+          resign "$GOLDEN" runtime/golden-runtime.apk
+          resign qa-parity.apk runtime/qa-runtime.apk
+
+          sha256sum "$REBUILT" "$GOLDEN" qa-parity.apk \
+            runtime/rebuilt/canonical-baseline.apk runtime/golden-runtime.apk runtime/qa-runtime.apk \
+            | tee runtime/runtime-apks.sha256
+
+          python3 - "$REBUILT" runtime/rebuilt/canonical-baseline.apk "$GOLDEN" runtime/golden-runtime.apk <<'PY'
+          import sys,zipfile,hashlib,json,pathlib
+          def payload(path):
+              with zipfile.ZipFile(path) as z:
+                  return {n:hashlib.sha256(z.read(n)).hexdigest()
+                          for n in z.namelist()
+                          if not n.startswith("META-INF/") and not n.endswith("/")}
+          pairs=[("rebuilt",sys.argv[1],sys.argv[2]),("golden",sys.argv[3],sys.argv[4])]
+          report={}
+          for name,orig,signed in pairs:
+              a=payload(orig); b=payload(signed)
+              report[name]={"original_count":len(a),"runtime_count":len(b),"pass":a==b}
+              if a!=b:
+                  raise SystemExit(f"{name} runtime re-sign changed non-signing payload")
+          pathlib.Path("runtime/runtime-resign-parity.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
+          print(json.dumps(report,indent=2))
+          PY
+
       - name: Enable KVM acceleration
         shell: bash
         run: |
@@ -128,7 +194,7 @@ jobs:
           heap-size: 512M
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: bash build-support/run-canonical-parity-e2e.sh artifact golden/v2.0.2_수정.apk qa-parity.apk
+          script: bash build-support/run-canonical-parity-e2e.sh runtime/rebuilt runtime/golden-runtime.apk runtime/qa-runtime.apk
 
       - name: Upload parity evidence
         if: always()
@@ -139,4 +205,6 @@ jobs:
             e2e
             payload-parity-runtime.json
             qa-parity.sha256
+            runtime/runtime-apks.sha256
+            runtime/runtime-resign-parity.json
           if-no-files-found: warn
