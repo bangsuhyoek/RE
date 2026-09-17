@@ -44,7 +44,14 @@ public class ParityInstrumentation extends Instrumentation {
         Bundle result = new Bundle();
         int code = Activity.RESULT_CANCELED;
         try {
-            outDir = new File(getContext().getFilesDir(), "parity");
+            // Instrumentation executes in the target app process/UID. Writing to the
+            // QA package's private files directory therefore fails even though `run-as
+            // com.re.cardtest` works from adb. Store evidence in the target app's
+            // app-specific external directory instead; it needs no storage permission
+            // and can be pulled by adb on the emulator without changing the target APK.
+            File evidenceRoot = getTargetContext().getExternalFilesDir(null);
+            if (evidenceRoot == null) throw new IllegalStateException("target external files directory unavailable");
+            outDir = new File(evidenceRoot, "parity");
             if (!outDir.exists() && !outDir.mkdirs()) throw new IllegalStateException("cannot create evidence directory: " + outDir);
 
             Intent launch = getTargetContext().getPackageManager().getLaunchIntentForPackage(TARGET);
