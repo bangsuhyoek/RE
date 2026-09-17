@@ -15,11 +15,29 @@ test -s "$QA_APK"
 
 mkdir -p e2e/golden e2e/rebuilt
 
+wait_for_emulator() {
+  adb wait-for-device
+  local booted=0
+  for _ in $(seq 1 90); do
+    if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; then
+      booted=1
+      break
+    fi
+    sleep 2
+  done
+  test "$booted" -eq 1
+  adb shell pm list packages >/dev/null
+  adb shell getprop ro.build.version.release | tee e2e/emulator-android-version.txt
+  adb shell wm size | tee e2e/emulator-size.txt
+  adb shell wm density | tee e2e/emulator-density.txt
+}
+
 configure_system_ui() {
   adb shell settings put global window_animation_scale 0 || true
   adb shell settings put global transition_animation_scale 0 || true
   adb shell settings put global animator_duration_scale 0 || true
   adb shell settings put system font_scale 1.0 || true
+  adb shell settings put system system_locales ko-KR || true
   adb shell settings put global sysui_demo_allowed 1 || true
   adb shell am broadcast -a com.android.systemui.demo -e command enter >/dev/null 2>&1 || true
   adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 1012 >/dev/null 2>&1 || true
@@ -37,6 +55,8 @@ run_case() {
   adb uninstall com.re.cardtest >/dev/null 2>&1 || true
   adb install "$apk" | tee "$out/install-target.txt"
   adb install "$QA_APK" | tee "$out/install-instrumentation.txt"
+  adb shell pm grant com.re.cardtest android.permission.WRITE_EXTERNAL_STORAGE >/dev/null 2>&1 || true
+  adb shell pm grant com.re.cardtest android.permission.READ_EXTERNAL_STORAGE >/dev/null 2>&1 || true
 
   configure_system_ui
   adb logcat -c
@@ -47,6 +67,10 @@ run_case() {
   sleep 2
 
   adb shell rm -rf "$ext" >/dev/null 2>&1 || true
+  adb shell mkdir -p "$ext"
+  adb shell chmod 777 "$ext" || true
+  adb shell ls -ld "$ext" | tee "$out/evidence-dir.txt"
+
   set +e
   adb shell am instrument -w com.re.cardtest/.ParityInstrumentation | tee "$out/instrumentation.txt"
   local inst_status=${PIPESTATUS[0]}
@@ -59,6 +83,7 @@ run_case() {
   adb shell uiautomator dump /sdcard/window.xml >/dev/null 2>&1 || true
   adb pull /sdcard/window.xml "$out/window.xml" >/dev/null 2>&1 || true
   mkdir -p "$out/screens"
+  adb shell ls -la "$ext" | tee "$out/evidence-files.txt" || true
   adb pull "$ext/." "$out/screens/" >/dev/null
 
   sha256sum "$apk" > "$out/apk.sha256"
@@ -77,6 +102,7 @@ run_case() {
   test -s "$out/screens/runtime-report.txt"
 }
 
+wait_for_emulator
 run_case golden "$GOLDEN_APK"
 run_case rebuilt "$REBUILT_APK"
 
