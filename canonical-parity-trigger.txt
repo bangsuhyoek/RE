@@ -10,3 +10,4 @@ retry-target-external-evidence-path
 retry-qa-notification-publisher-uid
 retry-unicode-safe-payment-notification
 retry-external-deeplink-from-qa-process
+retry-shell-identity-deeplink
