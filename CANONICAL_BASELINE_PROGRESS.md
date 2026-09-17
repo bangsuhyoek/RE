@@ -9,6 +9,7 @@
 - `SYSTEM_ALERT_WINDOW`: NOT PRESENT in baseline
 
 ## Proven gates
+- Canonical source clean build: PASS — run `35173609637`
 - Golden WebView parity: PASS (133/133)
 - Golden vs rebuilt APK payload parity excluding signing metadata: PASS
 - Package: `kr.co.re.subscription`
@@ -24,24 +25,46 @@
 5. `35171482044`: common signing succeeded, but the parity harness could not create its evidence directory; test harness evidence-path failure.
 6. `35171281062`: first clean-source repair attempt exposed that the source ZIP had lost nested `android/app/src` because rsync used unanchored `--exclude 'src'`; source packaging failure.
 7. `35171406840`: WebView restoration passed, then clean rebuild failed because `android/app/src/main/AndroidManifest.xml` was absent; same packaging root cause confirmed.
+8. `35173781288`: API 30 emulator WebView could not parse the exact Golden vendor JavaScript bundle; emulator compatibility failure, not app failure. Runtime parity moved to API 33.
+9. `35174291655`: API 33 shared external path `/sdcard/REParity` was blocked by scoped-storage (`EPERM`); QA evidence-path failure, not app failure.
+10. `35174767608`: QA instrumentation attempted to write to `com.re.cardtest` private internal storage, but Android instrumentation executes in the target app process/UID. `getContext().getFilesDir()` therefore pointed at a directory the target UID could not create. Test-infrastructure UID/context mismatch, not app failure.
 
 ## Recurrence prevention applied
 - Golden APK is stored as a reusable GitHub Actions artifact instead of relying on a temporary signed URL for runtime parity.
-- Runtime parity now prints and validates actual artifact paths before use.
+- Runtime parity prints and validates actual artifact paths before use.
 - APK inputs are checked with `test -n`, `test -s`, SHA-256 and payload parity before emulator runtime.
 - Golden, rebuilt and QA instrumentation runtime copies are common-signed without changing non-signing payload.
 - Emulator runner script explicitly waits for device boot and package-manager readiness.
-- QA harness has a stable shared evidence path and external-storage compatibility for API 30.
-- Canonical source packaging now uses root-anchored exclusions so `android/app/src` is not accidentally removed.
+- Runtime parity uses API 33 so the exact Golden WebView bundle runs on a compatible WebView.
+- Canonical source packaging uses root-anchored exclusions so `android/app/src` is not accidentally removed.
+- QA evidence now writes from the instrumentation process to the target app's app-specific external files directory (`/sdcard/Android/data/kr.co.re.subscription/files/parity`) and the runner pulls evidence with adb. This matches the target UID used by Android instrumentation and avoids the prior QA-private-dir mismatch.
 - Test harness failures are treated separately from app failures.
 
-## Current active runs
-- Runtime parity: `35173490649` — PENDING
-- Clean source rebuild: `35173472079` — PENDING
-
 ## Current checkpoint
-Do not integrate 2.5D yet. Wait for both active runs to reach `completed`, then:
-1. If a run fails, inspect the first failing step and fix only that test-infrastructure/source-packaging issue.
-2. If clean-source passes, preserve its artifact as the canonical source package.
-3. If runtime parity passes, record functional and six-screen visual parity results.
-4. Declare `BASELINE PARITY = PASS` only when all required gates pass.
+- Last completed runtime parity run: `35174767608` — FAILURE
+- Last successful step: `Enable KVM acceleration`
+- First failing step: `Run Golden vs rebuilt functional and visual parity`
+- Exact failure: `cannot create evidence directory: /data/user/0/com.re.cardtest/files/parity`
+- Classification: QA/instrumentation evidence-path infrastructure failure
+- App baseline failure proven: NO
+- Minimal fix applied:
+  - instrumentation evidence path changed to target app app-specific external files directory
+  - runner evidence extraction changed from `run-as com.re.cardtest` to direct adb pull from target app external files
+- Current branch HEAD after fix: `1c5bd6e6fe9e9dd7d391e2afd058ad4e9b2076db`
+- Next single step: trigger one new Golden-vs-rebuilt runtime parity run from the current HEAD and follow it until `completed`.
+
+## Required final gates still pending
+- Functional runtime parity: PENDING
+- Home visual parity: PENDING
+- Subscriptions visual parity: PENDING
+- Subscription detail visual parity: PENDING
+- Benefits visual parity: PENDING
+- Notifications visual parity: PENDING
+- My Page visual parity: PENDING
+- NotificationListener runtime connection: PENDING
+- Payment path / candidate storage: PENDING
+- Deep Link: PENDING
+- Concierge ON/OFF: PENDING
+- Crash / ANR: PENDING
+
+Do not integrate 2.5D until all pending runtime and visual gates pass and `BASELINE PARITY = PASS` is recorded.
