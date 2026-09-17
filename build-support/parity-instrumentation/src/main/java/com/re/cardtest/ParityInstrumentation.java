@@ -11,6 +11,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,9 +19,11 @@ import android.webkit.WebView;
 
 import org.json.JSONTokener;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -129,13 +132,16 @@ public class ParityInstrumentation extends Instrumentation {
             require(candidateState.contains("Netflix") && candidateState.contains("17000"), "candidate runtime result=" + candidateState);
             record("payment_candidate", "PASS");
 
-            Intent deep = new Intent(Intent.ACTION_VIEW, Uri.parse("reapp://payment/candidate?id=baseline-smoke&source=parity"));
-            deep.setPackage(TARGET);
-            deep.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            getTargetContext().startActivity(deep);
-            Thread.sleep(1200L);
+            // Do not self-dispatch this URI with targetContext.startActivity(): the
+            // instrumentation process shares the target UID and that does not model an
+            // external Android deep-link caller. UiAutomation executes `am start` as
+            // the shell identity while the page listener remains installed.
+            String deepCommand = "am start -W -a android.intent.action.VIEW -d 'reapp://payment/candidate?id=baseline-smoke&source=parity-shell' " + TARGET;
+            String deepOutput = shell(deepCommand);
+            Log.i(TAG, "deep_link_shell=" + deepOutput.replace('\n', ' '));
+            Thread.sleep(1400L);
             String deepId = jsString(eval("window.__reParity.deepLink||''"));
-            require("baseline-smoke".equals(deepId), "deep link id=" + deepId);
+            require("baseline-smoke".equals(deepId), "deep link id=" + deepId + " shell=" + deepOutput);
             record("deep_link", "PASS");
 
             record("result", "PASS");
@@ -162,6 +168,20 @@ public class ParityInstrumentation extends Instrumentation {
         publish.setClassName("com.re.cardtest", "com.re.cardtest.NotificationPublisher");
         getTargetContext().sendBroadcast(publish);
         record("posted_card_notification", "PASS");
+    }
+
+    private String shell(String command) throws Exception {
+        ParcelFileDescriptor descriptor = getUiAutomation().executeShellCommand(command);
+        if (descriptor == null) throw new IllegalStateException("shell descriptor missing: " + command);
+        try (InputStream input = new ParcelFileDescriptor.AutoCloseInputStream(descriptor);
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[4096];
+            int read;
+            while ((read = input.read(buffer)) != -1) {
+                output.write(buffer, 0, read);
+            }
+            return output.toString("UTF-8");
+        }
     }
 
     private void capture(String name) throws Exception {
