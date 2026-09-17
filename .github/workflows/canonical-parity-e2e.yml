@@ -10,9 +10,6 @@ on:
 jobs:
   parity:
     runs-on: ubuntu-latest
-    env:
-      GOLDEN_APK_URL: 'https://sdmntprjapaneast.oaiusercontent.com/files/00000000-37c8-8209-8ea4-d0db1daf4cd0/raw?se=2026-09-17T01%3A29%3A27Z&sp=r&sv=2026-02-06&sr=b&scid=c2185db4-7aeb-510b-9e7a-85d8e2dc7885&skoid=03727f49-62d3-42ac-8350-1c0e6559d238&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-16T23%3A49%3A19Z&ske=2026-09-17T23%3A49%3A19Z&sks=b&skv=2026-02-06&sig=6NefWtJmbdtIr0DTc9RkkfwtnlFMG5rTWVdInueLhSo%3D'
-      GOLDEN_APK_SHA256: c52bd20769fb84d8d4d882c7a985f3f792aa038184750dce9a86104efe77e7ac
     steps:
       - name: Checkout canonical branch
         uses: actions/checkout@v4
@@ -54,13 +51,34 @@ jobs:
           run-id: 35135721151
 
       - name: Download exact Golden Product Baseline APK
+        uses: actions/download-artifact@v4
+        with:
+          name: re-v2.0.2-golden-product-baseline
+          path: golden
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 35171158055
+
+      - name: Verify downloaded runtime inputs and actual paths
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p golden
-          curl -L --fail --retry 3 --retry-delay 2 "$GOLDEN_APK_URL" -o golden/v2.0.2_golden.apk
-          echo "$GOLDEN_APK_SHA256  golden/v2.0.2_golden.apk" | sha256sum -c -
-          unzip -t golden/v2.0.2_golden.apk >/dev/null
+          echo "=== rebuilt artifact files ==="
+          find artifact -type f -print | sort
+          echo "=== golden artifact files ==="
+          find golden -type f -print | sort
+          REBUILT=$(find artifact -type f -name canonical-baseline.apk -print -quit)
+          GOLDEN=$(find golden -type f -name 'v2.0.2_수정.apk' -print -quit)
+          test -n "$REBUILT"
+          test -s "$REBUILT"
+          test -n "$GOLDEN"
+          test -s "$GOLDEN"
+          echo "REBUILT_APK=$REBUILT"
+          echo "GOLDEN_APK=$GOLDEN"
+          sha256sum "$REBUILT" "$GOLDEN"
+          echo "c52bd20769fb84d8d4d882c7a985f3f792aa038184750dce9a86104efe77e7ac  $GOLDEN" | sha256sum -c -
+          unzip -t "$REBUILT" >/dev/null
+          unzip -t "$GOLDEN" >/dev/null
 
       - name: Reconfirm APK payload parity before runtime
         shell: bash
@@ -68,7 +86,7 @@ jobs:
           set -euo pipefail
           REBUILT=$(find artifact -type f -name canonical-baseline.apk -print -quit)
           test -n "$REBUILT"
-          python3 - "$REBUILT" golden/v2.0.2_golden.apk <<'PY'
+          python3 - "$REBUILT" golden/v2.0.2_수정.apk <<'PY'
           import sys, zipfile, hashlib, json
           rebuilt,golden=sys.argv[1:3]
           def payload(path):
@@ -110,7 +128,7 @@ jobs:
           heap-size: 512M
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: bash build-support/run-canonical-parity-e2e.sh artifact golden/v2.0.2_golden.apk qa-parity.apk
+          script: bash build-support/run-canonical-parity-e2e.sh artifact golden/v2.0.2_수정.apk qa-parity.apk
 
       - name: Upload parity evidence
         if: always()
