@@ -132,20 +132,22 @@ public class ParityInstrumentation extends Instrumentation {
             require(candidateState.contains("Netflix") && candidateState.contains("17000"), "candidate runtime result=" + candidateState);
             record("payment_candidate", "PASS");
 
-            // Verify that Android's real resolver sees the exported RE deep-link filter,
-            // then launch the URI as the external shell identity without forcing the
-            // package. Forcing a package here caused `am start` on API 33 to reject an
-            // otherwise resolvable custom-scheme VIEW intent during instrumentation.
+            // UiAutomation.executeShellCommand does not provide normal host-shell quote
+            // stripping. Passing the URI surrounded by single quotes made those quote
+            // characters part of the argument on this path, so Android could not match
+            // the otherwise-correct reapp:// intent filter. Use one whitespace-free URI
+            // token with no shell quotes, verify the resolver first, then launch it as
+            // the external shell identity without forcing the package.
             String deepUri = "reapp://payment/candidate?id=baseline-smoke&source=parity-shell";
             String resolveCommand = "cmd package resolve-activity --brief -a android.intent.action.VIEW " +
-                    "-c android.intent.category.DEFAULT -c android.intent.category.BROWSABLE -d '" + deepUri + "'";
+                    "-c android.intent.category.DEFAULT -c android.intent.category.BROWSABLE -d " + deepUri;
             String resolveOutput = shell(resolveCommand);
             Log.i(TAG, "deep_link_resolve=" + resolveOutput.replace('\n', ' '));
             require(resolveOutput.contains("kr.co.re.subscription") && resolveOutput.contains("MainActivity"),
                     "deep link resolver=" + resolveOutput);
 
             String deepCommand = "am start -W -a android.intent.action.VIEW " +
-                    "-c android.intent.category.DEFAULT -c android.intent.category.BROWSABLE -d '" + deepUri + "'";
+                    "-c android.intent.category.DEFAULT -c android.intent.category.BROWSABLE -d " + deepUri;
             String deepOutput = shell(deepCommand);
             Log.i(TAG, "deep_link_shell=" + deepOutput.replace('\n', ' '));
             require(!deepOutput.contains("Error:"), "deep link shell=" + deepOutput);
