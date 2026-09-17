@@ -50,96 +50,114 @@ jobs:
           repository: ${{ github.repository }}
           run-id: 35171158055
 
-      - name: Clean canonical source package
+      - name: Build cleaned canonical source package
         shell: bash
         run: |
           set -euo pipefail
-          echo "=== artifact paths ==="
+          echo "=== proven artifact paths ==="
           find artifact -type f -print | sort
-          SRC_ZIP=$(find artifact -type f -name 'RE_v2.0.2_CANONICAL_SOURCE.zip' -print -quit)
-          test -n "$SRC_ZIP"
-          test -s "$SRC_ZIP"
-          rm -rf source-clean source-test
-          mkdir -p source-clean source-test
-          unzip -q "$SRC_ZIP" -d source-clean
-          ROOT=$(find source-clean -mindepth 1 -maxdepth 1 -type d -name 'RE_v2.0.2_CANONICAL_SOURCE' -print -quit)
-          test -n "$ROOT"
-          test -f "$ROOT/canonical-build.sh"
+          echo "=== golden artifact paths ==="
+          find golden -type f -print | sort
 
-          # The first packaging run created the canonical-web directory before
-          # the exact Web payload was copied into the packaged source. Restore
-          # that exact already-proven 133-file payload from the rebuilt APK;
-          # those APK assets were previously verified byte-for-byte against
-          # the Golden WebView source.
-          REBUILT_APK=$(find artifact -type f -name canonical-baseline.apk -print -quit)
-          test -n "$REBUILT_APK"
-          test -s "$REBUILT_APK"
-          rm -rf "$ROOT/canonical-web"
-          mkdir -p "$ROOT/canonical-web/public"
-          python3 - "$REBUILT_APK" "$ROOT/canonical-web/public" <<'PY'
-          import sys, zipfile, pathlib
+          GOLDEN=$(find golden -type f -name 'v2.0.2_수정.apk' -print -quit)
+          test -n "$GOLDEN"
+          test -s "$GOLDEN"
+          echo "c52bd20769fb84d8d4d882c7a985f3f792aa038184750dce9a86104efe77e7ac  $GOLDEN" | sha256sum -c -
+
+          rm -rf source-clean source-test RE_v2.0.2_CANONICAL_SOURCE_CLEAN.zip
+          mkdir -p source-clean/RE_v2.0.2_CANONICAL_SOURCE/canonical-web/public source-test
+          ROOT="$PWD/source-clean/RE_v2.0.2_CANONICAL_SOURCE"
+
+          # Copy the canonical native/build project, but anchor exclusions at repo root
+          # so android/app/src is never removed again.
+          rsync -a \
+            --exclude '/.git/' \
+            --exclude '/.github/' \
+            --exclude '/build-support/' \
+            --exclude '/node_modules/' \
+            --exclude '/dist/' \
+            --exclude '/src/' \
+            --exclude '/public/' \
+            --exclude '/tests/' \
+            --exclude '/android/.gradle/' \
+            --exclude '/android/build/' \
+            --exclude '/android/app/build/' \
+            --exclude '/canonical-web/' \
+            --exclude '/canonical-parity-trigger.txt' \
+            --exclude '/canonical-source-clean-trigger.txt' \
+            --exclude '*.apk' \
+            --exclude '*.aab' \
+            --exclude '*.aar' \
+            --exclude '*.zip' \
+            ./ "$ROOT/"
+
+          # Restore exact Golden WebView source directly from the Golden APK.
+          python3 - "$GOLDEN" "$ROOT/canonical-web/public" <<'PY'
+          import sys, zipfile, pathlib, hashlib, json
           apk,out=sys.argv[1:3]
           out=pathlib.Path(out)
-          count=0
+          files={}
           with zipfile.ZipFile(apk) as z:
               for name in z.namelist():
-                  prefix="assets/public/"
-                  if not name.startswith(prefix) or name.endswith("/"):
+                  prefix='assets/public/'
+                  if not name.startswith(prefix) or name.endswith('/'):
                       continue
                   rel=name[len(prefix):]
                   dest=out/rel
                   dest.parent.mkdir(parents=True,exist_ok=True)
-                  dest.write_bytes(z.read(name))
-                  count+=1
-          print(f"restored_web_files={count}")
-          if count != 133:
-              raise SystemExit(f"expected 133 WebView files, got {count}")
-          PY
-          test -f "$ROOT/canonical-web/public/index.html"
-
-          # Cross-check restored WebView files against the proven hash manifest.
-          python3 - "$ROOT/canonical-web/public" artifact/golden-web-files.sha256 <<'PY'
-          import sys, pathlib, hashlib
-          root=pathlib.Path(sys.argv[1])
-          manifest=pathlib.Path(sys.argv[2])
-          expected={}
-          for line in manifest.read_text(encoding="utf-8").splitlines():
-              if not line.strip(): continue
-              sha,path=line.split(None,1)
-              path=path.strip()
-              if path.startswith("dist/"): path=path[5:]
-              expected[path]=sha
-          actual={p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
-                  for p in root.rglob("*") if p.is_file()}
-          missing=sorted(set(expected)-set(actual))
-          extra=sorted(set(actual)-set(expected))
-          changed=sorted(k for k in set(expected)&set(actual) if expected[k]!=actual[k])
-          print(f"web_expected={len(expected)} web_actual={len(actual)} missing={len(missing)} extra={len(extra)} changed={len(changed)}")
-          if missing or extra or changed or len(actual)!=133:
-              raise SystemExit("restored WebView parity mismatch")
+                  data=z.read(name)
+                  dest.write_bytes(data)
+                  files[rel]=hashlib.sha256(data).hexdigest()
+          print(json.dumps({'web_files':len(files)},indent=2))
+          if len(files)!=133:
+              raise SystemExit(f'expected 133 WebView files, got {len(files)}')
+          pathlib.Path('clean-web-hashes.json').write_text(json.dumps(files,indent=2),encoding='utf-8')
           PY
 
-          rm -rf "$ROOT/node_modules" "$ROOT/.gradle" "$ROOT/.idea" "$ROOT/outputs"
-          rm -f "$ROOT/SubMate-debug-latest.zip"
-          rm -f "$ROOT"/canonical-*.txt "$ROOT"/canonical-*.json "$ROOT"/canonical-*.sha256 "$ROOT"/golden-web-files.sha256
-          rm -f "$ROOT"/build_prd_doc.py "$ROOT"/build_prd_v2.py
+          cat > "$ROOT/canonical-build.sh" <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          ROOT=$(cd "$(dirname "$0")" && pwd)
+          cd "$ROOT"
+          test -f canonical-web/public/index.html
+          test "$(find canonical-web/public -type f | wc -l)" -eq 133
+          rm -rf dist
+          mkdir -p dist
+          cp -a canonical-web/public/. dist/
+          pnpm install --frozen-lockfile
+          npx cap sync android
+          chmod +x android/gradlew
+          (cd android && ./gradlew clean assembleDebug assembleRelease --stacktrace)
+          EOF
+          chmod +x "$ROOT/canonical-build.sh"
 
-          while IFS= read -r -d '' d; do rm -rf "$d"; done < <(find "$ROOT" -type d \( -name build -o -name .gradle -o -name node_modules -o -name .cxx \) -print0)
-          find "$ROOT" -type f \( -name '*.apk' -o -name '*.aab' -o -name '*.aar' \) -delete
+          cat > "$ROOT/CANONICAL_BASELINE_PROVENANCE.md" <<'EOF'
+          # RE v2.0.2 canonical baseline
 
-          test ! -d "$ROOT/src"
-          test ! -d "$ROOT/public"
+          Golden Product Baseline: v2.0.2_수정.apk
+          Golden APK SHA-256: c52bd20769fb84d8d4d882c7a985f3f792aa038184750dce9a86104efe77e7ac
+          Native donor commit: d3d85ff816fd7ae340e72b8be5b0a2181e666b1f
+          Exact WebView file count: 133
+
+          The canonical UI is canonical-web/public, extracted byte-for-byte from the Golden APK.
+          Donor React/Vite root src/ and public/ are intentionally excluded.
+          Test harness code under build-support/ and all 2.5D PoC code are excluded.
+          EOF
+
+          test -f "$ROOT/android/app/src/main/AndroidManifest.xml"
+          test -d "$ROOT/android/app/src/main/java"
           test "$(find "$ROOT/canonical-web/public" -type f | wc -l)" -eq 133
           ! find "$ROOT" -type d \( -name build -o -name .gradle -o -name node_modules -o -name .cxx \) -print | grep -q .
           ! find "$ROOT" -type f \( -name '*.apk' -o -name '*.aab' -o -name '*.aar' \) -print | grep -q .
-          ! grep -R "AnimatedConciergeOverlayController\|PocPaymentTriggerActivity\|PocPaymentReceiver\|SYSTEM_ALERT_WINDOW" "$ROOT/android/app/src/main" || false
+          if grep -R "AnimatedConciergeOverlayController\|PocPaymentTriggerActivity\|PocPaymentReceiver\|SYSTEM_ALERT_WINDOW" "$ROOT/android/app/src/main"; then
+            echo "unexpected 2.5D PoC code in canonical baseline" >&2
+            exit 1
+          fi
 
           (cd source-clean && zip -qr ../RE_v2.0.2_CANONICAL_SOURCE_CLEAN.zip RE_v2.0.2_CANONICAL_SOURCE)
           sha256sum RE_v2.0.2_CANONICAL_SOURCE_CLEAN.zip | tee clean-source.sha256
           unzip -q RE_v2.0.2_CANONICAL_SOURCE_CLEAN.zip -d source-test
-          TEST_ROOT="$PWD/source-test/RE_v2.0.2_CANONICAL_SOURCE"
-          test -x "$TEST_ROOT/canonical-build.sh"
-          echo "CLEAN_SOURCE_ROOT=$TEST_ROOT"
+          test -x source-test/RE_v2.0.2_CANONICAL_SOURCE/canonical-build.sh
 
       - name: Clean unzip to clean build
         shell: bash
@@ -162,9 +180,6 @@ jobs:
           TEST_ROOT="$PWD/source-test/RE_v2.0.2_CANONICAL_SOURCE"
           RELEASE="$TEST_ROOT/android/app/build/outputs/apk/release/app-release-unsigned.apk"
           GOLDEN=$(find golden -type f -name 'v2.0.2_수정.apk' -print -quit)
-          test -n "$GOLDEN"
-          test -s "$GOLDEN"
-          echo "c52bd20769fb84d8d4d882c7a985f3f792aa038184750dce9a86104efe77e7ac  $GOLDEN" | sha256sum -c -
           python3 - "$RELEASE" "$GOLDEN" <<'PY'
           import sys, zipfile, hashlib, json, pathlib
           rebuilt,golden=sys.argv[1:3]
@@ -172,19 +187,20 @@ jobs:
               with zipfile.ZipFile(path) as z:
                   return {n:hashlib.sha256(z.read(n)).hexdigest()
                           for n in z.namelist()
-                          if not n.startswith("META-INF/") and not n.endswith("/")}
+                          if not n.startswith('META-INF/') and not n.endswith('/')}
           r=payload(rebuilt); g=payload(golden)
           report={
-              "golden_count":len(g),
-              "rebuilt_count":len(r),
-              "missing_in_rebuilt":sorted(set(g)-set(r)),
-              "extra_in_rebuilt":sorted(set(r)-set(g)),
-              "changed":sorted(k for k in set(g)&set(r) if g[k]!=r[k]),
+              'golden_count':len(g),
+              'rebuilt_count':len(r),
+              'missing_in_rebuilt':sorted(set(g)-set(r)),
+              'extra_in_rebuilt':sorted(set(r)-set(g)),
+              'changed':sorted(k for k in set(g)&set(r) if g[k]!=r[k]),
           }
-          report["pass"]=not report["missing_in_rebuilt"] and not report["extra_in_rebuilt"] and not report["changed"]
-          pathlib.Path("clean-source-payload-parity.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
+          report['pass']=not report['missing_in_rebuilt'] and not report['extra_in_rebuilt'] and not report['changed']
+          pathlib.Path('clean-source-payload-parity.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
           print(json.dumps(report,ensure_ascii=False,indent=2))
-          if not report["pass"]: raise SystemExit(1)
+          if not report['pass']:
+              raise SystemExit(1)
           PY
           echo "CANONICAL_SOURCE_CLEAN_BUILD=PASS" | tee clean-source-result.txt
 
@@ -198,5 +214,6 @@ jobs:
             clean-rebuild-apks.sha256
             clean-source-payload-parity.json
             clean-source-result.txt
+            clean-web-hashes.json
           if-no-files-found: error
           retention-days: 90
