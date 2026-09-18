@@ -12,6 +12,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(CancelBrowserPlugin.class);
+        registerPlugin(CharacterAssetPlugin.class);
         registerPlugin(PaymentCapturePlugin.class);
         super.onCreate(savedInstanceState);
 

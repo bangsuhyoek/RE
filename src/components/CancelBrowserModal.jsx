@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { openCancelBrowser } from "../lib/cancelBrowser";
+import { getCharacterAsset } from "../lib/characterAsset";
 import {
   Lock,
   X,
@@ -285,16 +286,27 @@ export function CancelBrowserModal({
   const tutorialHints = isNaverPlus ? NAVER_PLUS_TUTORIAL_HINTS : TUTORIAL_HINTS;
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [minimized, setMinimized] = useState(false);
+  const [customCharacterSrc, setCustomCharacterSrc] = useState(null);
   const scrollContainerRef = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    getCharacterAsset().then((asset) => {
+      if (active) setCustomCharacterSrc(asset?.hasCustom ? asset.src : null);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   const currentStep = steps[activeStepIndex] || steps[0];
   const stepHint = tutorialHints[Math.min(activeStepIndex, tutorialHints.length - 1)];
 
   const isFinalStep = activeStepIndex === steps.length - 1;
-  const characterImg = isNaverPlus
+  const characterImg = customCharacterSrc || (isNaverPlus
     ? NAVER_CANCEL_CHARACTER
     : isFinalStep
       ? "/assets/kkudok/character_done.png"
-      : "/assets/kkudok/character_guide.png";
+      : "/assets/kkudok/character_guide.png");
 
   const displayUrl = (() => {
     try {
@@ -377,7 +389,7 @@ export function CancelBrowserModal({
             className="group relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-2xl ring-4 ring-white transition-all active:scale-90 hover:scale-105 cursor-pointer animate-tutorial-float overflow-hidden"
           >
             <img
-              src={isNaverPlus ? NAVER_CANCEL_CHARACTER : "/assets/kkudok/character_mascot.png"}
+              src={customCharacterSrc || (isNaverPlus ? NAVER_CANCEL_CHARACTER : "/assets/kkudok/character_mascot.png")}
               alt="꾸독이"
               className="h-13 w-13 object-contain drop-shadow"
             />
