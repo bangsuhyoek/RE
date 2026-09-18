@@ -1,0 +1,203 @@
+name: RE v2.0.3 2.5D Transplant E2E
+
+on:
+  push:
+    branches:
+      - chatgpt/v2.0.3-2.5d-transplant
+    paths:
+      - 'android/**'
+      - 'build-support/**'
+      - '.github/workflows/v203-2.5d-e2e.yml'
+      - 'V203_2_5D_PROGRESS.md'
+      - '2.5d-trigger.txt'
+  workflow_dispatch:
+
+jobs:
+  transplant-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout transplant branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: '21'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install visual tooling
+        run: python -m pip install --disable-pip-version-check pillow numpy
+
+      - name: Download Golden Product Baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: re-v2.0.2-golden-product-baseline
+          path: golden
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 35171158055
+
+      - name: Restore exact Golden WebView and apply minimal 2.5D bridge patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          GOLDEN=$(find golden -type f -name 'v2.0.2_수정.apk' -print -quit)
+          test -n "$GOLDEN"
+          test -s "$GOLDEN"
+          echo "c52bd20769fb84d8d4d882c7a985f3f792aa038184750dce9a86104efe77e7ac  $GOLDEN" | sha256sum -c -
+          rm -rf dist
+          mkdir -p dist
+          python3 - "$GOLDEN" dist <<'PY'
+          import sys,zipfile,pathlib
+          apk,out=sys.argv[1:3]
+          out=pathlib.Path(out)
+          with zipfile.ZipFile(apk) as z:
+              files=[n for n in z.namelist() if n.startswith('assets/public/') and not n.endswith('/')]
+              if len(files)!=133:
+                  raise SystemExit(f'expected 133 Golden WebView files, got {len(files)}')
+              for name in files:
+                  rel=name[len('assets/public/'):]
+                  dest=out/rel
+                  dest.parent.mkdir(parents=True,exist_ok=True)
+                  dest.write_bytes(z.read(name))
+          PY
+          python3 build-support/patch-golden-web-for-2.5d.py dist
+          python3 build-support/generate-2.5d-assets.py dist
+          node --check dist/app.js
+          node --check dist/src/re-integration.js
+
+      - name: Install dependencies and sync Android
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          npx cap sync android
+
+      - name: Static transplant guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'android.permission.SYSTEM_ALERT_WINDOW' android/app/src/main/AndroidManifest.xml
+          grep -q 'versionCode 203' android/app/build.gradle
+          grep -q 'versionName "2.0.3"' android/app/build.gradle
+          test -f android/app/src/main/java/com/submate/app/payment/AnimatedConciergeOverlayController.java
+          test -f android/app/src/main/java/com/submate/app/payment/PaymentDetectionCoordinator.java
+          test -f android/app/src/main/java/com/submate/app/payment/KnownSubscriptionSnapshotStore.java
+          test -f android/app/src/main/java/com/submate/app/payment/ConciergePreferences.java
+          test "$(find android/app/src/main/assets/public/assets/concierge/2_5d -type f -name '*.png' | wc -l)" -eq 9
+          test -s android/app/src/main/assets/public/assets/concierge/2_5d/manifest.json
+          ! grep -R 'PocPaymentTriggerActivity\|PocPaymentReceiver' android/app/src/main || false
+          if grep -R 'PocPaymentTriggerActivity\|PocPaymentReceiver' android/app/src/main; then
+            echo 'PoC trigger code leaked into production main source' >&2
+            exit 1
+          fi
+
+      - name: Build transplant and QA instrumentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x android/gradlew
+          android/gradlew clean assembleDebug assembleRelease --stacktrace
+          android/gradlew -p build-support/parity-instrumentation assembleDebug --stacktrace
+          TARGET=$(find android/app/build/outputs/apk/release -type f -name 'app-release-unsigned.apk' -print -quit)
+          QA=$(find build-support/parity-instrumentation/build/outputs/apk -type f -name '*.apk' -print -quit)
+          test -s "$TARGET"
+          test -s "$QA"
+          cp "$TARGET" transplant-unsigned.apk
+          cp "$QA" qa-parity.apk
+          unzip -t transplant-unsigned.apk >/dev/null
+          unzip -t qa-parity.apk >/dev/null
+          sha256sum transplant-unsigned.apk qa-parity.apk | tee build-inputs.sha256
+
+      - name: Verify APK identity and production permissions
+        shell: bash
+        run: |
+          set -euo pipefail
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          "$BT/aapt2" dump badging transplant-unsigned.apk | tee transplant-badging.txt
+          "$BT/aapt2" dump permissions transplant-unsigned.apk | tee transplant-permissions.txt
+          grep -q "package: name='kr.co.re.subscription' versionCode='203' versionName='2.0.3'" transplant-badging.txt
+          grep -q 'android.permission.SYSTEM_ALERT_WINDOW' transplant-permissions.txt
+          ! unzip -l transplant-unsigned.apk | grep -q 'PocPaymentTriggerActivity\|PocPaymentReceiver'
+
+      - name: Prepare common-signed runtime APKs
+        shell: bash
+        run: |
+          set -euo pipefail
+          GOLDEN=$(find golden -type f -name 'v2.0.2_수정.apk' -print -quit)
+          mkdir -p runtime/rebuilt runtime
+          KS="$PWD/runtime/re25d-runtime.jks"
+          keytool -genkeypair -noprompt \
+            -keystore "$KS" -storepass paritypass -keypass paritypass \
+            -alias parity -keyalg RSA -keysize 2048 -validity 365 \
+            -dname "CN=RE v2.0.3 2.5D QA,O=RE,C=KR"
+          BT=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          resign() {
+            local input="$1"; local output="$2"; local work
+            work=$(mktemp -d)
+            cp "$input" "$work/input.apk"
+            zip -qd "$work/input.apk" 'META-INF/*.RSA' 'META-INF/*.DSA' 'META-INF/*.EC' 'META-INF/*.SF' 'META-INF/*.MF' || true
+            "$BT/zipalign" -p -f 4 "$work/input.apk" "$work/aligned.apk"
+            "$BT/apksigner" sign --ks "$KS" --ks-key-alias parity \
+              --ks-pass pass:paritypass --key-pass pass:paritypass \
+              --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
+              --out "$output" "$work/aligned.apk"
+            "$BT/apksigner" verify --verbose "$output"
+            rm -rf "$work"
+          }
+          resign transplant-unsigned.apk runtime/rebuilt/canonical-baseline.apk
+          resign "$GOLDEN" runtime/golden-runtime.apk
+          resign qa-parity.apk runtime/qa-runtime.apk
+          sha256sum runtime/rebuilt/canonical-baseline.apk runtime/golden-runtime.apk runtime/qa-runtime.apk | tee runtime/runtime-apks.sha256
+
+      - name: Enable KVM acceleration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+          ls -l /dev/kvm
+
+      - name: Run baseline regression plus 2.5D functional and visual E2E
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_4
+          cores: 4
+          ram-size: 4096M
+          heap-size: 512M
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash build-support/run-v203-2.5d-e2e.sh runtime/rebuilt runtime/golden-runtime.apk runtime/qa-runtime.apk
+
+      - name: Upload 2.5D evidence and APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: re-v2.0.3-2.5d-transplant-evidence
+          path: |
+            e2e
+            e2e-2.5d
+            runtime/runtime-apks.sha256
+            transplant-badging.txt
+            transplant-permissions.txt
+            build-inputs.sha256
+            runtime/rebuilt/canonical-baseline.apk
+          if-no-files-found: warn
+          retention-days: 30

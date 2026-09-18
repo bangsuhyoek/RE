@@ -84,6 +84,9 @@ public class ParityInstrumentation extends Instrumentation {
             waitForScreen("home", 5000L);
             capture("home");
 
+            // QA-only: keep the transplant concierge toggle inside the app instead of opening overlay settings.
+            // Golden ignores this app-op; transplant sees overlay permission already granted.
+            shell("appops set " + TARGET + " SYSTEM_ALERT_WINDOW allow");
             String before = jsString(eval("document.documentElement.dataset.conciergeEnabled||''"));
             jsClick(".app-screen:not([hidden]) [data-concierge-toggle]");
             Thread.sleep(700L);

@@ -13,4 +13,9 @@
         android:targetPackage="kr.co.re.subscription"
         android:label="RE canonical parity instrumentation"
         android:functionalTest="true" />
+    <instrumentation
+        android:name=".TransplantInstrumentation"
+        android:targetPackage="kr.co.re.subscription"
+        android:label="RE 2.5D transplant instrumentation"
+        android:functionalTest="true" />
 </manifest>

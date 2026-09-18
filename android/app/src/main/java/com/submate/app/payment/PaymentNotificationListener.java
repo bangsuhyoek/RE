@@ -82,15 +82,13 @@ public class PaymentNotificationListener extends NotificationListenerService {
             RECENT.entrySet().removeIf(entry -> now - entry.getValue() >= DEDUP_MS);
         }
 
-        String candidateId = PaymentCandidateStore.save(this, parsed);
-        Log.i(TAG, "detected service=" + parsed.serviceName + " amount=" + parsed.amount + " candidate=" + candidateId);
-
-        // Detection/storage continue even when the user disables RE candidate alerts.
-        // The preference only gates the visible heads-up notification.
-        if (PaymentCapturePreferences.candidateNotificationsEnabled(this)) {
-            PaymentNotificationHelper.dispatch(this, candidateId, parsed);
-        } else {
-            Log.d(TAG, "candidate alert suppressed by user preference");
-        }
+        PaymentDetectionCoordinator.Result handled = PaymentDetectionCoordinator.handle(this, parsed);
+        // Keep the proven baseline log prefix so regression tooling can continue to
+        // assert the original payment detection path without special-casing 2.5D.
+        Log.i(TAG, "detected service=" + parsed.serviceName
+                + " amount=" + parsed.amount
+                + " candidate=" + handled.candidateId
+                + " event=" + handled.eventType
+                + " overlay=" + handled.overlayRequested);
     }
 }

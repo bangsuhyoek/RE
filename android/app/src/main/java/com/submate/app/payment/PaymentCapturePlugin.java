@@ -4,10 +4,12 @@ import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
 import android.util.Log;
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -143,6 +145,61 @@ public class PaymentCapturePlugin extends Plugin {
     }
 
     @PluginMethod
+    public void checkAnimatedConciergePermission(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("granted", AnimatedConciergeOverlayController.hasOverlayPermission(getContext()));
+        result.put("enabled", ConciergePreferences.isEnabled(getContext()));
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void requestAnimatedConciergePermission(PluginCall call) {
+        Context context = getContext();
+        boolean opened = false;
+        if (context != null) {
+            try {
+                Intent intent = new Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + context.getPackageName()));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+                opened = true;
+            } catch (Exception error) {
+                Log.w(TAG, "overlay permission settings failed", error);
+            }
+        }
+        JSObject result = new JSObject();
+        result.put("opened", opened);
+        result.put("granted", AnimatedConciergeOverlayController.hasOverlayPermission(context));
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void setConciergeEnabled(PluginCall call) {
+        Boolean enabled = call.getBoolean("enabled");
+        if (enabled == null) {
+            call.reject("enabled is required");
+            return;
+        }
+        ConciergePreferences.setEnabled(getContext(), enabled);
+        JSObject result = new JSObject();
+        result.put("saved", true);
+        result.put("enabled", enabled);
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void syncSubscriptionSnapshot(PluginCall call) {
+        JSArray serviceIds = call.getArray("serviceIds");
+        KnownSubscriptionSnapshotStore.sync(getContext(), serviceIds);
+        JSObject result = new JSObject();
+        result.put("saved", true);
+        result.put("count", serviceIds == null ? 0 : serviceIds.length());
+        result.put("updatedAt", KnownSubscriptionSnapshotStore.getUpdatedAt(getContext()));
+        call.resolve(result);
+    }
+
+    @PluginMethod
     public void getCandidates(PluginCall call) {
         JSObject result = new JSObject();
         result.put("candidates", PaymentCandidateStore.list(getContext()));
@@ -178,6 +235,7 @@ public class PaymentCapturePlugin extends Plugin {
         call.resolve(result);
     }
 
+    /** Existing QA helper retained exactly as a non-production trigger. */
     @PluginMethod
     public void simulatePayment(PluginCall call) {
         String pkg = call.getString("package", "com.samsung.android.messaging");
