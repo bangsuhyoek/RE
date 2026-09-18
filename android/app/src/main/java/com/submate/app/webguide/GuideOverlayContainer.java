@@ -16,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.submate.app.R;
+import com.submate.app.character.CharacterAssetManager;
 import com.submate.app.webguide.services.naver.NaverMembershipGuide;
 import com.submate.app.webguide.state.GuideState;
 import com.submate.app.webguide.state.PageState;
@@ -87,9 +88,9 @@ public class GuideOverlayContainer extends FrameLayout {
 
     private void buildCharacter() {
         characterView = new ImageView(getContext());
-        characterView.setImageResource(R.drawable.kkudok_character_guide);
+        CharacterAssetManager.applyToImageView(getContext(), characterView);
         characterView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        characterView.setAdjustViewBounds(true);
+        characterView.setAdjustViewBounds(false);
         characterView.setContentDescription("꾸독 안내 캐릭터");
         characterView.setElevation(dp(5));
         characterView.setOnClickListener(v -> {
