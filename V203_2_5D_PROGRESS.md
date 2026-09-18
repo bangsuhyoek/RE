@@ -69,16 +69,14 @@
 - Crash / ANR: PENDING
 
 ## Latest CI
-- Latest run: `35300573865`
+- Latest run: `35301268463`
 - Latest conclusion: `failure`
-- Last successful step: `Enable KVM acceleration`
-- First failing step: `Run baseline regression plus 2.5D functional and visual E2E`
-- Functional baseline parity: PASS (`RE_PARITY_RESULT=PASS` for Golden and rebuilt, runtime-report parity PASS).
-- Visual baseline parity: FAIL only on Benefits. Home/subscriptions/detail/notifications/my-page passed; Benefits changed_pct 70.912%, mean_abs 16.436, RMS 33.388.
-- Evidence comparison: the run's Golden Benefits screenshot matches the proven baseline-pass Golden/Rebuilt Benefits rendering, while the transplanted APK renders a materially different Benefits composition. This is a real Web-render parity regression, not an emulator-only Golden transient.
-- Cause classification: minimal Web bridge patch timing. The startup bridge inserted an awaited native call before the original `initializeApp()` body, perturbing the Golden render timing/state. No native payment/overlay source change is needed for this failure.
-- Applied fix: make startup concierge-state sync fire-and-forget (`void`) instead of awaiting the native bridge, preserving original Golden initialization timing while retaining state mirroring.
-- 2.5D scenario execution: NOT REACHED because baseline visual regression gate correctly stopped the script first.
-- Next single action: push this Web-bridge timing-only fix and follow the next transplant E2E run to completion.
+- Last successful gate before the new failure: canonical baseline functional + six-screen visual regression PASS (`BASELINE_RUNTIME_PARITY=PASS`).
+- First failing 2.5D assertion: `RE_2_5D_RESULT=FAIL: java.lang.IllegalStateException: animation duration out of range=4`.
+- Evidence reached the real NotificationListener/new-subscription/overlay path far enough to observe overlay cleanup; the measured animation collapsed to ~4 ms.
+- Cause classification: QA/emulator setup, not production animation code. The baseline regression harness intentionally sets Android `animator_duration_scale=0`; the same emulator was then reused for the 2.5D test, so ObjectAnimator/AnimatorSet duration was globally scaled to zero.
+- Applied fix: restore `animator_duration_scale=1.0` immediately before the 2.5D instrumentation while leaving the baseline regression harness unchanged.
+- Production source changed for this failure: none.
+- Next single action: push the QA-only animation-scale fix and follow the next transplant E2E run to completion.
 
 Galaxy 실기기 검증: 미검증

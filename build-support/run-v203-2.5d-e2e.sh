@@ -27,6 +27,9 @@ adb install "$QA_APK" | tee e2e-2.5d/install-qa.txt
 adb shell pm grant "$TARGET" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1 || true
 adb shell pm grant "$QA_PACKAGE" android.permission.POST_NOTIFICATIONS >/dev/null 2>&1 || true
 adb shell appops set "$TARGET" SYSTEM_ALERT_WINDOW allow || true
+# Baseline parity disables Android animator duration globally for deterministic screenshots.
+# Re-enable ValueAnimator/ObjectAnimator timing before validating the real 5.5 s overlay.
+adb shell settings put global animator_duration_scale 1.0 || true
 
 if ! adb shell cmd notification allow_listener "$LISTENER"; then
   adb shell settings put secure enabled_notification_listeners "$LISTENER"
