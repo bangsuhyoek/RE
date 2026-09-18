@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
+import { openCancelBrowser } from "../lib/cancelBrowser";
 import {
   Lock,
   X,
@@ -12,7 +14,101 @@ import {
   Compass,
 } from "lucide-react";
 
-function StepUiIllustration({ stepNumber, title, serviceName, large = false }) {
+const NAVER_PLUS_CANCEL_STEPS = [
+  {
+    stepNumber: 1,
+    title: "설정",
+    description: "네이버플러스 마이 멤버십 오른쪽 위 [설정]을 누르세요.",
+  },
+  {
+    stepNumber: 2,
+    title: "네이버플러스 멤버십 관리",
+    description: "설정 화면에서 [네이버플러스 멤버십 관리]를 누르세요.",
+  },
+  {
+    stepNumber: 3,
+    title: "네이버플러스 멤버십 해지하기",
+    description: "멤버십 관리 화면에서 [네이버플러스 멤버십 해지하기]를 누르세요.",
+  },
+  {
+    stepNumber: 4,
+    title: "정기결제 해지",
+    description: "이번 이용 기간을 확인한 뒤 [정기결제 해지]를 누르세요.",
+  },
+  {
+    stepNumber: 5,
+    title: "해지하기",
+    description: "최종 확인 화면의 [해지하기]는 사용자가 직접 눌러야 실제 해지가 완료됩니다.",
+  },
+];
+
+const NAVER_PLUS_TUTORIAL_HINTS = [
+  {
+    locationBadge: "📍 목표 위치: 마이 멤버십 오른쪽 위 설정(⚙)",
+    dialogue: () => "로그인이 필요하면 먼저 로그인해줘. 마이 멤버십이 열리면 오른쪽 위 [설정]을 누르면 돼.",
+    tip: "NAVER 공식 안내의 시작점은 '네이버플러스 마이 멤버십 > 오른쪽 위 설정'입니다.",
+  },
+  {
+    locationBadge: "📍 목표 위치: 네이버플러스 멤버십 관리",
+    dialogue: () => "설정 화면에서 [네이버플러스 멤버십 관리]를 찾아 눌러줘.",
+    tip: "프로필이나 일반 계정 설정이 아니라 '네이버플러스 멤버십 관리' 항목을 선택합니다.",
+  },
+  {
+    locationBadge: "📍 목표 위치: 네이버플러스 멤버십 해지하기",
+    dialogue: () => "멤버십 관리 화면에서 [네이버플러스 멤버십 해지하기]를 눌러 다음 화면으로 이동해줘.",
+    tip: "이 단계에서는 아직 최종 해지가 완료되지 않습니다.",
+  },
+  {
+    locationBadge: "📍 목표 위치: 정기결제 해지",
+    dialogue: () => "이번 이용 기간을 확인하고 [정기결제 해지]를 눌러줘.",
+    tip: "다음 결제부터 중단하려는 경우 '멤버십 즉시 종료'가 아니라 '정기결제 해지'를 선택합니다.",
+  },
+  {
+    locationBadge: "📍 목표 위치: 최종 해지하기",
+    dialogue: () => "마지막 [해지하기] 버튼은 실제 해지가 실행되는 단계야. 내용 확인 후 직접 선택해줘.",
+    tip: "꾸독은 최종 해지 버튼을 대신 누르지 않습니다.",
+  },
+];
+
+const NAVER_CANCEL_CHARACTER = "/assets/kkudok/cancel_guide_character.png";
+
+function NaverPlusStepUiIllustration({ stepNumber, large = false }) {
+  const config = {
+    1: { section: "마이 멤버십", action: "설정 ⚙", note: "오른쪽 위" },
+    2: { section: "멤버십 설정", action: "네이버플러스 멤버십 관리", note: "관리 메뉴" },
+    3: { section: "멤버십 관리", action: "네이버플러스 멤버십 해지하기", note: "해지 진입" },
+    4: { section: "이번 이용 기간 확인", action: "정기결제 해지", note: "다음 결제 중단" },
+    5: { section: "최종 확인", action: "해지하기", note: "사용자가 직접 선택" },
+  }[stepNumber] || { section: "네이버플러스 멤버십", action: "다음 단계", note: "" };
+
+  return (
+    <div className={`h-full w-full bg-[#F7F8FA] p-3.5 flex flex-col justify-between select-none ${large ? "p-6" : ""}`}>
+      <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+        <span className={`font-extrabold text-[#191F28] ${large ? "text-[12px]" : "text-[9px]"}`}>
+          {config.section}
+        </span>
+        <span className={`font-bold text-[#03C75A] ${large ? "text-[11px]" : "text-[8px]"}`}>
+          NAVER+
+        </span>
+      </div>
+      <div className={`my-auto w-full ${large ? "max-w-xs mx-auto" : ""}`}>
+        <div className={`rounded-xl border-2 border-[#3182F6] bg-white px-3 font-extrabold text-[#191F28] shadow-sm flex items-center justify-between ${large ? "min-h-12 text-[13px]" : "min-h-7 text-[8px]"}`}>
+          <span>{config.action}</span>
+          <span className="text-blue-600">▶</span>
+        </div>
+      </div>
+      <span className={`text-center font-semibold text-[#6B7684] ${large ? "text-[11px]" : "text-[8px]"}`}>
+        {config.note}
+      </span>
+    </div>
+  );
+}
+
+function StepUiIllustration({ stepNumber, title, serviceName, large = false, isNaverPlus = false }) {
+  if (isNaverPlus) {
+    return <NaverPlusStepUiIllustration stepNumber={stepNumber} large={large} />;
+  }
+
   if (stepNumber === 1) {
     return (
       <div className={`h-full w-full bg-[#111827] text-white p-3.5 flex flex-col justify-between select-none ${large ? "p-6" : ""}`}>
@@ -175,21 +271,30 @@ export function CancelBrowserModal({
     },
   ];
 
-  const steps = (subscription.guideSteps && subscription.guideSteps.length > 0)
-    ? subscription.guideSteps
-    : defaultSteps;
+  const isNaverPlus =
+    subscription.id === "naverplus" ||
+    subscription.id === "naver" ||
+    subscription.name?.includes("네이버플러스");
 
+  const steps = isNaverPlus
+    ? NAVER_PLUS_CANCEL_STEPS
+    : (subscription.guideSteps && subscription.guideSteps.length > 0)
+      ? subscription.guideSteps
+      : defaultSteps;
+
+  const tutorialHints = isNaverPlus ? NAVER_PLUS_TUTORIAL_HINTS : TUTORIAL_HINTS;
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [minimized, setMinimized] = useState(false);
   const scrollContainerRef = useRef(null);
   const currentStep = steps[activeStepIndex] || steps[0];
-  const stepHint = TUTORIAL_HINTS[Math.min(activeStepIndex, TUTORIAL_HINTS.length - 1)];
+  const stepHint = tutorialHints[Math.min(activeStepIndex, tutorialHints.length - 1)];
 
-  // 캐릭터 이미지: 마지막 완료 단계는 축하 표정, 그 외에는 가이드 표정
   const isFinalStep = activeStepIndex === steps.length - 1;
-  const characterImg = isFinalStep
-    ? "/assets/kkudok/character_done.png"
-    : "/assets/kkudok/character_guide.png";
+  const characterImg = isNaverPlus
+    ? NAVER_CANCEL_CHARACTER
+    : isFinalStep
+      ? "/assets/kkudok/character_done.png"
+      : "/assets/kkudok/character_guide.png";
 
   const displayUrl = (() => {
     try {
@@ -199,10 +304,23 @@ export function CancelBrowserModal({
     }
   })();
 
-  const openWebsite = () => {
-    if (subscription.cancelUrl) {
-      window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
+  const openWebsite = async () => {
+    if (!subscription.cancelUrl) return;
+
+    if (Capacitor.isNativePlatform()) {
+      const result = await openCancelBrowser({
+        serviceId: subscription.id,
+        serviceName: subscription.name,
+        cancelUrl: subscription.cancelUrl,
+        guideSteps: steps,
+      });
+      if (result?.action === "COMPLETED") {
+        onComplete?.();
+      }
+      if (result?.action !== "FALLBACK_WEB") return;
     }
+
+    window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleNext = () => {
@@ -259,7 +377,7 @@ export function CancelBrowserModal({
             className="group relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-2xl ring-4 ring-white transition-all active:scale-90 hover:scale-105 cursor-pointer animate-tutorial-float overflow-hidden"
           >
             <img
-              src="/assets/kkudok/character_mascot.png"
+              src={isNaverPlus ? NAVER_CANCEL_CHARACTER : "/assets/kkudok/character_mascot.png"}
               alt="꾸독이"
               className="h-13 w-13 object-contain drop-shadow"
             />
@@ -317,13 +435,15 @@ export function CancelBrowserModal({
             <Minimize2 size={13} />
             <span className="hidden sm:inline">최소화</span>
           </button>
-          <button
-            type="button"
-            onClick={onComplete}
-            className="rounded-xl bg-[#191F28] px-3 py-1.5 text-[12px] font-bold text-white shadow-xs hover:bg-black active:scale-95 transition-all cursor-pointer"
-          >
-            해지 완료
-          </button>
+          {!isNaverPlus && (
+            <button
+              type="button"
+              onClick={onComplete}
+              className="rounded-xl bg-[#191F28] px-3 py-1.5 text-[12px] font-bold text-white shadow-xs hover:bg-black active:scale-95 transition-all cursor-pointer"
+            >
+              해지 완료
+            </button>
+          )}
           <button
             type="button"
             onClick={onClose}
@@ -401,6 +521,7 @@ export function CancelBrowserModal({
               title={currentStep.title}
               serviceName={subscription.name}
               large
+              isNaverPlus={isNaverPlus}
             />
           </div>
 
@@ -423,7 +544,7 @@ export function CancelBrowserModal({
               <ExternalLink size={14} />
             </button>
 
-            {isFinalStep && (
+            {isFinalStep && !isNaverPlus && (
               <button
                 type="button"
                 onClick={onComplete}
@@ -493,6 +614,7 @@ export function CancelBrowserModal({
                   stepNumber={step.stepNumber}
                   title={step.title}
                   serviceName={subscription.name}
+                  isNaverPlus={isNaverPlus}
                 />
                 <div className="absolute top-1 left-1 grid h-4 w-4 place-items-center rounded-full bg-black/70 text-[9px] font-bold text-white">
                   {step.stepNumber}
