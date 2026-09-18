@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
@@ -38,6 +39,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.submate.app.webguide.GuideOverlayContainer;
+import com.submate.app.webguide.KkudokNaverGuideController;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -76,6 +80,11 @@ public class CancelBrowserActivity extends AppCompatActivity {
     private final List<GuideStepItem> stepList = new ArrayList<>();
     private int selectedIndex = 0;
     private String currentCancelUrl = "";
+    private String serviceId = "";
+    private boolean automaticGuideEnabled = false;
+    private GuideOverlayContainer guideOverlay;
+    private KkudokNaverGuideController naverGuideController;
+    private TextView btnToggleManualGuide;
 
     private final ExecutorService executor = Executors.newFixedThreadPool(2);
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -99,7 +108,10 @@ public class CancelBrowserActivity extends AppCompatActivity {
             });
         }
 
+        serviceId = getIntent().getStringExtra("serviceId");
+        if (serviceId == null) serviceId = "";
         String serviceName = getIntent().getStringExtra("serviceName");
+        automaticGuideEnabled = isNaverPlus(serviceId, serviceName);
         currentCancelUrl = getIntent().getStringExtra("cancelUrl");
         String stepsJson = getIntent().getStringExtra("guideStepsJson");
 
@@ -113,6 +125,8 @@ public class CancelBrowserActivity extends AppCompatActivity {
         tvStepDescription = findViewById(R.id.tvStepDescription);
         bottomGuideDock = findViewById(R.id.bottomGuideDock);
         rvGuideSteps = findViewById(R.id.rvGuideSteps);
+        guideOverlay = findViewById(R.id.guideOverlay);
+        btnToggleManualGuide = findViewById(R.id.btnToggleManualGuide);
         webView = findViewById(R.id.webViewCancel);
 
         if (serviceName != null) {
@@ -151,7 +165,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
                         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl));
                         browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(browserIntent);
-                        Toast.makeText(this, "기본 브라우저에서 열었어요.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "외부 브라우저에서는 캐릭터 위치 안내가 이어지지 않아요.", Toast.LENGTH_LONG).show();
                     } catch (Exception e) {
                         Toast.makeText(this, "브라우저를 열 수 없습니다.", Toast.LENGTH_SHORT).show();
                     }
@@ -173,6 +187,39 @@ public class CancelBrowserActivity extends AppCompatActivity {
 
         if (!stepList.isEmpty()) {
             updateStepInfo(0);
+        }
+
+        if (btnToggleManualGuide != null) {
+            btnToggleManualGuide.setOnClickListener(v -> {
+                if (naverGuideController != null) {
+                    naverGuideController.toggleManualGuide();
+                    return;
+                }
+                boolean showing = rvGuideSteps.getVisibility() == View.VISIBLE;
+                rvGuideSteps.setVisibility(showing ? View.GONE : View.VISIBLE);
+                btnToggleManualGuide.setText(showing ? "단계별 방법" : "가이드 접기");
+            });
+        }
+
+        if (automaticGuideEnabled && guideOverlay != null) {
+            naverGuideController = new KkudokNaverGuideController(
+                    webView, guideOverlay, tvStepBadge, tvStepDescription, rvGuideSteps, btnToggleManualGuide);
+            webView.setOnTouchListener((v, event) -> {
+                if (event.getActionMasked() == MotionEvent.ACTION_UP && naverGuideController != null) {
+                    naverGuideController.onUserInteraction();
+                }
+                return false;
+            });
+            webView.setOnScrollChangeListener((v, sx, sy, oldSx, oldSy) -> {
+                if (naverGuideController != null) naverGuideController.onScroll();
+            });
+            webView.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, orr, ob) -> {
+                if (naverGuideController != null && (r-l != orr-ol || b-t != ob-ot)) {
+                    naverGuideController.onLayoutChanged();
+                }
+            });
+        } else if (guideOverlay != null) {
+            guideOverlay.setVisibility(View.GONE);
         }
 
         // 키보드 열림/닫힘 감지하여 하단 20% 도크 숨김/표시
@@ -232,7 +279,10 @@ public class CancelBrowserActivity extends AppCompatActivity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(true);
+        settings.setAllowFileAccess(!automaticGuideEnabled);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            settings.setAllowContentAccess(!automaticGuideEnabled);
+        }
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
 
@@ -241,7 +291,9 @@ public class CancelBrowserActivity extends AppCompatActivity {
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
 
         // Mixed Content 허용
-        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        settings.setMixedContentMode(automaticGuideEnabled
+                ? WebSettings.MIXED_CONTENT_NEVER_ALLOW
+                : WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
         // Google OAuth의 403 disallowed_useragent 차단을 해제하기 위해
         // WebView 전용 식별자("; wv" 및 "Version/X.X")를 제거한 순수 Chrome Mobile User-Agent 구성
@@ -280,6 +332,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 if (pbLoading != null) {
                     pbLoading.setVisibility(View.VISIBLE);
                 }
+                if (naverGuideController != null) naverGuideController.onPageLoading();
             }
 
             @Override
@@ -288,6 +341,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 if (pbLoading != null) {
                     pbLoading.setVisibility(View.GONE);
                 }
+                if (naverGuideController != null) naverGuideController.onPageFinished();
             }
 
             @Override
@@ -322,18 +376,27 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 newSettings.setSupportMultipleWindows(true);
                 newSettings.setJavaScriptCanOpenWindowsAutomatically(true);
                 newSettings.setUserAgentString(cleanUA);
-                newSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+                newSettings.setMixedContentMode(automaticGuideEnabled
+                        ? WebSettings.MIXED_CONTENT_NEVER_ALLOW
+                        : WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+                newSettings.setAllowFileAccess(!automaticGuideEnabled);
+                newSettings.setAllowContentAccess(!automaticGuideEnabled);
 
                 CookieManager.getInstance().setAcceptThirdPartyCookies(newWebView, true);
 
+                if (naverGuideController != null) naverGuideController.onPopupOpened();
                 final Dialog popupDialog = new Dialog(CancelBrowserActivity.this, android.R.style.Theme_Material_Light_NoActionBar_Fullscreen);
                 popupDialog.setContentView(newWebView);
+                popupDialog.setOnDismissListener(d -> {
+                    if (naverGuideController != null) naverGuideController.onPopupClosed();
+                });
                 popupDialog.show();
 
                 newWebView.setWebChromeClient(new WebChromeClient() {
                     @Override
                     public void onCloseWindow(WebView window) {
                         popupDialog.dismiss();
+                        if (naverGuideController != null) naverGuideController.onPopupClosed();
                     }
                 });
 
@@ -360,6 +423,13 @@ public class CancelBrowserActivity extends AppCompatActivity {
         if (url != null && !url.trim().isEmpty()) {
             webView.loadUrl(url);
         }
+    }
+
+    private boolean isNaverPlus(String id, String name) {
+        String sid = id == null ? "" : id.toLowerCase();
+        String sname = name == null ? "" : name.replace(" ", "").toLowerCase();
+        return sid.contains("naverplus") || sid.equals("naver")
+                || sname.contains("네이버플러스") || sname.contains("naverplus");
     }
 
     private boolean handleCustomScheme(String url) {
@@ -398,6 +468,10 @@ public class CancelBrowserActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (naverGuideController != null) {
+            naverGuideController.destroy();
+            naverGuideController = null;
+        }
         if (webView != null) {
             webView.stopLoading();
             webView.destroy();
