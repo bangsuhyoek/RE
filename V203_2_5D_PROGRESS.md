@@ -69,10 +69,13 @@
 - Crash / ANR: PENDING
 
 ## Latest CI
-- Latest run: NOT STARTED after implementation checkpoint
-- Latest conclusion: PENDING
-- First failure: PENDING
-- Applied fix: PENDING
-- Next single action: commit the minimal transplant + QA harness on the transplant branch and follow the first `RE v2.0.3 2.5D Transplant E2E` run to completion.
+- Latest run: `35300451272`
+- Latest conclusion: `failure`
+- Last successful step: `Static transplant guardrails`
+- First failing step: `Build transplant and QA instrumentation`
+- Exact failure: Gradle wrapper was launched from repository root without `-p android`, so Gradle reported `Directory ... does not contain a Gradle build`.
+- Cause classification: workflow/script infrastructure, not production app source.
+- Applied fix: changed production build command to `android/gradlew -p android clean assembleDebug assembleRelease --stacktrace`.
+- Next single action: push the workflow-only fix and follow the new `RE v2.0.3 2.5D Transplant E2E` run to completion.
 
 Galaxy 실기기 검증: 미검증

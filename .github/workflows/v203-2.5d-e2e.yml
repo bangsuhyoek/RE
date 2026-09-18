@@ -112,7 +112,7 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x android/gradlew
-          android/gradlew clean assembleDebug assembleRelease --stacktrace
+          android/gradlew -p android clean assembleDebug assembleRelease --stacktrace
           android/gradlew -p build-support/parity-instrumentation assembleDebug --stacktrace
           TARGET=$(find android/app/build/outputs/apk/release -type f -name 'app-release-unsigned.apk' -print -quit)
           QA=$(find build-support/parity-instrumentation/build/outputs/apk -type f -name '*.apk' -print -quit)
