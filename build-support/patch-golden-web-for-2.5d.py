@@ -72,7 +72,7 @@ new = '''async function initializeApp() {
   try {
     const nativeConcierge = window.Capacitor?.Plugins?.PaymentCapture;
     if (nativeConcierge?.setConciergeEnabled) {
-      await nativeConcierge.setConciergeEnabled({ enabled: conciergeEnabled });
+      void nativeConcierge.setConciergeEnabled({ enabled: conciergeEnabled });
     }
   } catch (_error) {}
   buildCalendar();'''

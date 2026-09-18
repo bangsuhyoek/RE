@@ -69,13 +69,16 @@
 - Crash / ANR: PENDING
 
 ## Latest CI
-- Latest run: `35300451272`
+- Latest run: `35300573865`
 - Latest conclusion: `failure`
-- Last successful step: `Static transplant guardrails`
-- First failing step: `Build transplant and QA instrumentation`
-- Exact failure: Gradle wrapper was launched from repository root without `-p android`, so Gradle reported `Directory ... does not contain a Gradle build`.
-- Cause classification: workflow/script infrastructure, not production app source.
-- Applied fix: changed production build command to `android/gradlew -p android clean assembleDebug assembleRelease --stacktrace`.
-- Next single action: push the workflow-only fix and follow the new `RE v2.0.3 2.5D Transplant E2E` run to completion.
+- Last successful step: `Enable KVM acceleration`
+- First failing step: `Run baseline regression plus 2.5D functional and visual E2E`
+- Functional baseline parity: PASS (`RE_PARITY_RESULT=PASS` for Golden and rebuilt, runtime-report parity PASS).
+- Visual baseline parity: FAIL only on Benefits. Home/subscriptions/detail/notifications/my-page passed; Benefits changed_pct 70.912%, mean_abs 16.436, RMS 33.388.
+- Evidence comparison: the run's Golden Benefits screenshot matches the proven baseline-pass Golden/Rebuilt Benefits rendering, while the transplanted APK renders a materially different Benefits composition. This is a real Web-render parity regression, not an emulator-only Golden transient.
+- Cause classification: minimal Web bridge patch timing. The startup bridge inserted an awaited native call before the original `initializeApp()` body, perturbing the Golden render timing/state. No native payment/overlay source change is needed for this failure.
+- Applied fix: make startup concierge-state sync fire-and-forget (`void`) instead of awaiting the native bridge, preserving original Golden initialization timing while retaining state mirroring.
+- 2.5D scenario execution: NOT REACHED because baseline visual regression gate correctly stopped the script first.
+- Next single action: push this Web-bridge timing-only fix and follow the next transplant E2E run to completion.
 
 Galaxy 실기기 검증: 미검증
