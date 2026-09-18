@@ -47,37 +47,52 @@
 - Existing `ParityInstrumentation.java` receives QA-only overlay app-op setup so the pre-existing concierge toggle regression remains deterministic.
 
 ## Gates
-- Candidate storage: PENDING
-- Heads-up notification: PENDING
-- Actual NotificationListener production path: PENDING
-- New-subscription classification: PENDING
-- 2.5D overlay: PENDING
-- Transparent background: PENDING
-- Heads-up non-overlap: PENDING
-- Animation 5–6 sec: PENDING
-- Overlay cleanup: PENDING
-- Existing-service no-overlay classification: PENDING
-- Concierge OFF fallback: PENDING
-- Permission denied fallback: PENDING
-- Home regression: PENDING
-- Subscriptions regression: PENDING
-- Subscription detail regression: PENDING
-- Benefits regression: PENDING
-- Notifications regression: PENDING
-- My Page regression: PENDING
-- NotificationListener regression: PENDING
-- Crash / ANR: PENDING
+- Candidate storage: PASS
+- Heads-up notification: PASS
+- Actual NotificationListener production path: PASS
+- New-subscription classification: PASS
+- 2.5D overlay: PASS
+- Transparent background: PASS
+- Heads-up non-overlap: PASS
+- Animation 5–6 sec: PASS (5509 ms)
+- Overlay cleanup: PASS
+- Existing-service no-overlay classification: PASS
+- Concierge OFF fallback: PASS
+- Permission denied fallback: PASS
+- Home regression: PASS
+- Subscriptions regression: PASS
+- Subscription detail regression: PASS
+- Benefits regression: PASS
+- Notifications regression: PASS
+- My Page regression: PASS
+- NotificationListener regression: PASS
+- Crash / ANR: PASS
 
 ## Latest CI
-- Latest run: 35301740091
-- Latest conclusion: failure
-- Last successful functional gate: RE_2_5D_RESULT=PASS.
-- Baseline regression: PASS (RUNTIME_REPORT_PARITY=PASS, BASELINE_RUNTIME_PARITY=PASS, all six Golden/transplant visual screens PASS).
-- 2.5D functional scenario: PASS, including candidate storage, heads-up notification creation, new-subscription classification, existing-subscription suppression, concierge-OFF fallback, permission-denied fallback, cleanup, crash/ANR, and measured animation duration 5531 ms.
-- First failing gate: screenshot visual analyzer only (transparent_background_pass=false, heads_up_non_overlap_pass=false).
-- Evidence diagnosis: heads-up-overlay.png was captured before Android had composited the heads-up, while the later overlay-only.png actually contained both the heads-up and the visibly transparent 2.5D character. The character screenshot itself shows no rectangular background and a clear vertical gap below the notification. This is a QA capture/analyzer timing defect, not a production overlay failure.
-- Applied fix: delay the simultaneous capture to 2200 ms, cancel the target app notification after that screenshot, capture a true overlay-only frame 300 ms later, and compute transparency from overlay-only vs pre-trigger. Transparency remains screenshot-based and fails any near-solid rectangular occupancy (>=82%).
-- Production source changed for this failure: none.
-- Next single action: push the QA-only visual-evidence fix and follow the new transplant E2E run through completion.
+- Validated implementation HEAD: 6fc64d07df40f074db79163e6cb43040822214a1
+- Final validating run: 35303261282
+- Run conclusion: success
+- Last workflow step: Upload 2.5D evidence and APK PASS; job conclusion SUCCESS.
+- RUNTIME_REPORT_PARITY=PASS
+- BASELINE_RUNTIME_PARITY=PASS
+- RE_2_5D_RESULT=PASS
+- V203_2_5D_E2E=PASS
+- Golden/transplant six-screen visual regression: PASS for home, subscriptions, subscription-detail, benefits, notifications, and my-page.
+- Normal new-subscription path: NotificationListener -> parser -> candidate persistence -> existing RE heads-up -> NEW_SUBSCRIPTION_DETECTED -> concierge/permission gates -> 2.5D overlay -> animation end cleanup: PASS.
+- Existing subscription suppression: PASS (youtube classified non-new; candidate + heads-up retained, overlay suppressed).
+- Concierge OFF fallback: PASS (candidate + heads-up retained, overlay suppressed).
+- Overlay permission denied fallback: PASS (candidate + heads-up retained, overlay suppressed, no crash).
+- Screenshot transparency: PASS (overlay_occupancy=0.5494587362; no solid rectangular background).
+- Screenshot heads-up non-overlap: PASS (heads_up_bbox=[8,15,1072,342], overlay reserved Y=479, clear vertical separation).
+- Cleanup screenshot: PASS (cleanup_mean_abs=0.0, cleanup_changed_pct=0.0 in overlay ROI).
+- Measured animation duration: PASS (5509 ms).
+- Crash / ANR: PASS.
+- Evidence artifact id: 10530835930
+- Evidence artifact digest: sha256:b398d8fac431c604fc9d8ad9b82b5d8e566812b038b24716a8f921cc000f2cbb
+- SYSTEM_ALERT_WINDOW decision: retained because the requested concierge must render while RE is not foreground; the temporary character uses TYPE_APPLICATION_OVERLAY. Permission denial fails closed for overlay only.
+- Previous run failures were isolated to workflow/QA timing/analyzer issues and fixed without changing production source for those failures.
+- Next single action: Galaxy real-device validation before distribution/release if required.
 
 Galaxy 실기기 검증: 미검증
+
+2.5D TRANSPLANT = PASS
