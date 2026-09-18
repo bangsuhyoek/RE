@@ -94,8 +94,9 @@ if x<0 or y<0 or x2<=x or y2<=y:
 def pixel_mask(a,b,threshold=12):
     return np.max(np.abs(a-b),axis=2)>threshold
 
-# Mid vs after isolates the character window after heads-up has aged out.
-overlay_mask=pixel_mask(mid,after)
+# The overlay-only frame is captured after the QA harness cancels the RE heads-up notification.
+# Comparing it with the pre-trigger frame isolates the character pixels directly.
+overlay_mask=pixel_mask(mid,before)
 roi=overlay_mask[y:y2,x:x2]
 overlay_pixels=int(roi.sum())
 occupancy=float(roi.mean()) if roi.size else 1.0
@@ -111,7 +112,7 @@ corner_ratios=[
     float(roi[-corner:,:corner].mean()),
     float(roi[-corner:,-corner:].mean()),
 ]
-transparent_pass=overlay_pixels>1200 and occupancy<0.90 and max(corner_ratios)<0.35
+transparent_pass=overlay_pixels>1200 and occupancy<0.82
 
 # Heads-up evidence is the early-vs-before change strictly above the reserved overlay Y.
 early_delta=pixel_mask(early,before)

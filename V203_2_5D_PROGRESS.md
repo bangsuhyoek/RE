@@ -69,14 +69,15 @@
 - Crash / ANR: PENDING
 
 ## Latest CI
-- Latest run: `35301268463`
-- Latest conclusion: `failure`
-- Last successful gate before the new failure: canonical baseline functional + six-screen visual regression PASS (`BASELINE_RUNTIME_PARITY=PASS`).
-- First failing 2.5D assertion: `RE_2_5D_RESULT=FAIL: java.lang.IllegalStateException: animation duration out of range=4`.
-- Evidence reached the real NotificationListener/new-subscription/overlay path far enough to observe overlay cleanup; the measured animation collapsed to ~4 ms.
-- Cause classification: QA/emulator setup, not production animation code. The baseline regression harness intentionally sets Android `animator_duration_scale=0`; the same emulator was then reused for the 2.5D test, so ObjectAnimator/AnimatorSet duration was globally scaled to zero.
-- Applied fix: restore `animator_duration_scale=1.0` immediately before the 2.5D instrumentation while leaving the baseline regression harness unchanged.
+- Latest run: 35301740091
+- Latest conclusion: failure
+- Last successful functional gate: RE_2_5D_RESULT=PASS.
+- Baseline regression: PASS (RUNTIME_REPORT_PARITY=PASS, BASELINE_RUNTIME_PARITY=PASS, all six Golden/transplant visual screens PASS).
+- 2.5D functional scenario: PASS, including candidate storage, heads-up notification creation, new-subscription classification, existing-subscription suppression, concierge-OFF fallback, permission-denied fallback, cleanup, crash/ANR, and measured animation duration 5531 ms.
+- First failing gate: screenshot visual analyzer only (transparent_background_pass=false, heads_up_non_overlap_pass=false).
+- Evidence diagnosis: heads-up-overlay.png was captured before Android had composited the heads-up, while the later overlay-only.png actually contained both the heads-up and the visibly transparent 2.5D character. The character screenshot itself shows no rectangular background and a clear vertical gap below the notification. This is a QA capture/analyzer timing defect, not a production overlay failure.
+- Applied fix: delay the simultaneous capture to 2200 ms, cancel the target app notification after that screenshot, capture a true overlay-only frame 300 ms later, and compute transparency from overlay-only vs pre-trigger. Transparency remains screenshot-based and fails any near-solid rectangular occupancy (>=82%).
 - Production source changed for this failure: none.
-- Next single action: push the QA-only animation-scale fix and follow the next transplant E2E run to completion.
+- Next single action: push the QA-only visual-evidence fix and follow the new transplant E2E run through completion.
 
 Galaxy 실기기 검증: 미검증

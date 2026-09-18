@@ -2,6 +2,7 @@ package com.re.cardtest;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -71,11 +72,17 @@ public class TransplantInstrumentation extends Instrumentation {
             shell("logcat -c");
             capture("before-trigger");
             postPaymentNotification("신한카드 승인", "Netflix 정기결제 17,000원 승인", 9101);
-            Thread.sleep(500L);
+            // On API 33 the heads-up surface is not guaranteed to be composited within 500 ms.
+            // Capture after it is visibly settled, then cancel only the RE notification so the
+            // next frame isolates the still-running transparent character overlay.
+            Thread.sleep(2200L);
             capture("heads-up-overlay");
-            Thread.sleep(1700L);
+            NotificationManager notificationManager =
+                    (NotificationManager) getTargetContext().getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+            if (notificationManager != null) notificationManager.cancelAll();
+            Thread.sleep(300L);
             capture("overlay-only");
-            Thread.sleep(4500L);
+            Thread.sleep(3800L);
             capture("after-cleanup");
 
             String normalCandidates = asyncPlugin("p.getCandidates()");
