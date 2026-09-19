@@ -13,7 +13,9 @@
     "cap:build": "vite build && cap sync",
     "build:apk": "node scripts/build-apk.js",
     "crawl": "node scripts/crawler/index.js",
-    "crawl:schedule": "node scripts/crawler/scheduler.js"
+    "crawl:schedule": "node scripts/crawler/scheduler.js",
+    "crawl:benefits": "node scripts/crawler/runPromotionPipeline.js",
+    "crawl:benefits:schedule": "node scripts/crawler/benefitScheduler.js"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",

@@ -279,3 +279,94 @@ export async function searchHybridCatalog(localCatalog, keyword) {
   const remoteResults = await searchRemoteCatalog(keyword);
   return remoteResults.length > 0 ? remoteResults : localResults;
 }
+
+export function mapBenefitFromDb(row = {}) {
+  const links = Array.isArray(row.service_benefits) ? row.service_benefits : [];
+  const targetServiceIds = links
+    .filter((link) => link.role === "target" || link.role === "bundle_member" || link.is_primary)
+    .map((link) => link.service_id)
+    .filter(Boolean);
+  const providerServiceIds = links
+    .filter((link) => link.role === "provider")
+    .map((link) => link.service_id)
+    .filter(Boolean);
+
+  return {
+    id: row.id,
+    title: row.title,
+    subtitle: row.subtitle,
+    kind: row.kind,
+    category: row.category,
+    description: row.description || "",
+    targetServiceIds,
+    providerServiceIds,
+    sourceServiceIds: [...new Set([...targetServiceIds, ...providerServiceIds])],
+    audience: row.audience || "UNKNOWN",
+    partnerType: row.partner_type || "",
+    partnerId: row.partner_id || providerServiceIds[0] || "",
+    partnerName: row.partner_name || "",
+    benefitType: row.benefit_type || "",
+    benefitAmount: row.benefit_amount,
+    benefitRate: row.benefit_rate == null ? null : Number(row.benefit_rate),
+    benefitCap: row.benefit_cap,
+    savingPeriod: row.saving_period || "",
+    eligibilityRules: row.eligibility_rules || {},
+    requiredPaymentMethod: row.required_payment_method || "",
+    requiredCarrier: row.required_carrier || "",
+    requiredMembership: row.required_membership || providerServiceIds[0] || "",
+    requiredPlan: row.required_plan || "",
+    requiredCost: row.required_cost,
+    targetPlan: row.target_plan || "",
+    planChangeRequired: Boolean(row.plan_change_required),
+    startAt: row.start_at || null,
+    endAt: row.end_at || null,
+    sourceUrl: row.source_url || row.link || "",
+    sourceListUrl: row.source_list_url || "",
+    officialOrigin: row.official_origin || "",
+    discoveredAt: row.discovered_at || null,
+    lastCheckedAt: row.last_checked_at || null,
+    lastVerifiedAt: row.last_verified_at || null,
+    verificationStatus: row.verification_status || "UNVERIFIED",
+    verificationDetails: row.verification_details || {},
+    campaignFingerprint: row.campaign_fingerprint || "",
+    exclusiveGroup: row.exclusive_group || "",
+    stackable: Boolean(row.stackable),
+    originalPrice: row.original_price,
+    offerPrice: row.offer_price,
+    link: row.source_url || row.link || "",
+  };
+}
+
+export async function fetchActiveBenefits() {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from("benefits")
+      .select(`
+        *,
+        service_benefits (
+          service_id,
+          role,
+          is_primary
+        )
+      `)
+      .eq("verification_status", "ACTIVE")
+      .order("last_verified_at", { ascending: false, nullsFirst: false });
+
+    if (error) throw error;
+
+    const now = Date.now();
+    return (data || [])
+      .filter((row) => {
+        const start = row.start_at ? Date.parse(row.start_at) : null;
+        const end = row.end_at ? Date.parse(row.end_at) : null;
+        if (Number.isFinite(start) && start > now) return false;
+        if (Number.isFinite(end) && end < now) return false;
+        return true;
+      })
+      .map(mapBenefitFromDb);
+  } catch (err) {
+    console.warn("fetchActiveBenefits error:", err);
+    return [];
+  }
+}
