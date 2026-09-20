@@ -49,9 +49,10 @@ public class HeadsUpDemoPlugin extends Plugin {
 
         ensureChannel(context);
 
-        if (getActivity() != null) {
-            getActivity().moveTaskToBack(true);
-        }
+        Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+        homeIntent.addCategory(Intent.CATEGORY_HOME);
+        homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(homeIntent);
 
         new Handler(Looper.getMainLooper()).postDelayed(
             () -> dispatchHeadsUp(context.getApplicationContext(), title, body),

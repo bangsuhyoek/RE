@@ -26,8 +26,11 @@ test("Android Heads-up 체험 플러그인이 MainActivity에 등록되어 있�
   assert.match(mainActivitySource, /registerPlugin\(HeadsUpDemoPlugin\.class\)/);
 });
 
-test("설정 완료 후 앱을 홈 화면으로 내리고 2~3초 범위에서 알림을 띄운다", () => {
-  assert.match(pluginSource, /moveTaskToBack\(true\)/);
+test("설정 완료 후 Android 홈 런처로 이동하고 2~3초 범위에서 알림을 띄운다", () => {
+  assert.match(pluginSource, /Intent\.ACTION_MAIN/);
+  assert.match(pluginSource, /Intent\.CATEGORY_HOME/);
+  assert.match(pluginSource, /Intent\.FLAG_ACTIVITY_NEW_TASK/);
+  assert.doesNotMatch(pluginSource, /moveTaskToBack\(true\)/);
   assert.match(pluginSource, /DEFAULT_DELAY_MS = 2500/);
   assert.match(pluginSource, /Math\.max\(2000, Math\.min\(requestedDelay, 3000\)\)/);
 });
