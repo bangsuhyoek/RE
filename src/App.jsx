@@ -209,10 +209,16 @@ export default function App() {
 
   const {
     benefits: activeBenefits,
+    recommendations: benefitRecommendations,
     loading: benefitsLoading,
+    loadState: benefitsLoadState,
+    partial: benefitsPartial,
     reload: reloadBenefits,
     source: benefitsSource,
-  } = useBenefits({ enabled: screen.route === "promotions" });
+  } = useBenefits({
+    enabled: screen.route === "promotions",
+    subscriptions,
+  });
 
   // Notifications domain state
   const {
@@ -541,7 +547,10 @@ export default function App() {
       <PromotionScreen
         subscriptions={subscriptions}
         benefits={activeBenefits}
+        recommendations={benefitRecommendations}
         loading={benefitsLoading}
+        loadState={benefitsLoadState}
+        partial={benefitsPartial}
         source={benefitsSource}
         onOpenPromotion={handlePromotion}
         onRefresh={reloadBenefits}

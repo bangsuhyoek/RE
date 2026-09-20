@@ -2,6 +2,10 @@ import { serviceCatalog } from "../data/subscriptionData.js";
 import { Browser } from "@capacitor/browser";
 import { isNativePlatform } from "./platform.js";
 import { createClient } from '@supabase/supabase-js';
+import {
+  benefitFetchFailure,
+  benefitFetchSuccess,
+} from "../features/benefits/api/fetchState.js";
 
 const supabaseUrl = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_SUPABASE_URL : '';
 const supabaseAnonKey = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_SUPABASE_ANON_KEY : '';
@@ -337,10 +341,16 @@ export function mapBenefitFromDb(row = {}) {
   };
 }
 
-export async function fetchActiveBenefits() {
-  if (!supabase) return [];
+export async function fetchActiveBenefitsResult(client = supabase) {
+  if (!client) {
+    return benefitFetchFailure(
+      new Error("Benefit source is not configured"),
+      "unconfigured"
+    );
+  }
+
   try {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from("benefits")
       .select(`
         *,
@@ -356,7 +366,7 @@ export async function fetchActiveBenefits() {
     if (error) throw error;
 
     const now = Date.now();
-    return (data || [])
+    const items = (data || [])
       .filter((row) => {
         const start = row.start_at ? Date.parse(row.start_at) : null;
         const end = row.end_at ? Date.parse(row.end_at) : null;
@@ -365,8 +375,16 @@ export async function fetchActiveBenefits() {
         return true;
       })
       .map(mapBenefitFromDb);
+
+    return benefitFetchSuccess(items, "supabase");
   } catch (err) {
     console.warn("fetchActiveBenefits error:", err);
-    return [];
+    return benefitFetchFailure(err, "supabase");
   }
+}
+
+export async function fetchActiveBenefits() {
+  const result = await fetchActiveBenefitsResult();
+  if (result.error) throw result.error;
+  return result.items;
 }
