@@ -278,10 +278,40 @@ export function summarizePublishedConfirmedSavings(recommendations = []) {
     }));
 
   const summary = summarizeConfirmedMonthlySavings(eligible);
+  const exclusiveChoices = summary.exclusiveChoices.map((choice) => {
+    const recommendationsInChoice = choice.items
+      .map((item) => item.recommendation)
+      .filter(Boolean);
+    const relations = recommendationsInChoice.map(
+      (item) => item.materialConditions?.selectionRelation || {}
+    );
+    const labeledRelation =
+      relations.find((relation) => relation.choice_label || relation.choiceLabel) ||
+      relations[0] ||
+      {};
+
+    return {
+      group: choice.group,
+      recommendationIds: recommendationsInChoice.map((item) => item.id),
+      selectedId: choice.selected?.recommendation?.id || null,
+      choiceLabel:
+        labeledRelation.choice_label ??
+        labeledRelation.choiceLabel ??
+        "같은 선택형 혜택 중 1개만 적용",
+    };
+  });
+
   return {
     amount: summary.amount,
     count: summary.count,
+    candidateCount: summary.candidateCount,
     selected: summary.selected.map((item) => item.recommendation),
+    exclusiveChoices,
+    hasExclusiveChoice: exclusiveChoices.length > 0,
+    uncertainRecommendationIds: summary.uncertainItems
+      .map((item) => item.recommendation?.id)
+      .filter(Boolean),
+    hasUncertainCompatibility: summary.hasUncertainCompatibility,
   };
 }
 

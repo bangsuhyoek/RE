@@ -155,6 +155,99 @@ function targetKey(benefit = {}) {
   return [...ids].map(normalize).filter(Boolean).sort().join("+");
 }
 
+function conflictMeta(item = {}) {
+  const benefit = item.benefit || item;
+  const exclusiveGroup =
+    benefit.exclusiveGroup || benefit.exclusive_group || null;
+  const stackable =
+    typeof benefit.stackable === "boolean" ? benefit.stackable : undefined;
+
+  return {
+    item,
+    benefit,
+    exclusiveGroup,
+    targetKey: targetKey(benefit),
+    stackable,
+    // A named exclusive group establishes cross-offer compatibility boundaries.
+    // Explicit stackable=true also proves that the offer may coexist.
+    // stackable=false without a group only says "not stackable" locally and is
+    // not enough to prove compatibility with offers for a different target.
+    relationKnown: Boolean(exclusiveGroup) || stackable === true,
+  };
+}
+
+function benefitsConflict(left, right) {
+  if (
+    left.exclusiveGroup &&
+    right.exclusiveGroup &&
+    left.exclusiveGroup === right.exclusiveGroup
+  ) {
+    return true;
+  }
+
+  if (
+    left.targetKey &&
+    right.targetKey &&
+    left.targetKey === right.targetKey &&
+    !(left.stackable === true && right.stackable === true)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function greedyCompatibleSelection(metaItems = []) {
+  const selected = [];
+  for (const candidate of metaItems) {
+    if (selected.some((chosen) => benefitsConflict(candidate, chosen))) continue;
+    selected.push(candidate);
+  }
+  return selected;
+}
+
+function selectBestCompatibleKnown(metaItems = []) {
+  if (metaItems.length <= 1) return [...metaItems];
+
+  // Exact branch-and-bound for the normal recommendation set. Fall back to the
+  // safe greedy selector for unusually large sets so UI calculation cannot
+  // become exponential.
+  if (metaItems.length > 22) {
+    return greedyCompatibleSelection(metaItems);
+  }
+
+  const suffixAmounts = new Array(metaItems.length + 1).fill(0);
+  for (let index = metaItems.length - 1; index >= 0; index -= 1) {
+    suffixAmounts[index] =
+      suffixAmounts[index + 1] + metaItems[index].item.savings.amount;
+  }
+
+  let best = [];
+  let bestAmount = 0;
+
+  function visit(index, selected, total) {
+    if (total + suffixAmounts[index] <= bestAmount) return;
+    if (index >= metaItems.length) {
+      if (total > bestAmount) {
+        best = [...selected];
+        bestAmount = total;
+      }
+      return;
+    }
+
+    const candidate = metaItems[index];
+    if (!selected.some((chosen) => benefitsConflict(candidate, chosen))) {
+      selected.push(candidate);
+      visit(index + 1, selected, total + candidate.item.savings.amount);
+      selected.pop();
+    }
+    visit(index + 1, selected, total);
+  }
+
+  visit(0, [], 0);
+  return best;
+}
+
 export function summarizeConfirmedMonthlySavings(recommendations = []) {
   const eligible = recommendations
     .filter((item) =>
@@ -165,27 +258,47 @@ export function summarizeConfirmedMonthlySavings(recommendations = []) {
     )
     .sort((a, b) => b.savings.amount - a.savings.amount);
 
-  const selected = [];
-  const usedExclusiveGroups = new Set();
-  const usedNonStackableTargets = new Set();
-  for (const item of eligible) {
-    const benefit = item.benefit || item;
-    const exclusiveGroup =
-      benefit.exclusiveGroup || benefit.exclusive_group || null;
-    const key = targetKey(benefit);
-    const stackable = Boolean(benefit.stackable);
+  const meta = eligible.map(conflictMeta);
+  const known = meta.filter((entry) => entry.relationKnown);
+  const uncertain = meta.filter((entry) => !entry.relationKnown);
+  const knownSelected = selectBestCompatibleKnown(known);
+  const knownAmount = knownSelected.reduce(
+    (sum, entry) => sum + entry.item.savings.amount,
+    0
+  );
 
-    if (exclusiveGroup && usedExclusiveGroups.has(exclusiveGroup)) continue;
-    if (!stackable && key && usedNonStackableTargets.has(key)) continue;
-
-    selected.push(item);
-    if (exclusiveGroup) usedExclusiveGroups.add(exclusiveGroup);
-    if (!stackable && key) usedNonStackableTargets.add(key);
+  let selectedMeta = knownSelected;
+  if (eligible.length === 1 && uncertain.length === 1) {
+    selectedMeta = uncertain;
+  } else if (uncertain.length > 0) {
+    const bestUncertain = uncertain[0];
+    if (!knownSelected.length || bestUncertain.item.savings.amount > knownAmount) {
+      selectedMeta = [bestUncertain];
+    }
   }
+
+  const selected = selectedMeta.map((entry) => entry.item);
+  const groupMap = new Map();
+  for (const entry of known) {
+    if (!entry.exclusiveGroup) continue;
+    if (!groupMap.has(entry.exclusiveGroup)) groupMap.set(entry.exclusiveGroup, []);
+    groupMap.get(entry.exclusiveGroup).push(entry);
+  }
+  const exclusiveChoices = [...groupMap.entries()]
+    .filter(([, entries]) => entries.length > 1)
+    .map(([group, entries]) => ({
+      group,
+      items: entries.map((entry) => entry.item),
+      selected: entries.find((entry) => selectedMeta.includes(entry))?.item || null,
+    }));
 
   return {
     amount: selected.reduce((sum, item) => sum + item.savings.amount, 0),
     count: selected.length,
+    candidateCount: eligible.length,
     selected,
+    exclusiveChoices,
+    uncertainItems: uncertain.map((entry) => entry.item),
+    hasUncertainCompatibility: eligible.length > 1 && uncertain.length > 0,
   };
 }

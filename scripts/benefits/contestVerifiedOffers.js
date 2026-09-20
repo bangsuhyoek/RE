@@ -42,8 +42,8 @@ function verifiedOffer(definition) {
 }
 
 const netflixPremium = verifiedOffer({
-  service_offer_id: "contest-naverplus-netflix-premium-20260920",
-  source_candidate_id: "official-naver-netflix-premium-20260920",
+  service_offer_id: "contest-naverplus-netflix-premium-20260920-r2",
+  source_candidate_id: "official-naver-netflix-premium-20260920-r2",
   approval_id: "user-authorized-official-verification-20260920",
   service_id: "netflix",
   service_name: "Netflix",
@@ -76,8 +76,9 @@ const netflixPremium = verifiedOffer({
   channel_condition: "ANY",
   exclusions: [],
   selection_relation: {
-    exclusive_group: "NAVERPLUS_NETFLIX_PLAN",
+    exclusive_group: "NAVERPLUS_DIGITAL_CONTENT_CHOICE",
     stackable: false,
+    choice_label: "네이버플러스 디지털 콘텐츠 월 1개 선택",
   },
   lottery_award_mechanism: null,
   lottery_certainty: null,
@@ -88,13 +89,15 @@ const netflixPremium = verifiedOffer({
   source_url: CONTEST_BENEFIT_SOURCES.naverNetflixUpgrade,
   evidence_refs: [
     CONTEST_BENEFIT_SOURCES.naverNetflixUpgrade,
+    CONTEST_BENEFIT_SOURCES.naverDigitalContent,
     CONTEST_BENEFIT_SOURCES.naverPlusPrice,
   ],
   resolved_fact_refs: [
     "naverplus:monthly-membership:4900-krw",
+    "naverplus:digital-content:monthly-choose-one",
     "naverplus:netflix-premium-upgrade:10000-krw",
   ],
-  constraint_graph_ref: "contest:nplus:netflix-premium:v1",
+  constraint_graph_ref: "contest:nplus:netflix-premium:v2",
   display_contract: {
     description:
       "네이버플러스 멤버십에서 Netflix 프리미엄 업그레이드가 월 10,000원이며, 멤버십이 없다면 월 4,900원 비용을 함께 반영해 순절약액을 계산합니다.",
@@ -219,6 +222,14 @@ const naverPlusAnnual = verifiedOffer({
     source_verified_at: CONTEST_BENEFIT_VERIFIED_AT,
   },
 });
+
+export const CONTEST_SUPERSEDED_OFFERS = Object.freeze([
+  Object.freeze({
+    service_offer_id: "contest-naverplus-netflix-premium-20260920",
+    replacement_service_offer_id: "contest-naverplus-netflix-premium-20260920-r2",
+    reason: "Correct Naver Plus monthly digital-content choice exclusivity.",
+  }),
+]);
 
 export const CONTEST_VERIFIED_OFFERS = Object.freeze([
   netflixPremium,

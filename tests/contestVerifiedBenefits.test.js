@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   CONTEST_BENEFIT_SOURCES,
+  CONTEST_SUPERSEDED_OFFERS,
   CONTEST_VERIFIED_OFFERS,
   toPublicV7OfferRow,
 } from "../scripts/benefits/contestVerifiedOffers.js";
@@ -14,6 +15,7 @@ import {
   buildV7RecommendationViewModel,
   partitionRecommendationViewModels,
   recommendationConditionLabels,
+  summarizePublishedConfirmedSavings,
 } from "../src/features/benefits/presentation/recommendationViewModel.js";
 import { loadBenefitRecommendations } from "../src/features/benefits/api/benefitRecommendationLoader.js";
 import { benefitFetchSuccess } from "../src/features/benefits/api/fetchState.js";
@@ -36,6 +38,16 @@ const netflixPremiumSubscription = {
   status: "active",
 };
 
+const spotifyBasicSubscription = {
+  id: "spotify",
+  serviceId: "spotify",
+  name: "Spotify",
+  plan: "프리미엄 베이직",
+  amount: 10900,
+  billingCycle: "매월",
+  status: "active",
+};
+
 test("contest offer manifest contains only verified official-source V7 publications", () => {
   assert.equal(CONTEST_VERIFIED_OFFERS.length, 3);
   for (const offer of CONTEST_VERIFIED_OFFERS) {
@@ -48,10 +60,18 @@ test("contest offer manifest contains only verified official-source V7 publicati
     assert.ok(offer.resolved_fact_refs.length > 0);
   }
   assert.ok(CONTEST_BENEFIT_SOURCES.naverPlusPrice.includes("help.naver.com"));
+  assert.deepEqual(CONTEST_SUPERSEDED_OFFERS, [
+    {
+      service_offer_id: "contest-naverplus-netflix-premium-20260920",
+      replacement_service_offer_id:
+        "contest-naverplus-netflix-premium-20260920-r2",
+      reason: "Correct Naver Plus monthly digital-content choice exclusivity.",
+    },
+  ]);
 });
 
 test("primary contest Netflix premium flow produces 2,100 KRW confirmed monthly saving", () => {
-  const offer = mappedOffer("contest-naverplus-netflix-premium-20260920");
+  const offer = mappedOffer("contest-naverplus-netflix-premium-20260920-r2");
   const recommendation = buildV7RecommendationViewModel(
     [netflixPremiumSubscription],
     offer,
@@ -89,9 +109,82 @@ test("contest V7 fetch makes Hybrid loader SUCCESS with visible recommendation",
   assert.ok(
     sections.confirmed.some(
       (item) =>
-        item.id === "contest-naverplus-netflix-premium-20260920" &&
+        item.id === "contest-naverplus-netflix-premium-20260920-r2" &&
         item.savings?.amount === 2100
     )
+  );
+});
+
+test("Spotify-only flow produces 6,000 KRW confirmed monthly saving", () => {
+  const offer = mappedOffer("contest-naverplus-spotify-basic-20260920");
+  const recommendation = buildV7RecommendationViewModel(
+    [spotifyBasicSubscription],
+    offer,
+    {}
+  );
+  const summary = summarizePublishedConfirmedSavings([recommendation]);
+
+  assert.equal(
+    recommendation.status,
+    HybridRecommendationStatus.ELIGIBLE_CONFIRMED
+  );
+  assert.equal(recommendation.savings.amount, 6000);
+  assert.equal(summary.amount, 6000);
+  assert.equal(summary.count, 1);
+  assert.equal(summary.hasExclusiveChoice, false);
+});
+
+test("Netflix and Spotify share one Naver Plus digital-content choice slot", () => {
+  const netflix = mappedOffer("contest-naverplus-netflix-premium-20260920-r2");
+  const spotify = mappedOffer("contest-naverplus-spotify-basic-20260920");
+
+  assert.equal(
+    netflix.selectionRelation.exclusive_group,
+    "NAVERPLUS_DIGITAL_CONTENT_CHOICE"
+  );
+  assert.equal(
+    spotify.selectionRelation.exclusive_group,
+    "NAVERPLUS_DIGITAL_CONTENT_CHOICE"
+  );
+  assert.equal(netflix.selectionRelation.stackable, false);
+  assert.equal(spotify.selectionRelation.stackable, false);
+  assert.equal(
+    netflix.selectionRelation.choice_label,
+    "네이버플러스 디지털 콘텐츠 월 1개 선택"
+  );
+});
+
+test("Netflix + Spotify stays visible but portfolio total chooses only the better exclusive option", () => {
+  const offers = CONTEST_VERIFIED_OFFERS.map((offer) =>
+    mapV7PublicOffer(toPublicV7OfferRow(offer))
+  );
+  const recommendations = offers.map((offer) =>
+    buildV7RecommendationViewModel(
+      [netflixPremiumSubscription, spotifyBasicSubscription],
+      offer,
+      {}
+    )
+  );
+  const sections = partitionRecommendationViewModels(recommendations);
+  const summary = summarizePublishedConfirmedSavings(recommendations);
+
+  assert.equal(sections.confirmed.length, 2);
+  assert.equal(summary.amount, 6000);
+  assert.equal(summary.count, 1);
+  assert.equal(summary.candidateCount, 2);
+  assert.equal(summary.hasExclusiveChoice, true);
+  assert.equal(summary.exclusiveChoices.length, 1);
+  assert.equal(
+    summary.exclusiveChoices[0].choiceLabel,
+    "네이버플러스 디지털 콘텐츠 월 1개 선택"
+  );
+  assert.equal(summary.selected[0].serviceId, "spotify");
+  assert.deepEqual(
+    summary.exclusiveChoices[0].recommendationIds.sort(),
+    [
+      "contest-naverplus-netflix-premium-20260920-r2",
+      "contest-naverplus-spotify-basic-20260920",
+    ].sort()
   );
 });
 
@@ -113,7 +206,7 @@ test("Naver Plus annual official price computes 12,000 KRW annual saving", () =>
 });
 
 test("non-matching subscription is not promoted to a fake visible saving", () => {
-  const offer = mappedOffer("contest-naverplus-netflix-premium-20260920");
+  const offer = mappedOffer("contest-naverplus-netflix-premium-20260920-r2");
   const result = buildHybridRecommendation(
     offer,
     [{ id: "youtube", serviceId: "youtube", amount: 14900, status: "active" }],
@@ -124,7 +217,7 @@ test("non-matching subscription is not promoted to a fake visible saving", () =>
 });
 
 test("confirmed benefit condition labels use user-facing Korean instead of internal enums", () => {
-  const offer = mappedOffer("contest-naverplus-netflix-premium-20260920");
+  const offer = mappedOffer("contest-naverplus-netflix-premium-20260920-r2");
   const recommendation = buildV7RecommendationViewModel(
     [netflixPremiumSubscription],
     offer,

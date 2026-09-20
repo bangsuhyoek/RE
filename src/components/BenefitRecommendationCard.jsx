@@ -29,7 +29,7 @@ function deadlineLabel(endAt) {
   return `D-${diff}`;
 }
 
-function savingLabel(recommendation) {
+function savingLabel(recommendation, portfolioConflict = null) {
   const { status, savings } = recommendation;
 
   if (status === HybridRecommendationStatus.NON_SUBSCRIPTION_RELEVANT) {
@@ -51,12 +51,29 @@ function savingLabel(recommendation) {
     [SavingPeriod.ANNUAL]: `연 ${amount} 절약`,
   };
   const label = labels[savings.period] || `${amount} 절약`;
+  if (portfolioConflict?.type === "EXCLUSIVE_CHOICE") {
+    return `선택 시 ${label}`;
+  }
   return status === HybridRecommendationStatus.NEEDS_CHECK
     ? `조건 충족 시 ${label}`
     : label;
 }
 
-function statusBadge(status) {
+function statusBadge(status, portfolioConflict = null) {
+  if (portfolioConflict?.type === "EXCLUSIVE_CHOICE") {
+    return {
+      icon: CircleAlert,
+      text: "택1 적용 가능",
+      className: "bg-amber-50 text-amber-700",
+    };
+  }
+  if (portfolioConflict?.type === "UNCERTAIN_COMPATIBILITY") {
+    return {
+      icon: CircleAlert,
+      text: "동시 적용 확인 필요",
+      className: "bg-amber-50 text-amber-700",
+    };
+  }
   if (status === HybridRecommendationStatus.ELIGIBLE_CONFIRMED) {
     return {
       icon: CheckCircle2,
@@ -90,9 +107,10 @@ function statusBadge(status) {
 
 export function BenefitRecommendationCard({
   recommendation,
+  portfolioConflict = null,
   onOpen,
 }) {
-  const badge = statusBadge(recommendation.status);
+  const badge = statusBadge(recommendation.status, portfolioConflict);
   const BadgeIcon = badge.icon;
   const deadline = deadlineLabel(recommendation.temporal?.end);
   const conditions = recommendationConditionLabels(recommendation).slice(0, 4);
@@ -143,8 +161,18 @@ export function BenefitRecommendationCard({
           </div>
         )}
         <div className="mt-2 text-[16px] font-black text-[#FF6F0F]">
-          {savingLabel(recommendation)}
+          {savingLabel(recommendation, portfolioConflict)}
         </div>
+        {portfolioConflict?.type === "EXCLUSIVE_CHOICE" && (
+          <div className="mt-1.5 text-[11.5px] font-semibold leading-relaxed text-[#8A4B17]">
+            {portfolioConflict.choiceLabel || "같은 선택형 혜택 중 1개만 적용"}
+          </div>
+        )}
+        {portfolioConflict?.type === "UNCERTAIN_COMPATIBILITY" && (
+          <div className="mt-1.5 text-[11.5px] font-semibold leading-relaxed text-[#8A4B17]">
+            다른 혜택과 함께 적용 가능한지 확인되지 않아 합산하지 않았어요.
+          </div>
+        )}
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-[11.5px] text-[#6B7684]">
