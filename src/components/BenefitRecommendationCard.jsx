@@ -11,6 +11,7 @@ import { SavingPeriod } from "../lib/savingsCalculator.js";
 import { isNativePlatform } from "../lib/platform.js";
 import { HybridRecommendationStatus } from "../features/benefits/domain/hybridRecommendation.js";
 import {
+  RecommendationDisplayStatus,
   RecommendationSource,
   recommendationConditionLabels,
 } from "../features/benefits/presentation/recommendationViewModel.js";
@@ -29,9 +30,12 @@ function deadlineLabel(endAt) {
   return `D-${diff}`;
 }
 
-function savingLabel(recommendation) {
+function savingLabel(recommendation, portfolioConflict = null) {
   const { status, savings } = recommendation;
 
+  if (recommendation.displayStatus === RecommendationDisplayStatus.DISCOVERY) {
+    return `${recommendation.serviceName || "해당 서비스"} 이용 중이라면 확인해보세요`;
+  }
   if (status === HybridRecommendationStatus.NON_SUBSCRIPTION_RELEVANT) {
     return "구독료 외 추가 혜택";
   }
@@ -51,12 +55,46 @@ function savingLabel(recommendation) {
     [SavingPeriod.ANNUAL]: `연 ${amount} 절약`,
   };
   const label = labels[savings.period] || `${amount} 절약`;
+  if (portfolioConflict?.type === "EXCLUSIVE_CHOICE") {
+    return `선택 시 ${label}`;
+  }
   return status === HybridRecommendationStatus.NEEDS_CHECK
     ? `조건 충족 시 ${label}`
     : label;
 }
 
-function statusBadge(status) {
+function statusBadge(recommendation, portfolioConflict = null) {
+  const { status, displayStatus } = recommendation;
+
+  if (portfolioConflict?.type === "EXCLUSIVE_CHOICE") {
+    return {
+      icon: CircleAlert,
+      text: "택1 적용 가능",
+      className: "bg-amber-50 text-amber-700",
+    };
+  }
+  if (portfolioConflict?.type === "UNCERTAIN_COMPATIBILITY") {
+    return {
+      icon: CircleAlert,
+      text: "동시 적용 확인 필요",
+      className: "bg-amber-50 text-amber-700",
+    };
+  }
+
+  if (displayStatus === RecommendationDisplayStatus.DISCOVERY) {
+    return {
+      icon: Gift,
+      text: "다른 절약 방법",
+      className: "bg-blue-50 text-blue-700",
+    };
+  }
+  if (displayStatus === RecommendationDisplayStatus.OPTIMIZATION) {
+    return {
+      icon: CheckCircle2,
+      text: "이용 방법 변경",
+      className: "bg-violet-50 text-violet-700",
+    };
+  }
   if (status === HybridRecommendationStatus.ELIGIBLE_CONFIRMED) {
     return {
       icon: CheckCircle2,
@@ -90,9 +128,10 @@ function statusBadge(status) {
 
 export function BenefitRecommendationCard({
   recommendation,
+  portfolioConflict = null,
   onOpen,
 }) {
-  const badge = statusBadge(recommendation.status);
+  const badge = statusBadge(recommendation, portfolioConflict);
   const BadgeIcon = badge.icon;
   const deadline = deadlineLabel(recommendation.temporal?.end);
   const conditions = recommendationConditionLabels(recommendation).slice(0, 4);
@@ -100,6 +139,12 @@ export function BenefitRecommendationCard({
     recommendation.sourceType === RecommendationSource.TRUSTFIX_V7
       ? "공식 검증 제휴"
       : "기존 제휴 데이터";
+  const serviceContextLabel =
+    recommendation.displayStatus === RecommendationDisplayStatus.DISCOVERY
+      ? "현재 내 구독에는 없어요"
+      : recommendation.servicePlan
+        ? `현재 ${recommendation.servicePlan}`
+        : sourceLabel;
 
   return (
     <article className="rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.035)]">
@@ -120,9 +165,7 @@ export function BenefitRecommendationCard({
             </span>
           </div>
           <p className="mt-0.5 text-[12px] text-[#8B95A1]">
-            {recommendation.servicePlan
-              ? `현재 ${recommendation.servicePlan}`
-              : sourceLabel}
+            {serviceContextLabel}
             {recommendation.currentAmount != null
               ? ` · 월 ${formatWon(recommendation.currentAmount)}`
               : ""}
@@ -143,8 +186,18 @@ export function BenefitRecommendationCard({
           </div>
         )}
         <div className="mt-2 text-[16px] font-black text-[#FF6F0F]">
-          {savingLabel(recommendation)}
+          {savingLabel(recommendation, portfolioConflict)}
         </div>
+        {portfolioConflict?.type === "EXCLUSIVE_CHOICE" && (
+          <div className="mt-1.5 text-[11.5px] font-semibold leading-relaxed text-[#8A4B17]">
+            {portfolioConflict.choiceLabel || "같은 선택형 혜택 중 1개만 적용"}
+          </div>
+        )}
+        {portfolioConflict?.type === "UNCERTAIN_COMPATIBILITY" && (
+          <div className="mt-1.5 text-[11.5px] font-semibold leading-relaxed text-[#8A4B17]">
+            다른 혜택과 함께 적용 가능한지 확인되지 않아 합산하지 않았어요.
+          </div>
+        )}
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-[11.5px] text-[#6B7684]">

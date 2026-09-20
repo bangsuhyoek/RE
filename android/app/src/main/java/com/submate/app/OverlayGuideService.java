@@ -27,6 +27,8 @@ import android.widget.TextView;
 
 import androidx.core.app.NotificationCompat;
 
+import com.submate.app.character.CharacterAssetManager;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -95,6 +97,8 @@ public class OverlayGuideService extends Service {
 
     private void initBubbleView() {
         bubbleView = LayoutInflater.from(this).inflate(R.layout.layout_floating_bubble, null);
+        ImageView bubbleCharacter = bubbleView.findViewById(R.id.ivBubbleIcon);
+        CharacterAssetManager.applyToImageView(this, bubbleCharacter);
 
         int layoutFlag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY

@@ -44,9 +44,35 @@ export function PromotionScreen({
     [effectiveRecommendations]
   );
 
+  const portfolioConflictById = useMemo(() => {
+    const map = new Map();
+    for (const choice of confirmedSummary.exclusiveChoices || []) {
+      for (const recommendationId of choice.recommendationIds || []) {
+        map.set(recommendationId, {
+          type: "EXCLUSIVE_CHOICE",
+          choiceLabel: choice.choiceLabel,
+          selected: recommendationId === choice.selectedId,
+        });
+      }
+    }
+    for (const recommendationId of confirmedSummary.uncertainRecommendationIds || []) {
+      if (!map.has(recommendationId)) {
+        map.set(recommendationId, {
+          type: "UNCERTAIN_COMPATIBILITY",
+          selected: confirmedSummary.selected.some(
+            (item) => item.id === recommendationId
+          ),
+        });
+      }
+    }
+    return map;
+  }, [confirmedSummary]);
+
   const visibleCount =
     sections.confirmed.length +
     sections.needsCheck.length +
+    sections.optimization.length +
+    sections.discovery.length +
     sections.additional.length;
 
   if (subscriptions.length === 0) {
@@ -97,20 +123,46 @@ export function PromotionScreen({
         ) : (
           <>
             <div className="text-[12px] font-bold text-white/65">
-              확정 절약 혜택 {confirmedSummary.count}개
+              {confirmedSummary.hasExclusiveChoice
+                ? `확정 월 절약 선택지 ${confirmedSummary.candidateCount}개`
+                : `확정 월 절약 혜택 ${confirmedSummary.count}개`}
             </div>
             {confirmedSummary.amount > 0 ? (
               <div className="mt-1 text-[24px] font-black tracking-tight">
-                매달 {formatWon(confirmedSummary.amount)} 절약 가능
+                {confirmedSummary.hasExclusiveChoice
+                  ? `선택 조건 반영 시 매달 최대 ${formatWon(confirmedSummary.amount)} 절약 가능`
+                  : `매달 ${formatWon(confirmedSummary.amount)} 절약 가능`}
               </div>
-            ) : (
+            ) : sections.needsCheck.length > 0 ? (
               <div className="mt-1 text-[18px] font-extrabold">
                 지금 확인할 절약 방법 {sections.needsCheck.length}개
               </div>
+            ) : sections.optimization.length > 0 ? (
+              <div className="mt-1 text-[18px] font-extrabold">
+                연간·이용 방식 절약 방법 {sections.optimization.length}개
+              </div>
+            ) : sections.discovery.length > 0 ? (
+              <div className="mt-1 text-[18px] font-extrabold">
+                다른 절약 방법 {sections.discovery.length}개를 둘러보세요
+              </div>
+            ) : (
+              <div className="mt-1 text-[18px] font-extrabold">
+                현재 확인된 확정 절약액은 없어요
+              </div>
             )}
-            {sections.needsCheck.length > 0 && (
+            {confirmedSummary.hasExclusiveChoice && (
               <div className="mt-1 text-[11.5px] text-white/65">
-                조건 확인이 필요한 혜택은 확정 절약액에 포함하지 않았어요.
+                같은 선택 그룹의 혜택은 하나만 확정 절약액에 반영했어요.
+              </div>
+            )}
+            {confirmedSummary.hasUncertainCompatibility && (
+              <div className="mt-1 text-[11.5px] text-white/65">
+                동시 적용 관계가 확인되지 않은 혜택은 서로 합산하지 않았어요.
+              </div>
+            )}
+            {(sections.needsCheck.length > 0 || sections.optimization.length > 0 || sections.discovery.length > 0) && (
+              <div className="mt-1 text-[11.5px] text-white/65">
+                조건부·연간 전환·탐색 혜택은 월 확정 절약액에 포함하지 않았어요.
               </div>
             )}
           </>
@@ -182,6 +234,7 @@ export function PromotionScreen({
               <BenefitRecommendationCard
                 key={item.id}
                 recommendation={item}
+                portfolioConflict={portfolioConflictById.get(item.id) || null}
                 onOpen={onOpenPromotion}
               />
             ))}
@@ -199,6 +252,46 @@ export function PromotionScreen({
           </p>
           <div className="mt-3 flex flex-col gap-3">
             {sections.needsCheck.map((item) => (
+              <BenefitRecommendationCard
+                key={item.id}
+                recommendation={item}
+                onOpen={onOpenPromotion}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {sections.optimization.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-[17px] font-black text-[#191F28]">
+            이용 방법을 바꾸면 더 아낄 수 있어요
+          </h2>
+          <p className="mt-0.5 text-[12px] text-[#8B95A1]">
+            현재 구독의 결제 주기·요금제·번들처럼 확인 가능한 변경안만 보여드려요.
+          </p>
+          <div className="mt-3 flex flex-col gap-3">
+            {sections.optimization.map((item) => (
+              <BenefitRecommendationCard
+                key={item.id}
+                recommendation={item}
+                onOpen={onOpenPromotion}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {sections.discovery.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-[17px] font-black text-[#191F28]">
+            다른 절약 혜택 둘러보기
+          </h2>
+          <p className="mt-0.5 text-[12px] text-[#8B95A1]">
+            지금 내 구독에는 아니지만, 공식 검증된 구독비 절약 방법이에요.
+          </p>
+          <div className="mt-3 flex flex-col gap-3">
+            {sections.discovery.map((item) => (
               <BenefitRecommendationCard
                 key={item.id}
                 recommendation={item}

@@ -74,7 +74,7 @@ const guides = [
     entryUrl: "https://www.youtube.com/paid_memberships",
     fallbackOfficialUrl: "https://support.google.com/youtube/answer/6308278?hl=ko",
     officialSourceUrl: "https://support.google.com/youtube/answer/6308278?hl=ko",
-    allowedDomains: ["youtube.com", "accounts.google.com", "google.com"],
+    allowedDomains: ["youtube.com", "accounts.google.com"],
     requiresLogin: true,
     billingChannel: "VERIFY_BILLING_PROVIDER",
     pageMatchers: ["youtube.com/paid_memberships"],

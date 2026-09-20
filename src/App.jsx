@@ -627,6 +627,7 @@ export default function App() {
         benefitSummary={homeBenefitSummary}
         benefitsLoading={benefitsLoading}
         onAdd={() => { setAddInitialMode("manual"); setAddOpen(true); }}
+        onImageScan={() => { setAddInitialMode("ai"); setAddOpen(true); }}
         onScan={() => {
           if (!isNativePlatform() && contestDemoActive) {
             runWebPaymentDemo("netflix-shinhan");

@@ -29,9 +29,17 @@ export const HybridRecommendationStatus = Object.freeze({
   ELIGIBLE_CONFIRMED: "ELIGIBLE_CONFIRMED",
   ELIGIBLE_NOT_COMPUTABLE: "ELIGIBLE_NOT_COMPUTABLE",
   NEEDS_CHECK: "NEEDS_CHECK",
+  NOT_CURRENTLY_SUBSCRIBED: "NOT_CURRENTLY_SUBSCRIBED",
   INELIGIBLE: "INELIGIBLE",
   NON_SUBSCRIPTION_RELEVANT: "NON_SUBSCRIPTION_RELEVANT",
   SOURCE_UNAVAILABLE: "SOURCE_UNAVAILABLE",
+});
+
+export const RecommendationApplicability = Object.freeze({
+  APPLICABLE: "APPLICABLE",
+  NEEDS_USER_INFO: "NEEDS_USER_INFO",
+  NOT_CURRENTLY_SUBSCRIBED: "NOT_CURRENTLY_SUBSCRIBED",
+  CONSTRAINT_NOT_SATISFIED: "CONSTRAINT_NOT_SATISFIED",
 });
 
 function normalize(value = "") {
@@ -206,6 +214,7 @@ export function buildHybridRecommendation(
   if (relevance === SubscriptionRelevance.UNKNOWN) {
     return {
       status: HybridRecommendationStatus.NEEDS_CHECK,
+      applicability: RecommendationApplicability.NEEDS_USER_INFO,
       offer,
       relevance,
       eligibility: {
@@ -225,7 +234,8 @@ export function buildHybridRecommendation(
 
   if (eligibility.matchedSubscriptions.length === 0) {
     return {
-      status: HybridRecommendationStatus.INELIGIBLE,
+      status: HybridRecommendationStatus.NOT_CURRENTLY_SUBSCRIBED,
+      applicability: RecommendationApplicability.NOT_CURRENTLY_SUBSCRIBED,
       offer,
       relevance,
       eligibility,
@@ -238,6 +248,7 @@ export function buildHybridRecommendation(
   if (eligibility.truth === TruthValue.FALSE) {
     return {
       status: HybridRecommendationStatus.INELIGIBLE,
+      applicability: RecommendationApplicability.CONSTRAINT_NOT_SATISFIED,
       offer,
       relevance,
       eligibility,
@@ -252,6 +263,9 @@ export function buildHybridRecommendation(
       status: eligibility.truth === TruthValue.UNKNOWN
         ? HybridRecommendationStatus.NEEDS_CHECK
         : HybridRecommendationStatus.ELIGIBLE_NOT_COMPUTABLE,
+      applicability: eligibility.truth === TruthValue.UNKNOWN
+        ? RecommendationApplicability.NEEDS_USER_INFO
+        : RecommendationApplicability.APPLICABLE,
       offer,
       relevance,
       eligibility,
@@ -266,6 +280,9 @@ export function buildHybridRecommendation(
       status: eligibility.truth === TruthValue.UNKNOWN
         ? HybridRecommendationStatus.NEEDS_CHECK
         : HybridRecommendationStatus.ELIGIBLE_NOT_COMPUTABLE,
+      applicability: eligibility.truth === TruthValue.UNKNOWN
+        ? RecommendationApplicability.NEEDS_USER_INFO
+        : RecommendationApplicability.APPLICABLE,
       offer,
       relevance,
       eligibility,
@@ -286,6 +303,7 @@ export function buildHybridRecommendation(
   if (eligibility.truth === TruthValue.UNKNOWN) {
     return {
       status: HybridRecommendationStatus.NEEDS_CHECK,
+      applicability: RecommendationApplicability.NEEDS_USER_INFO,
       offer,
       relevance,
       eligibility,
@@ -298,6 +316,7 @@ export function buildHybridRecommendation(
   if (savings?.amount == null) {
     return {
       status: HybridRecommendationStatus.ELIGIBLE_NOT_COMPUTABLE,
+      applicability: RecommendationApplicability.APPLICABLE,
       offer,
       relevance,
       eligibility,
@@ -309,6 +328,7 @@ export function buildHybridRecommendation(
 
   return {
     status: HybridRecommendationStatus.ELIGIBLE_CONFIRMED,
+    applicability: RecommendationApplicability.APPLICABLE,
     offer,
     relevance,
     eligibility,

@@ -24,11 +24,9 @@ public class CharacterAssetPlugin extends Plugin {
 
     @PluginMethod
     public void pickPng(PluginCall call) {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("image/png");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        startActivityForResult(call, intent, "handlePickResult");
+        JSObject ret = assetObject(CharacterAssetManager.getActiveAsset(getContext()), "LOCKED");
+        ret.put("message", "꾸독 캐릭터는 공식 캐릭터 1종으로 고정되어 있어요.");
+        call.resolve(ret);
     }
 
     @ActivityCallback
@@ -67,15 +65,10 @@ public class CharacterAssetPlugin extends Plugin {
 
     @PluginMethod
     public void applyPending(PluginCall call) {
-        try {
-            CharacterAssetManager.AssetInfo info = CharacterAssetManager.applyPending(getContext());
-            call.resolve(assetObject(info, "APPLIED"));
-        } catch (Exception e) {
-            JSObject ret = new JSObject();
-            ret.put("status", "ERROR");
-            ret.put("message", "이미지를 적용하지 못했어요. 다시 시도해주세요.");
-            call.resolve(ret);
-        }
+        CharacterAssetManager.clearPending(getContext());
+        JSObject ret = assetObject(CharacterAssetManager.getActiveAsset(getContext()), "LOCKED");
+        ret.put("message", "꾸독 캐릭터는 공식 캐릭터 1종으로 고정되어 있어요.");
+        call.resolve(ret);
     }
 
     @PluginMethod

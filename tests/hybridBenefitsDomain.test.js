@@ -199,6 +199,154 @@ test("Case 9: mutually exclusive offers are not double-counted", () => {
   assert.equal(summary.selected[0].benefit.id, "offer-high");
 });
 
+test("Case 9b: independent explicit groups are safely summed", () => {
+  const item = (id, target, group, amount) => ({
+    benefit: {
+      id,
+      targetServiceIds: [target],
+      exclusiveGroup: group,
+      stackable: false,
+    },
+    eligibility: { status: "ELIGIBLE" },
+    savings: {
+      amount,
+      period: "MONTHLY_RECURRING",
+      isConfirmed: true,
+    },
+  });
+
+  const summary = summarizeConfirmedMonthlySavings([
+    item("netflix-offer", "netflix", "group-netflix", 5000),
+    item("spotify-offer", "spotify", "group-spotify", 3000),
+  ]);
+
+  assert.equal(summary.amount, 8000);
+  assert.equal(summary.count, 2);
+  assert.equal(summary.exclusiveChoices.length, 0);
+});
+
+test("Case 9c: three offers in one exclusive group contribute only the highest saving", () => {
+  const item = (id, amount) => ({
+    benefit: {
+      id,
+      targetServiceIds: [id],
+      exclusiveGroup: "one-choice",
+      stackable: false,
+    },
+    eligibility: { status: "ELIGIBLE" },
+    savings: {
+      amount,
+      period: "MONTHLY_RECURRING",
+      isConfirmed: true,
+    },
+  });
+
+  const summary = summarizeConfirmedMonthlySavings([
+    item("low", 2000),
+    item("high", 6000),
+    item("mid", 4000),
+  ]);
+
+  assert.equal(summary.amount, 6000);
+  assert.equal(summary.count, 1);
+  assert.equal(summary.candidateCount, 3);
+  assert.equal(summary.selected[0].benefit.id, "high");
+  assert.equal(summary.exclusiveChoices.length, 1);
+  assert.equal(summary.exclusiveChoices[0].items.length, 3);
+});
+
+test("Case 9d: same target is summed only when both offers are explicitly stackable", () => {
+  const item = (id, amount) => ({
+    benefit: {
+      id,
+      targetServiceIds: ["netflix"],
+      stackable: true,
+    },
+    eligibility: { status: "ELIGIBLE" },
+    savings: {
+      amount,
+      period: "MONTHLY_RECURRING",
+      isConfirmed: true,
+    },
+  });
+
+  const summary = summarizeConfirmedMonthlySavings([
+    item("stack-a", 2000),
+    item("stack-b", 3000),
+  ]);
+
+  assert.equal(summary.amount, 5000);
+  assert.equal(summary.count, 2);
+});
+
+test("Case 9e: unknown cross-offer relation is never combined with another confirmed offer", () => {
+  const known = {
+    benefit: {
+      id: "known",
+      targetServiceIds: ["netflix"],
+      exclusiveGroup: "known-group",
+      stackable: false,
+    },
+    eligibility: { status: "ELIGIBLE" },
+    savings: {
+      amount: 5000,
+      period: "MONTHLY_RECURRING",
+      isConfirmed: true,
+    },
+  };
+  const unknown = {
+    benefit: {
+      id: "unknown",
+      targetServiceIds: ["spotify"],
+      stackable: false,
+    },
+    eligibility: { status: "ELIGIBLE" },
+    savings: {
+      amount: 4000,
+      period: "MONTHLY_RECURRING",
+      isConfirmed: true,
+    },
+  };
+
+  const summary = summarizeConfirmedMonthlySavings([known, unknown]);
+
+  assert.equal(summary.amount, 5000);
+  assert.equal(summary.count, 1);
+  assert.equal(summary.hasUncertainCompatibility, true);
+  assert.equal(summary.uncertainItems.length, 1);
+  assert.equal(summary.uncertainItems[0].benefit.id, "unknown");
+});
+
+test("Case 9f: portfolio selector finds the best compatible combination beyond greedy order", () => {
+  const item = (id, target, group, amount) => ({
+    benefit: {
+      id,
+      targetServiceIds: [target],
+      exclusiveGroup: group,
+      stackable: false,
+    },
+    eligibility: { status: "ELIGIBLE" },
+    savings: {
+      amount,
+      period: "MONTHLY_RECURRING",
+      isConfirmed: true,
+    },
+  });
+
+  const summary = summarizeConfirmedMonthlySavings([
+    item("single-high", "netflix", "choice-a", 6000),
+    item("combo-a", "spotify", "choice-a", 4000),
+    item("combo-b", "netflix", "choice-b", 4000),
+  ]);
+
+  assert.equal(summary.amount, 8000);
+  assert.equal(summary.count, 2);
+  assert.deepEqual(
+    summary.selected.map((entry) => entry.benefit.id).sort(),
+    ["combo-a", "combo-b"]
+  );
+});
+
 test("Case 10: fetch failure is distinct from successful empty result", async () => {
   const failingClient = {
     from() {

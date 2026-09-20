@@ -13,7 +13,7 @@ import { Button, SubscriptionCard, ServiceMark } from "./ui";
 import { BrandName } from "./BrandName";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 
-function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile, webPaymentMode = false }) {
+function EmptyState({ onAdd, onScan, onImageScan, onLogout, onOpenAccount, profile, webPaymentMode = false }) {
   return (
     <section className="flex min-h-[calc(100dvh-9rem)] min-h-[calc(100vh-9rem)] flex-col items-center justify-center px-4 sm:px-5 text-center">
       <span className="grid h-16 w-16 place-items-center rounded-full bg-[#F2F4F6] text-[#6B7684] border border-[#E5E8EB]">
@@ -22,13 +22,18 @@ function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile, webPaymen
       <h1 className="mt-6 text-[22px] font-bold tracking-tight text-[#191F28]">아직 등록된 구독이 없어요</h1>
       <p className="mt-2 max-w-[300px] text-[14px] leading-relaxed text-[#6B7684]">
         {webPaymentMode
-          ? "최근 결제 알림에서 구독을 찾아 등록하거나 직접 추가할 수 있어요."
+          ? "최근 결제 알림에서 구독을 찾거나 AI로 결제 이미지를 읽고, 저장 전 내용을 직접 확인할 수 있어요."
           : "최근 결제를 불러오거나 직접 입력해 첫 구독을 등록해보세요."}
       </p>
       <div className="mt-8 w-full space-y-3">
         {webPaymentMode && (
           <Button size="large" fullWidth onClick={onScan} prefixIcon={<ScanLine size={18} />}>
             최근 결제에서 구독 찾기
+          </Button>
+        )}
+        {webPaymentMode && (
+          <Button size="large" fullWidth variant="secondary" onClick={onImageScan || onAdd} prefixIcon={<ReceiptText size={18} />}>
+            AI로 결제 이미지 읽기
           </Button>
         )}
         <Button size="large" fullWidth variant={webPaymentMode ? "secondary" : "primary"} onClick={onAdd} prefixIcon={<ReceiptText size={18} />}>
@@ -42,7 +47,7 @@ function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile, webPaymen
       </div>
       <div className="mt-8 flex items-center gap-2.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] px-4 py-3.5 text-left shadow-2xs">
         <Sparkles size={18} className="shrink-0 text-[#FF6F0F]" />
-        <p className="text-[12px] leading-5 text-[#6B7684]">구독을 등록하면 내 사용 패턴에 맞는 프로모션을 추천해드려요.</p>
+        <p className="text-[12px] leading-5 text-[#6B7684]">구독을 등록하면 공식 혜택을 현재 구독 조건과 비교해 절약 방법을 보여드려요.</p>
       </div>
       {(onOpenAccount || onLogout) && (
         <div className="mt-6 flex items-center justify-center gap-3 text-[12px] text-[#8B95A1]">
@@ -224,6 +229,7 @@ export function HomeScreen({
   benefitsLoading = false,
   onAdd,
   onScan,
+  onImageScan,
   onToggleNotificationPermission,
   onOpenNotificationCenter,
   onOpenTerms,
@@ -271,6 +277,7 @@ export function HomeScreen({
       <EmptyState
         onAdd={onAdd}
         onScan={onScan || onAdd}
+        onImageScan={onImageScan || onAdd}
         onLogout={onLogout}
         onOpenAccount={onOpenAccount}
         profile={profile}

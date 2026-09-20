@@ -104,7 +104,7 @@ test("official allowlist는 HTTPS exact/subdomain만 허용하고 look-alike와 
   );
   assert.equal(
     isAllowedCancellationUrl(youtube, "https://support.google.com/youtube/answer/6308278"),
-    true
+    false
   );
   assert.equal(
     isAllowedCancellationUrl(youtube, "http://www.youtube.com/paid_memberships"),

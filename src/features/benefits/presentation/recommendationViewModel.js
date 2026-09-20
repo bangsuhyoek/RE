@@ -9,18 +9,186 @@ import {
 } from "../../../lib/savingsCalculator.js";
 import {
   HybridRecommendationStatus,
+  RecommendationApplicability,
+  SubscriptionRelevance,
   buildHybridRecommendation,
 } from "../domain/hybridRecommendation.js";
+import { serviceCatalog } from "../../../data/subscriptionData.js";
 
 export const RecommendationSource = Object.freeze({
   LEGACY: "LEGACY_BENEFITS",
   TRUSTFIX_V7: "TRUSTFIX_V7",
 });
 
+export const RecommendationTrustStatus = Object.freeze({
+  VERIFIED: "VERIFIED",
+  STALE: "STALE",
+  UNVERIFIED: "UNVERIFIED",
+  SOURCE_UNAVAILABLE: "SOURCE_UNAVAILABLE",
+});
+
+export const RecommendationSavingsStatus = Object.freeze({
+  CONFIRMED: "CONFIRMED",
+  CONDITIONAL: "CONDITIONAL",
+  ESTIMATED: "ESTIMATED",
+  NOT_COMPUTABLE: "NOT_COMPUTABLE",
+});
+
+export const RecommendationDisplayStatus = Object.freeze({
+  PRIMARY: "PRIMARY",
+  NEEDS_CHECK: "NEEDS_CHECK",
+  OPTIMIZATION: "OPTIMIZATION",
+  DISCOVERY: "DISCOVERY",
+  ADDITIONAL: "ADDITIONAL",
+  HIDDEN: "HIDDEN",
+});
+
+const catalogServiceIds = new Set(serviceCatalog.map((service) => service.id));
+
 function clone(value) {
   if (value == null || typeof value !== "object") return value;
   if (typeof structuredClone === "function") return structuredClone(value);
   return JSON.parse(JSON.stringify(value));
+}
+
+const DISCOVERY_RELEVANCE = new Set([
+  SubscriptionRelevance.SUBSCRIPTION_COST_REDUCTION,
+  SubscriptionRelevance.SUBSCRIPTION_INCLUDED,
+  SubscriptionRelevance.BUNDLE_COST_REDUCTION,
+  SubscriptionRelevance.PAYMENT_CASHBACK,
+]);
+
+function recommendationTrustStatus(item = {}) {
+  if (item.status === HybridRecommendationStatus.SOURCE_UNAVAILABLE) {
+    return RecommendationTrustStatus.SOURCE_UNAVAILABLE;
+  }
+  if (String(item.publicationState || "").includes("STALE")) {
+    return RecommendationTrustStatus.STALE;
+  }
+  if (
+    item.sourceType === RecommendationSource.TRUSTFIX_V7 &&
+    item.publicationQualified === true &&
+    item.provenance?.projection === "v7_public_offers" &&
+    /^https:\/\//i.test(item.sourceUrl || "")
+  ) {
+    return RecommendationTrustStatus.VERIFIED;
+  }
+  return RecommendationTrustStatus.UNVERIFIED;
+}
+
+function recommendationSavingsStatus(item = {}) {
+  if (
+    item.status === HybridRecommendationStatus.ELIGIBLE_CONFIRMED &&
+    item.savings?.isConfirmed === true &&
+    item.savings?.amount > 0
+  ) {
+    return RecommendationSavingsStatus.CONFIRMED;
+  }
+  if (item.status === HybridRecommendationStatus.NEEDS_CHECK) {
+    return RecommendationSavingsStatus.CONDITIONAL;
+  }
+  return RecommendationSavingsStatus.NOT_COMPUTABLE;
+}
+
+function parseTemporalBoundary(value, endOfDay = false) {
+  if (!value) return NaN;
+  const raw = String(value);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return Date.parse(
+      `${raw}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}+09:00`
+    );
+  }
+  return Date.parse(raw);
+}
+
+function isTemporallyActive(item = {}, now = Date.now()) {
+  const start = parseTemporalBoundary(item.temporal?.start, false);
+  const end = parseTemporalBoundary(item.temporal?.end, true);
+  if (Number.isFinite(start) && start > now) return false;
+  if (Number.isFinite(end) && end < now) return false;
+  return true;
+}
+
+function isOptimizationRecommendation(item = {}) {
+  if (item.applicability !== RecommendationApplicability.APPLICABLE) return false;
+  if (
+    item.status !== HybridRecommendationStatus.ELIGIBLE_CONFIRMED &&
+    item.status !== HybridRecommendationStatus.ELIGIBLE_NOT_COMPUTABLE
+  ) {
+    return false;
+  }
+  return (
+    item.savings?.period === SavingPeriod.ANNUAL ||
+    item.materialConditions?.planChangeRequired === true ||
+    item.relevance === SubscriptionRelevance.BUNDLE_COST_REDUCTION
+  );
+}
+
+export function resolveRecommendationDisplayStatus(item = {}) {
+  const trustStatus = item.trustStatus || recommendationTrustStatus(item);
+  const savingsStatus = item.savingsStatus || recommendationSavingsStatus(item);
+
+  if (
+    item.status === HybridRecommendationStatus.SOURCE_UNAVAILABLE ||
+    item.status === HybridRecommendationStatus.INELIGIBLE
+  ) {
+    return RecommendationDisplayStatus.HIDDEN;
+  }
+
+  if (
+    item.sourceType === RecommendationSource.TRUSTFIX_V7 &&
+    (trustStatus !== RecommendationTrustStatus.VERIFIED || !isTemporallyActive(item))
+  ) {
+    return RecommendationDisplayStatus.HIDDEN;
+  }
+
+  if (item.status === HybridRecommendationStatus.NOT_CURRENTLY_SUBSCRIBED) {
+    const discoverable =
+      item.applicability === RecommendationApplicability.NOT_CURRENTLY_SUBSCRIBED &&
+      trustStatus === RecommendationTrustStatus.VERIFIED &&
+      DISCOVERY_RELEVANCE.has(item.relevance) &&
+      catalogServiceIds.has(item.serviceId);
+
+    return discoverable
+      ? RecommendationDisplayStatus.DISCOVERY
+      : RecommendationDisplayStatus.HIDDEN;
+  }
+
+  if (item.status === HybridRecommendationStatus.NEEDS_CHECK) {
+    return RecommendationDisplayStatus.NEEDS_CHECK;
+  }
+
+  if (isOptimizationRecommendation(item)) {
+    return RecommendationDisplayStatus.OPTIMIZATION;
+  }
+
+  if (
+    item.sourceType === RecommendationSource.TRUSTFIX_V7 &&
+    item.status === HybridRecommendationStatus.ELIGIBLE_CONFIRMED &&
+    savingsStatus === RecommendationSavingsStatus.CONFIRMED
+  ) {
+    return RecommendationDisplayStatus.PRIMARY;
+  }
+
+  if (
+    item.status === HybridRecommendationStatus.ELIGIBLE_NOT_COMPUTABLE ||
+    item.status === HybridRecommendationStatus.NON_SUBSCRIPTION_RELEVANT ||
+    item.sourceType === RecommendationSource.LEGACY
+  ) {
+    return RecommendationDisplayStatus.ADDITIONAL;
+  }
+
+  return RecommendationDisplayStatus.HIDDEN;
+}
+
+function applyRecommendationPolicy(item = {}) {
+  const trustStatus = recommendationTrustStatus(item);
+  const savingsStatus = recommendationSavingsStatus(item);
+  const enriched = { ...item, trustStatus, savingsStatus };
+  return {
+    ...enriched,
+    displayStatus: resolveRecommendationDisplayStatus(enriched),
+  };
 }
 
 function legacyStatus(eligibility, savings) {
@@ -60,7 +228,7 @@ export function buildLegacyRecommendationViewModel(
   const status = legacyStatus(eligibility, savings);
   const matched = eligibility?.matchedSubscriptions?.[0] || {};
 
-  return {
+  return applyRecommendationPolicy({
     viewModelVersion: 1,
     id: benefit.id,
     sourceType: RecommendationSource.LEGACY,
@@ -103,7 +271,7 @@ export function buildLegacyRecommendationViewModel(
     savings,
     benefit,
     actionTarget: benefit,
-  };
+  });
 }
 
 
@@ -147,13 +315,14 @@ export function buildV7RecommendationViewModel(
   const hybrid = buildHybridRecommendation(offer, subscriptions, userContext);
   const matched = hybrid.eligibility?.matchedSubscriptions?.[0] || {};
 
-  return {
+  return applyRecommendationPolicy({
     viewModelVersion: 1,
     id: offer.serviceOfferId,
     sourceType: RecommendationSource.TRUSTFIX_V7,
     publicationState: offer.publicationState,
     publicationQualified: offer.publicationState === "PUBLISHED",
     status: hybrid.status,
+    applicability: hybrid.applicability,
     relevance: hybrid.relevance,
     serviceId:
       matched.serviceId ||
@@ -190,7 +359,7 @@ export function buildV7RecommendationViewModel(
       sourceUrl: offer.sourceUrl ?? null,
       sourceType: RecommendationSource.TRUSTFIX_V7,
     },
-  };
+  });
 }
 
 export function buildRecommendationViewModels({
@@ -210,48 +379,22 @@ export function buildRecommendationViewModels({
 }
 
 export function partitionRecommendationViewModels(recommendations = []) {
-  const visible = recommendations.filter(
-    (item) =>
-      item?.status !== HybridRecommendationStatus.INELIGIBLE &&
-      item?.status !== HybridRecommendationStatus.SOURCE_UNAVAILABLE
+  const prepared = recommendations.map((item) =>
+    item?.displayStatus ? item : applyRecommendationPolicy(item)
   );
-
-  const confirmed = visible
-    .filter(
-      (item) =>
-        item.sourceType === RecommendationSource.TRUSTFIX_V7 &&
-        item.publicationQualified === true &&
-        item.status === HybridRecommendationStatus.ELIGIBLE_CONFIRMED &&
-        item.savings?.isConfirmed &&
-        item.savings?.amount > 0
-    )
-    .sort((a, b) => (b.savings?.amount || 0) - (a.savings?.amount || 0));
-
-  const needsCheck = visible
-    .filter((item) => item.status === HybridRecommendationStatus.NEEDS_CHECK)
-    .sort((a, b) => (b.savings?.amount || 0) - (a.savings?.amount || 0));
-
-  const additional = visible
-    .filter(
-      (item) =>
-        !confirmed.includes(item) &&
-        !needsCheck.includes(item) &&
-        (
-          item.status === HybridRecommendationStatus.ELIGIBLE_NOT_COMPUTABLE ||
-          item.status === HybridRecommendationStatus.NON_SUBSCRIPTION_RELEVANT ||
-          item.sourceType === RecommendationSource.LEGACY
-        )
-    )
-    .sort((a, b) => (b.savings?.amount || 0) - (a.savings?.amount || 0));
+  const sortBySaving = (items) =>
+    items.sort((a, b) => (b.savings?.amount || 0) - (a.savings?.amount || 0));
+  const byDisplay = (displayStatus) =>
+    sortBySaving(prepared.filter((item) => item.displayStatus === displayStatus));
 
   return {
-    confirmed,
-    needsCheck,
-    additional,
-    hidden: recommendations.filter(
-      (item) =>
-        item?.status === HybridRecommendationStatus.INELIGIBLE ||
-        item?.status === HybridRecommendationStatus.SOURCE_UNAVAILABLE
+    confirmed: byDisplay(RecommendationDisplayStatus.PRIMARY),
+    needsCheck: byDisplay(RecommendationDisplayStatus.NEEDS_CHECK),
+    optimization: byDisplay(RecommendationDisplayStatus.OPTIMIZATION),
+    discovery: byDisplay(RecommendationDisplayStatus.DISCOVERY),
+    additional: byDisplay(RecommendationDisplayStatus.ADDITIONAL),
+    hidden: prepared.filter(
+      (item) => item.displayStatus === RecommendationDisplayStatus.HIDDEN
     ),
   };
 }
@@ -262,6 +405,7 @@ export function summarizePublishedConfirmedSavings(recommendations = []) {
       (item) =>
         item?.sourceType === RecommendationSource.TRUSTFIX_V7 &&
         item?.publicationQualified === true &&
+        resolveRecommendationDisplayStatus(item) === RecommendationDisplayStatus.PRIMARY &&
         item?.status === HybridRecommendationStatus.ELIGIBLE_CONFIRMED &&
         item?.savings?.isConfirmed &&
         item?.savings?.period === SavingPeriod.MONTHLY_RECURRING &&
@@ -278,10 +422,40 @@ export function summarizePublishedConfirmedSavings(recommendations = []) {
     }));
 
   const summary = summarizeConfirmedMonthlySavings(eligible);
+  const exclusiveChoices = summary.exclusiveChoices.map((choice) => {
+    const recommendationsInChoice = choice.items
+      .map((item) => item.recommendation)
+      .filter(Boolean);
+    const relations = recommendationsInChoice.map(
+      (item) => item.materialConditions?.selectionRelation || {}
+    );
+    const labeledRelation =
+      relations.find((relation) => relation.choice_label || relation.choiceLabel) ||
+      relations[0] ||
+      {};
+
+    return {
+      group: choice.group,
+      recommendationIds: recommendationsInChoice.map((item) => item.id),
+      selectedId: choice.selected?.recommendation?.id || null,
+      choiceLabel:
+        labeledRelation.choice_label ??
+        labeledRelation.choiceLabel ??
+        "같은 선택형 혜택 중 1개만 적용",
+    };
+  });
+
   return {
     amount: summary.amount,
     count: summary.count,
+    candidateCount: summary.candidateCount,
     selected: summary.selected.map((item) => item.recommendation),
+    exclusiveChoices,
+    hasExclusiveChoice: exclusiveChoices.length > 0,
+    uncertainRecommendationIds: summary.uncertainItems
+      .map((item) => item.recommendation?.id)
+      .filter(Boolean),
+    hasUncertainCompatibility: summary.hasUncertainCompatibility,
   };
 }
 
@@ -289,6 +463,7 @@ function friendlyConditionToken(value) {
   const raw = String(value ?? "").trim();
   const key = raw.toUpperCase();
   const labels = {
+    EXISTING: "현재 이용 중인 고객도 가능",
     EXISTING_SUBSCRIBER: "현재 이용 중인 고객도 가능",
     NEW_SUBSCRIBER: "신규 가입 고객",
     NEW_SUBSCRIBER_ONLY: "신규 가입 고객만",

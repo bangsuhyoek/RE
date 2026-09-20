@@ -40,8 +40,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.submate.app.character.CharacterAssetManager;
 import com.submate.app.webguide.GuideOverlayContainer;
 import com.submate.app.webguide.KkudokNaverGuideController;
+import com.submate.app.webguide.WebSecurityPolicy;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -81,7 +83,12 @@ public class CancelBrowserActivity extends AppCompatActivity {
     private int selectedIndex = 0;
     private String currentCancelUrl = "";
     private String serviceId = "";
+    private String guideMode = "MANUAL_OFFICIAL";
+    private String officialSourceUrl = "";
+    private String fallbackOfficialUrl = "";
     private boolean automaticGuideEnabled = false;
+    private final List<String> allowedDomains = new ArrayList<>();
+    private WebSecurityPolicy webSecurityPolicy;
     private GuideOverlayContainer guideOverlay;
     private KkudokNaverGuideController naverGuideController;
     private TextView btnToggleManualGuide;
@@ -111,9 +118,20 @@ public class CancelBrowserActivity extends AppCompatActivity {
         serviceId = getIntent().getStringExtra("serviceId");
         if (serviceId == null) serviceId = "";
         String serviceName = getIntent().getStringExtra("serviceName");
-        automaticGuideEnabled = isNaverPlus(serviceId, serviceName);
         currentCancelUrl = getIntent().getStringExtra("cancelUrl");
+        guideMode = getIntent().getStringExtra("guideMode");
+        if (guideMode == null || guideMode.trim().isEmpty()) {
+            guideMode = isNaverPlus(serviceId, serviceName) ? "AUTO_SEMANTIC" : "MANUAL_OFFICIAL";
+        }
+        officialSourceUrl = getIntent().getStringExtra("officialSourceUrl");
+        if (officialSourceUrl == null) officialSourceUrl = "";
+        fallbackOfficialUrl = getIntent().getStringExtra("fallbackOfficialUrl");
+        if (fallbackOfficialUrl == null) fallbackOfficialUrl = "";
+        automaticGuideEnabled = "AUTO_SEMANTIC".equalsIgnoreCase(guideMode)
+                && isNaverPlus(serviceId, serviceName);
         String stepsJson = getIntent().getStringExtra("guideStepsJson");
+        parseAllowedDomains(getIntent().getStringExtra("allowedDomainsJson"), currentCancelUrl);
+        webSecurityPolicy = new WebSecurityPolicy(allowedDomains);
 
         TextView tvServiceName = findViewById(R.id.tvServiceName);
         TextView tvServiceUrl = findViewById(R.id.tvServiceUrl);
@@ -128,6 +146,8 @@ public class CancelBrowserActivity extends AppCompatActivity {
         guideOverlay = findViewById(R.id.guideOverlay);
         btnToggleManualGuide = findViewById(R.id.btnToggleManualGuide);
         webView = findViewById(R.id.webViewCancel);
+        ImageView dockCharacter = findViewById(R.id.ivDockCharacter);
+        CharacterAssetManager.applyToImageView(this, dockCharacter);
 
         if (serviceName != null) {
             tvServiceName.setText(serviceName);
@@ -161,8 +181,13 @@ public class CancelBrowserActivity extends AppCompatActivity {
                     ? webView.getUrl()
                     : currentCancelUrl;
                 if (targetUrl != null && !targetUrl.isEmpty()) {
+                    Uri targetUri = Uri.parse(targetUrl);
+                    if (!isAllowedNavigation(targetUri)) {
+                        showBlockedNavigation(targetUri);
+                        return;
+                    }
                     try {
-                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl));
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, targetUri);
                         browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(browserIntent);
                         Toast.makeText(this, "외부 브라우저에서는 캐릭터 위치 안내가 이어지지 않아요.", Toast.LENGTH_LONG).show();
@@ -258,11 +283,13 @@ public class CancelBrowserActivity extends AppCompatActivity {
             }
         }
 
-        // 가이드 스텝이 없는 경우 안정적인 기본 Fallback 3단계 생성
+        // 검증된 단계가 없을 때는 임의 해지 단계를 만들어내지 않는다.
         if (stepList.isEmpty()) {
-            stepList.add(new GuideStepItem(1, "로그인", "서비스 계정으로 로그인하세요.", ""));
-            stepList.add(new GuideStepItem(2, "멤버십 관리", "프로필 > 멤버십 또는 계정 관리 메뉴를 선택하세요.", ""));
-            stepList.add(new GuideStepItem(3, "해지 완료", "해지 신청 후 최종 완료 화면을 확인하세요.", ""));
+            stepList.add(new GuideStepItem(
+                    1,
+                    "공식 페이지 확인",
+                    "꾸독이 검증한 상세 단계가 없어 자동 안내를 중단했어요. 공식 사이트의 계정/구독 관리 화면에서 직접 확인해 주세요.",
+                    ""));
         }
     }
 
@@ -279,9 +306,9 @@ public class CancelBrowserActivity extends AppCompatActivity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(!automaticGuideEnabled);
+        settings.setAllowFileAccess(false);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            settings.setAllowContentAccess(!automaticGuideEnabled);
+            settings.setAllowContentAccess(false);
         }
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
@@ -291,9 +318,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
 
         // Mixed Content 허용
-        settings.setMixedContentMode(automaticGuideEnabled
-                ? WebSettings.MIXED_CONTENT_NEVER_ALLOW
-                : WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
         // Google OAuth의 403 disallowed_useragent 차단을 해제하기 위해
         // WebView 전용 식별자("; wv" 및 "Version/X.X")를 제거한 순수 Chrome Mobile User-Agent 구성
@@ -311,23 +336,33 @@ public class CancelBrowserActivity extends AppCompatActivity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
-                String scheme = uri.getScheme();
-                if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
-                    return false;
+                if (webSecurityPolicy != null && webSecurityPolicy.isHttpOrHttps(uri)) {
+                    if (isAllowedNavigation(uri)) return false;
+                    showBlockedNavigation(uri);
+                    return true;
                 }
-                return handleCustomScheme(uri.toString());
+                return handleCustomScheme(uri == null ? "" : uri.toString());
             }
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String loadUrl) {
-                if (loadUrl.startsWith("http://") || loadUrl.startsWith("https://")) {
-                    return false;
+                Uri uri = loadUrl == null ? null : Uri.parse(loadUrl);
+                if (webSecurityPolicy != null && webSecurityPolicy.isHttpOrHttps(uri)) {
+                    if (isAllowedNavigation(uri)) return false;
+                    showBlockedNavigation(uri);
+                    return true;
                 }
                 return handleCustomScheme(loadUrl);
             }
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                Uri pageUri = url == null ? null : Uri.parse(url);
+                if (!isAllowedNavigation(pageUri)) {
+                    view.stopLoading();
+                    showBlockedNavigation(pageUri);
+                    return;
+                }
                 super.onPageStarted(view, url, favicon);
                 if (pbLoading != null) {
                     pbLoading.setVisibility(View.VISIBLE);
@@ -337,6 +372,11 @@ public class CancelBrowserActivity extends AppCompatActivity {
 
             @Override
             public void onPageFinished(WebView view, String url) {
+                Uri pageUri = url == null ? null : Uri.parse(url);
+                if (!isAllowedNavigation(pageUri)) {
+                    showBlockedNavigation(pageUri);
+                    return;
+                }
                 super.onPageFinished(view, url);
                 if (pbLoading != null) {
                     pbLoading.setVisibility(View.GONE);
@@ -376,11 +416,9 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 newSettings.setSupportMultipleWindows(true);
                 newSettings.setJavaScriptCanOpenWindowsAutomatically(true);
                 newSettings.setUserAgentString(cleanUA);
-                newSettings.setMixedContentMode(automaticGuideEnabled
-                        ? WebSettings.MIXED_CONTENT_NEVER_ALLOW
-                        : WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-                newSettings.setAllowFileAccess(!automaticGuideEnabled);
-                newSettings.setAllowContentAccess(!automaticGuideEnabled);
+                newSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+                newSettings.setAllowFileAccess(false);
+                newSettings.setAllowContentAccess(false);
 
                 CookieManager.getInstance().setAcceptThirdPartyCookies(newWebView, true);
 
@@ -404,12 +442,12 @@ public class CancelBrowserActivity extends AppCompatActivity {
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) {
                         Uri uri = req.getUrl();
-                        String scheme = uri.getScheme();
-                        if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
-                            return false;
+                        if (webSecurityPolicy != null && webSecurityPolicy.isHttpOrHttps(uri)) {
+                            if (isAllowedNavigation(uri)) return false;
+                            showBlockedNavigation(uri);
+                            return true;
                         }
-                        handleCustomScheme(uri.toString());
-                        return true;
+                        return handleCustomScheme(uri == null ? "" : uri.toString());
                     }
                 });
 
@@ -421,8 +459,55 @@ public class CancelBrowserActivity extends AppCompatActivity {
         });
 
         if (url != null && !url.trim().isEmpty()) {
-            webView.loadUrl(url);
+            Uri initialUri = Uri.parse(url);
+            if (isAllowedNavigation(initialUri)) {
+                webView.loadUrl(url);
+            } else {
+                showBlockedNavigation(initialUri);
+            }
         }
+    }
+
+    private void parseAllowedDomains(String jsonStr, String entryUrl) {
+        allowedDomains.clear();
+        if (jsonStr != null && !jsonStr.trim().isEmpty()) {
+            try {
+                JSONArray array = new JSONArray(jsonStr);
+                for (int i = 0; i < array.length(); i++) {
+                    String value = array.optString(i, "").trim();
+                    if (!value.isEmpty() && !allowedDomains.contains(value)) {
+                        allowedDomains.add(value);
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        if (allowedDomains.isEmpty() && entryUrl != null && !entryUrl.trim().isEmpty()) {
+            try {
+                Uri uri = Uri.parse(entryUrl);
+                if ("https".equalsIgnoreCase(uri.getScheme()) && uri.getHost() != null) {
+                    allowedDomains.add(uri.getHost());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private boolean isAllowedNavigation(Uri uri) {
+        return webSecurityPolicy != null && webSecurityPolicy.isAllowedHttpUrl(uri);
+    }
+
+    private void showBlockedNavigation(Uri uri) {
+        String origin = WebSecurityPolicy.safeOriginLabel(uri);
+        String message = "공식 사이트 범위를 벗어나 이동을 중단했어요. (" + origin + ")";
+        if (pbLoading != null) pbLoading.setVisibility(View.GONE);
+        if (tvStepBadge != null) tvStepBadge.setText("안전 확인");
+        if (tvStepDescription != null) tvStepDescription.setText(message);
+        if (naverGuideController != null) {
+            naverGuideController.onPageLoading();
+            if (guideOverlay != null) guideOverlay.showStandaloneMessage(message);
+        }
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     private boolean isNaverPlus(String id, String name) {
@@ -434,16 +519,22 @@ public class CancelBrowserActivity extends AppCompatActivity {
 
     private boolean handleCustomScheme(String url) {
         try {
-            Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
-            if (intent.resolveActivity(getPackageManager()) != null) {
-                startActivity(intent);
-                return true;
-            }
+            Intent intent = Intent.parseUri(url == null ? "" : url, Intent.URI_INTENT_SCHEME);
             String fallbackUrl = intent.getStringExtra("browser_fallback_url");
             if (fallbackUrl != null && !fallbackUrl.isEmpty()) {
-                webView.loadUrl(fallbackUrl);
+                Uri fallbackUri = Uri.parse(fallbackUrl);
+                if (isAllowedNavigation(fallbackUri)) {
+                    webView.loadUrl(fallbackUrl);
+                } else {
+                    showBlockedNavigation(fallbackUri);
+                }
                 return true;
             }
+            Toast.makeText(
+                    this,
+                    "외부 앱 이동은 자동 실행하지 않아요. 공식 웹페이지에서 계속 진행해 주세요.",
+                    Toast.LENGTH_LONG
+            ).show();
         } catch (Exception ignored) {
         }
         return true;

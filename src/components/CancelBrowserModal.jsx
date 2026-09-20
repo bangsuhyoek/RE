@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 import { openCancelBrowser } from "../lib/cancelBrowser";
 import { CHARACTER_MASTER_ASSET } from "../lib/characterAsset";
@@ -215,11 +215,63 @@ export function CancelBrowserModal({
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [minimized, setMinimized] = useState(false);
   const scrollContainerRef = useRef(null);
+  const dialogRef = useRef(null);
   const currentStep = steps[activeStepIndex] || steps[0];
   const stepHint = tutorialHints[Math.min(activeStepIndex, tutorialHints.length - 1)];
 
   const isFinalStep = activeStepIndex === steps.length - 1;
   const characterImg = CHARACTER_MASTER_ASSET;
+
+  useEffect(() => {
+    if (minimized) return undefined;
+
+    const dialog = dialogRef.current;
+    if (!dialog) return undefined;
+
+    const previousFocus = document.activeElement;
+    dialog.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose?.();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusable = Array.from(
+        dialog.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((element) => element.getClientRects().length > 0);
+
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      if (previousFocus instanceof HTMLElement && document.contains(previousFocus)) {
+        previousFocus.focus();
+      }
+    };
+  }, [minimized, onClose]);
 
   const displayUrl = (() => {
     try {
@@ -331,7 +383,14 @@ export function CancelBrowserModal({
 
   // 전체 화면 게임 튜토리얼 컨시어지 뷰
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white select-none animate-in fade-in duration-200">
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${subscription.name} 해지 안내`}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex flex-col bg-white select-none animate-in fade-in duration-200"
+    >
       {/* 상단 툴바 헤더 */}
       <header className="min-h-[calc(52px+env(safe-area-inset-top,0px))] shrink-0 border-b border-gray-200 bg-white px-4 pt-safe flex items-center justify-between shadow-2xs">
         <div className="flex items-center gap-2.5 min-w-0">

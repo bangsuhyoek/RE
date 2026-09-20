@@ -161,7 +161,7 @@ export function ContestDemoPanel({
                     </p>
                   </div>
                   <div className="mt-2 border-t border-[#E5E8EB] pt-2 text-[10.5px]">
-                    알림 입력 이후의 판별·등록·혜택 계산은 동일한 꾸독 로직을 사용해요.
+                    결제 알림 판별은 앱과 같은 규칙 기반 로직을 사용해요. AI는 영수증·결제 이미지의 텍스트를 읽는 데 사용하고, 저장 전에는 사용자가 내용을 확인합니다.
                   </div>
                 </div>
               )}

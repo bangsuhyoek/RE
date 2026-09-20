@@ -30,7 +30,7 @@ public class GuideOverlayContainer extends FrameLayout {
     private ImageView characterView;
     private LinearLayout bubbleCard;
     private TextView messageView;
-    private TextView restoreButton;
+    private ImageView restoreButton;
     private View targetOutline;
     private TextView pointerView;
     private PageState pageState = PageState.UNSUPPORTED_PAGE;
@@ -153,24 +153,23 @@ public class GuideOverlayContainer extends FrameLayout {
     }
 
     private void buildRestoreButton() {
-        restoreButton = new TextView(getContext());
-        restoreButton.setText("꾸");
-        restoreButton.setTextSize(13);
-        restoreButton.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        restoreButton.setTextColor(Color.WHITE);
-        restoreButton.setGravity(Gravity.CENTER);
+        restoreButton = new ImageView(getContext());
+        CharacterAssetManager.applyToImageView(getContext(), restoreButton);
+        restoreButton.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        restoreButton.setPadding(dp(4), dp(4), dp(4), dp(4));
         restoreButton.setContentDescription("꾸독 캐릭터 다시 열기");
         restoreButton.setClickable(true);
         restoreButton.setFocusable(true);
         restoreButton.setElevation(dp(6));
 
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(91, 111, 214));
+        bg.setColor(Color.rgb(245, 247, 255));
+        bg.setStroke(dp(1), Color.rgb(218, 224, 255));
         bg.setShape(GradientDrawable.OVAL);
         restoreButton.setBackground(bg);
         restoreButton.setOnClickListener(v -> restoreGuide());
 
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(48), dp(48), Gravity.BOTTOM | Gravity.END);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(52), dp(52), Gravity.BOTTOM | Gravity.END);
         params.rightMargin = dp(18);
         params.bottomMargin = dp(22);
         addView(restoreButton, params);

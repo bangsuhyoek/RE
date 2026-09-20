@@ -169,8 +169,8 @@
                 android:id="@+id/ivDockCharacter"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
-                android:src="@drawable/kkudok_character_guide"
-                android:contentDescription="꾸독이"
+                android:scaleType="centerInside"
+                android:contentDescription="꾸독 공식 캐릭터"
                 android:layout_marginEnd="6dp" />
 
             <TextView

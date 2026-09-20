@@ -16,6 +16,7 @@ import {
   HybridRecommendationStatus,
 } from "../src/features/benefits/domain/hybridRecommendation.js";
 import {
+  RecommendationDisplayStatus,
   RecommendationSource,
   partitionRecommendationViewModels,
   summarizePublishedConfirmedSavings,
@@ -143,6 +144,8 @@ test("E2E 1: published Netflix discount reaches confirmed UI and monthly total",
   assert.equal(summary.amount, 5000);
   assert.match(html, /바로 아낄 수 있어요/);
   assert.match(html, /매달 ₩5,000 절약 가능/);
+  assert.match(html, /현재 이용 중인 고객도 가능/);
+  assert.doesNotMatch(html, /대상: EXISTING/);
 
   const vm = result.recommendations[0];
   assert.equal(vm.provenance.officialSourceUrl, "https://example.com/offer");
@@ -190,6 +193,85 @@ test("E2E 3: new-subscriber-only offer is excluded for current subscriber", asyn
   assert.match(html, /현재 확인된 절약 방법은 없어요/);
 });
 
+
+test("E2E 3b: verified unsubscribed service is shown only in discovery", async () => {
+  const row = publishedRow({
+    service_offer_id: "offer-spotify-discovery",
+    service_id: "spotify",
+    service_name: "Spotify",
+    benefit_name: "Spotify premium benefit",
+    benefit_type: "FREE_INCLUDED",
+    benefit_value: null,
+    benefit_unit: null,
+    audience_condition: { audience: "EXISTING" },
+  });
+  const result = await load([row]);
+  const sections = partitionRecommendationViewModels(result.recommendations);
+  const summary = summarizePublishedConfirmedSavings(result.recommendations);
+  const html = render(result);
+
+  assert.equal(
+    result.recommendations[0].status,
+    HybridRecommendationStatus.NOT_CURRENTLY_SUBSCRIBED
+  );
+  assert.equal(
+    result.recommendations[0].displayStatus,
+    RecommendationDisplayStatus.DISCOVERY
+  );
+  assert.equal(sections.discovery.length, 1);
+  assert.equal(summary.amount, 0);
+  assert.match(html, /다른 절약 혜택 둘러보기/);
+  assert.match(html, /Spotify 이용 중이라면 확인해보세요/);
+  assert.match(html, /현재 내 구독에는 없어요/);
+  assert.doesNotMatch(html, /매달 ₩5,000 절약 가능/);
+});
+
+test("E2E 3c: annual plan saving is shown as optimization, not monthly total", async () => {
+  const naverPlus = {
+    id: "naverplus",
+    serviceId: "naverplus",
+    name: "네이버플러스 멤버십",
+    plan: "월간 이용권",
+    amount: 4900,
+    billingCycle: "매월",
+    status: "active",
+  };
+  const row = publishedRow({
+    service_offer_id: "offer-naverplus-annual",
+    service_id: "naverplus",
+    service_name: "네이버플러스 멤버십",
+    benefit_name: "연간 이용권",
+    benefit_type: "PRICE_OVERRIDE",
+    benefit_value: "46800",
+    benefit_unit: "KRW",
+    frequency_family: "ANNUAL",
+    frequency_count: 1,
+    audience_condition: {
+      operator: "AND",
+      conditions: [
+        { audience: "EXISTING_SUBSCRIBER" },
+        { required_plan: "월간 이용권" },
+      ],
+    },
+    display_contract: { saving_period: "ANNUAL" },
+  });
+  const result = await load([row], { subscriptions: [naverPlus] });
+  const sections = partitionRecommendationViewModels(result.recommendations);
+  const summary = summarizePublishedConfirmedSavings(result.recommendations);
+  const html = render(result, [naverPlus]);
+
+  assert.equal(
+    result.recommendations[0].displayStatus,
+    RecommendationDisplayStatus.OPTIMIZATION
+  );
+  assert.equal(sections.optimization.length, 1);
+  assert.equal(result.recommendations[0].savings.amount, 12000);
+  assert.equal(summary.amount, 0);
+  assert.match(html, /연간·이용 방식 절약 방법 1개/);
+  assert.match(html, /이용 방법을 바꾸면 더 아낄 수 있어요/);
+  assert.match(html, /월 확정 절약액에 포함하지 않았어요/);
+  assert.match(html, /연 ₩12,000 절약/);
+});
 
 test("E2E 4: RATE_BASE_UNKNOWN is never added to confirmed savings", async () => {
   const result = await load([
@@ -325,8 +407,13 @@ test("E2E 9: exclusive offers contribute only the highest confirmed amount", asy
 
   assert.equal(summary.amount, 5000);
   assert.equal(summary.count, 1);
+  assert.equal(summary.candidateCount, 2);
+  assert.equal(summary.hasExclusiveChoice, true);
   assert.equal(summary.selected[0].id, "offer-high");
-  assert.match(html, /매달 ₩5,000 절약 가능/);
+  assert.match(html, /확정 월 절약 선택지 2개/);
+  assert.match(html, /선택 조건 반영 시 매달 최대 ₩5,000 절약 가능/);
+  assert.match(html, /택1 적용 가능/);
+  assert.match(html, /선택 시 매달 ₩5,000 절약/);
   assert.doesNotMatch(html, /매달 ₩8,000 절약 가능/);
 });
 

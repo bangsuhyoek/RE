@@ -752,6 +752,10 @@ export function AddModal({
     !validAmount ||
     !validSchedule;
 
+  const isAiImageReview =
+    reviewMode &&
+    form.sourceType === "image";
+
   function updateForm(key, value) {
     setForm((current) => ({
       ...current,
@@ -1501,9 +1505,9 @@ export function AddModal({
               </h3>
 
               <p className="mt-2 text-[13px] leading-5 text-[#6B7684]">
-                영수증이나 결제 화면을 분석해서
+                AI가 영수증·결제 이미지의 텍스트를 읽고
                 <br />
-                구독 정보를 먼저 채워드려요.
+                꾸독이 등록 항목을 정리해요. 저장 전 직접 확인해 주세요.
               </p>
             </div>
 
@@ -1529,12 +1533,12 @@ export function AddModal({
                     size={18}
                     className="animate-spin"
                   />
-                  결제 정보 확인 중
+                  AI 결제 정보 읽는 중
                 </>
               ) : (
                 <>
                   <UploadCloud size={18} />
-                  영수증 · 결제 화면 불러오기
+                  AI로 결제 이미지 읽기
                 </>
               )}
             </button>
@@ -1643,9 +1647,13 @@ export function AddModal({
               )}
 
               <span>
-                {needsReview
-                  ? "일부 정보만 확인해 주세요"
-                  : "결제 정보를 찾았어요"}
+                {isAiImageReview
+                  ? needsReview
+                    ? "AI가 읽은 정보 중 일부를 확인해 주세요"
+                    : "AI가 읽은 결제 정보예요. 저장 전 확인해 주세요"
+                  : needsReview
+                    ? "일부 정보만 확인해 주세요"
+                    : "결제 정보를 찾았어요"}
               </span>
             </div>
 

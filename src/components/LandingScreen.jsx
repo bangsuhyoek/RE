@@ -67,7 +67,7 @@ export function LandingScreen({ onStart, onLogin }) {
       <div className="my-auto py-10 text-center flex flex-col items-center">
         {/* Floating Visual Pill */}
         <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-[12px] font-bold text-blue-600 mb-6">
-          <Zap size={14} /> AI 기반 스마트 구독 관리
+          <Zap size={14} /> AI 결제 이미지 인식 · 검증형 절약 계산
         </div>
 
         <h1 className="text-[32px] sm:text-[36px] font-black tracking-tight text-black leading-tight">
@@ -76,7 +76,7 @@ export function LandingScreen({ onStart, onLogin }) {
         </h1>
 
         <p className="mt-4 text-[14px] text-gray-500 max-w-[280px] leading-relaxed">
-          결제 전 D-Day 알림부터 다이렉트 해지 가이드, 나만을 위한 최적의 환승 프로모션까지
+          결제 전 D-Day 알림부터 공식 혜택의 확정 절약액 확인, 해지 가이드까지
         </p>
 
         {/* Feature Icons Grid */}
@@ -91,13 +91,13 @@ export function LandingScreen({ onStart, onLogin }) {
             <div className="h-12 w-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-black shadow-2xs mb-2">
               <ShieldCheck size={20} />
             </div>
-            <span className="text-[12px] font-bold text-gray-700">원터치 해지 가이드</span>
+            <span className="text-[12px] font-bold text-gray-700">공식 해지 가이드</span>
           </div>
           <div className="flex flex-col items-center">
             <div className="h-12 w-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-black shadow-2xs mb-2">
               <Zap size={20} />
             </div>
-            <span className="text-[12px] font-bold text-gray-700">스마트 절약 추천</span>
+            <span className="text-[12px] font-bold text-gray-700">검증된 절약 혜택</span>
           </div>
         </div>
       </div>

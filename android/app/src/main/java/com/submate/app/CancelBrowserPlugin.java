@@ -15,6 +15,10 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.submate.app.webguide.WebSecurityPolicy;
+import org.json.JSONArray;
+import java.util.ArrayList;
+import java.util.List;
 
 @CapacitorPlugin(name = "CancelBrowser")
 public class CancelBrowserPlugin extends Plugin {
@@ -55,6 +59,11 @@ public class CancelBrowserPlugin extends Plugin {
         String guideStepsJson = call.getArray("guideSteps") != null
                 ? call.getArray("guideSteps").toString()
                 : "[]";
+        String allowedDomainsJson = call.getArray("allowedDomains") != null
+                ? call.getArray("allowedDomains").toString()
+                : "[]";
+        String guideMode = call.getString("guideMode", "MANUAL_OFFICIAL");
+        String fallbackOfficialUrl = call.getString("fallbackOfficialUrl", "");
 
         Context ctx = getContext();
 
@@ -62,6 +71,9 @@ public class CancelBrowserPlugin extends Plugin {
         serviceIntent.putExtra("serviceId", serviceId);
         serviceIntent.putExtra("serviceName", serviceName);
         serviceIntent.putExtra("guideStepsJson", guideStepsJson);
+        serviceIntent.putExtra("allowedDomainsJson", allowedDomainsJson);
+        serviceIntent.putExtra("guideMode", guideMode);
+        serviceIntent.putExtra("fallbackOfficialUrl", fallbackOfficialUrl);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ctx.startForegroundService(serviceIntent);
         } else {
@@ -70,9 +82,13 @@ public class CancelBrowserPlugin extends Plugin {
 
         if (cancelUrl != null && !cancelUrl.trim().isEmpty()) {
             try {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(cancelUrl));
-                browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                ctx.startActivity(browserIntent);
+                Uri target = Uri.parse(cancelUrl);
+                WebSecurityPolicy policy = new WebSecurityPolicy(parseAllowedDomains(allowedDomainsJson, cancelUrl));
+                if (policy.isAllowedHttpUrl(target)) {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, target);
+                    browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    ctx.startActivity(browserIntent);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -134,14 +150,45 @@ public class CancelBrowserPlugin extends Plugin {
         String guideStepsJson = call.getArray("guideSteps") != null
                 ? call.getArray("guideSteps").toString()
                 : "[]";
+        String allowedDomainsJson = call.getArray("allowedDomains") != null
+                ? call.getArray("allowedDomains").toString()
+                : "[]";
+        String guideMode = call.getString("guideMode", "MANUAL_OFFICIAL");
+        String officialSourceUrl = call.getString("officialSourceUrl", "");
+        String fallbackOfficialUrl = call.getString("fallbackOfficialUrl", "");
 
         Intent intent = new Intent(getContext(), CancelBrowserActivity.class);
         intent.putExtra("serviceId", serviceId);
         intent.putExtra("serviceName", serviceName);
         intent.putExtra("cancelUrl", cancelUrl);
         intent.putExtra("guideStepsJson", guideStepsJson);
+        intent.putExtra("allowedDomainsJson", allowedDomainsJson);
+        intent.putExtra("guideMode", guideMode);
+        intent.putExtra("officialSourceUrl", officialSourceUrl);
+        intent.putExtra("fallbackOfficialUrl", fallbackOfficialUrl);
 
         startActivityForResult(call, intent, "handleCancelBrowserResult");
+    }
+
+    private List<String> parseAllowedDomains(String json, String entryUrl) {
+        List<String> domains = new ArrayList<>();
+        try {
+            JSONArray array = new JSONArray(json == null ? "[]" : json);
+            for (int i = 0; i < array.length(); i++) {
+                String domain = array.optString(i, "").trim();
+                if (!domain.isEmpty() && !domains.contains(domain)) {
+                    domains.add(domain);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        if (domains.isEmpty() && entryUrl != null && !entryUrl.trim().isEmpty()) {
+            Uri uri = Uri.parse(entryUrl);
+            if ("https".equalsIgnoreCase(uri.getScheme()) && uri.getHost() != null) {
+                domains.add(uri.getHost());
+            }
+        }
+        return domains;
     }
 
     @ActivityCallback

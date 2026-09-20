@@ -26,6 +26,7 @@ public final class CharacterAssetManager {
     public static final String MODE_CUSTOM = "CUSTOM";
 
     private static final String PREFS = "kkudok_character_asset";
+    private static final String MASTER_ASSET_PATH = "public/assets/kkudok/character_master.png";
     private static final String KEY_MODE = "mode";
     private static final String DIR_NAME = "character";
     private static final String CUSTOM_FILE = "custom_character.png";
@@ -193,39 +194,12 @@ public final class CharacterAssetManager {
     }
 
     public static AssetInfo applyPending(Context context) throws IOException {
-        File pending = getPendingFile(context);
-        ValidationResult validation = validateFile(pending);
-        if (!validation.valid) {
-            throw new IOException(validation.message);
-        }
-
-        File dir = ensureDirectory(context.getFilesDir());
-        File custom = new File(dir, CUSTOM_FILE);
-        File temp = new File(dir, CUSTOM_FILE + ".tmp");
-        copyFile(pending, temp);
-
-        if (custom.exists() && !custom.delete()) {
-            deleteQuietly(temp);
-            throw new IOException("기존 캐릭터 파일을 교체하지 못했습니다.");
-        }
-        if (!temp.renameTo(custom)) {
-            copyFile(temp, custom);
-            deleteQuietly(temp);
-        }
-
-        prefs(context).edit().putString(KEY_MODE, MODE_CUSTOM).apply();
         clearPending(context);
-        return describeFile(MODE_CUSTOM, custom);
+        throw new IOException("꾸독 캐릭터는 공식 캐릭터 1종으로 고정되어 있습니다.");
     }
 
     public static AssetInfo getActiveAsset(Context context) {
-        File custom = getCustomFile(context);
-        String mode = prefs(context).getString(KEY_MODE, MODE_DEFAULT);
-        if (MODE_CUSTOM.equals(mode) && custom.isFile()) {
-            AssetInfo info = describeFile(MODE_CUSTOM, custom);
-            if (info != null) return info;
-        }
-        return new AssetInfo(MODE_DEFAULT, null, 0, 0, 0L, false);
+        return new AssetInfo(MODE_DEFAULT, null, 0, 0, 0L, true);
     }
 
     public static void reset(Context context) {
@@ -244,15 +218,16 @@ public final class CharacterAssetManager {
 
     public static void applyToImageView(Context context, ImageView view) {
         if (view == null) return;
-        AssetInfo active = getActiveAsset(context);
-        if (MODE_CUSTOM.equals(active.mode) && active.file != null) {
-            Bitmap bitmap = BitmapFactory.decodeFile(active.file.getAbsolutePath());
+        try (InputStream in = context.getAssets().open(MASTER_ASSET_PATH)) {
+            Bitmap bitmap = BitmapFactory.decodeStream(in);
             if (bitmap != null) {
                 view.setImageBitmap(bitmap);
                 return;
             }
+        } catch (Exception ignored) {
         }
-        view.setImageResource(R.drawable.kkudok_character_guide);
+        // Never fall back to a legacy character variant.
+        view.setImageDrawable(null);
     }
 
     public static String invalidMessage() {
