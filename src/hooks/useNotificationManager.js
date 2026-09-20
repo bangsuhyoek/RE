@@ -19,6 +19,16 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
     return subscriptions.length > 0 ? generateSubscriptionAlerts(subscriptions) : [];
   });
 
+  const [activeBanner, setActiveBanner] = useState(() => {
+    const initial = readHash();
+    if (initial.params?.get("banner") === "1") {
+      const targetSubs = subscriptions.length ? subscriptions : createMockSubscriptions();
+      const alerts = generateSubscriptionAlerts(targetSubs);
+      return alerts[0] || null;
+    }
+    return null;
+  });
+
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(() => {
     const initial = readHash();
     return initial.params?.get("notifications") === "1";
@@ -70,14 +80,16 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
     }
     const alertItem = createTestNotification(sub, "auto");
     setNotifications((current) => [alertItem, ...current]);
+    setActiveBanner(alertItem);
     sendAppNotification(alertItem.title, { body: alertItem.message });
-    notify?.(`${alertItem.badge} 푸시 알림을 발송했어요.`);
+    notify?.(`${alertItem.badge} 알림을 화면에 띄웠어요.`);
   }, [subscriptions]);
 
   const handleOpenDetailFromNotification = useCallback((subId, onNavigate) => {
     setNotifications((current) =>
       current.map((n) => (n.subscriptionId === subId ? { ...n, read: true } : n))
     );
+    setActiveBanner(null);
     setNotificationCenterOpen(false);
     onNavigate?.(subId);
   }, []);
@@ -117,8 +129,8 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
   return {
     notifications,
     setNotifications,
-    activeBanner: null,
-    setActiveBanner: () => {},
+    activeBanner,
+    setActiveBanner,
     notificationCenterOpen,
     setNotificationCenterOpen,
     notificationPermission,
