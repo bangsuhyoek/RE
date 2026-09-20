@@ -16,9 +16,9 @@ import { OnboardingScreen } from "./components/OnboardingScreen";
 import { PromotionScreen } from "./components/PromotionScreen";
 import { RenewalSheet } from "./components/RenewalSheet";
 import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from "./components/SubscriptionScreens";
-import { NotificationCenterModal } from "./components/NotificationComponents";
+import { PushNotificationBanner, NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
-import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
+import { createMockSubscriptions, promotionCatalog, serviceCatalog } from "./data/subscriptionData";
 import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue } from "./lib/storage";
 import { generateSubscriptionAlerts } from "./lib/notifications";
 import { useNavigation } from "./hooks/useNavigation";
@@ -307,12 +307,16 @@ export default function App() {
     };
   }, [navigate, notify, setOnboardingComplete, setProfile, setSubscriptions]);
 
-  // Handle URL query actions (?notifications=1)
+  // Handle URL query actions (?banner=1, ?notifications=1)
   useEffect(() => {
+    if (screen.params?.get("banner") === "1") {
+      const generated = generateSubscriptionAlerts(subscriptions.length ? subscriptions : createMockSubscriptions());
+      setActiveBanner(generated[0] || null);
+    }
     if (screen.params?.get("notifications") === "1") {
       setNotificationCenterOpen(true);
     }
-  }, [screen, setNotificationCenterOpen]);
+  }, [screen, subscriptions, setActiveBanner, setNotificationCenterOpen]);
 
   // Route guard: unauthenticated users must stay on auth screens
   useEffect(() => {
@@ -337,6 +341,8 @@ export default function App() {
         closeCancellation();
       } else if (renewalTarget) {
         setRenewalTarget(null);
+      } else if (activeBanner) {
+        setActiveBanner(null);
       } else if (screen.route === "detail") {
         setHighlightCancelId(null);
         navigate("subscriptions");
@@ -360,12 +366,14 @@ export default function App() {
     addOpen,
     cancelTarget,
     renewalTarget,
+    activeBanner,
     screen.route,
     closeCancellation,
     navigate,
     setHighlightCancelId,
     setNotificationCenterOpen,
     setRenewalTarget,
+    setActiveBanner,
   ]);
 
   const selectedSubscription = useMemo(
@@ -675,6 +683,14 @@ export default function App() {
           onClose={() => setRenewalTarget(null)}
         />
       )}
+      <PushNotificationBanner
+        notification={activeBanner}
+        onClose={() => setActiveBanner(null)}
+        onOpenDetail={(subId) => handleOpenDetailFromNotification(subId, (id) => {
+          setHighlightCancelId(id);
+          navigate("detail", id);
+        })}
+      />
       {notificationCenterOpen && (
         <NotificationCenterModal
           notifications={notifications}
