@@ -5,6 +5,7 @@ import {
   getStoredNotifications,
   saveStoredNotifications,
   requestNotificationPermission,
+  checkNotificationPermission,
   initAndroidNotificationChannel,
   sendAppNotification,
   scheduleSubscriptionNotifications,
@@ -35,6 +36,9 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
   // Persist notifications
   useEffect(() => {
     initAndroidNotificationChannel();
+    checkNotificationPermission()
+      .then((permission) => setNotificationPermission(permission))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {

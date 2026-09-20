@@ -8,43 +8,49 @@ import {
 } from "lucide-react";
 import { Button } from "./ui";
 
-function permissionCopy(permission) {
+function permissionCopy(permission, nativeMode) {
   if (permission === "granted") {
     return {
       title: "알림 설정이 준비됐어요",
-      description: "다음 결제 전에 브라우저 알림과 꾸독 화면 알림으로 미리 알려드릴게요.",
-      tone: "success",
+      description: nativeMode
+        ? "설정을 마치면 앱이 홈 화면으로 내려가고 2~3초 뒤 꾸독 Heads-up 알림을 실제로 보여드릴게요."
+        : "다음 결제 전에 브라우저 알림으로 미리 알려드릴게요.",
     };
   }
+
   if (permission === "denied") {
     return {
-      title: "브라우저에서 알림이 차단되어 있어요",
-      description: "주소창의 사이트 설정에서 알림을 허용하면 결제 예정 알림을 받을 수 있어요.",
-      tone: "warning",
+      title: nativeMode ? "기기 알림이 차단되어 있어요" : "브라우저에서 알림이 차단되어 있어요",
+      description: nativeMode
+        ? "휴대폰 설정에서 꾸독 알림을 허용하면 결제 예정 Heads-up 알림을 받을 수 있어요."
+        : "주소창의 사이트 설정에서 알림을 허용하면 결제 예정 알림을 받을 수 있어요.",
     };
   }
+
   if (permission === "unsupported") {
     return {
-      title: "이 브라우저는 시스템 알림을 지원하지 않아요",
-      description: "대신 꾸독 화면 안에서 Heads-up 알림을 보여드릴게요.",
-      tone: "warning",
+      title: nativeMode ? "알림 권한 상태를 확인하고 있어요" : "이 브라우저는 시스템 알림을 지원하지 않아요",
+      description: nativeMode
+        ? "잠시 후 기기 알림 권한 상태를 다시 확인해 주세요."
+        : "웹에서는 알림 설정만 저장하고, 실제 홈 화면 Heads-up 체험은 Android 앱에서 제공해요.",
     };
   }
+
   return {
     title: "결제 전에 꾸독이 먼저 알려드릴게요",
     description: "알림을 허용하면 다음 결제와 더 저렴한 혜택을 놓치지 않도록 도와드려요.",
-    tone: "default",
   };
 }
 
 export function NotificationSetupModal({
   permission = "default",
+  nativeMode = false,
   onRequestPermission,
   onContinue,
 }) {
   const [requesting, setRequesting] = useState(false);
   const [showHelp, setShowHelp] = useState(permission === "denied");
-  const copy = useMemo(() => permissionCopy(permission), [permission]);
+  const copy = useMemo(() => permissionCopy(permission, nativeMode), [permission, nativeMode]);
 
   const requestPermission = async () => {
     setRequesting(true);
@@ -101,7 +107,9 @@ export function NotificationSetupModal({
           <div className="mt-4 flex items-start gap-2 rounded-2xl border border-[#E5E8EB] bg-white px-3.5 py-3">
             <ShieldCheck size={17} className="mt-0.5 shrink-0 text-[#6B7684]" />
             <p className="text-[11.5px] leading-5 text-[#6B7684]">
-              알림 권한은 결제 예정 안내에만 사용해요. 권한을 허용하지 않아도 꾸독 화면 안의 알림 체험은 계속 사용할 수 있어요.
+              {nativeMode
+                ? "알림 권한은 결제 예정 안내에만 사용해요. 실제 Heads-up 체험은 기기 알림 권한이 허용된 경우에만 실행돼요."
+                : "알림 권한은 결제 예정 안내에만 사용해요. 웹에서는 브라우저가 허용하는 범위에서만 시스템 알림을 사용할 수 있어요."}
             </p>
           </div>
 
@@ -113,14 +121,24 @@ export function NotificationSetupModal({
                 className="flex w-full items-center gap-2 text-left text-[12px] font-bold text-amber-900"
               >
                 <AlertTriangle size={15} />
-                브라우저 알림 다시 켜는 방법
+                {nativeMode ? "휴대폰 알림 다시 켜는 방법" : "브라우저 알림 다시 켜는 방법"}
               </button>
 
               {showHelp && (
                 <ol className="mt-2 space-y-1 pl-6 text-[11px] leading-5 text-amber-900">
-                  <li>1. 주소창 왼쪽의 사이트 정보 아이콘을 누르세요.</li>
-                  <li>2. 사이트 설정에서 ‘알림’을 허용으로 변경하세요.</li>
-                  <li>3. 꾸독 페이지를 새로고침하면 권한 상태가 다시 확인됩니다.</li>
+                  {nativeMode ? (
+                    <>
+                      <li>1. 휴대폰 설정 → 앱 → 꾸독으로 이동하세요.</li>
+                      <li>2. 알림 메뉴에서 ‘알림 허용’을 켜세요.</li>
+                      <li>3. 꾸독으로 돌아오면 권한 상태를 다시 확인할 수 있어요.</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>1. 주소창 왼쪽의 사이트 정보 아이콘을 누르세요.</li>
+                      <li>2. 사이트 설정에서 ‘알림’을 허용으로 변경하세요.</li>
+                      <li>3. 꾸독 페이지를 새로고침하면 권한 상태가 다시 확인됩니다.</li>
+                    </>
+                  )}
                 </ol>
               )}
             </div>
@@ -137,6 +155,7 @@ export function NotificationSetupModal({
                 {requesting ? "권한 확인 중..." : "알림 허용하기"}
               </Button>
             )}
+
             {permission === "denied" && (
               <Button
                 size="large"
@@ -144,21 +163,30 @@ export function NotificationSetupModal({
                 variant="secondary"
                 onClick={() => setShowHelp(true)}
               >
-                브라우저 설정 방법 확인
+                {nativeMode ? "휴대폰 설정 방법 확인" : "브라우저 설정 방법 확인"}
               </Button>
             )}
+
             <Button
               size="large"
               fullWidth
               variant={permission === "granted" ? "primary" : "secondary"}
               onClick={onContinue}
             >
-              {permission === "granted" ? "설정 완료하고 계속" : "인앱 알림으로 계속"}
+              {permission === "granted"
+                ? nativeMode
+                  ? "설정 완료하고 Heads-up 체험"
+                  : "설정 완료하고 계속"
+                : "알림 없이 계속"}
             </Button>
           </div>
 
           <p className="mt-3 text-center text-[10.5px] leading-4 text-[#8B95A1]">
-            계속하면 메인 화면 진입 후 약 3~5초 뒤 꾸독 Heads-up 알림을 한 번 체험할 수 있어요.
+            {nativeMode
+              ? permission === "granted"
+                ? "버튼을 누르면 앱이 홈 화면으로 내려가고 약 2.5초 뒤 기존 스타일의 Heads-up 알림이 표시돼요."
+                : "Heads-up 체험은 알림 권한을 허용한 뒤 실행할 수 있어요."
+              : "웹에서는 권한 설정만 저장하며, 홈 화면 Heads-up 체험은 Android 앱에서 제공해요."}
           </p>
         </div>
       </section>

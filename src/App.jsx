@@ -37,7 +37,6 @@ import {
 import {
   generateSubscriptionAlerts,
   createWelcomeHeadsUpNotification,
-  sendAppNotification,
 } from "./lib/notifications";
 import {
   clearNotificationSetupSeenThisSession,
@@ -52,6 +51,7 @@ import { useBenefits } from "./hooks/useBenefits";
 import { summarizePublishedConfirmedSavings } from "./features/benefits/presentation/recommendationViewModel.js";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
+import { showHeadsUpDemoOnHome } from "./lib/headsUpDemo";
 import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubscription } from "./lib/supabase";
 
 export default function App() {
@@ -300,7 +300,7 @@ export default function App() {
   } = useNotificationManager({ subscriptions });
 
   useEffect(() => {
-    if (isNativePlatform() || contestDemoActive || !profile) {
+    if (contestDemoActive || !profile) {
       setNotificationSetupOpen(false);
       return;
     }
@@ -330,60 +330,53 @@ export default function App() {
     );
   }, [handleRequestPermission, notify, setProfile]);
 
-  const handleNotificationSetupContinue = useCallback(() => {
+  const handleNotificationSetupContinue = useCallback(async () => {
     if (!profile) return;
+
     const existing = readNotificationSetup(profile);
+    const nativeAndroid =
+      Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
+    const shouldRunNativeDemo =
+      nativeAndroid &&
+      notificationPermission === "granted" &&
+      !existing?.demoShown;
+
     markNotificationSetupSeenThisSession(profile);
     writeNotificationSetup(profile, {
       completed: true,
       permission: notificationPermission,
-      demoPending: !existing?.demoShown,
+      demoPending: false,
     });
     setProfile((current) => ({
       ...(current || {}),
       notificationsAllowed: notificationPermission === "granted",
     }));
     setNotificationSetupOpen(false);
-  }, [notificationPermission, profile, setProfile]);
 
-  useEffect(() => {
-    if (
-      isNativePlatform() ||
-      contestDemoActive ||
-      !profile ||
-      notificationSetupOpen ||
-      screen.route !== "home"
-    ) {
-      return undefined;
-    }
+    if (!shouldRunNativeDemo) return;
 
-    const record = readNotificationSetup(profile);
-    if (!record?.completed || !record?.demoPending || record?.demoShown) return undefined;
+    const item = createWelcomeHeadsUpNotification();
+    const result = await showHeadsUpDemoOnHome({
+      title: item.title,
+      body: item.message,
+      delayMs: 2500,
+    });
 
-    const timer = window.setTimeout(() => {
-      const item = createWelcomeHeadsUpNotification();
-      setNotifications((current) => [item, ...current.filter((entry) => !entry.isWelcomeDemo)]);
-      setActiveBanner(item);
-      if (notificationPermission === "granted") {
-        sendAppNotification(item.title, { body: item.message });
-      }
+    if (result?.scheduled) {
       writeNotificationSetup(profile, {
         demoPending: false,
         demoShown: true,
         demoShownAt: new Date().toISOString(),
       });
-    }, 3500);
+      return;
+    }
 
-    return () => window.clearTimeout(timer);
-  }, [
-    contestDemoActive,
-    notificationPermission,
-    notificationSetupOpen,
-    profile,
-    screen.route,
-    setActiveBanner,
-    setNotifications,
-  ]);
+    writeNotificationSetup(profile, {
+      demoPending: false,
+      demoShown: false,
+    });
+    notify("Heads-up 알림 체험을 시작하지 못했어요. 알림 권한을 다시 확인해 주세요.");
+  }, [notificationPermission, notify, profile, setProfile]);
 
   const handleStartContestDemo = useCallback(() => {
     if (isNativePlatform()) return;
@@ -980,9 +973,10 @@ export default function App() {
         onRunScenario={runWebPaymentDemo}
         onReset={handleResetContestDemo}
       />
-      {notificationSetupOpen && !isNativePlatform() && (
+      {notificationSetupOpen && (
         <NotificationSetupModal
           permission={notificationPermission}
+          nativeMode={isNativePlatform()}
           onRequestPermission={handleNotificationSetupPermission}
           onContinue={handleNotificationSetupContinue}
         />

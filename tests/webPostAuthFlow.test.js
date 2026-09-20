@@ -13,11 +13,12 @@ const detailSource = fs.readFileSync(
   "utf8"
 );
 
-test("로그인 후 알림 설정 모달과 3.5초 Heads-up 체험 흐름이 연결되어 있다", () => {
+test("로그인 후 알림 설정 완료 시 Android 홈 화면에서 2.5초 뒤 Heads-up 체험을 실행한다", () => {
   assert.match(appSource, /NotificationSetupModal/);
   assert.match(appSource, /createWelcomeHeadsUpNotification/);
-  assert.match(appSource, /}, 3500\);/);
-  assert.match(appSource, /PushNotificationBanner/);
+  assert.match(appSource, /showHeadsUpDemoOnHome/);
+  assert.match(appSource, /delayMs: 2500/);
+  assert.doesNotMatch(appSource, /}, 3500\);/);
 });
 
 test("웹 해지 컨시어지는 공식 페이지 프레임 가능 여부를 서버에서 확인한다", () => {
