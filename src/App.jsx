@@ -22,7 +22,6 @@ import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
 import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue } from "./lib/storage";
 import { generateSubscriptionAlerts } from "./lib/notifications";
 import { useNavigation } from "./hooks/useNavigation";
-import { useBenefits } from "./hooks/useBenefits";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
 import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubscription } from "./lib/supabase";
@@ -206,19 +205,6 @@ export default function App() {
     muteSubscription,
     deleteSubscription,
   } = useSubscriptions({ currentRoute: screen.route });
-
-  const {
-    benefits: activeBenefits,
-    recommendations: benefitRecommendations,
-    loading: benefitsLoading,
-    loadState: benefitsLoadState,
-    partial: benefitsPartial,
-    reload: reloadBenefits,
-    source: benefitsSource,
-  } = useBenefits({
-    enabled: screen.route === "promotions",
-    subscriptions,
-  });
 
   // Notifications domain state
   const {
@@ -465,14 +451,13 @@ export default function App() {
   };
 
   const handlePromotion = useCallback((promotion) => {
-    const promotionUrl = promotion?.sourceUrl || promotion?.source_url || promotion?.link;
-    if (promotionUrl) {
+    if (promotion?.link) {
       if (isNativePlatform()) {
-        Browser.open({ url: promotionUrl }).catch(() => {
-          window.open(promotionUrl, "_blank", "noopener,noreferrer");
+        Browser.open({ url: promotion.link }).catch(() => {
+          window.open(promotion.link, "_blank", "noopener,noreferrer");
         });
       } else {
-        window.open(promotionUrl, "_blank", "noopener,noreferrer");
+        window.open(promotion.link, "_blank", "noopener,noreferrer");
       }
       notify("제휴 혜택 페이지를 열었어요.");
     } else {
@@ -543,19 +528,7 @@ export default function App() {
   } else if (screen.route === "calendar") {
     content = <CalendarScreen subscriptions={subscriptions} onOpen={(id) => navigate("detail", id)} />;
   } else if (screen.route === "promotions") {
-    content = (
-      <PromotionScreen
-        subscriptions={subscriptions}
-        benefits={activeBenefits}
-        recommendations={benefitRecommendations}
-        loading={benefitsLoading}
-        loadState={benefitsLoadState}
-        partial={benefitsPartial}
-        source={benefitsSource}
-        onOpenPromotion={handlePromotion}
-        onRefresh={reloadBenefits}
-      />
-    );
+    content = <PromotionScreen subscriptions={subscriptions} promotions={promotionCatalog} onOpenPromotion={handlePromotion} />;
   } else if (screen.route === "detail") {
     content = (
       <SubscriptionDetailScreen

@@ -126,7 +126,7 @@ export function inspectCampaignHTML(html, promotion) {
 }
 
 const TERMINATED = /이벤트\s*가?\s*종료되었습니다|프로모션\s*이?\s*종료되었습니다|마감되었습니다/;
-const BLOCKED = /cf-chl-|challenge-platform|verify you are human|just a moment|access denied|g-recaptcha|hcaptcha|captcha[-_ ](?:challenge|container|widget)/i;
+const BLOCKED = /cf-chl-|challenge-platform|verify you are human|just a moment|access denied|captcha/i;
 
 export class PromotionStatusDetector {
   detect({ inspection, period, now, httpStatus, irrelevantRedirect = false }) {
