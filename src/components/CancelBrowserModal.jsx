@@ -214,6 +214,12 @@ export function CancelBrowserModal({
       }));
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [minimized, setMinimized] = useState(false);
+  const [embedCheck, setEmbedCheck] = useState(() => ({
+    status: Capacitor.isNativePlatform() ? "native" : "checking",
+    embeddable: false,
+    reason: "",
+  }));
+  const [iframeFailed, setIframeFailed] = useState(false);
   const scrollContainerRef = useRef(null);
   const dialogRef = useRef(null);
   const currentStep = steps[activeStepIndex] || steps[0];
@@ -221,6 +227,38 @@ export function CancelBrowserModal({
 
   const isFinalStep = activeStepIndex === steps.length - 1;
   const characterImg = CHARACTER_MASTER_ASSET;
+  const canEmbedOfficialPage =
+    !Capacitor.isNativePlatform() &&
+    embedCheck.status === "ready" &&
+    embedCheck.embeddable &&
+    !iframeFailed;
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform() || !subscription.cancelUrl) return undefined;
+
+    let active = true;
+    setEmbedCheck({ status: "checking", embeddable: false, reason: "" });
+    setIframeFailed(false);
+
+    fetch(`/api/frame-check?url=${encodeURIComponent(subscription.cancelUrl)}`)
+      .then((response) => response.json())
+      .then((result) => {
+        if (!active) return;
+        setEmbedCheck({
+          status: "ready",
+          embeddable: Boolean(result?.embeddable),
+          reason: result?.reason || "",
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setEmbedCheck({ status: "ready", embeddable: false, reason: "CHECK_FAILED" });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [subscription.cancelUrl]);
 
   useEffect(() => {
     if (minimized) return undefined;
@@ -493,17 +531,46 @@ export function CancelBrowserModal({
             </div>
           </div>
 
-          {/* 중앙 실제 UI 단계 다이어그램 (표준 UI 와이어프레임) */}
-          <div className="w-full h-40 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-            <StepUiIllustration
-              stepNumber={currentStep.stepNumber}
-              title={currentStep.title}
-              description={currentStep.description}
-              serviceName={subscription.name}
-              large
-              isNaverPlus={isNaverPlus}
-            />
-          </div>
+          {/* 공식 페이지가 프레임을 허용하는 경우 실제 페이지를 함께 표시 */}
+          {canEmbedOfficialPage ? (
+            <div className="w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-gray-200 bg-[#F7F8FA] px-3 py-2">
+                <span className="text-[10.5px] font-bold text-[#4E5968]">공식 페이지 · 직접 조작</span>
+                <span className="text-[9.5px] font-semibold text-[#3182F6]">꾸독은 클릭하지 않아요</span>
+              </div>
+              <iframe
+                src={subscription.cancelUrl}
+                title={subscription.name + " 공식 해지 페이지"}
+                className="h-[300px] w-full bg-white"
+                sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation"
+                referrerPolicy="strict-origin-when-cross-origin"
+                onError={() => setIframeFailed(true)}
+              />
+            </div>
+          ) : (
+            <div className="w-full h-40 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <StepUiIllustration
+                stepNumber={currentStep.stepNumber}
+                title={currentStep.title}
+                description={currentStep.description}
+                serviceName={subscription.name}
+                large
+                isNaverPlus={isNaverPlus}
+              />
+            </div>
+          )}
+
+          {!Capacitor.isNativePlatform() && embedCheck.status === "checking" && (
+            <div className="w-full rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-[10.5px] font-semibold text-blue-800">
+              공식 페이지를 꾸독 안에서 안전하게 표시할 수 있는지 확인하고 있어요.
+            </div>
+          )}
+
+          {!Capacitor.isNativePlatform() && embedCheck.status === "ready" && !canEmbedOfficialPage && (
+            <div className="w-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[10.5px] leading-4 text-amber-900">
+              공식 사이트의 보안 정책상 페이지를 꾸독 안에 직접 넣을 수 없어요. 공식 페이지는 새 탭에서 직접 조작하고, 이 탭으로 돌아오면 컨시어지가 현재 단계를 그대로 이어서 안내해요.
+            </div>
+          )}
 
           {/* 보안 안심 안내 배지 (화면 인식 불가 사유 명시) */}
           <div className="w-full rounded-xl bg-gray-100/90 px-3 py-2 border border-gray-200/60 flex items-center gap-2">
@@ -537,7 +604,7 @@ export function CancelBrowserModal({
                 rel="noopener noreferrer"
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#191F28] py-3 text-[13px] font-bold text-white shadow-xs hover:bg-black active:scale-98 transition-all"
               >
-                <span>{subscription.name} 공식 웹사이트 열기</span>
+                <span>{canEmbedOfficialPage ? "공식 페이지 새 탭으로 열기" : subscription.name + " 공식 웹사이트 열기"}</span>
                 <ExternalLink size={14} />
               </a>
             )}
@@ -581,6 +648,14 @@ export function CancelBrowserModal({
           </div>
 
           <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => handleCardClick(0)}
+              className="rounded-lg px-2 py-1 text-[10.5px] font-bold text-gray-500 hover:bg-gray-100 disabled:opacity-30"
+              disabled={activeStepIndex === 0}
+            >
+              처음부터
+            </button>
             <button
               type="button"
               disabled={activeStepIndex === 0}

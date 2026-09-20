@@ -136,6 +136,24 @@ export function createTestNotification(subscription, forcedType = "auto") {
   };
 }
 
+export function createWelcomeHeadsUpNotification() {
+  return {
+    id: `welcome-heads-up-${Date.now()}`,
+    subscriptionId: null,
+    serviceName: "Netflix",
+    monogram: "N",
+    category: "OTT",
+    type: "welcome_demo",
+    badge: "체험",
+    title: "Netflix 결제가 곧 예정되어 있어요.",
+    message: "더 저렴하게 이용할 수 있는 혜택을 확인해보세요.",
+    timestamp: new Date().toISOString(),
+    read: false,
+    isTest: true,
+    isWelcomeDemo: true,
+  };
+}
+
 /**
  * Request browser Web Notification permission
  */

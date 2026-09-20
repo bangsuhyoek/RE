@@ -408,9 +408,6 @@ export function SubscriptionDetailScreen({
             <button
               type="button"
               onClick={() => {
-                if (subscription.cancelUrl && !Capacitor.isNativePlatform()) {
-                  window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
-                }
                 onStartCancel(subscription.subscriptionId, promotion, { autoOpen: true });
               }}
               className={`w-full rounded-2xl bg-[#111827] text-white font-bold py-4 text-[16px] text-center active:scale-[0.98] transition-all shadow-sm cursor-pointer hover:bg-black ${

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   generateSubscriptionAlerts,
   createTestNotification,
+  createWelcomeHeadsUpNotification,
   DEFAULT_NOTIFICATION_DURATION,
 } from "../src/lib/notifications.js";
 
@@ -47,6 +48,14 @@ test("createTestNotification은 올바른 테스트 알림 아이템을 생성�
   assert.equal(testItem.isTest, true);
   assert.equal(testItem.badge, "D-3");
   assert.equal(testItem.serviceName, "Netflix");
+});
+
+test("최초 설정 후 보여줄 Heads-up 체험 알림은 실제 결제로 오해하지 않도록 체험 상태를 갖는다", () => {
+  const item = createWelcomeHeadsUpNotification();
+  assert.equal(item.isWelcomeDemo, true);
+  assert.equal(item.subscriptionId, null);
+  assert.match(item.title, /Netflix 결제가 곧 예정/);
+  assert.match(item.message, /더 저렴하게 이용할 수 있는 혜택/);
 });
 
 test("알림바 지속 시간은 2~3초(2000ms~3000ms) 사이에 위치한다", () => {

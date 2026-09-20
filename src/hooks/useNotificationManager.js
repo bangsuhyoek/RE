@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { createMockSubscriptions } from "../data/subscriptionData";
 import {
   generateSubscriptionAlerts,
   createTestNotification,
@@ -18,6 +17,8 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
     if (stored.length > 0) return stored;
     return subscriptions.length > 0 ? generateSubscriptionAlerts(subscriptions) : [];
   });
+
+  const [activeBanner, setActiveBanner] = useState(null);
 
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(() => {
     const initial = readHash();
@@ -70,6 +71,7 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
     }
     const alertItem = createTestNotification(sub, "auto");
     setNotifications((current) => [alertItem, ...current]);
+    setActiveBanner(alertItem);
     sendAppNotification(alertItem.title, { body: alertItem.message });
     notify?.(`${alertItem.badge} 푸시 알림을 발송했어요.`);
   }, [subscriptions]);
@@ -78,6 +80,7 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
     setNotifications((current) =>
       current.map((n) => (n.subscriptionId === subId ? { ...n, read: true } : n))
     );
+    setActiveBanner(null);
     setNotificationCenterOpen(false);
     onNavigate?.(subId);
   }, []);
@@ -92,14 +95,15 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
       onProfileUpdate?.(false);
       notify?.("알림 권한이 거부되었습니다.");
     }
+    return perm;
   }, []);
 
   const handleTogglePermissionFromHome = useCallback(async (profile, onProfileUpdate = null, notify = null) => {
     if (profile?.notificationsAllowed === false) {
       const perm = await requestNotificationPermission();
       setNotificationPermission(perm);
-      onProfileUpdate?.(true);
-      notify?.("결제 사전 알림이 켜졌어요.");
+      onProfileUpdate?.(perm === "granted");
+      notify?.(perm === "granted" ? "결제 사전 알림이 켜졌어요." : "브라우저에서 알림이 아직 허용되지 않았어요.");
     } else {
       onProfileUpdate?.(false);
       notify?.("결제 사전 알림을 껐어요.");
@@ -117,8 +121,8 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
   return {
     notifications,
     setNotifications,
-    activeBanner: null,
-    setActiveBanner: () => {},
+    activeBanner,
+    setActiveBanner,
     notificationCenterOpen,
     setNotificationCenterOpen,
     notificationPermission,

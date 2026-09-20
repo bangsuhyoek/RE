@@ -94,7 +94,6 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
 
     setCancelSessionActive(true);
     if (!Capacitor.isNativePlatform()) {
-      window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
       setShowBrowserModal(true);
       return;
     }

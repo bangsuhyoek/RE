@@ -161,10 +161,10 @@ export function PushNotificationBanner({ notification, onClose, onOpenDetail, du
 
           <div className="mt-2.5 flex items-center justify-between border-t border-white/10 pt-2">
             <span className="text-[10px] font-medium text-[#A1A1AA]">
-              탭하여 해지 가이드 바로보기
+              {notification.isWelcomeDemo ? "알림 체험 · 탭하여 혜택 확인" : "탭하여 해지 가이드 바로보기"}
             </span>
             <span className="flex items-center gap-0.5 text-[10px] font-semibold text-white">
-              웹사이트에서 해지하기 <ChevronRight size={12} />
+              {notification.isWelcomeDemo ? "절약 혜택 보기" : "웹사이트에서 해지하기"} <ChevronRight size={12} />
             </span>
           </div>
 

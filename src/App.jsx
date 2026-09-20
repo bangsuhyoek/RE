@@ -18,7 +18,8 @@ import { OnboardingScreen } from "./components/OnboardingScreen";
 import { PromotionScreen } from "./components/PromotionScreen";
 import { RenewalSheet } from "./components/RenewalSheet";
 import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from "./components/SubscriptionScreens";
-import { NotificationCenterModal } from "./components/NotificationComponents";
+import { PushNotificationBanner, NotificationCenterModal } from "./components/NotificationComponents";
+import { NotificationSetupModal } from "./components/NotificationSetupModal";
 import { ContestDemoPanel } from "./components/ContestDemoPanel";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
 import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
@@ -33,7 +34,19 @@ import {
   setContestDemoActive,
   resetContestDemoStorage,
 } from "./lib/storage";
-import { generateSubscriptionAlerts } from "./lib/notifications";
+import {
+  generateSubscriptionAlerts,
+  createWelcomeHeadsUpNotification,
+  sendAppNotification,
+} from "./lib/notifications";
+import {
+  clearNotificationSetupSeenThisSession,
+  markNotificationSetupSeenThisSession,
+  readNotificationSetup,
+  shouldShowNotificationSetup,
+  wasNotificationSetupSeenThisSession,
+  writeNotificationSetup,
+} from "./lib/notificationSetup";
 import { useNavigation } from "./hooks/useNavigation";
 import { useBenefits } from "./hooks/useBenefits";
 import { summarizePublishedConfirmedSavings } from "./features/benefits/presentation/recommendationViewModel.js";
@@ -56,6 +69,7 @@ export default function App() {
   const [demoResult, setDemoResult] = useState(null);
   const demoRunTokenRef = useRef(0);
   const [toast, setToast] = useState(null);
+  const [notificationSetupOpen, setNotificationSetupOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(() => {
     if (typeof window !== "undefined") {
       return !sessionStorage.getItem("kudok_splash_shown");
@@ -285,6 +299,92 @@ export default function App() {
     clearAll,
   } = useNotificationManager({ subscriptions });
 
+  useEffect(() => {
+    if (isNativePlatform() || contestDemoActive || !profile) {
+      setNotificationSetupOpen(false);
+      return;
+    }
+    const record = readNotificationSetup(profile);
+    const seenThisSession = wasNotificationSetupSeenThisSession(profile);
+    setNotificationSetupOpen(
+      shouldShowNotificationSetup({
+        profile,
+        permission: notificationPermission,
+        record,
+        seenThisSession,
+      })
+    );
+  }, [
+    profile?.user_id,
+    profile?.accountId,
+    profile?.nickname,
+    profile?.provider,
+    contestDemoActive,
+    notificationPermission,
+  ]);
+
+  const handleNotificationSetupPermission = useCallback(async () => {
+    return handleRequestPermission(
+      (allowed) => setProfile((current) => ({ ...(current || {}), notificationsAllowed: allowed })),
+      notify
+    );
+  }, [handleRequestPermission, notify, setProfile]);
+
+  const handleNotificationSetupContinue = useCallback(() => {
+    if (!profile) return;
+    const existing = readNotificationSetup(profile);
+    markNotificationSetupSeenThisSession(profile);
+    writeNotificationSetup(profile, {
+      completed: true,
+      permission: notificationPermission,
+      demoPending: !existing?.demoShown,
+    });
+    setProfile((current) => ({
+      ...(current || {}),
+      notificationsAllowed: notificationPermission === "granted",
+    }));
+    setNotificationSetupOpen(false);
+  }, [notificationPermission, profile, setProfile]);
+
+  useEffect(() => {
+    if (
+      isNativePlatform() ||
+      contestDemoActive ||
+      !profile ||
+      notificationSetupOpen ||
+      screen.route !== "home"
+    ) {
+      return undefined;
+    }
+
+    const record = readNotificationSetup(profile);
+    if (!record?.completed || !record?.demoPending || record?.demoShown) return undefined;
+
+    const timer = window.setTimeout(() => {
+      const item = createWelcomeHeadsUpNotification();
+      setNotifications((current) => [item, ...current.filter((entry) => !entry.isWelcomeDemo)]);
+      setActiveBanner(item);
+      if (notificationPermission === "granted") {
+        sendAppNotification(item.title, { body: item.message });
+      }
+      writeNotificationSetup(profile, {
+        demoPending: false,
+        demoShown: true,
+        demoShownAt: new Date().toISOString(),
+      });
+    }, 3500);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    contestDemoActive,
+    notificationPermission,
+    notificationSetupOpen,
+    profile,
+    screen.route,
+    setActiveBanner,
+    setNotifications,
+  ]);
+
   const handleStartContestDemo = useCallback(() => {
     if (isNativePlatform()) return;
     demoRunTokenRef.current += 1;
@@ -401,6 +501,7 @@ export default function App() {
           notify(`${nickname}님, 구글 계정으로 로그인되었어요!`);
         }
       } else if (event === "SIGNED_OUT") {
+        clearNotificationSetupSeenThisSession(readStoredValue(storageKeys.profile, null));
         googleAuthNotifiedUserRef.current = null;
         if (typeof window !== "undefined") {
           try {
@@ -509,18 +610,19 @@ export default function App() {
     if (user.password !== password) {
       return { error: "비밀번호가 일치하지 않습니다." };
     }
-    completeLogin("꾸독", user.nickname || accountId);
+    completeLogin("꾸독", user.nickname || accountId, accountId);
     notify(`${user.nickname || accountId}님, 환영합니다!`);
     return { success: true };
   };
 
   const handleRegisterComplete = ({ accountId, password, nickname }) => {
     saveUser({ accountId, password, nickname });
-    completeLogin("꾸독", nickname);
+    completeLogin("꾸독", nickname, accountId);
     notify(`${nickname}님, 회원가입이 완료되었어요!`);
   };
 
   const handleLogout = async () => {
+    if (profile) clearNotificationSetupSeenThisSession(profile);
     if (contestDemoActive) {
       handleExitContestDemo();
       return;
@@ -551,8 +653,15 @@ export default function App() {
     notify(`${newNickname}으로 닉네임이 변경되었어요!`);
   };
 
-  const completeLogin = (provider, nickname) => {
-    setProfile({ nickname: nickname || "사용자", provider, guest: false, notificationsAllowed: true });
+  const completeLogin = (provider, nickname, accountId = "") => {
+    setProfile({
+      nickname: nickname || "사용자",
+      provider,
+      accountId: accountId || undefined,
+      guest: false,
+      notificationsAllowed:
+        typeof Notification !== "undefined" ? Notification.permission === "granted" : false,
+    });
     setSubscriptions((current) => removeDemoSubscriptions(current));
     setOnboardingComplete(false);
     navigate("onboarding");
@@ -803,6 +912,21 @@ export default function App() {
           onClose={() => setRenewalTarget(null)}
         />
       )}
+      <PushNotificationBanner
+        notification={activeBanner}
+        onClose={() => setActiveBanner(null)}
+        onOpenDetail={(subId) => {
+          if (!subId) {
+            setActiveBanner(null);
+            navigate("promotions");
+            return;
+          }
+          handleOpenDetailFromNotification(subId, (id) => {
+            setHighlightCancelId(id);
+            navigate("detail", id);
+          });
+        }}
+      />
       {notificationCenterOpen && (
         <NotificationCenterModal
           notifications={notifications}
@@ -856,6 +980,13 @@ export default function App() {
         onRunScenario={runWebPaymentDemo}
         onReset={handleResetContestDemo}
       />
+      {notificationSetupOpen && !isNativePlatform() && (
+        <NotificationSetupModal
+          permission={notificationPermission}
+          onRequestPermission={handleNotificationSetupPermission}
+          onContinue={handleNotificationSetupContinue}
+        />
+      )}
       <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
