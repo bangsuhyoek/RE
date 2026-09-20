@@ -13,6 +13,7 @@ import {
 import {
   buildV7RecommendationViewModel,
   partitionRecommendationViewModels,
+  recommendationConditionLabels,
 } from "../src/features/benefits/presentation/recommendationViewModel.js";
 import { loadBenefitRecommendations } from "../src/features/benefits/api/benefitRecommendationLoader.js";
 import { benefitFetchSuccess } from "../src/features/benefits/api/fetchState.js";
@@ -120,4 +121,19 @@ test("non-matching subscription is not promoted to a fake visible saving", () =>
   );
   assert.equal(result.status, HybridRecommendationStatus.INELIGIBLE);
   assert.equal(result.reason, "SERVICE_NOT_SUBSCRIBED");
+});
+
+test("confirmed benefit condition labels use user-facing Korean instead of internal enums", () => {
+  const offer = mappedOffer("contest-naverplus-netflix-premium-20260920");
+  const recommendation = buildV7RecommendationViewModel(
+    [netflixPremiumSubscription],
+    offer,
+    {}
+  );
+  const labels = recommendationConditionLabels(recommendation);
+  const text = labels.join(" ");
+  assert.match(text, /현재 이용 중인 고객도 가능/);
+  assert.match(text, /요금제 프리미엄/);
+  assert.match(text, /네이버플러스 멤버십 필요/);
+  assert.doesNotMatch(text, /EXISTING_SUBSCRIBER|\bANY\b/);
 });

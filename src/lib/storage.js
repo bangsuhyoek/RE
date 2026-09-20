@@ -1,12 +1,41 @@
 const KEY_PREFIX = "submate-mvp";
+const CONTEST_DEMO_PREFIX = "submate-contest-demo";
+export const CONTEST_DEMO_ACTIVE_KEY = "submate-contest-demo:active";
+
+export const isContestDemoActive = () => {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(CONTEST_DEMO_ACTIVE_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
+export const setContestDemoActive = (active) => {
+  if (typeof window === "undefined") return;
+  try {
+    if (active) window.localStorage.setItem(CONTEST_DEMO_ACTIVE_KEY, "1");
+    else window.localStorage.removeItem(CONTEST_DEMO_ACTIVE_KEY);
+  } catch {}
+};
+
+const currentPrefix = () => (isContestDemoActive() ? CONTEST_DEMO_PREFIX : KEY_PREFIX);
 
 export const storageKeys = {
-  subscriptions: `${KEY_PREFIX}:subscriptions`,
-  profile: `${KEY_PREFIX}:profile`,
-  users: `${KEY_PREFIX}:users`,
-  onboardingComplete: `${KEY_PREFIX}:onboarding-complete`,
-  savedAmount: `${KEY_PREFIX}:saved-amount`,
+  get subscriptions() { return `${currentPrefix()}:subscriptions`; },
+  get profile() { return `${currentPrefix()}:profile`; },
+  get users() { return `${currentPrefix()}:users`; },
+  get onboardingComplete() { return `${currentPrefix()}:onboarding-complete`; },
+  get savedAmount() { return `${currentPrefix()}:saved-amount`; },
 };
+
+export const contestDemoStorageKeys = Object.freeze({
+  subscriptions: `${CONTEST_DEMO_PREFIX}:subscriptions`,
+  profile: `${CONTEST_DEMO_PREFIX}:profile`,
+  users: `${CONTEST_DEMO_PREFIX}:users`,
+  onboardingComplete: `${CONTEST_DEMO_PREFIX}:onboarding-complete`,
+  savedAmount: `${CONTEST_DEMO_PREFIX}:saved-amount`,
+});
 
 export const readStoredValue = (key, fallback) => {
   try {
@@ -23,6 +52,13 @@ export const writeStoredValue = (key, value) => {
 
 export const clearStoredValue = (key) => {
   window.localStorage.removeItem(key);
+};
+
+export const resetContestDemoStorage = () => {
+  if (typeof window === "undefined") return;
+  for (const key of Object.values(contestDemoStorageKeys)) {
+    try { window.localStorage.removeItem(key); } catch {}
+  }
 };
 
 export const removeDemoSubscriptions = (items) =>

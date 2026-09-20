@@ -11,18 +11,11 @@ export default defineConfig(({ mode }) => {
     process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
   }
 
-  const geminiKey = env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || "";
-  const geminiModel = env.VITE_GEMINI_MODEL || env.GEMINI_MODEL || "gemini-3.5-flash-lite";
-
   return {
     plugins: [react(), localOcrApiPlugin()],
     server: {
       host: "127.0.0.1",
       port: 3000,
-    },
-    define: {
-      "import.meta.env.VITE_GEMINI_API_KEY": JSON.stringify(geminiKey),
-      "import.meta.env.VITE_GEMINI_MODEL": JSON.stringify(geminiModel),
     },
     build: {
       chunkSizeWarningLimit: 600,

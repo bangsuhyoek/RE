@@ -10,8 +10,8 @@ import {
   X,
 } from "lucide-react";
 
-import { API_BASE_URL, getApiEndpoint } from "../lib/apiBase";
-import { recognizeDirectly, isDirectGeminiAvailable } from "../lib/geminiOcr";
+import { API_BASE_URL, getApiEndpoint, isNativePlatform as isApiNativePlatform } from "../lib/apiBase";
+import { MAX_OCR_BASE64_CHARS, isOcrPayloadWithinLimit } from "../lib/ocrPayload";
 import {
   calculateEqualShare,
   normalizePaymentMethod,
@@ -206,30 +206,36 @@ function makeInitialForm(initialData, catalog) {
 
 const optimizeImageFile = (file) =>
   new Promise((resolve) => {
+    const finish = (base64, mimeType, optimized = false) => {
+      const payload = { imageBase64: base64, mimeType };
+      resolve({
+        base64,
+        mimeType,
+        optimized,
+        tooLarge:
+          !base64 ||
+          base64.length > MAX_OCR_BASE64_CHARS ||
+          !isOcrPayloadWithinLimit(payload),
+      });
+    };
+
     const fallback = () => {
       const reader = new FileReader();
 
       reader.onload = () => {
         const result = String(reader.result || "");
-        resolve({
-          base64: result.includes(",") ? result.split(",")[1] : result,
-          mimeType: file.type || "image/jpeg",
-        });
+        const base64 = result.includes(",") ? result.split(",")[1] : result;
+        finish(base64, file.type || "image/jpeg", false);
       };
 
-      reader.onerror = () =>
-        resolve({
-          base64: "",
-          mimeType: file.type || "image/jpeg",
-        });
-
+      reader.onerror = () => finish("", file.type || "image/jpeg", false);
       reader.readAsDataURL(file);
     };
 
     if (
       typeof window === "undefined" ||
       !window.URL?.createObjectURL ||
-      file.size < 1.5 * 1024 * 1024
+      typeof document === "undefined"
     ) {
       fallback();
       return;
@@ -242,40 +248,51 @@ const optimizeImageFile = (file) =>
       image.onload = () => {
         URL.revokeObjectURL(url);
 
-        const maxDimension = 1600;
-        let { width, height } = image;
+        const attempts = [
+          { maxDimension: 1600, quality: 0.86 },
+          { maxDimension: 1400, quality: 0.78 },
+          { maxDimension: 1200, quality: 0.70 },
+          { maxDimension: 1000, quality: 0.62 },
+        ];
 
-        if (width > maxDimension || height > maxDimension) {
-          if (width > height) {
-            height = Math.round((height * maxDimension) / width);
-            width = maxDimension;
-          } else {
-            width = Math.round((width * maxDimension) / height);
-            height = maxDimension;
+        let lastBase64 = "";
+        for (const attempt of attempts) {
+          let { width, height } = image;
+          if (width > attempt.maxDimension || height > attempt.maxDimension) {
+            if (width > height) {
+              height = Math.round((height * attempt.maxDimension) / width);
+              width = attempt.maxDimension;
+            } else {
+              width = Math.round((width * attempt.maxDimension) / height);
+              height = attempt.maxDimension;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const context = canvas.getContext("2d");
+          if (!context) {
+            fallback();
+            return;
+          }
+
+          context.drawImage(image, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/jpeg", attempt.quality);
+          const base64 = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
+          lastBase64 = base64;
+
+          if (
+            base64 &&
+            base64.length <= MAX_OCR_BASE64_CHARS &&
+            isOcrPayloadWithinLimit({ imageBase64: base64, mimeType: "image/jpeg" })
+          ) {
+            finish(base64, "image/jpeg", true);
+            return;
           }
         }
 
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-
-        const context = canvas.getContext("2d");
-
-        if (!context) {
-          fallback();
-          return;
-        }
-
-        context.drawImage(image, 0, 0, width, height);
-
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
-
-        resolve({
-          base64: dataUrl.includes(",")
-            ? dataUrl.split(",")[1]
-            : dataUrl,
-          mimeType: "image/jpeg",
-        });
+        finish(lastBase64, "image/jpeg", true);
       };
 
       image.onerror = () => {
@@ -290,13 +307,15 @@ const optimizeImageFile = (file) =>
   });
 
 async function callRecognitionApi(payload) {
-  if (!API_BASE_URL) {
-    if (isDirectGeminiAvailable()) {
-      return recognizeDirectly(payload);
-    }
-
+  if (isApiNativePlatform() && !API_BASE_URL) {
     throw new Error(
-      "AI 영수증 인식을 위해 백엔드 서버 또는 Gemini 설정이 필요합니다."
+      "모바일 앱에서 AI 영수증 인식을 사용하려면 배포된 백엔드 API 주소가 필요합니다."
+    );
+  }
+
+  if (!isOcrPayloadWithinLimit(payload)) {
+    throw new Error(
+      "이미지가 너무 커서 안전하게 전송할 수 없습니다. 더 작은 이미지를 선택해 주세요."
     );
   }
 
@@ -320,14 +339,9 @@ async function callRecognitionApi(payload) {
     );
 
     let result;
-
     try {
       result = await response.json();
     } catch {
-      if (isDirectGeminiAvailable()) {
-        return recognizeDirectly(payload);
-      }
-
       throw new Error(
         "서버 응답을 처리하지 못했습니다."
       );
@@ -342,19 +356,6 @@ async function callRecognitionApi(payload) {
 
     return result;
   } catch (error) {
-    if (
-      isDirectGeminiAvailable() &&
-      (
-        error.name === "AbortError" ||
-        (
-          error instanceof TypeError &&
-          error.message?.includes("fetch")
-        )
-      )
-    ) {
-      return recognizeDirectly(payload);
-    }
-
     if (error.name === "AbortError") {
       throw new Error(
         "이미지 인식 시간이 초과되었습니다. 다시 시도해 주세요."
@@ -905,7 +906,14 @@ export function AddModal({
       const {
         base64,
         mimeType,
+        tooLarge,
       } = await optimizeImageFile(file);
+
+      if (tooLarge) {
+        throw new Error(
+          "이미지를 충분히 줄이지 못했습니다. 화면을 잘라 다시 선택해 주세요."
+        );
+      }
 
       const result =
         await callRecognitionApi({

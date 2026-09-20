@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 import { openCancelBrowser } from "../lib/cancelBrowser";
-import { getCharacterAsset } from "../lib/characterAsset";
+import { CHARACTER_MASTER_ASSET } from "../lib/characterAsset";
 import {
   Lock,
   X,
@@ -45,33 +45,31 @@ const NAVER_PLUS_CANCEL_STEPS = [
 
 const NAVER_PLUS_TUTORIAL_HINTS = [
   {
-    locationBadge: "📍 목표 위치: 마이 멤버십 오른쪽 위 설정(⚙)",
+    locationBadge: "📍 지금 확인할 곳: 마이 멤버십 오른쪽 위 설정(⚙)",
     dialogue: () => "로그인이 필요하면 먼저 로그인해줘. 마이 멤버십이 열리면 오른쪽 위 [설정]을 누르면 돼.",
     tip: "NAVER 공식 안내의 시작점은 '네이버플러스 마이 멤버십 > 오른쪽 위 설정'입니다.",
   },
   {
-    locationBadge: "📍 목표 위치: 네이버플러스 멤버십 관리",
+    locationBadge: "📍 지금 확인할 곳: 네이버플러스 멤버십 관리",
     dialogue: () => "설정 화면에서 [네이버플러스 멤버십 관리]를 찾아 눌러줘.",
     tip: "프로필이나 일반 계정 설정이 아니라 '네이버플러스 멤버십 관리' 항목을 선택합니다.",
   },
   {
-    locationBadge: "📍 목표 위치: 네이버플러스 멤버십 해지하기",
+    locationBadge: "📍 지금 확인할 곳: 네이버플러스 멤버십 해지하기",
     dialogue: () => "멤버십 관리 화면에서 [네이버플러스 멤버십 해지하기]를 눌러 다음 화면으로 이동해줘.",
     tip: "이 단계에서는 아직 최종 해지가 완료되지 않습니다.",
   },
   {
-    locationBadge: "📍 목표 위치: 정기결제 해지",
+    locationBadge: "📍 지금 확인할 곳: 정기결제 해지",
     dialogue: () => "이번 이용 기간을 확인하고 [정기결제 해지]를 눌러줘.",
     tip: "다음 결제부터 중단하려는 경우 '멤버십 즉시 종료'가 아니라 '정기결제 해지'를 선택합니다.",
   },
   {
-    locationBadge: "📍 목표 위치: 최종 해지하기",
+    locationBadge: "📍 지금 확인할 곳: 최종 해지하기",
     dialogue: () => "마지막 [해지하기] 버튼은 실제 해지가 실행되는 단계야. 내용 확인 후 직접 선택해줘.",
     tip: "꾸독은 최종 해지 버튼을 대신 누르지 않습니다.",
   },
 ];
-
-const NAVER_CANCEL_CHARACTER = "/assets/kkudok/cancel_guide_character.png";
 
 function NaverPlusStepUiIllustration({ stepNumber, large = false }) {
   const config = {
@@ -105,116 +103,40 @@ function NaverPlusStepUiIllustration({ stepNumber, large = false }) {
   );
 }
 
-function StepUiIllustration({ stepNumber, title, serviceName, large = false, isNaverPlus = false }) {
+function StepUiIllustration({
+  stepNumber,
+  title,
+  description,
+  serviceName,
+  large = false,
+  isNaverPlus = false,
+}) {
   if (isNaverPlus) {
     return <NaverPlusStepUiIllustration stepNumber={stepNumber} large={large} />;
   }
 
-  if (stepNumber === 1) {
-    return (
-      <div className={`h-full w-full bg-[#111827] text-white p-3.5 flex flex-col justify-between select-none ${large ? "p-6" : ""}`}>
-        <div className="flex items-center justify-between border-b border-white/10 pb-2">
-          <span className={`font-bold tracking-wider text-white/60 uppercase ${large ? "text-[12px]" : "text-[9px]"}`}>
-            {serviceName}
-          </span>
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-        </div>
-        <div className={`space-y-2 my-auto ${large ? "max-w-xs mx-auto w-full space-y-3" : ""}`}>
-          <div className={`rounded bg-white/10 px-2.5 flex items-center text-white/50 border border-white/5 ${large ? "h-9 text-[12px]" : "h-5 text-[8px]"}`}>
-            user@email.com
-          </div>
-          <div className={`rounded bg-white/10 px-2.5 flex items-center text-white/50 border border-white/5 ${large ? "h-9 text-[12px]" : "h-5 text-[8px]"}`}>
-            ••••••••
-          </div>
-          <div className={`rounded bg-[#3182F6] font-bold flex items-center justify-center text-white shadow-xs ${large ? "h-10 text-[13px]" : "h-6 text-[9px]"}`}>
-            로그인
-          </div>
-        </div>
-        <span className={`text-white/40 text-center ${large ? "text-[12px]" : "text-[8px]"}`}>
-          공식 회원 계정 로그인 단계
-        </span>
-      </div>
-    );
-  }
-
-  if (stepNumber === 2) {
-    return (
-      <div className={`h-full w-full bg-[#111827] text-white p-3.5 flex flex-col justify-between select-none ${large ? "p-6" : ""}`}>
-        <div className="flex items-center justify-between border-b border-white/10 pb-2">
-          <span className={`font-bold text-white/60 ${large ? "text-[12px]" : "text-[9px]"}`}>
-            설정 / 프로필 메뉴
-          </span>
-          <span className={`text-blue-400 font-semibold ${large ? "text-[11px]" : "text-[8px]"}`}>
-            선택 필요
-          </span>
-        </div>
-        <div className={`space-y-1.5 my-auto ${large ? "max-w-xs mx-auto w-full space-y-2.5" : ""}`}>
-          <div className={`rounded bg-white/5 px-2.5 flex items-center text-white/40 ${large ? "h-8 text-[11px]" : "h-4 text-[8px]"}`}>
-            개인정보 설정
-          </div>
-          <div className={`rounded bg-blue-500/20 border border-blue-400 px-2.5 font-bold flex items-center justify-between text-white ${large ? "h-10 text-[13px]" : "h-5 text-[8px]"}`}>
-            <span>계정 및 멤버십 관리</span>
-            <span>▶</span>
-          </div>
-          <div className={`rounded bg-white/5 px-2.5 flex items-center text-white/40 ${large ? "h-8 text-[11px]" : "h-4 text-[8px]"}`}>
-            결제 수단 관리
-          </div>
-        </div>
-        <span className={`text-white/40 text-center ${large ? "text-[12px]" : "text-[8px]"}`}>
-          멤버십 / 계정 관리 메뉴 선택
-        </span>
-      </div>
-    );
-  }
-
-  if (stepNumber === 3) {
-    return (
-      <div className={`h-full w-full bg-[#111827] text-white p-3.5 flex flex-col justify-between select-none ${large ? "p-6" : ""}`}>
-        <div className="flex items-center justify-between border-b border-white/10 pb-2">
-          <span className={`font-bold text-white/60 ${large ? "text-[12px]" : "text-[9px]"}`}>
-            구독 플랜 상세
-          </span>
-          <span className={`text-amber-400 font-semibold ${large ? "text-[11px]" : "text-[8px]"}`}>
-            이용 중
-          </span>
-        </div>
-        <div className={`space-y-2 my-auto ${large ? "max-w-xs mx-auto w-full space-y-3" : ""}`}>
-          <div className={`rounded bg-white/5 p-2 text-white/70 border border-white/5 ${large ? "text-[11px]" : "text-[8px]"}`}>
-            <span className="block font-bold">현재 이용 요금제</span>
-            <span className="text-white/50">다음 결제일에 자동 결제 예정</span>
-          </div>
-          <div className={`rounded bg-red-600 font-bold flex items-center justify-center text-white shadow-xs ${large ? "h-10 text-[13px]" : "h-6 text-[9px]"}`}>
-            멤버십 해지하기
-          </div>
-        </div>
-        <span className={`text-red-300 text-center font-medium ${large ? "text-[12px]" : "text-[8px]"}`}>
-          해지 / 정기결제 취소 버튼 클릭
-        </span>
-      </div>
-    );
-  }
-
   return (
-    <div className={`h-full w-full bg-[#111827] text-white p-3.5 flex flex-col justify-between select-none ${large ? "p-6" : ""}`}>
-      <div className="flex items-center justify-between border-b border-white/10 pb-2">
-        <span className={`font-bold text-emerald-400 ${large ? "text-[12px]" : "text-[9px]"}`}>
-          해지 처리 확인
+    <div
+      className={`h-full w-full bg-[#F7F8FA] p-3.5 flex flex-col justify-between select-none ${large ? "p-6" : ""}`}
+    >
+      <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+        <span className={`font-extrabold text-[#191F28] ${large ? "text-[12px]" : "text-[9px]"}`}>
+          {serviceName} 공식 가이드
         </span>
-        <span className="h-2 w-2 rounded-full bg-emerald-400" />
-      </div>
-      <div className="text-center my-auto py-2">
-        <div className={`mx-auto grid place-items-center rounded-full bg-emerald-500/20 text-emerald-400 mb-2 ${large ? "h-10 w-10 text-[18px]" : "h-6 w-6 text-[12px]"}`}>
-          ✓
-        </div>
-        <span className={`block font-bold text-white ${large ? "text-[14px]" : "text-[9px]"}`}>
-          해지 신청이 완료되었습니다
-        </span>
-        <span className={`block text-white/60 mt-0.5 ${large ? "text-[11px]" : "text-[7px]"}`}>
-          다음 결제일에 추가 청구되지 않습니다
+        <span className={`font-bold text-[#3182F6] ${large ? "text-[11px]" : "text-[8px]"}`}>
+          Step {stepNumber}
         </span>
       </div>
-      <span className={`text-emerald-300 text-center font-medium ${large ? "text-[12px]" : "text-[8px]"}`}>
-        해지 완료 화면 확인
+      <div className={`my-auto rounded-xl border border-[#DCE4F8] bg-white px-3 py-3 text-left ${large ? "max-w-xs mx-auto w-full" : ""}`}>
+        <p className={`font-extrabold text-[#191F28] ${large ? "text-[13px]" : "text-[9px]"}`}>
+          {title}
+        </p>
+        <p className={`mt-1 leading-relaxed text-[#6B7684] ${large ? "text-[11px]" : "text-[7.5px]"}`}>
+          {description}
+        </p>
+      </div>
+      <span className={`text-center font-semibold text-[#8B95A1] ${large ? "text-[10px]" : "text-[7px]"}`}>
+        실제 버튼 위치는 추정하지 않고 공식 절차만 안내해요
       </span>
     </div>
   );
@@ -222,22 +144,22 @@ function StepUiIllustration({ stepNumber, title, serviceName, large = false, isN
 
 const TUTORIAL_HINTS = [
   {
-    locationBadge: "📍 목표 위치: 화면 중앙 로그인 창",
+    locationBadge: "📍 지금 확인할 곳: 화면 중앙 로그인 창",
     dialogue: (name) => `${name} 공식 사이트가 열렸어! 먼저 계정으로 로그인해줘. 이미 로그인되어 있다면 바로 2단계로 넘어가자!`,
     tip: "소셜 로그인(Google, 카카오 등)을 사용하는 경우 해당 소셜 계정으로 로그인하세요.",
   },
   {
-    locationBadge: "📍 목표 위치: 화면 우측 상단 프로필 / 메뉴 (↗)",
+    locationBadge: "📍 지금 확인할 곳: 화면 우측 상단 프로필 / 메뉴 (↗)",
     dialogue: () => `화면 우측 상단(↗)에 있는 프로필 아이콘이나 메뉴(☰)를 눌러서 [계정] 또는 [멤버십 관리] 메뉴를 찾아봐!`,
     tip: "대부분의 서비스는 우측 상단 프로필 > 계정/설정에 구독 관리 메뉴가 위치해 있어요.",
   },
   {
-    locationBadge: "📍 목표 위치: 페이지 하단 스크롤 영역 (⬇)",
+    locationBadge: "📍 지금 확인할 곳: 페이지 하단 스크롤 영역 (⬇)",
     dialogue: () => `페이지를 아래(⬇)로 쭉 스크롤해봐! 찾기 어렵게 회색 작은 글씨나 링크로 [멤버십 해지]나 [구독 취소]가 숨겨져 있어. 과감하게 눌러줘!`,
     tip: "해지 버튼은 종종 '혜택 유지' 버튼보다 눈에 덜 띄는 텍스트나 하단 구석에 배치되어 있어요.",
   },
   {
-    locationBadge: "📍 목표 위치: 혜택 제안 넘긴 후 최종 완료 팝업 (✓)",
+    locationBadge: "📍 지금 확인할 곳: 혜택 제안 넘긴 후 최종 완료 팝업 (✓)",
     dialogue: () => `할인해 주겠다며 붙잡는 혜택 제안들을 넘기고 최종 [해지 완료] 메시지를 확인하면 완벽해! 다 했으면 아래 [해지 완료했습니다]를 눌러줘!`,
     tip: "최종 완료 화면을 확인한 후 아래 '해지 완료했습니다'를 누르면 절약 금액이 반영돼요.",
   },
@@ -283,30 +205,21 @@ export function CancelBrowserModal({
       ? subscription.guideSteps
       : defaultSteps;
 
-  const tutorialHints = isNaverPlus ? NAVER_PLUS_TUTORIAL_HINTS : TUTORIAL_HINTS;
+  const tutorialHints = isNaverPlus
+    ? NAVER_PLUS_TUTORIAL_HINTS
+    : steps.map((step) => ({
+        locationBadge: "📍 공식 페이지 단계 안내",
+        dialogue: () => step.description,
+        tip: "실제 버튼 위치를 임의로 추정하지 않으며 최종 취소는 사용자가 직접 선택합니다.",
+      }));
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [minimized, setMinimized] = useState(false);
-  const [customCharacterSrc, setCustomCharacterSrc] = useState(null);
   const scrollContainerRef = useRef(null);
-
-  useEffect(() => {
-    let active = true;
-    getCharacterAsset().then((asset) => {
-      if (active) setCustomCharacterSrc(asset?.hasCustom ? asset.src : null);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
   const currentStep = steps[activeStepIndex] || steps[0];
   const stepHint = tutorialHints[Math.min(activeStepIndex, tutorialHints.length - 1)];
 
   const isFinalStep = activeStepIndex === steps.length - 1;
-  const characterImg = customCharacterSrc || (isNaverPlus
-    ? NAVER_CANCEL_CHARACTER
-    : isFinalStep
-      ? "/assets/kkudok/character_done.png"
-      : "/assets/kkudok/character_guide.png");
+  const characterImg = CHARACTER_MASTER_ASSET;
 
   const displayUrl = (() => {
     try {
@@ -325,6 +238,10 @@ export function CancelBrowserModal({
         serviceName: subscription.name,
         cancelUrl: subscription.cancelUrl,
         guideSteps: steps,
+        allowedDomains: subscription.cancellationGuide?.allowedDomains || [],
+        guideMode: subscription.cancellationGuide?.guideMode || "MANUAL_OFFICIAL",
+        officialSourceUrl: subscription.cancellationGuide?.officialSourceUrl || "",
+        fallbackOfficialUrl: subscription.cancellationGuide?.fallbackOfficialUrl || "",
       });
       if (result?.action === "COMPLETED") {
         onComplete?.();
@@ -376,7 +293,7 @@ export function CancelBrowserModal({
             {currentStep.title}
           </p>
           <p className="text-[10px] text-gray-500 truncate">
-            탭하여 튜토리얼 카드 열기
+            탭하여 해지 안내 열기
           </p>
         </button>
 
@@ -385,11 +302,11 @@ export function CancelBrowserModal({
           <button
             type="button"
             onClick={() => setMinimized(false)}
-            aria-label="튜토리얼 열기"
+            aria-label="해지 안내 열기"
             className="group relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-2xl ring-4 ring-white transition-all active:scale-90 hover:scale-105 cursor-pointer animate-tutorial-float overflow-hidden"
           >
             <img
-              src={customCharacterSrc || (isNaverPlus ? NAVER_CANCEL_CHARACTER : "/assets/kkudok/character_mascot.png")}
+              src={CHARACTER_MASTER_ASSET}
               alt="꾸독이"
               className="h-13 w-13 object-contain drop-shadow"
             />
@@ -424,7 +341,7 @@ export function CancelBrowserModal({
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <p className="text-[13px] font-extrabold text-[#191F28] leading-tight truncate">
-                {subscription.name} 해지 튜토리얼
+                {subscription.name} 해지 안내
               </p>
               <span className="rounded-full bg-blue-100 px-1.5 py-0.2 text-[9px] font-bold text-blue-700">
                 컨시어지
@@ -447,15 +364,6 @@ export function CancelBrowserModal({
             <Minimize2 size={13} />
             <span className="hidden sm:inline">최소화</span>
           </button>
-          {!isNaverPlus && (
-            <button
-              type="button"
-              onClick={onComplete}
-              className="rounded-xl bg-[#191F28] px-3 py-1.5 text-[12px] font-bold text-white shadow-xs hover:bg-black active:scale-95 transition-all cursor-pointer"
-            >
-              해지 완료
-            </button>
-          )}
           <button
             type="button"
             onClick={onClose}
@@ -531,6 +439,7 @@ export function CancelBrowserModal({
             <StepUiIllustration
               stepNumber={currentStep.stepNumber}
               title={currentStep.title}
+              description={currentStep.description}
               serviceName={subscription.name}
               large
               isNaverPlus={isNaverPlus}
@@ -541,20 +450,50 @@ export function CancelBrowserModal({
           <div className="w-full rounded-xl bg-gray-100/90 px-3 py-2 border border-gray-200/60 flex items-center gap-2">
             <ShieldCheck size={16} className="text-gray-500 shrink-0" />
             <p className="text-[10px] text-gray-600 leading-tight">
-              <span className="font-bold text-gray-800">보안 안내:</span> 개인정보 및 금융 보안을 위해 외부 웹 화면을 캡처하거나 인식하지 않고 사전 검증된 튜토리얼 경로로 안내합니다.
+              <span className="font-bold text-gray-800">보안 안내:</span> 개인정보 및 금융 보안을 위해 외부 웹 화면을 캡처하거나 인식하지 않고 사전 확인된 공식 절차를 기준으로 안내합니다.
             </p>
           </div>
 
+          {subscription.cancellationGuide?.billingChannel === "NETFLIX_OR_BILLING_PARTNER" && (
+            <div className="w-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[10.5px] leading-4 text-amber-900">
+              Netflix 계정에서 해지 버튼이 보이지 않으면 결제 파트너를 통해 해지해야 할 수 있어요.
+            </div>
+          )}
+
           {/* 주요 액션 버튼 */}
           <div className="w-full space-y-2">
-            <button
-              type="button"
-              onClick={openWebsite}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#191F28] py-3 text-[13px] font-bold text-white shadow-xs hover:bg-black active:scale-98 transition-all cursor-pointer"
-            >
-              <span>{subscription.name} 공식 웹사이트 열기</span>
-              <ExternalLink size={14} />
-            </button>
+            {Capacitor.isNativePlatform() ? (
+              <button
+                type="button"
+                onClick={openWebsite}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#191F28] py-3 text-[13px] font-bold text-white shadow-xs hover:bg-black active:scale-98 transition-all cursor-pointer"
+              >
+                <span>{subscription.name} 공식 웹사이트 열기</span>
+                <ExternalLink size={14} />
+              </button>
+            ) : (
+              <a
+                href={subscription.cancelUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#191F28] py-3 text-[13px] font-bold text-white shadow-xs hover:bg-black active:scale-98 transition-all"
+              >
+                <span>{subscription.name} 공식 웹사이트 열기</span>
+                <ExternalLink size={14} />
+              </a>
+            )}
+
+            {subscription.cancellationGuide?.officialSourceUrl && (
+              <a
+                href={subscription.cancellationGuide.officialSourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#E5E8EB] bg-white py-2.5 text-[11.5px] font-bold text-[#4E5968]"
+              >
+                공식 해지 안내 확인
+                <ExternalLink size={13} />
+              </a>
+            )}
 
             {isFinalStep && !isNaverPlus && (
               <button
@@ -563,7 +502,7 @@ export function CancelBrowserModal({
                 className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#3182F6] py-3 text-[13px] font-extrabold text-white shadow-md hover:bg-[#1B64DA] active:scale-98 transition-all cursor-pointer animate-pulse"
               >
                 <CheckCircle2 size={16} />
-                <span>해지를 완료했습니다 (절약 금액 반영)</span>
+                <span>해지를 완료했어요</span>
               </button>
             )}
           </div>
@@ -575,7 +514,7 @@ export function CancelBrowserModal({
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-1.5">
             <span className="text-[12px] font-bold text-[#191F28]">
-              튜토리얼 진행 단계
+              해지 진행 단계
             </span>
             <span className="rounded-full bg-gray-100 px-1.5 py-0.2 text-[10px] font-bold text-gray-600">
               {activeStepIndex + 1}/{steps.length}
@@ -625,6 +564,7 @@ export function CancelBrowserModal({
                 <StepUiIllustration
                   stepNumber={step.stepNumber}
                   title={step.title}
+                  description={step.description}
                   serviceName={subscription.name}
                   isNaverPlus={isNaverPlus}
                 />

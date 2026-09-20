@@ -10,6 +10,8 @@ import { AccountModal } from "./components/AccountModal";
 import { TermsModal } from "./components/TermsModal";
 import { requestPaymentCapturePermission, simulatePaymentDetection } from "./lib/paymentCapture";
 import { isNativePlatform } from "./lib/platform";
+import { detectPaymentNotification, PaymentDecision } from "./features/payment/paymentDetection.js";
+import { getDemoPaymentFixture } from "./features/payment/paymentFixtures.js";
 import { CancelModal } from "./components/CancelModal";
 import { HomeScreen } from "./components/HomeScreen";
 import { OnboardingScreen } from "./components/OnboardingScreen";
@@ -17,12 +19,24 @@ import { PromotionScreen } from "./components/PromotionScreen";
 import { RenewalSheet } from "./components/RenewalSheet";
 import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from "./components/SubscriptionScreens";
 import { NotificationCenterModal } from "./components/NotificationComponents";
+import { ContestDemoPanel } from "./components/ContestDemoPanel";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
 import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
-import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue } from "./lib/storage";
+import {
+  removeDemoSubscriptions,
+  getStoredUsers,
+  saveUser,
+  findUser,
+  storageKeys,
+  readStoredValue,
+  isContestDemoActive,
+  setContestDemoActive,
+  resetContestDemoStorage,
+} from "./lib/storage";
 import { generateSubscriptionAlerts } from "./lib/notifications";
 import { useNavigation } from "./hooks/useNavigation";
 import { useBenefits } from "./hooks/useBenefits";
+import { summarizePublishedConfirmedSavings } from "./features/benefits/presentation/recommendationViewModel.js";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
 import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubscription } from "./lib/supabase";
@@ -34,6 +48,13 @@ export default function App() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [termsTab, setTermsTab] = useState("terms");
+  const [contestDemoActive, setContestDemoActiveState] = useState(
+    () => !isNativePlatform() && isContestDemoActive()
+  );
+  const [demoPhase, setDemoPhase] = useState("IDLE");
+  const [demoFixture, setDemoFixture] = useState(null);
+  const [demoResult, setDemoResult] = useState(null);
+  const demoRunTokenRef = useRef(0);
   const [toast, setToast] = useState(null);
   const [showSplash, setShowSplash] = useState(() => {
     if (typeof window !== "undefined") {
@@ -154,6 +175,40 @@ export default function App() {
     }
   };
 
+  const runWebPaymentDemo = useCallback(async (fixtureId = "netflix-shinhan") => {
+    const fixture = getDemoPaymentFixture(fixtureId);
+    if (!fixture) return;
+
+    const token = ++demoRunTokenRef.current;
+    setDemoFixture(fixture);
+    setDemoResult(null);
+    setDemoPhase("INCOMING");
+
+    await new Promise((resolve) => window.setTimeout(resolve, 650));
+    if (demoRunTokenRef.current !== token) return;
+    setDemoPhase("ANALYZING");
+
+    await new Promise((resolve) => window.setTimeout(resolve, 650));
+    if (demoRunTokenRef.current !== token) return;
+
+    const result = detectPaymentNotification(fixture.rawEvent);
+    setDemoResult(result);
+
+    if (result.decision === PaymentDecision.MATCH) {
+      setDemoPhase("MATCHED");
+      setQuickAddData(result.candidate);
+      setAddInitialMode("quick-detect");
+      setAddOpen(true);
+      notify(
+        `⚡ ${result.candidate.name} ${Number(result.candidate.amount).toLocaleString("ko-KR")}원 구독 결제를 확인했어요.`
+      );
+      return;
+    }
+
+    setDemoPhase("REJECTED");
+    notify("구독 결제로 판단되지 않아 등록하지 않았어요.");
+  }, [notify]);
+
   const handleTestPaymentDetection = async () => {
     if (isNativePlatform()) {
       await simulatePaymentDetection({
@@ -162,23 +217,10 @@ export default function App() {
         body: "넷플릭스 17,000원(일시불) 정상승인",
       });
       notify("⚡ 넷플릭스 17,000원 결제 알림이 발송되었습니다!");
-    } else {
-      setQuickAddData({
-        name: "Netflix",
-        amount: 17000,
-        plan: "프리미엄",
-        paymentMethod: "신한카드",
-        category: "OTT",
-        serviceId: "netflix",
-        dueDay: new Date().getDate(),
-        billingCycle: "매월",
-        sourceType: "sms",
-        autoDetected: true,
-      });
-      setAddInitialMode("quick-detect");
-      setAddOpen(true);
-      notify("⚡ 넷플릭스 17,000원 결제가 감지되었습니다! (체험 시뮬레이션)");
+      return;
     }
+
+    await runWebPaymentDemo("netflix-shinhan");
   };
 
   // Subscriptions domain state
@@ -216,9 +258,14 @@ export default function App() {
     reload: reloadBenefits,
     source: benefitsSource,
   } = useBenefits({
-    enabled: screen.route === "promotions",
+    enabled: screen.route === "promotions" || screen.route === "home",
     subscriptions,
   });
+
+  const homeBenefitSummary = useMemo(
+    () => summarizePublishedConfirmedSavings(benefitRecommendations),
+    [benefitRecommendations]
+  );
 
   // Notifications domain state
   const {
@@ -238,10 +285,74 @@ export default function App() {
     clearAll,
   } = useNotificationManager({ subscriptions });
 
+  const handleStartContestDemo = useCallback(() => {
+    if (isNativePlatform()) return;
+    demoRunTokenRef.current += 1;
+    resetContestDemoStorage();
+    setContestDemoActive(true);
+    setContestDemoActiveState(true);
+    setDemoPhase("IDLE");
+    setDemoFixture(null);
+    setDemoResult(null);
+    setProfile({
+      nickname: "사용자",
+      provider: "Web",
+      contestDemo: true,
+      guest: false,
+      notificationsAllowed: true,
+    });
+    setSubscriptions([]);
+    setOnboardingComplete(true);
+    setNotifications([]);
+    navigate("home");
+    notify("바로 시작할게요. 최근 결제에서 구독을 찾아보세요.");
+  }, [navigate, notify, setNotifications, setOnboardingComplete, setProfile, setSubscriptions]);
+
+  const handleResetContestDemo = useCallback(() => {
+    if (!contestDemoActive) return;
+    demoRunTokenRef.current += 1;
+    resetContestDemoStorage();
+    setContestDemoActive(true);
+    setDemoPhase("IDLE");
+    setDemoFixture(null);
+    setDemoResult(null);
+    setAddOpen(false);
+    setQuickAddData(null);
+    setProfile({
+      nickname: "사용자",
+      provider: "Web",
+      contestDemo: true,
+      guest: false,
+      notificationsAllowed: true,
+    });
+    setSubscriptions([]);
+    setOnboardingComplete(true);
+    setNotifications([]);
+    navigate("home");
+    notify("등록 내용을 초기화했어요.");
+  }, [contestDemoActive, navigate, notify, setNotifications, setOnboardingComplete, setProfile, setSubscriptions]);
+
+  const handleExitContestDemo = useCallback(() => {
+    demoRunTokenRef.current += 1;
+    resetContestDemoStorage();
+    setContestDemoActive(false);
+    setContestDemoActiveState(false);
+    setDemoPhase("IDLE");
+    setDemoFixture(null);
+    setDemoResult(null);
+    setAddOpen(false);
+    setQuickAddData(null);
+    setProfile(null);
+    setSubscriptions([]);
+    setNotifications([]);
+    navigate("login");
+    notify("로그인 화면으로 돌아왔어요.");
+  }, [navigate, notify, setNotifications, setProfile, setSubscriptions]);
+
   
   // Supabase Auth session & state change listener
   useEffect(() => {
-    if (!supabase) return;
+    if (!supabase || contestDemoActive) return;
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -305,7 +416,7 @@ export default function App() {
     return () => {
       subscription?.unsubscribe();
     };
-  }, [navigate, notify, setOnboardingComplete, setProfile, setSubscriptions]);
+  }, [contestDemoActive, navigate, notify, setOnboardingComplete, setProfile, setSubscriptions]);
 
   // Handle URL query actions (?notifications=1)
   useEffect(() => {
@@ -410,6 +521,10 @@ export default function App() {
   };
 
   const handleLogout = async () => {
+    if (contestDemoActive) {
+      handleExitContestDemo();
+      return;
+    }
     setAccountOpen(false);
     googleAuthNotifiedUserRef.current = null;
     if (typeof window !== "undefined") {
@@ -509,8 +624,18 @@ export default function App() {
         onShowAll={() => navigate("subscriptions")}
         onOpenPromotion={handlePromotion}
         onExplorePromotions={() => navigate("promotions")}
+        benefitSummary={homeBenefitSummary}
+        benefitsLoading={benefitsLoading}
         onAdd={() => { setAddInitialMode("manual"); setAddOpen(true); }}
-        onScan={() => { setAddInitialMode("ai"); setAddOpen(true); }}
+        onScan={() => {
+          if (!isNativePlatform() && contestDemoActive) {
+            runWebPaymentDemo("netflix-shinhan");
+            return;
+          }
+          setAddInitialMode("ai");
+          setAddOpen(true);
+        }}
+        webPaymentMode={!isNativePlatform() && contestDemoActive}
         onStartOnboarding={() => navigate("onboarding")}
         onToggleNotificationPermission={() =>
           handleTogglePermissionFromHome(
@@ -564,6 +689,7 @@ export default function App() {
         onUpdate={(id, update) => updateSubscription(id, update, notify)}
         onStartCancel={startCancellation}
         onBack={() => {
+          closeCancellation();
           setHighlightCancelId(null);
           navigate("subscriptions");
         }}
@@ -584,6 +710,7 @@ export default function App() {
         onSocial={handleSocialLogin}
         onLogin={handleIdLogin}
         onRegister={() => navigate("register")}
+        onDemo={!isNativePlatform() ? handleStartContestDemo : undefined}
       />
     );
   }
@@ -715,6 +842,19 @@ export default function App() {
           onLogout={handleLogout}
         />
       )}
+      <ContestDemoPanel
+        active={
+          contestDemoActive &&
+          Boolean(profile?.contestDemo) &&
+          screen.route === "home" &&
+          subscriptions.length > 0
+        }
+        phase={demoPhase}
+        fixture={demoFixture}
+        result={demoResult}
+        onRunScenario={runWebPaymentDemo}
+        onReset={handleResetContestDemo}
+      />
       <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );

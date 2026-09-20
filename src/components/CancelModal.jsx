@@ -7,6 +7,10 @@ import { formatWon } from "../lib/dates";
 import { CancelBrowserModal } from "./CancelBrowserModal";
 import { serviceCatalog } from "../data/subscriptionData";
 import {
+  CancellationGuideStatus,
+  prepareCancellationGuide,
+} from "../features/cancellation/cancellationGuideEngine";
+import {
   openCancelBrowser,
   checkOverlayPermission,
   requestOverlayPermission,
@@ -21,30 +25,53 @@ const baseSteps = [
 ];
 
 export function CancelModal({ subscription: rawSub, promotion, autoOpen = false, onClose, onComplete, onToast }) {
-  // DB 구독 데이터에 guideSteps나 cancelUrl이 누락되어도 serviceCatalog에서 100% 매칭 보강
+  // 자주 사용하는 서비스는 검증된 공식 cancellation registry를 우선 사용한다.
   const subscription = useMemo(() => {
     const targetName = (rawSub.name || "").toLowerCase().replace(/\s+/g, "");
-    const targetId = (rawSub.id || rawSub.subscriptionId || "").toLowerCase();
+    const targetId = (rawSub.id || rawSub.serviceId || rawSub.subscriptionId || "").toLowerCase();
     const matched = serviceCatalog.find((s) => {
       const sId = (s.id || "").toLowerCase();
       const sName = (s.name || "").toLowerCase().replace(/\s+/g, "");
       return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);
     });
+    const prepared = prepareCancellationGuide({
+      ...rawSub,
+      id: matched?.id || rawSub.id,
+      serviceId: matched?.id || rawSub.serviceId,
+    });
+
+    if (prepared.guide) {
+      return {
+        ...rawSub,
+        id: matched?.id || rawSub.id,
+        cancellationGuide: prepared.guide,
+        cancellationGuideStatus: prepared.status,
+        cancellationSupportReason: prepared.reason,
+        cancelUrl: prepared.cancelUrl,
+        guideSteps: prepared.guideSteps,
+      };
+    }
 
     return {
       ...rawSub,
       cancelUrl: rawSub.cancelUrl || matched?.cancelUrl || "",
-      guideSteps: (rawSub.guideSteps && rawSub.guideSteps.length > 0) ? rawSub.guideSteps : (matched?.guideSteps || []),
+      guideSteps: (rawSub.guideSteps && rawSub.guideSteps.length > 0)
+        ? rawSub.guideSteps
+        : (matched?.guideSteps || []),
     };
   }, [rawSub]);
 
-  const steps = (subscription.guideSteps && subscription.guideSteps.length > 0)
-    ? subscription.guideSteps.map((s) => ({ title: s.title, description: s.description }))
-    : baseSteps.map((s) => ({ title: "", description: s }));
+  const verifiedDeferred =
+    subscription.cancellationGuideStatus === CancellationGuideStatus.DEFERRED;
+  const steps = verifiedDeferred
+    ? []
+    : (subscription.guideSteps && subscription.guideSteps.length > 0)
+      ? subscription.guideSteps.map((s) => ({ title: s.title, description: s.description }))
+      : baseSteps.map((s) => ({ title: "", description: s }));
 
   const [checked, setChecked] = useState(() => new Array(steps.length).fill(false));
   const [celebrating, setCelebrating] = useState(false);
-  const [showBrowserModal, setShowBrowserModal] = useState(() => Boolean(autoOpen && rawSub.cancelUrl));
+  const [showBrowserModal, setShowBrowserModal] = useState(() => Boolean(autoOpen && subscription.cancelUrl));
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
   const [cancelSessionActive, setCancelSessionActive] = useState(false);
 
@@ -77,6 +104,10 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
       serviceName: subscription.name,
       cancelUrl: subscription.cancelUrl,
       guideSteps: subscription.guideSteps,
+      allowedDomains: subscription.cancellationGuide?.allowedDomains || [],
+      guideMode: subscription.cancellationGuide?.guideMode || "MANUAL_OFFICIAL",
+      officialSourceUrl: subscription.cancellationGuide?.officialSourceUrl || "",
+      fallbackOfficialUrl: subscription.cancellationGuide?.fallbackOfficialUrl || "",
     });
 
     if (res?.action === "COMPLETED") {
@@ -109,6 +140,10 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
       serviceName: subscription.name,
       cancelUrl: subscription.cancelUrl,
       guideSteps: subscription.guideSteps,
+      allowedDomains: subscription.cancellationGuide?.allowedDomains || [],
+      guideMode: subscription.cancellationGuide?.guideMode || "MANUAL_OFFICIAL",
+      officialSourceUrl: subscription.cancellationGuide?.officialSourceUrl || "",
+      fallbackOfficialUrl: subscription.cancellationGuide?.fallbackOfficialUrl || "",
     });
     if (res?.action === "COMPLETED") {
       complete();
@@ -219,6 +254,7 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
     return (
       <CancelBrowserModal
         subscription={subscription}
+        cancellationGuide={subscription.cancellationGuide}
         autoOpened={autoOpen}
         onClose={() => {
           setShowBrowserModal(false);
@@ -305,7 +341,11 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
             onClick={goToCancel}
             prefixIcon={<ExternalLink size={17} />}
           >
-            {subscription.cancelUrl ? "해지 페이지로 바로 이동 (가이드 포함)" : "해지 링크를 찾지 못했어요"}
+            {subscription.cancelUrl
+              ? "해지 페이지로 바로 이동 (가이드 포함)"
+              : verifiedDeferred
+                ? "공식 해지 경로 확인 중"
+                : "해지 링크를 찾지 못했어요"}
           </Button>
           <Button
             size="large"
@@ -317,7 +357,13 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
           </Button>
         </div>
       )}
-      {!subscription.cancelUrl && <p className="mt-2 text-center text-[12px] font-medium text-[#FF4D4D]">이 서비스의 해지 URL이 DB에 등록되어 있지 않습니다.</p>}
+      {!subscription.cancelUrl && (
+        <p className="mt-2 rounded-xl bg-[#F9FAFB] px-3 py-2.5 text-center text-[12px] font-medium leading-5 text-[#6B7684]">
+          {verifiedDeferred
+            ? subscription.cancellationSupportReason
+            : "이 서비스의 검증된 공식 해지 URL을 찾지 못했어요."}
+        </p>
+      )}
 
       {subscription.cancelUrl && (
         <button
@@ -329,34 +375,39 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
         </button>
       )}
 
-      <section className="mt-5">
-        <div className="flex items-center justify-between"><h3 className="text-[15px] font-bold text-[#191F28]">해지 가이드</h3><span className="text-[12px] font-semibold text-[#8B95A1]">Step 1–{steps.length}</span></div>
-        <ol className="mt-3 space-y-2">
-          {steps.map((step, index) => (
-            <li key={index}>
-              <button
-                type="button"
-                onClick={() => setChecked((current) => current.map((value, itemIndex) => itemIndex === index ? !value : value))}
-                className={"flex w-full items-start gap-3 rounded-2xl border p-3.5 text-left transition-all active:scale-[0.99] " + (checked[index] ? "border-[#191F28] bg-[#F9FAFB] shadow-2xs" : "border-[#E5E8EB] bg-white hover:border-[#D1D6DB]")}
-              >
-                <span className={"grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold mt-0.5 " + (checked[index] ? "bg-[#191F28] text-white" : "bg-[#F2F4F6] text-[#8B95A1]")}>
-                  {checked[index] ? <Check size={14} strokeWidth={3} /> : index + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  {step.title && (
-                    <span className={"block text-[11px] font-bold mb-0.5 " + (checked[index] ? "text-[#191F28]" : "text-[#8B95A1]")}>
-                      {step.title}
-                    </span>
-                  )}
-                  <span className={"text-[13px] leading-snug " + (checked[index] ? "font-bold text-[#191F28]" : "font-medium text-[#6B7684]")}>
-                    {step.description}
+      {steps.length > 0 && (
+        <section className="mt-5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[15px] font-bold text-[#191F28]">해지 가이드</h3>
+            <span className="text-[12px] font-semibold text-[#8B95A1]">Step 1–{steps.length}</span>
+          </div>
+          <ol className="mt-3 space-y-2">
+            {steps.map((step, index) => (
+              <li key={index}>
+                <button
+                  type="button"
+                  onClick={() => setChecked((current) => current.map((value, itemIndex) => itemIndex === index ? !value : value))}
+                  className={"flex w-full items-start gap-3 rounded-2xl border p-3.5 text-left transition-all active:scale-[0.99] " + (checked[index] ? "border-[#191F28] bg-[#F9FAFB] shadow-2xs" : "border-[#E5E8EB] bg-white hover:border-[#D1D6DB]")}
+                >
+                  <span className={"grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold mt-0.5 " + (checked[index] ? "bg-[#191F28] text-white" : "bg-[#F2F4F6] text-[#8B95A1]")}>
+                    {checked[index] ? <Check size={14} strokeWidth={3} /> : index + 1}
                   </span>
-                </div>
-              </button>
-            </li>
-          ))}
-        </ol>
-      </section>
+                  <div className="min-w-0 flex-1">
+                    {step.title && (
+                      <span className={"block text-[11px] font-bold mb-0.5 " + (checked[index] ? "text-[#191F28]" : "text-[#8B95A1]")}>
+                        {step.title}
+                      </span>
+                    )}
+                    <span className={"text-[13px] leading-snug " + (checked[index] ? "font-bold text-[#191F28]" : "font-medium text-[#6B7684]")}>
+                      {step.description}
+                    </span>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       <div className="mt-6 rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-4"><div className="flex gap-2.5"><ShieldCheck className="shrink-0 text-[#6B7684]" size={18} /><p className="text-[12px] leading-relaxed text-[#6B7684]">꾸독은 해지를 대행하지 않아요. 해지 완료 여부는 서비스 화면에서 확인한 뒤 아래 버튼을 눌러주세요.</p></div></div>
       <Button size="large" fullWidth variant="secondary" className="mt-4" onClick={complete}>해지 완료했습니다</Button>

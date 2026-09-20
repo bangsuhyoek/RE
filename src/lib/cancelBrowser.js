@@ -52,6 +52,9 @@ export async function startFloatingGuide(options, onCompleteCallback) {
         serviceName: options.serviceName || "",
         cancelUrl: options.cancelUrl || "",
         guideSteps: options.guideSteps || [],
+        allowedDomains: options.allowedDomains || [],
+        guideMode: options.guideMode || "MANUAL_OFFICIAL",
+        fallbackOfficialUrl: options.fallbackOfficialUrl || "",
       });
       return { success: true };
     } catch (err) {
@@ -92,6 +95,10 @@ export async function openCancelBrowser(options) {
         serviceName: options.serviceName || "",
         cancelUrl: options.cancelUrl || "",
         guideSteps: options.guideSteps || [],
+        allowedDomains: options.allowedDomains || [],
+        guideMode: options.guideMode || "MANUAL_OFFICIAL",
+        officialSourceUrl: options.officialSourceUrl || "",
+        fallbackOfficialUrl: options.fallbackOfficialUrl || "",
       });
       return result;
     } catch (err) {

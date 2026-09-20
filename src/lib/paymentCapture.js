@@ -1,13 +1,21 @@
 import { registerPlugin } from "@capacitor/core";
 import { isNativePlatform } from "./platform.js";
+import { detectPaymentNotification, PaymentDecision } from "../features/payment/paymentDetection.js";
 
 export const PaymentCapture = registerPlugin("PaymentCapture", {
   web: {
     checkPermission: async () => ({ hasPermission: false, isSupported: false }),
     requestPermission: async () => ({ status: "UNSUPPORTED" }),
-    simulatePayment: async (options) => {
-      console.log("[PaymentCapture Web Mock] Simulate payment:", options);
-      return { detected: true, serviceName: options?.serviceName || "Netflix", amount: options?.amount || 17000 };
+    simulatePayment: async (options = {}) => {
+      const result = detectPaymentNotification({
+        packageName: options.packageName || options.package || "",
+        title: options.title || "",
+        body: options.body || "",
+        receivedAt: options.receivedAt || new Date().toISOString(),
+      });
+      return result.decision === PaymentDecision.MATCH
+        ? { detected: true, ...result.candidate, rawEvent: result.rawEvent }
+        : { detected: false, reasonCode: result.reasonCode, rawEvent: result.rawEvent };
     },
   },
 });

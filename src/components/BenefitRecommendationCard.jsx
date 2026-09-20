@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { ServiceMark } from "./ui";
 import { SavingPeriod } from "../lib/savingsCalculator.js";
+import { isNativePlatform } from "../lib/platform.js";
 import { HybridRecommendationStatus } from "../features/benefits/domain/hybridRecommendation.js";
 import {
   RecommendationSource,
@@ -159,14 +160,26 @@ export function BenefitRecommendationCard({
       </div>
 
       {recommendation.sourceUrl && (
-        <button
-          type="button"
-          onClick={() => onOpen?.(recommendation.actionTarget || recommendation)}
-          className="mt-4 flex w-full items-center justify-center gap-1 rounded-xl bg-[#191F28] px-4 py-3 text-[13px] font-bold text-white"
-        >
-          공식 혜택 확인하기
-          <ChevronRight size={15} />
-        </button>
+        isNativePlatform() ? (
+          <button
+            type="button"
+            onClick={() => onOpen?.(recommendation.actionTarget || recommendation)}
+            className="mt-4 flex w-full items-center justify-center gap-1 rounded-xl bg-[#191F28] px-4 py-3 text-[13px] font-bold text-white"
+          >
+            공식 혜택 확인하기
+            <ChevronRight size={15} />
+          </button>
+        ) : (
+          <a
+            href={recommendation.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 flex w-full items-center justify-center gap-1 rounded-xl bg-[#191F28] px-4 py-3 text-[13px] font-bold text-white"
+          >
+            공식 혜택 확인하기
+            <ChevronRight size={15} />
+          </a>
+        )
       )}
     </article>
   );

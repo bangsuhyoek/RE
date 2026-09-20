@@ -285,10 +285,23 @@ export function summarizePublishedConfirmedSavings(recommendations = []) {
   };
 }
 
+function friendlyConditionToken(value) {
+  const raw = String(value ?? "").trim();
+  const key = raw.toUpperCase();
+  const labels = {
+    EXISTING_SUBSCRIBER: "현재 이용 중인 고객도 가능",
+    NEW_SUBSCRIBER: "신규 가입 고객",
+    NEW_SUBSCRIBER_ONLY: "신규 가입 고객만",
+    ANY: "제한 없음",
+    NAVERPLUS: "네이버플러스 멤버십",
+  };
+  return labels[key] || raw;
+}
+
 function stringifyCondition(value) {
   if (value == null || value === "") return null;
   if (typeof value === "string" || typeof value === "number") {
-    return String(value);
+    return friendlyConditionToken(value);
   }
   if (Array.isArray(value)) {
     const entries = value.map(stringifyCondition).filter(Boolean);
@@ -296,25 +309,29 @@ function stringifyCondition(value) {
   }
   if (typeof value === "object") {
     const known = [
-      value.required_carrier,
-      value.requiredCarrier,
-      value.required_plan,
-      value.requiredPlan,
-      value.required_payment_method,
-      value.requiredPaymentMethod,
-      value.required_membership,
-      value.requiredMembership,
-      value.audience,
-      value.type,
-    ].filter((entry) => entry != null && entry !== "");
+      value.audience ? friendlyConditionToken(value.audience) : null,
+      (value.required_plan ?? value.requiredPlan)
+        ? `요금제 ${friendlyConditionToken(value.required_plan ?? value.requiredPlan)}`
+        : null,
+      (value.required_membership ?? value.requiredMembership)
+        ? `${friendlyConditionToken(value.required_membership ?? value.requiredMembership)} 필요`
+        : null,
+      (value.required_carrier ?? value.requiredCarrier)
+        ? `${friendlyConditionToken(value.required_carrier ?? value.requiredCarrier)} 이용자`
+        : null,
+      (value.required_payment_method ?? value.requiredPaymentMethod)
+        ? `${friendlyConditionToken(value.required_payment_method ?? value.requiredPaymentMethod)} 결제`
+        : null,
+      value.type ? friendlyConditionToken(value.type) : null,
+    ].filter(Boolean);
     const children = Array.isArray(value.children)
       ? value.children
       : Array.isArray(value.conditions)
         ? value.conditions
         : [];
     const childText = children.map(stringifyCondition).filter(Boolean);
-    const combined = [...known.map(String), ...childText];
-    if (combined.length) return combined.join(" · ");
+    const combined = [...known, ...childText];
+    if (combined.length) return [...new Set(combined)].join(" · ");
   }
   return null;
 }

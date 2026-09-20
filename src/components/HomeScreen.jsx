@@ -10,19 +10,35 @@ import {
   User,
 } from "lucide-react";
 import { Button, SubscriptionCard, ServiceMark } from "./ui";
+import { BrandName } from "./BrandName";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 
-function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile }) {
+function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile, webPaymentMode = false }) {
   return (
     <section className="flex min-h-[calc(100dvh-9rem)] min-h-[calc(100vh-9rem)] flex-col items-center justify-center px-4 sm:px-5 text-center">
       <span className="grid h-16 w-16 place-items-center rounded-full bg-[#F2F4F6] text-[#6B7684] border border-[#E5E8EB]">
         <Inbox size={28} strokeWidth={1.75} />
       </span>
-      <h1 className="mt-6 text-[22px] font-bold tracking-tight text-[#191F28]">등록된 구독 서비스가 없습니다</h1>
-      <p className="mt-2 max-w-[280px] text-[14px] leading-relaxed text-[#6B7684]">하단의 + 버튼이나 아래 버튼으로 구독을 추가해보세요.</p>
+      <h1 className="mt-6 text-[22px] font-bold tracking-tight text-[#191F28]">아직 등록된 구독이 없어요</h1>
+      <p className="mt-2 max-w-[300px] text-[14px] leading-relaxed text-[#6B7684]">
+        {webPaymentMode
+          ? "최근 결제 알림에서 구독을 찾아 등록하거나 직접 추가할 수 있어요."
+          : "최근 결제를 불러오거나 직접 입력해 첫 구독을 등록해보세요."}
+      </p>
       <div className="mt-8 w-full space-y-3">
-        <Button size="large" fullWidth onClick={onAdd} prefixIcon={<ReceiptText size={18} />}>첫 구독 서비스 등록하기</Button>
-        <Button size="large" fullWidth variant="secondary" onClick={onScan} prefixIcon={<ScanLine size={18} />}>AI 결제인식 (문자·영수증 스캔)</Button>
+        {webPaymentMode && (
+          <Button size="large" fullWidth onClick={onScan} prefixIcon={<ScanLine size={18} />}>
+            최근 결제에서 구독 찾기
+          </Button>
+        )}
+        <Button size="large" fullWidth variant={webPaymentMode ? "secondary" : "primary"} onClick={onAdd} prefixIcon={<ReceiptText size={18} />}>
+          직접 구독 추가하기
+        </Button>
+        {!webPaymentMode && (
+          <Button size="large" fullWidth variant="secondary" onClick={onScan} prefixIcon={<ScanLine size={18} />}>
+            결제 알림·영수증에서 찾기
+          </Button>
+        )}
       </div>
       <div className="mt-8 flex items-center gap-2.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] px-4 py-3.5 text-left shadow-2xs">
         <Sparkles size={18} className="shrink-0 text-[#FF6F0F]" />
@@ -204,6 +220,8 @@ export function HomeScreen({
   onShowAll,
   onOpenPromotion,
   onExplorePromotions,
+  benefitSummary = { amount: 0, count: 0 },
+  benefitsLoading = false,
   onAdd,
   onScan,
   onToggleNotificationPermission,
@@ -211,6 +229,7 @@ export function HomeScreen({
   onOpenTerms,
   onLogout,
   onOpenAccount,
+  webPaymentMode = false,
 }) {
   const [annual, setAnnual] = useState(false);
 
@@ -255,6 +274,7 @@ export function HomeScreen({
         onLogout={onLogout}
         onOpenAccount={onOpenAccount}
         profile={profile}
+        webPaymentMode={webPaymentMode}
       />
     );
   }
@@ -264,9 +284,7 @@ export function HomeScreen({
       {/* 1. 상단 서비스 브랜드 & 알림센터/마이페이지 헤더 */}
       <header className="flex items-center justify-between pt-4 pb-3 border-b border-gray-100/80">
         <div className="flex items-baseline gap-2">
-          <span className="text-[20px] font-black tracking-tight text-black">
-            꾸독
-          </span>
+          <BrandName className="text-[20px] text-black" />
           <span className="text-[12px] font-semibold text-gray-400">
             구독 관리
           </span>
@@ -381,12 +399,12 @@ export function HomeScreen({
         </div>
       </section>
 
-      {/* 4. 스마트 절약 · 혜택 (하단 30~40% 영역을 차지하는 시각화 스와이프 캐러셀) */}
+      {/* 4. 스마트 절약 · 혜택 */}
       <section className="mt-9">
         <div className="flex items-center justify-between pb-2 border-b border-gray-100/80 mb-3.5">
           <h2 className="text-[14px] font-bold text-gray-800 tracking-tight flex items-center gap-1.5">
             <Sparkles size={16} className="text-[#3182F6]" />
-            스마트 절약 추천 · 혜택
+            내 구독 절약 혜택
           </h2>
           {onExplorePromotions && (
             <button
@@ -394,16 +412,45 @@ export function HomeScreen({
               onClick={onExplorePromotions}
               className="text-[12px] font-medium text-gray-400 hover:text-black flex items-center transition-colors"
             >
-              더보기 <ChevronRight size={13} />
+              전체보기 <ChevronRight size={13} />
             </button>
           )}
         </div>
 
-        {/* 시각화 스와이프 캐러셀 (글자 목록 없이 단독 스와이프 배너) */}
-        <VisualPromoCarousel
-          promotions={promotions}
-          onOpenPromotion={onOpenPromotion}
-        />
+        {webPaymentMode ? (
+          <button
+            type="button"
+            onClick={onExplorePromotions}
+            className="w-full rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-4 text-left transition-all hover:border-[#D1D6DB] active:scale-[0.99]"
+          >
+            {benefitsLoading ? (
+              <>
+                <span className="block text-[13px] font-bold text-[#333D4B]">절약 혜택을 확인하고 있어요</span>
+                <span className="mt-1 block text-[12px] text-[#8B95A1]">공식 제휴 정보를 현재 구독과 비교하고 있어요.</span>
+              </>
+            ) : benefitSummary.count > 0 ? (
+              <>
+                <span className="block text-[12px] font-bold text-[#3182F6]">확정 혜택 {benefitSummary.count}개</span>
+                <strong className="mt-1 block text-[20px] font-black text-[#191F28]">
+                  매달 {formatWon(benefitSummary.amount)} 절약 가능
+                </strong>
+                <span className="mt-1 block text-[12px] leading-5 text-[#6B7684]">
+                  공식 출처에서 확인된 혜택을 현재 구독 조건으로 계산했어요.
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="block text-[13px] font-bold text-[#333D4B]">현재 확인된 확정 절약 혜택이 없어요</span>
+                <span className="mt-1 block text-[12px] text-[#8B95A1]">조건 확인이 필요한 혜택까지 전체 화면에서 확인할 수 있어요.</span>
+              </>
+            )}
+          </button>
+        ) : (
+          <VisualPromoCarousel
+            promotions={promotions}
+            onOpenPromotion={onOpenPromotion}
+          />
+        )}
       </section>
 
       {/* 5. Legal & Footer */}

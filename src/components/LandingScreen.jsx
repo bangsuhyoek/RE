@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, ShieldCheck, Zap, BellRing } from "lucide-react";
+import { BrandName } from "./BrandName";
 
 export function SplashScreen({ onFinish }) {
   const [fade, setFade] = useState(false);
@@ -23,9 +24,7 @@ export function SplashScreen({ onFinish }) {
       <div className="flex flex-col items-center animate-in fade-in zoom-in-95 duration-500 text-center px-4">
         {/* Brand Logo matching benchmarked style */}
         <div className="flex items-center gap-2">
-          <span className="text-[38px] font-black tracking-tight text-[#111827]">
-            꾸독
-          </span>
+          <BrandName className="text-[38px] text-[#111827]" />
           <span className="inline-flex items-center justify-center rounded-full bg-[#3182F6] px-3.5 py-1 text-[17px] font-black text-white shadow-sm">
             ₩
           </span>
@@ -48,9 +47,7 @@ export function LandingScreen({ onStart, onLogin }) {
       {/* Top Brand */}
       <div className="pt-8 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-[26px] font-black tracking-tight text-[#111827]">
-            꾸독
-          </span>
+          <BrandName className="text-[26px] text-[#111827]" />
           <span className="inline-flex items-center justify-center rounded-full bg-[#3182F6] px-2.5 py-0.5 text-[12px] font-black text-white shadow-xs">
             ₩
           </span>

@@ -260,7 +260,7 @@ export function NotificationCenterModal({
           <div className="flex items-center gap-2 min-w-0">
             <Sparkles size={15} className="text-black shrink-0" />
             <div className="min-w-0">
-              <strong className="block text-[12px] font-semibold truncate">알림 기능 즉시 테스트</strong>
+              <strong className="block text-[12px] font-semibold truncate">알림 동작 확인</strong>
               <span className="block text-[10px] text-[#71717A] truncate">
                 D-1/D-3 푸시 알림을 즉시 발송합니다
               </span>
@@ -326,7 +326,7 @@ export function NotificationCenterModal({
                     {item.message}
                   </p>
                   <span className="mt-1.5 block text-[11px] font-medium text-[#3182F6]">
-                    {item.isTest ? "테스트 알림" : "스마트 결제 알림"} · {
+                    {item.isTest ? "확인용 알림" : "스마트 결제 알림"} · {
                       item.badge?.includes("체험") || item.badge?.includes("D-0") || item.badge?.includes("D-1")
                         ? "탭하여 해지 가이드 및 일정 확인"
                         : "탭하여 결제 상세 정보 확인"

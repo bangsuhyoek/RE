@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Eye, EyeOff, LockKeyhole, RefreshCw, UserRound, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronRight, Eye, EyeOff, LockKeyhole, RefreshCw, UserRound, Sparkles } from "lucide-react";
 import { Button } from "./ui";
 
 const fieldBase = "w-full rounded-xl border border-[#E4E4E7] bg-white px-4 py-3.5 text-[15px] outline-none transition-colors placeholder:text-[#A1A1AA] focus:border-black";
@@ -27,7 +27,7 @@ function GoogleIcon({ className = "h-5 w-5 shrink-0" }) {
   );
 }
 
-export function AuthLogin({ onSocial, onRegister, onLogin }) {
+export function AuthLogin({ onSocial, onRegister, onLogin, onDemo }) {
   const [accountId, setAccountId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -52,8 +52,32 @@ export function AuthLogin({ onSocial, onRegister, onLogin }) {
       <div className="mb-10">
         <p className="mb-2 text-[13px] font-medium text-[#71717A]">구독을 내 편으로</p>
         <h1 className="text-3xl font-bold tracking-[-0.03em]">구독 관리의<br />가장 쉬운 시작</h1>
-        <p className="mt-4 max-w-[290px] text-[15px] leading-6 text-[#71717A]">결제 전에 알리고, 해지는 빠르게. 꾸독이 매달의 고정지출을 정리해드려요.</p>
+        <p className="mt-4 max-w-[310px] text-[15px] leading-6 text-[#71717A]">결제 알림에서 구독을 찾고, 다음 결제를 챙기고, 더 아낄 수 있는 혜택과 해지 방법까지 한곳에서 관리해요.</p>
       </div>
+
+      {onDemo && (
+        <button
+          type="button"
+          onClick={onDemo}
+          className="mb-6 w-full rounded-2xl border border-[#FFD7BD] bg-[#FFF7F2] px-4 py-4 text-left shadow-sm transition-colors hover:bg-[#FFF1E8] active:bg-[#FFE8D8]"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="min-w-0">
+              <span className="flex items-center gap-1.5 text-[12px] font-black text-[#E55D00]">
+                <Sparkles size={14} />
+                회원가입 없이 바로 시작
+              </span>
+              <strong className="mt-1 block text-[15px] font-black text-[#191F28]">
+                최근 결제에서 구독 찾기
+              </strong>
+              <span className="mt-1 block text-[11.5px] leading-5 text-[#6B7684]">
+                결제 알림을 확인해 구독을 찾고, 등록부터 혜택·해지 관리까지 이어갈 수 있어요.
+              </span>
+            </span>
+            <ChevronRight size={18} className="shrink-0 text-[#FF6F0F]" />
+          </div>
+        </button>
+      )}
 
       {/* 메인 폼: 아이디 비밀번호 로그인 */}
       <form className="space-y-3" onSubmit={handleIdLogin}>
