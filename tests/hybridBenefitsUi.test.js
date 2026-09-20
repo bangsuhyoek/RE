@@ -325,8 +325,13 @@ test("E2E 9: exclusive offers contribute only the highest confirmed amount", asy
 
   assert.equal(summary.amount, 5000);
   assert.equal(summary.count, 1);
+  assert.equal(summary.candidateCount, 2);
+  assert.equal(summary.hasExclusiveChoice, true);
   assert.equal(summary.selected[0].id, "offer-high");
-  assert.match(html, /매달 ₩5,000 절약 가능/);
+  assert.match(html, /확정 월 절약 선택지 2개/);
+  assert.match(html, /선택 조건 반영 시 매달 최대 ₩5,000 절약 가능/);
+  assert.match(html, /택1 적용 가능/);
+  assert.match(html, /선택 시 매달 ₩5,000 절약/);
   assert.doesNotMatch(html, /매달 ₩8,000 절약 가능/);
 });
 
