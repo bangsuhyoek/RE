@@ -44,6 +44,30 @@ export function PromotionScreen({
     [effectiveRecommendations]
   );
 
+  const portfolioConflictById = useMemo(() => {
+    const map = new Map();
+    for (const choice of confirmedSummary.exclusiveChoices || []) {
+      for (const recommendationId of choice.recommendationIds || []) {
+        map.set(recommendationId, {
+          type: "EXCLUSIVE_CHOICE",
+          choiceLabel: choice.choiceLabel,
+          selected: recommendationId === choice.selectedId,
+        });
+      }
+    }
+    for (const recommendationId of confirmedSummary.uncertainRecommendationIds || []) {
+      if (!map.has(recommendationId)) {
+        map.set(recommendationId, {
+          type: "UNCERTAIN_COMPATIBILITY",
+          selected: confirmedSummary.selected.some(
+            (item) => item.id === recommendationId
+          ),
+        });
+      }
+    }
+    return map;
+  }, [confirmedSummary]);
+
   const visibleCount =
     sections.confirmed.length +
     sections.needsCheck.length +
@@ -97,15 +121,29 @@ export function PromotionScreen({
         ) : (
           <>
             <div className="text-[12px] font-bold text-white/65">
-              확정 절약 혜택 {confirmedSummary.count}개
+              {confirmedSummary.hasExclusiveChoice
+                ? `확정 월 절약 선택지 ${confirmedSummary.candidateCount}개`
+                : `확정 월 절약 혜택 ${confirmedSummary.count}개`}
             </div>
             {confirmedSummary.amount > 0 ? (
               <div className="mt-1 text-[24px] font-black tracking-tight">
-                매달 {formatWon(confirmedSummary.amount)} 절약 가능
+                {confirmedSummary.hasExclusiveChoice
+                  ? `선택 조건 반영 시 매달 최대 ${formatWon(confirmedSummary.amount)} 절약 가능`
+                  : `매달 ${formatWon(confirmedSummary.amount)} 절약 가능`}
               </div>
             ) : (
               <div className="mt-1 text-[18px] font-extrabold">
                 지금 확인할 절약 방법 {sections.needsCheck.length}개
+              </div>
+            )}
+            {confirmedSummary.hasExclusiveChoice && (
+              <div className="mt-1 text-[11.5px] text-white/65">
+                같은 선택 그룹의 혜택은 하나만 확정 절약액에 반영했어요.
+              </div>
+            )}
+            {confirmedSummary.hasUncertainCompatibility && (
+              <div className="mt-1 text-[11.5px] text-white/65">
+                동시 적용 관계가 확인되지 않은 혜택은 서로 합산하지 않았어요.
               </div>
             )}
             {sections.needsCheck.length > 0 && (
@@ -182,6 +220,7 @@ export function PromotionScreen({
               <BenefitRecommendationCard
                 key={item.id}
                 recommendation={item}
+                portfolioConflict={portfolioConflictById.get(item.id) || null}
                 onOpen={onOpenPromotion}
               />
             ))}
