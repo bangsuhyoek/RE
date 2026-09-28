@@ -13,6 +13,7 @@
     "cap:build": "vite build && cap sync",
     "build:apk": "node scripts/build-apk.js",
     "crawl": "node scripts/crawler/index.js",
+    "crawl:promotions": "node scripts/crawler/runPromotionPipeline.js",
     "crawl:schedule": "node scripts/crawler/scheduler.js"
   },
   "dependencies": {
@@ -33,6 +34,7 @@
     "vite": "^6.0.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.5.1"
+    "@capacitor/cli": "^8.5.1",
+    "playwright-core": "1.63.0"
   }
 }
