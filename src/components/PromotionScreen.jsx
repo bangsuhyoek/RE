@@ -53,6 +53,7 @@ function getServiceDisplayInfo(promotion) {
 }
 
 function getBadgeInfo(promotion, isUserSubscribed) {
+  if (promotion.pipelineV2) return { text: promotion.badgeText, isHighlight: true };
   const isPartnership =
     (promotion.sourceServiceIds || []).length > 1 ||
     (promotion.title || "").includes("X") ||
@@ -258,7 +259,7 @@ export function PromotionScreen({ subscriptions = [], promotions = [], onOpenPro
             // 통일된 절약 금액 양식 산출
             const savingAmount = Number(promotion.saving) || 0;
             const isAnnual = promotion.kind?.includes("연간") || promotion.category === "학생/연간";
-            const savingText = savingAmount > 0
+            const savingText = promotion.pipelineV2 ? promotion.savingText : savingAmount > 0
               ? (isAnnual ? `연 ${savingAmount.toLocaleString("ko-KR")}원 절약` : `월 ${savingAmount.toLocaleString("ko-KR")}원 절약`)
               : (promotion.offerPrice === 0 ? "0원 무료" : null);
 
@@ -280,6 +281,13 @@ export function PromotionScreen({ subscriptions = [], promotions = [], onOpenPro
                   onAction={() => onOpenPromotion(promotion)}
                 />
                 {/* 마지막 아이템 뒤에는 구분선을 두지 않음 */}
+                {promotion.pipelineV2 && (
+                  <div className="px-3 pb-3 text-xs text-gray-600 leading-relaxed">
+                    {promotion.conditions.map((condition) => <p key={condition}>{condition}</p>)}
+                    <p>검증일: {new Date(promotion.lastVerifiedAt).toLocaleDateString("ko-KR")}{promotion.validTo ? ` · 종료일: ${promotion.validTo}` : ""}</p>
+                    {promotion.evidenceUrls.map((url) => <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="mr-3 underline">공식 출처에서 조건 확인하기</a>)}
+                  </div>
+                )}
                 {index < filtered.length - 1 && <HanddrawnHatchedDivider />}
               </div>
             );
