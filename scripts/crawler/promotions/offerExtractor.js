@@ -309,6 +309,8 @@ export function extractMonthlyPrices(pageText) {
   const found = new Set();
   const text = normalizeText(pageText);
   for (const m of text.matchAll(/[₩￦]\s*(\d[\d,]*)\s*\/\s*(?:월|month|mo)/gi)) found.add(toNumber(m[1]));
+  // "₩29,873\nper month"처럼 금액 바로 다음 줄에 기간이 오는 요금표
+  for (const m of text.matchAll(/[₩￦][ \t]*(\d[\d,]*)[ \t]*\n?[ \t]*per month/gi)) found.add(toNumber(m[1]));
   // 줄바꿈을 넘지 않고, 통화 표기(₩ 또는 원)가 있는 경우만 가격으로 본다 ("/월\n400GB" 오인 방지)
   const monthly = [/월[ \t]*[₩￦][ \t]*(\d[\d,]*)/g, /월[ \t]*(\d[\d,]*)[ \t]*원/g];
   for (const re of monthly) {

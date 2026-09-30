@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { parseTerms, parseClaim, matchClaim, extractDeadline, extractMonthlyPrices } from "../scripts/crawler/promotions/offerExtractor.js";
 import { getPromotionSource } from "../scripts/crawler/promotions/sources.js";
 import { classifyPage, PageState } from "../scripts/crawler/promotions/pageFetcher.js";
-import { verifyPromotion, applyResult, Verdict } from "../scripts/crawler/runPromotionPipeline.js";
+import { verifyPromotion, applyResult, planCatalogUpdate, Verdict } from "../scripts/crawler/runPromotionPipeline.js";
 
 const NOW = Date.parse("2026-09-29T00:00:00+09:00");
 const LONG_FILLER = "\n" + "안내 문구 ".repeat(200);
@@ -133,6 +133,10 @@ test("extractMonthlyPrices는 줄바꿈 뒤 용량 숫자를 월 요금으로 �
   assert.deepEqual(extractMonthlyPrices("₩7,500/월\n400GB 스토리지\n월 9,900원"), [7500, 9900]);
 });
 
+test("extractMonthlyPrices는 금액 다음 줄의 'per month' 요금표를 읽는다", () => {
+  assert.deepEqual(extractMonthlyPrices("Pro\n₩29,873\n\nper month\n3,000 credits / month"), [29873]);
+});
+
 test("쿠팡플레이: '와우회원이 아니어도 무료'는 와우 연동 혜택의 근거가 아니다", () => {
   const claim = parseClaim({ kind: "쿠팡 와우 회원 연동 100% 무료" }, getPromotionSource("coupangplay-promo").claim);
   assert.equal(matchClaim(claim, "이제 와우회원이 아니어도 쿠팡플레이 무료 시청").confirmed, false);
@@ -170,4 +174,25 @@ test("applyResult: 확인·만료만 상태로 남기고, 불확실한 판정은
     assert.equal(next.lastCheckedAt, at);
   }
   assert.equal(applyResult(stale, undefined, at), stale);
+});
+
+test("planCatalogUpdate: 확인된 혜택만 남기고 확인되지 않은 혜택은 삭제한다", () => {
+  const at = "2026-09-29T00:00:00.000Z";
+  const items = ["a", "b", "c", "d"].map((id) => ({ id, verifiedStatus: "LIVE_CONFIRMED" }));
+  const byId = new Map([
+    ["a", { verdict: Verdict.CONFIRMED }],
+    ["b", { verdict: Verdict.EXPIRED }],
+    ["c", { verdict: Verdict.CONFIRMED }],
+  ]);
+  const { kept, removed } = planCatalogUpdate(items, byId, at);
+  assert.deepEqual(kept.map((p) => p.id), ["a", "c", "d"], "이번에 점검하지 않은 d는 기존 확인 상태 유지");
+  assert.deepEqual(removed.map((p) => p.id), ["b"]);
+});
+
+test("planCatalogUpdate: 절반 넘게 지워질 상황이면 점검 실패로 보고 중단한다 (--force-prune으로만 진행)", () => {
+  const at = "2026-09-29T00:00:00.000Z";
+  const items = ["a", "b", "c"].map((id) => ({ id, verifiedStatus: "LIVE_CONFIRMED" }));
+  const byId = new Map(items.map((p) => [p.id, { verdict: Verdict.UNREACHABLE }]));
+  assert.throws(() => planCatalogUpdate(items, byId, at), /--force-prune/);
+  assert.equal(planCatalogUpdate(items, byId, at, { forcePrune: true }).kept.length, 0);
 });

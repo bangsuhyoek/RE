@@ -5,6 +5,7 @@
  * 크롤러는 link와 함께 아래 공개 안내 페이지(urls)를 읽어 혜택 문구를 확인한다.
  *
  * - urls: 추가로 확인할 공식 공개 페이지 (앞쪽이 우선)
+ * - priceUrls: 정가 대조에만 쓰는 공식 요금 페이지 (혜택 판정에는 쓰지 않음)
  * - claim: 혜택 판정 방식 덮어쓰기
  *     { type: "manual", reason }  자동 확인이 의미 없는 항목 (제휴/앱 전용/로그인 전용)
  *     { patterns: [정규식 문자열] }  모든 패턴이 같은 문장에 있으면 확인
@@ -109,7 +110,7 @@ export const promotionSources = {
   // 생활/멤버십
   "naverplus-welcome": { urls: ["https://nid.naver.com/membership/join"], claim: { patterns: ["첫\\s*달|1\\s*개월|한\\s*달", "무료|0원"] } },
   "naverplus-promo": { urls: ["https://nid.naver.com/membership/join"], claim: { patterns: ["첫\\s*달|1\\s*개월|한\\s*달", "무료|0원"] } },
-  "naver-spotify-link": { urls: ["https://nid.naver.com/membership/join"], claim: { patterns: ["매월|선택", "스포티파이|Spotify"] } },
+  "naver-spotify-link": { urls: ["https://nid.naver.com/membership/join"], priceUrls: ["https://www.spotify.com/kr-ko/premium/"], claim: { patterns: ["매월|선택", "스포티파이|Spotify"] } },
   "coupang-30d-free": { urls: ["https://loyalty.coupang.com/loyalty/sign-up/home"] },
   "coupang-promo": { urls: ["https://loyalty.coupang.com/loyalty/sign-up/home"] },
   "baemin-club-promo": { urls: ["https://baemin.com/"], claim: { patterns: ["배민클럽", "첫\\s*달|1\\s*개월|한\\s*달", "무료|0\\s*원"] } },

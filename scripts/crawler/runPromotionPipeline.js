@@ -4,7 +4,9 @@
  *   pnpm crawl:promotions                       전체 점검, 보고서만 작성
  *   pnpm crawl:promotions -- --only=spotify-3m-free,youtube-1m-free
  *   pnpm crawl:promotions -- --apply            확인 결과(verifiedStatus 등)를 앱 데이터에 반영
+ *                                               + 확인되지 않은 혜택(LIVE_CONFIRMED가 아닌 항목)은 앱 데이터에서 삭제
  *   옵션: --no-browser(단순 fetch), --headful(브라우저 창 표시), --concurrency=4
+ *         --force-prune(삭제 대상이 절반을 넘어도 삭제 진행)
  *
  * 앱이 보여주는 promotionCatalog(public/catalog/promotions.json)의 각 혜택을
  * 실제 브라우저로 공식 페이지를 열어 확인하고 아래 중 하나로 판정한다.
@@ -41,9 +43,10 @@ export const Verdict = Object.freeze({
 });
 
 function parseArgs(argv) {
-  const args = { apply: false, browser: true, headless: true, concurrency: 4, only: null, dumpText: false };
+  const args = { apply: false, browser: true, headless: true, concurrency: 4, only: null, dumpText: false, forcePrune: false };
   for (const arg of argv) {
     if (arg === "--apply") args.apply = true;
+    else if (arg === "--force-prune") args.forcePrune = true;
     else if (arg === "--no-browser") args.browser = false;
     else if (arg === "--headful") args.headless = false;
     else if (arg === "--dump-text") args.dumpText = true;
@@ -80,6 +83,9 @@ export async function verifyPromotion(promotion, { loadPage, now = Date.now() })
   const urls = [...new Set([...(source.urls ?? []), promotion.link].filter(Boolean))];
   const claim = parseClaim(promotion, source.claim ?? {});
   const pages = await Promise.all(urls.map((url) => loadPage(url)));
+  // 요금만 대조하는 페이지 (혜택 문구 판정에는 쓰지 않음). 예: 제휴 혜택의 정가는 원 서비스 요금표에 있다.
+  const priceUrls = (source.priceUrls ?? []).filter((url) => !urls.includes(url));
+  const pricePages = await Promise.all(priceUrls.map((url) => loadPage(url)));
 
   const checks = pages.map((page) => {
     const match = page.state === PageState.OK ? matchClaim(claim, page.text) : null;
@@ -114,9 +120,15 @@ export async function verifyPromotion(promotion, { loadPage, now = Date.now() })
   if (linkCheck && [PageState.NOT_FOUND, PageState.LOGIN_REQUIRED].includes(linkCheck.state)) {
     warnings.push(linkCheck.state === PageState.NOT_FOUND ? "앱 링크가 없는 페이지(404)로 연결됨" : "앱 링크가 로그인 페이지로 연결됨");
   }
-  const priceSource = confirmedCheck ?? readable[0];
-  if (priceSource?.monthlyPrices.length && promotion.originalPrice > 0 && !priceSource.monthlyPrices.includes(promotion.originalPrice)) {
-    const near = priceSource.monthlyPrices.filter((p) => Math.abs(p - promotion.originalPrice) / promotion.originalPrice < 0.5);
+  // 읽은 모든 공식 페이지의 월 요금 중 하나라도 정가와 같으면 정상으로 본다 (요금표가 링크 페이지에만 있는 경우 등)
+  const pagePrices = [
+    ...new Set([
+      ...readable.flatMap((c) => c.monthlyPrices),
+      ...pricePages.filter((p) => p.state === PageState.OK).flatMap((p) => extractMonthlyPrices(p.text)),
+    ]),
+  ].sort((a, b) => a - b);
+  if (pagePrices.length && promotion.originalPrice > 0 && !pagePrices.includes(promotion.originalPrice)) {
+    const near = pagePrices.filter((p) => Math.abs(p - promotion.originalPrice) / promotion.originalPrice < 0.5);
     if (near.length) warnings.push("정가 " + promotion.originalPrice + "원이 페이지 월 요금(" + near.join(", ") + "원)과 다름");
   }
   if (confirmedCheck?.deadline) warnings.push("페이지에 마감일 표기: " + confirmedCheck.deadline);
@@ -197,19 +209,39 @@ export function applyResult(item, result, checkedAt) {
   return next;
 }
 
-function applyToAppData(results, checkedAt) {
+// 앱에는 공식 페이지에서 확인된 혜택만 남긴다. 반영(--apply)할 때마다 나머지는 삭제한다.
+export const KEEP_STATUS = "LIVE_CONFIRMED";
+// 한 번에 절반 넘게 지워지면 혜택이 실제로 끝났다기보다 네트워크 장애·봇 차단 등
+// 점검 자체가 실패했을 가능성이 높으므로, --force-prune 없이는 아무 파일도 쓰지 않는다.
+export const MAX_PRUNE_RATIO = 0.5;
+
+export function planCatalogUpdate(items, byId, checkedAt, { forcePrune = false, maxPruneRatio = MAX_PRUNE_RATIO } = {}) {
+  const updated = items.map((p) => applyResult(p, byId.get(p.id), checkedAt));
+  const kept = updated.filter((p) => p.verifiedStatus === KEEP_STATUS);
+  const removed = updated.filter((p) => p.verifiedStatus !== KEEP_STATUS);
+  if (!forcePrune && items.length > 0 && removed.length / items.length > maxPruneRatio) {
+    throw new Error(
+      "확인되지 않은 혜택이 " + removed.length + "/" + items.length + "개로 절반을 넘어 삭제를 중단했습니다. " +
+        "점검 실패(네트워크·차단)가 아닌지 보고서를 확인한 뒤, 정말 지우려면 --force-prune을 붙여 다시 실행하세요. 파일은 바뀌지 않았습니다."
+    );
+  }
+  return { kept, removed };
+}
+
+function applyToAppData(results, checkedAt, { forcePrune = false } = {}) {
   const byId = new Map(results.map((r) => [r.id, r]));
 
   // 두 파일 모두 먼저 계산·검증한 뒤에 쓴다. 중간에 실패하면 어느 파일도 바뀌지 않는다.
   const jsonItems = JSON.parse(fs.readFileSync(PROMOTIONS_JSON, "utf-8"));
-  const nextJson = JSON.stringify(jsonItems.map((p) => applyResult(p, byId.get(p.id), checkedAt)), null, 2) + "\n";
+  const jsonPlan = planCatalogUpdate(jsonItems, byId, checkedAt, { forcePrune });
+  const nextJson = JSON.stringify(jsonPlan.kept, null, 2) + "\n";
 
   const app = readAppCatalog();
-  const updated = app.items.map((p) => applyResult(p, byId.get(p.id), checkedAt));
-  const nextArray = JSON.stringify(updated, null, 2);
+  const appPlan = planCatalogUpdate(app.items, byId, checkedAt, { forcePrune });
+  const nextArray = JSON.stringify(appPlan.kept, null, 2);
   const nextSource = app.source.slice(0, app.arrayStart) + nextArray + app.source.slice(app.arrayEnd);
   const check = nextSource.slice(app.arrayStart, app.arrayStart + nextArray.length);
-  if (JSON.parse(check).length !== app.items.length) throw new Error("promotionCatalog 갱신 결과 검증 실패 — 파일을 쓰지 않았습니다.");
+  if (JSON.parse(check).length !== appPlan.kept.length) throw new Error("promotionCatalog 갱신 결과 검증 실패 — 파일을 쓰지 않았습니다.");
 
   const writeAtomic = (file, content) => {
     const tmp = file + ".tmp-" + process.pid;
@@ -218,12 +250,15 @@ function applyToAppData(results, checkedAt) {
   };
   writeAtomic(PROMOTIONS_JSON, nextJson);
   writeAtomic(APP_DATA_JS, nextSource);
+
+  const removedIds = [...new Set([...jsonPlan.removed, ...appPlan.removed].map((p) => p.id))];
+  return { kept: jsonPlan.kept.length, removed: removedIds.map((id) => ({ id, reason: byId.get(id)?.reason ?? "이전부터 확인 상태 없음" })) };
 }
 
 // ---------- 실행 ----------
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
+export async function runPromotionPipeline(options = {}) {
+  const args = { ...parseArgs([]), ...options };
   const now = Date.now();
   const checkedAt = new Date(now).toISOString();
   let promotions = JSON.parse(fs.readFileSync(PROMOTIONS_JSON, "utf-8"));
@@ -283,9 +318,19 @@ async function main() {
 
   if (args.apply) {
     if (args.only) console.log("--only와 함께 실행해 해당 항목만 반영합니다.");
-    applyToAppData(results, checkedAt);
-    console.log("앱 데이터(promotions.json, subscriptionData.js)에 확인 상태를 반영했습니다.");
+    const applied = applyToAppData(results, checkedAt, { forcePrune: args.forcePrune });
+    console.log("앱 데이터(promotions.json, subscriptionData.js)에 확인 상태를 반영했습니다. 남은 혜택 " + applied.kept + "개");
+    if (applied.removed.length) {
+      console.log("확인되지 않아 삭제한 혜택 " + applied.removed.length + "개:");
+      for (const r of applied.removed) console.log(" - " + r.id + ": " + r.reason);
+    }
+    report.applied = applied;
   }
+  return report;
+}
+
+async function main() {
+  await runPromotionPipeline(parseArgs(process.argv.slice(2)));
 }
 
 const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
