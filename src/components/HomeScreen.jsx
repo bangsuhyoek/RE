@@ -51,9 +51,10 @@ function VisualPromoCarousel({ promotions, onOpenPromotion }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef(null);
 
-  const naverPromo = promotions.find((p) => p.id === "tving-naver" || p.id === "netflix") || promotions[0];
-  const youtubePromo = promotions.find((p) => p.id === "youtube-promo") || promotions[1] || promotions[0];
-  const heroPromo = promotions.find((p) => p.id === "tving-naver" || p.id === "naverplus-netflix") || promotions[0];
+  // 배너는 확인된 혜택에만 연결한다. 해당 혜택이 카탈로그에 없으면 배너를 숨긴다.
+  const naverPromo = promotions.find((p) => p.id === "naverplus-netflix");
+  const youtubePromo = promotions.find((p) => p.id === "youtube-promo");
+  const bundlePromo = promotions.find((p) => p.id === "disney-bundle-37");
 
   const slides = [
     {
@@ -81,32 +82,29 @@ function VisualPromoCarousel({ promotions, onOpenPromotion }) {
     {
       id: "youtube-promo",
       promo: youtubePromo,
-      tag: "우주패스 전용 프로모션",
+      tag: "YouTube Premium 신규 혜택",
       tagBg: "bg-[#FFE4E6] text-[#BE123C]",
-      title: "유튜브 프리미엄\n우주패스 결합 특가!",
-      desc: "요금제별 최대 특별 할인 지원",
+      title: "유튜브 프리미엄\n첫 달 0원 체험!",
+      desc: "신규 가입 1개월 무료 + Lite 43% 할인",
       bgGradient: "from-[#FFF1F2] via-white to-[#FFE4E6] border-[#FEE2E2]",
       visual: (
         <div className="relative h-20 w-28 shrink-0 flex items-center justify-center select-none">
-          <div className="absolute top-3 right-9 w-[52px] h-[34px] rounded-xl bg-[#2563EB] text-white shadow-md -rotate-12 flex items-center justify-center font-black text-[11px] border-[1.5px] border-white">
-            T우주
-          </div>
           <div className="absolute top-7 right-1 w-[62px] h-[36px] rounded-xl bg-[#FF0000] text-white shadow-md rotate-6 flex items-center justify-center font-black text-[11px] tracking-tight border-[1.5px] border-white">
             YouTube
           </div>
-          <div className="absolute top-1 right-2.5 h-[30px] w-[30px] rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-md text-[10px] font-black border-2 border-white">
-            특가
+          <div className="absolute top-1 right-2.5 h-[30px] w-[30px] rounded-full bg-[#22C55E] text-white flex items-center justify-center shadow-md text-[10px] font-black border-2 border-white">
+            0원
           </div>
         </div>
       ),
     },
     {
-      id: "lgu-nerget",
-      promo: heroPromo,
-      tag: "유독 OTT 정기구독 혜택",
+      id: "ott-bundle",
+      promo: bundlePromo,
+      tag: "OTT 3사 번들",
       tagBg: "bg-[#DBEAFE] text-[#1D4ED8]",
-      title: "티빙 월 4,950원~\n디즈니+ 최대 할인!",
-      desc: "유독 단독 할인 & 너겟 요금제 결합",
+      title: "디즈니+·티빙·웨이브\n묶으면 최대 37% 할인!",
+      desc: "개별 구독 대비 결합 요금제 할인",
       bgGradient: "from-[#EFF6FF] via-white to-[#E0F2FE] border-[#DBEAFE]",
       visual: (
         <div className="relative h-20 w-28 shrink-0 flex items-center justify-center select-none">
@@ -122,7 +120,9 @@ function VisualPromoCarousel({ promotions, onOpenPromotion }) {
         </div>
       ),
     },
-  ];
+  ].filter((slide) => slide.promo);
+
+  if (slides.length === 0) return null;
 
   const handleScroll = () => {
     if (!scrollRef.current) return;
