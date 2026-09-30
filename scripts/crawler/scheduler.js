@@ -6,7 +6,7 @@
  */
 
 import { runCrawlerPipeline } from "./index.js";
-import { runPromotionPipeline } from "./runPromotionPipeline.js";
+import { runREProduct } from "../benefit-v2/reProduct.js";
 
 export class CrawlerScheduler {
   constructor(cronIntervalMs = 86400000) { // 기본 24시간 (매일)
@@ -41,10 +41,10 @@ export class CrawlerScheduler {
       console.error(`[Scheduler Error] Task failed:`, err);
     }
 
-    // 프로모션 재확인: 확인된 혜택만 앱 데이터에 남기고 나머지는 삭제한다.
+    // 혜택 수집은 RE V2가 담당한다. 정적 카탈로그를 덮어쓰지 않는다.
     try {
-      const report = await runPromotionPipeline({ apply: true });
-      console.log(`[Scheduler Success] Promotions kept ${report.applied.kept}, removed ${report.applied.removed.length}.`);
+      const report = await runREProduct();
+      console.log(`[Scheduler Success] Benefit V2 run=${report.runId} status=${report.status}.`);
     } catch (err) {
       console.error(`[Scheduler Error] Promotion check failed:`, err);
     }
