@@ -211,6 +211,7 @@ export function HomeScreen({
   onOpenTerms,
   onLogout,
   onOpenAccount,
+  onOpenAgent,
 }) {
   const [annual, setAnnual] = useState(false);
 
@@ -330,6 +331,24 @@ export function HomeScreen({
       </div>
 
       {/* 알림 권한 꺼짐 안내 (필요 시 노출) */}
+      {onOpenAgent && (
+        <button
+          type="button"
+          onClick={onOpenAgent}
+          className="mt-1 flex w-full items-center gap-3 rounded-2xl bg-[#191F28] px-4 py-3.5 text-left shadow-sm transition-all active:scale-[0.98]"
+          aria-label="꾸독에게 시키기"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-white">
+            <Sparkles size={17} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <strong className="block text-[14px] font-bold text-white">꾸독에게 시키기</strong>
+            <span className="block truncate text-[12px] font-medium text-white/60">"넷플릭스 해지하고 환불 받아줘"</span>
+          </span>
+          <ChevronRight size={18} className="shrink-0 text-white/50" />
+        </button>
+      )}
+
       {notificationDenied && (
         <button
           type="button"

@@ -6,6 +6,7 @@ export const storageKeys = {
   users: `${KEY_PREFIX}:users`,
   onboardingComplete: `${KEY_PREFIX}:onboarding-complete`,
   savedAmount: `${KEY_PREFIX}:saved-amount`,
+  agentApprovals: `${KEY_PREFIX}:agent-approvals`,
 };
 
 export const readStoredValue = (key, fallback) => {

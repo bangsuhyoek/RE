@@ -11,6 +11,7 @@ import { TermsModal } from "./components/TermsModal";
 import { requestPaymentCapturePermission, simulatePaymentDetection } from "./lib/paymentCapture";
 import { isNativePlatform } from "./lib/platform";
 import { CancelModal } from "./components/CancelModal";
+import { AgentSheet } from "./components/AgentSheet";
 import { HomeScreen } from "./components/HomeScreen";
 import { OnboardingScreen } from "./components/OnboardingScreen";
 import { PromotionScreen } from "./components/PromotionScreen";
@@ -34,6 +35,8 @@ export default function App() {
   const [termsOpen, setTermsOpen] = useState(false);
   const [termsTab, setTermsTab] = useState("terms");
   const [toast, setToast] = useState(null);
+  const [agentOpen, setAgentOpen] = useState(false);
+  const [agentMessages, setAgentMessages] = useState([]);
   const [showSplash, setShowSplash] = useState(() => {
     if (typeof window !== "undefined") {
       return !sessionStorage.getItem("kudok_splash_shown");
@@ -511,6 +514,7 @@ export default function App() {
         onLogout={handleLogout}
         onOpenAccount={() => setAccountOpen(true)}
         onTogglePin={(id) => togglePinSubscription(id, notify)}
+        onOpenAgent={() => setAgentOpen(true)}
       />
     );
   } else if (screen.route === "subscriptions") {
@@ -637,6 +641,19 @@ export default function App() {
           onComplete={(id, saved) => finishCancellation(id, saved, () => {
             if (screen.route === "detail") navigate("subscriptions");
           })}
+          onToast={notify}
+        />
+      )}
+      {agentOpen && !cancelSubscription && (
+        <AgentSheet
+          subscriptions={subscriptions}
+          messages={agentMessages}
+          onMessagesChange={setAgentMessages}
+          onClose={() => setAgentOpen(false)}
+          onStartCancel={(subscriptionId, options) => {
+            setAgentOpen(false);
+            startCancellation(subscriptionId, null, options);
+          }}
           onToast={notify}
         />
       )}
