@@ -18,15 +18,13 @@ import { RenewalSheet } from "./components/RenewalSheet";
 import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from "./components/SubscriptionScreens";
 import { NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
-import { serviceCatalog } from "./data/subscriptionData";
+import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
 import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue } from "./lib/storage";
 import { generateSubscriptionAlerts } from "./lib/notifications";
 import { useNavigation } from "./hooks/useNavigation";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
 import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubscription } from "./lib/supabase";
-
-import { useProductBenefits } from "./hooks/useProductBenefits.js";
 
 export default function App() {
   const [addOpen, setAddOpen] = useState(false);
@@ -356,8 +354,6 @@ export default function App() {
     setRenewalTarget,
   ]);
 
-  const productPromotions = useProductBenefits(subscriptions, profile);
-
   const selectedSubscription = useMemo(
     () => getSubscriptionById(screen.id),
     [getSubscriptionById, screen.id]
@@ -491,7 +487,7 @@ export default function App() {
     content = (
       <HomeScreen
         subscriptions={subscriptions}
-        promotions={productPromotions}
+        promotions={promotionCatalog}
         profile={profile}
         notificationDenied={profile?.notificationsAllowed === false}
         onOpenSubscription={(id) => navigate("detail", id)}
@@ -532,7 +528,7 @@ export default function App() {
   } else if (screen.route === "calendar") {
     content = <CalendarScreen subscriptions={subscriptions} onOpen={(id) => navigate("detail", id)} />;
   } else if (screen.route === "promotions") {
-    content = <PromotionScreen subscriptions={subscriptions} promotions={productPromotions} onOpenPromotion={handlePromotion} />;
+    content = <PromotionScreen subscriptions={subscriptions} promotions={promotionCatalog} onOpenPromotion={handlePromotion} />;
   } else if (screen.route === "detail") {
     content = (
       <SubscriptionDetailScreen
@@ -550,7 +546,7 @@ export default function App() {
           setHighlightCancelId(null);
           navigate("subscriptions");
         }}
-        promotion={productPromotions.find((p) => p.sourceServiceIds?.includes(selectedSubscription?.id))}
+        promotion={promotionCatalog.find((p) => p.sourceServiceIds?.includes(selectedSubscription?.id))}
         onTriggerNotification={(sub) => handleTriggerTestNotification(sub, notify)}
         highlightCancel={highlightCancelId === selectedSubscription?.subscriptionId}
       />
