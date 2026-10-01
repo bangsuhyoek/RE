@@ -70,7 +70,11 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
     }
     const alertItem = createTestNotification(sub, "auto");
     setNotifications((current) => [alertItem, ...current]);
-    sendAppNotification(alertItem.title, { body: alertItem.message });
+    // 알림을 누르면 이 구독의 갱신 승인 카드가 열리도록 구독 id와 종류를 함께 보낸다.
+    sendAppNotification(alertItem.title, {
+      body: alertItem.message,
+      extra: { subscriptionId: alertItem.subscriptionId, type: alertItem.type },
+    });
     notify?.(`${alertItem.badge} 푸시 알림을 발송했어요.`);
   }, [subscriptions]);
 

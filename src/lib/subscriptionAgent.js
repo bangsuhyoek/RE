@@ -9,6 +9,7 @@ import { dateForDueDay, formatWon, getNextChargeDate } from "./dates.js";
 
 const DAY_MS = 86_400_000;
 const ACTION_APPROVAL_TTL_MS = 10 * 60 * 1000;
+const ALERT_DECISION_DAYS = 7;
 const UPCOMING_WINDOW_DAYS = 7;
 const WITHDRAWAL_DAYS = 7;
 
@@ -183,7 +184,12 @@ const formatShortDate = (date) => (date.getMonth() + 1) + "월 " + date.getDate(
 const pad2 = (value) => String(value).padStart(2, "0");
 const formatEnglishDate = (date) => date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
 
-export function buildRefundDraft({ subscription, lastChargeDate }) {
+const DEFAULT_REFUND_REASON = {
+  ko: "결제 후 서비스를 이용하지 않았습니다. (사유가 다르면 수정해 주세요)",
+  en: "I have not used the service since this charge.",
+};
+
+export function buildRefundDraft({ subscription, lastChargeDate, reason = DEFAULT_REFUND_REASON }) {
   const last4 = getCardLast4(subscription.paymentMethod);
   const method = describePaymentMethod(subscription.paymentMethod);
   const plan = subscription.plan ? " " + subscription.plan : "";
@@ -196,7 +202,7 @@ export function buildRefundDraft({ subscription, lastChargeDate }) {
     "- 결제일: " + chargedKo,
     "- 결제 금액: " + formatWon(subscription.amount),
     "- 결제수단: " + method,
-    "- 요청 사유: 결제 후 서비스를 이용하지 않았습니다. (사유가 다르면 수정해 주세요)",
+    "- 요청 사유: " + reason.ko,
     "",
     "확인 후 환불 처리 부탁드립니다. 감사합니다.",
   ].join("\n");
@@ -207,7 +213,7 @@ export function buildRefundDraft({ subscription, lastChargeDate }) {
     "- Charge date: " + chargedEn,
     "- Amount: KRW " + Number(subscription.amount || 0).toLocaleString("en-US"),
     "- Payment method: card ending in " + (last4 || "----"),
-    "- Reason: I have not used the service since this charge.",
+    "- Reason: " + reason.en,
     "",
     "Thank you for your help.",
   ].join("\n");
@@ -327,28 +333,34 @@ function buildActionResponse({ intent, subscription, now, text }) {
   };
 }
 
+const isTrialSubscription = (subscription) => Boolean(subscription?.isTrial || subscription?.status === "trial");
+
+function buildRenewalItem(subscription, now) {
+  const next = getNextChargeDate(subscription, now);
+  const days = Math.round((startOfDay(next) - startOfDay(now)) / DAY_MS);
+  const dueAt = new Date(next.getFullYear(), next.getMonth(), next.getDate(), 23, 59, 59);
+  const trial = isTrialSubscription(subscription);
+  return {
+    days,
+    subscriptionId: subscriptionKey(subscription),
+    serviceName: subscription.name,
+    plan: subscription.plan || "",
+    amount: subscription.amount,
+    isTrial: trial,
+    dateLabel: formatShortDate(next),
+    dDay: days === 0 ? "오늘" : "D-" + days,
+    payment: describePaymentMethod(subscription.paymentMethod),
+    // 무료체험은 유료 전환 승인으로 따로 기록한다. 같은 구독·같은 결제일이면 키가 같아 결정이 하나만 남는다.
+    approval: createApprovalRequest({ kind: trial ? "trial_conversion" : "renewal", subscription, now, dueAt }),
+  };
+}
+
 function buildUpcomingResponse({ subscriptions, now }) {
   const items = subscriptions
-    .map((subscription) => {
-      const next = getNextChargeDate(subscription, now);
-      const days = Math.round((startOfDay(next) - startOfDay(now)) / DAY_MS);
-      return { subscription, next, days };
-    })
+    .filter((subscription) => subscription.status !== "cancelled")
+    .map((subscription) => buildRenewalItem(subscription, now))
     .filter((item) => item.days >= 0 && item.days <= UPCOMING_WINDOW_DAYS)
-    .sort((a, b) => a.days - b.days)
-    .map(({ subscription, next, days }) => {
-      const dueAt = new Date(next.getFullYear(), next.getMonth(), next.getDate(), 23, 59, 59);
-      return {
-        subscriptionId: subscriptionKey(subscription),
-        serviceName: subscription.name,
-        plan: subscription.plan || "",
-        amount: subscription.amount,
-        dateLabel: formatShortDate(next),
-        dDay: days === 0 ? "오늘" : "D-" + days,
-        payment: describePaymentMethod(subscription.paymentMethod),
-        approval: createApprovalRequest({ kind: "renewal", subscription, now, dueAt }),
-      };
-    });
+    .sort((a, b) => a.days - b.days);
   const total = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
   return {
     type: "upcoming",
@@ -358,6 +370,227 @@ function buildUpcomingResponse({ subscriptions, now }) {
       : UPCOMING_WINDOW_DAYS + "일 안에 결제될 구독이 없어요.",
     items,
   };
+}
+
+/**
+ * 결제 사전 알림(D-3, D-1)을 눌렀을 때 그 구독 하나에 대한 갱신 승인 카드를 만든다.
+ */
+export function buildRenewalResponse({ subscription, now = new Date() }) {
+  if (!subscription) return null;
+  const item = buildRenewalItem(subscription, now);
+  const when = item.days === 0 ? "오늘" : item.days === 1 ? "내일" : item.days + "일 뒤";
+  const summary = item.isTrial
+    ? when + " " + subscription.name + " 무료체험이 끝나고 " + formatWon(subscription.amount) + "이 결제될 예정이에요."
+    : when + " " + subscription.name + " " + formatWon(subscription.amount) + "이 결제될 예정이에요.";
+  return {
+    type: "upcoming",
+    source: "notification",
+    toolsUsed: ["구독 정보 조회", "결제일 계산"],
+    summary,
+    items: [item],
+  };
+}
+
+// ---------- 결제 감지 경고 ----------
+
+const sameService = (a, b) => {
+  const left = normalize(a);
+  const right = normalize(b);
+  return Boolean(left && right && left === right);
+};
+
+export function findActiveSubscriptionForPayment(detected = {}, subscriptions = []) {
+  const active = subscriptions.filter((subscription) => subscription.status !== "cancelled");
+  const byId = active.find((subscription) =>
+    sameService(subscription.id, detected.serviceId) || sameService(subscription.serviceId, detected.serviceId)
+  );
+  return byId || findSubscriptionInText(detected.name || "", active);
+}
+
+function findCancelRecordForPayment(detected = {}, cancelHistory = [], detectedAt) {
+  const byText = findSubscriptionInText(detected.name || "", cancelHistory);
+  return cancelHistory
+    .filter((record) => sameService(record.id, detected.serviceId) || sameService(record.serviceId, detected.serviceId) || record === byText)
+    .filter((record) => record.cancelledAt && new Date(record.cancelledAt).getTime() < detectedAt.getTime())
+    .sort((a, b) => new Date(b.cancelledAt) - new Date(a.cancelledAt))[0] || null;
+}
+
+const ALERT_COPY = {
+  price_increase: {
+    title: "등록한 금액보다 더 결제됐어요",
+    notice: "요금을 올릴 때 사업자는 미리 알리고 따로 동의를 받아야 해요(전자상거래법). 동의한 적이 없다면 이 기록을 증빙으로 남겨 두세요.",
+  },
+  trial_conversion: {
+    title: "무료체험이 유료로 바뀌었어요",
+    notice: "무료체험을 유료로 바꿀 때 사업자는 미리 알리고 따로 동의를 받아야 해요(전자상거래법). 동의한 적이 없다면 이 기록을 증빙으로 남겨 두세요.",
+  },
+  charged_after_cancel: {
+    title: "해지한 구독에서 결제됐어요",
+    notice: "해지한 뒤 결제됐다면 환불을 요청할 수 있어요. 해외 결제라면 카드사에 이의제기도 할 수 있으니 해지 기록을 지워지지 않게 남겨 두세요.",
+  },
+};
+
+/**
+ * 결제 알림으로 감지한 결제를 등록된 구독·해지 기록과 비교한다.
+ * 요금 인상, 무료체험 유료 전환, 해지 후 결제일 때만 경고 응답을 돌려주고, 평소 결제면 null을 돌려준다.
+ * 이미 결제된 뒤의 경고이므로 꾸독이 결제를 되돌리지는 못한다.
+ */
+export function assessDetectedPayment({ detected = {}, subscriptions = [], cancelHistory = [], now = new Date() }) {
+  const amount = Math.round(Number(detected.amount) || 0);
+  if (amount <= 0) return null;
+  const detectedAt = detected.detectedAt ? new Date(detected.detectedAt) : now;
+  const paymentMethod = detected.paymentMethod || "";
+
+  const subscription = findActiveSubscriptionForPayment(detected, subscriptions);
+  let kind = null;
+  let previousAmount = null;
+  let base = subscription;
+  let cancelRecord = null;
+
+  if (subscription) {
+    // 공동 이용이면 사용자 부담금이 아니라 카드에 찍히는 전체 금액과 비교한다.
+    previousAmount = Math.round(Number(subscription.grossAmount ?? subscription.amount) || 0);
+    if (isTrialSubscription(subscription)) kind = "trial_conversion";
+    else if (previousAmount > 0 && amount > previousAmount) kind = "price_increase";
+  } else {
+    cancelRecord = findCancelRecordForPayment(detected, cancelHistory, detectedAt);
+    if (cancelRecord) {
+      kind = "charged_after_cancel";
+      base = cancelRecord;
+      previousAmount = Math.round(Number(cancelRecord.amount) || 0) || null;
+    }
+  }
+  if (!kind) return null;
+
+  const serviceName = base.name || detected.name || "구독";
+  const findings = [
+    { label: "감지한 결제", value: serviceName + " · " + formatWon(amount) + " · " + formatShortDate(detectedAt) },
+    { label: "결제수단", value: describePaymentMethod(paymentMethod || base.paymentMethod) },
+  ];
+  if (kind === "price_increase") {
+    findings.push({ label: "등록 금액", value: formatWon(previousAmount) + " → " + formatWon(amount) + " (+" + formatWon(amount - previousAmount) + ")" });
+  }
+  if (kind === "trial_conversion") {
+    findings.push({ label: "등록 상태", value: "무료체험 중으로 등록돼 있었어요" });
+  }
+  if (kind === "charged_after_cancel") {
+    findings.push({ label: "해지 기록", value: formatKoreanDate(new Date(cancelRecord.cancelledAt)) + " 꾸독에서 해지 완료로 처리" });
+  }
+
+  const decisionDue = new Date(detectedAt.getTime() + ALERT_DECISION_DAYS * DAY_MS);
+  const approval = kind === "charged_after_cancel"
+    ? null
+    : createApprovalRequest({
+      kind,
+      subscription,
+      amount,
+      now,
+      dueAt: decisionDue,
+      dedupeKey: kind + ":" + subscriptionKey(subscription) + ":" + formatEnglishDate(detectedAt) + ":" + amount,
+    });
+  if (approval) approval.previousAmount = previousAmount;
+
+  const channel = detectPaymentChannel({ ...base, paymentMethod: paymentMethod || base.paymentMethod });
+  const route = REFUND_ROUTES[channel];
+  const refundSubject = { ...base, name: serviceName, amount, paymentMethod: paymentMethod || base.paymentMethod };
+  const refund = kind === "charged_after_cancel"
+    ? {
+      requestTo: route.requestTo || serviceName + " 고객센터",
+      url: route.url || base.supportUrl || null,
+      urlLabel: route.urlLabel,
+      note: route.note,
+      draft: buildRefundDraft({
+        subscription: refundSubject,
+        lastChargeDate: detectedAt,
+        reason: {
+          ko: formatKoreanDate(new Date(cancelRecord.cancelledAt)) + "에 해지했는데 이후 결제가 발생했습니다.",
+          en: "I cancelled on " + formatEnglishDate(new Date(cancelRecord.cancelledAt)) + ", but I was charged afterwards.",
+        },
+      }),
+    }
+    : null;
+
+  return {
+    type: "alert",
+    kind,
+    title: ALERT_COPY[kind].title,
+    notice: ALERT_COPY[kind].notice,
+    subscriptionId: subscription ? subscriptionKey(subscription) : null,
+    serviceName,
+    amount,
+    previousAmount,
+    detectedAt: detectedAt.toISOString(),
+    paymentMethod: paymentMethod || base.paymentMethod || "",
+    cancelledAt: cancelRecord?.cancelledAt || null,
+    toolsUsed: ["결제 알림 분석", subscription ? "등록 금액 비교" : "해지 기록 확인"],
+    findings,
+    approval,
+    refund,
+  };
+}
+
+// ---------- 증빙 사건 ----------
+
+const EVIDENCE_LABEL = {
+  payment_message: "결제 알림",
+  cancel_record: "해지 기록",
+  decision_log: "꾸독 승인 기록",
+};
+
+export function createEvidenceCase(alert, now = new Date()) {
+  const items = [
+    {
+      type: "payment_message",
+      capturedAt: alert.detectedAt,
+      detail: alert.serviceName + " " + formatWon(alert.amount) + " 결제 (" + describePaymentMethod(alert.paymentMethod) + ")",
+    },
+  ];
+  if (alert.cancelledAt) {
+    items.push({ type: "cancel_record", capturedAt: alert.cancelledAt, detail: "꾸독에서 해지 완료로 처리" });
+  }
+  return {
+    id: "case:" + alert.kind + ":" + (alert.subscriptionId || normalize(alert.serviceName)) + ":" + alert.detectedAt.slice(0, 10) + ":" + alert.amount,
+    kind: alert.kind,
+    title: alert.title,
+    serviceName: alert.serviceName,
+    amount: alert.amount,
+    previousAmount: alert.previousAmount,
+    createdAt: now.toISOString(),
+    items,
+  };
+}
+
+export function appendDecisionToCase(evidenceCase, approval) {
+  if (!evidenceCase || !approval || approval.status === "pending") return evidenceCase;
+  const exists = evidenceCase.items.some((item) => item.type === "decision_log" && item.approvalId === approval.id);
+  if (exists) return evidenceCase;
+  const label = approval.status === "approved_once" ? "새 금액으로 계속 이용" : approval.status === "declined" ? "거절하고 해지 진행" : approval.status;
+  return {
+    ...evidenceCase,
+    items: [...evidenceCase.items, { type: "decision_log", capturedAt: approval.decidedAt, detail: label, approvalId: approval.id }],
+  };
+}
+
+const formatDateTime = (iso) => {
+  const date = new Date(iso);
+  return formatKoreanDate(date) + " " + pad2(date.getHours()) + ":" + pad2(date.getMinutes());
+};
+
+export function formatEvidenceSummary(evidenceCase) {
+  if (!evidenceCase) return "";
+  const lines = [
+    "[꾸독 증빙 기록] " + evidenceCase.title,
+    "서비스: " + evidenceCase.serviceName,
+    "결제 금액: " + formatWon(evidenceCase.amount) + (evidenceCase.kind === "price_increase" && evidenceCase.previousAmount ? " (기존 등록 금액 " + formatWon(evidenceCase.previousAmount) + ")" : ""),
+    "",
+    "경과",
+    ...[...evidenceCase.items]
+      .sort((a, b) => new Date(a.capturedAt) - new Date(b.capturedAt))
+      .map((item) => "- " + formatDateTime(item.capturedAt) + " " + EVIDENCE_LABEL[item.type] + ": " + item.detail),
+    "",
+    "결제 화면 캡처, 가입·인상 안내 메일, 해지 확인 메일이 있으면 함께 첨부하세요.",
+  ];
+  return lines.join("\n");
 }
 
 /**

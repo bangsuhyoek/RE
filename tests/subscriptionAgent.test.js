@@ -1,17 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  assessDetectedPayment,
   assessRefund,
+  buildRenewalResponse,
   buildRefundDraft,
   createApprovalRequest,
+  createEvidenceCase,
   decideApproval,
   detectPaymentChannel,
+  formatEvidenceSummary,
   getLastChargeDate,
   mergeApproval,
   parseAgentIntent,
   runAgent,
 } from "../src/lib/subscriptionAgent.js";
 import { normalizeInterpretation } from "../api/_lib/agentInterpretation.js";
+import { mergeServerApprovals } from "../src/lib/approvalStore.js";
 
 const NOW = new Date(2026, 9, 1, 10, 0, 0); // 2026-10-01 10:00
 
@@ -114,4 +119,74 @@ test("AI 해석 결과는 허용된 의도와 사용자 구독 id만 통과시�
   assert.deepEqual(normalizeInterpretation('{"intent":"cancel","subscriptionId":"seed-netflix"}', services), { intent: "cancel", subscriptionId: "seed-netflix" });
   assert.deepEqual(normalizeInterpretation('{"intent":"pay","subscriptionId":"hacker"}', services), { intent: "unknown", subscriptionId: null });
   assert.deepEqual(normalizeInterpretation("not json", services), { intent: "unknown", subscriptionId: null });
+});
+
+// ---------- 결제 감지 경고·알림 승인 카드·서버 결정 병합 ----------
+
+test("요금 인상: 등록 금액보다 많이 결제되면 경고하고, 같은 금액이면 경고하지 않는다", () => {
+  const detected = { name: "넷플릭스", serviceId: "netflix", amount: 19000, paymentMethod: "신한카드 4521", detectedAt: NOW.toISOString() };
+  const alert = assessDetectedPayment({ detected, subscriptions: subs, now: NOW });
+  assert.equal(alert.type, "alert");
+  assert.equal(alert.kind, "price_increase");
+  assert.equal(alert.previousAmount, 17000);
+  assert.equal(alert.approval.kind, "price_increase");
+  assert.equal(alert.approval.subscriptionId, "seed-netflix");
+  assert.equal(assessDetectedPayment({ detected: { ...detected, amount: 17000 }, subscriptions: subs, now: NOW }), null);
+  assert.equal(assessDetectedPayment({ detected: { ...detected, amount: 9000 }, subscriptions: subs, now: NOW }), null);
+});
+
+test("공동 이용 구독은 1인 부담금이 아니라 카드에 찍히는 전체 금액과 비교한다", () => {
+  const shared = [{ ...subs[0], amount: 4250, grossAmount: 17000, sharingEnabled: true, shareCount: 4 }];
+  const detected = { name: "Netflix", serviceId: "netflix", amount: 17000, detectedAt: NOW.toISOString() };
+  assert.equal(assessDetectedPayment({ detected, subscriptions: shared, now: NOW }), null);
+});
+
+test("무료체험으로 등록된 구독에서 결제되면 유료 전환 경고를 만든다", () => {
+  const trial = [{ ...subs[1], amount: 0, isTrial: true, status: "trial" }];
+  const alert = assessDetectedPayment({ detected: { name: "Spotify", serviceId: "spotify", amount: 10900, detectedAt: NOW.toISOString() }, subscriptions: trial, now: NOW });
+  assert.equal(alert.kind, "trial_conversion");
+  assert.equal(alert.approval.kind, "trial_conversion");
+});
+
+test("해지 기록 이후 같은 서비스 결제는 해지 후 결제로 보고 환불 요청서를 만든다", () => {
+  const cancelHistory = [{ id: "disney", serviceId: "disney", name: "디즈니+", amount: 9900, paymentMethod: "현대카드 8821", cancelledAt: new Date(2026, 8, 20).toISOString() }];
+  const detected = { name: "디즈니플러스", serviceId: "disney", amount: 9900, paymentMethod: "현대카드 8821", detectedAt: NOW.toISOString() };
+  const alert = assessDetectedPayment({ detected, subscriptions: subs, cancelHistory, now: NOW });
+  assert.equal(alert.kind, "charged_after_cancel");
+  assert.equal(alert.approval, null);
+  assert.match(alert.refund.draft.ko, /해지했는데 이후 결제/);
+  assert.match(alert.refund.draft.ko, /8821/);
+  // 해지보다 먼저 일어난 결제는 해지 후 결제가 아니다.
+  const before = { ...detected, detectedAt: new Date(2026, 8, 1).toISOString() };
+  assert.equal(assessDetectedPayment({ detected: before, subscriptions: subs, cancelHistory, now: NOW }), null);
+});
+
+test("증빙 기록에는 경과가 시간순으로 들어가고 카드번호는 끝 4자리만 남는다", () => {
+  const cancelHistory = [{ id: "disney", serviceId: "disney", name: "디즈니+", amount: 9900, cancelledAt: new Date(2026, 8, 20).toISOString() }];
+  const alert = assessDetectedPayment({
+    detected: { name: "디즈니", serviceId: "disney", amount: 9900, paymentMethod: "현대카드 1234-5678-9012-8821", detectedAt: NOW.toISOString() },
+    subscriptions: subs, cancelHistory, now: NOW,
+  });
+  const summary = formatEvidenceSummary(createEvidenceCase(alert, NOW));
+  assert.ok(summary.indexOf("해지 기록") < summary.indexOf("결제 알림"));
+  assert.match(summary, /8821/);
+  assert.doesNotMatch(summary, /5678/);
+});
+
+test("결제 사전 알림으로 연 승인 카드는 대화에서 만든 카드와 같은 요청으로 묶인다", () => {
+  const fromNotification = buildRenewalResponse({ subscription: subs[1], now: NOW });
+  const fromChat = runAgent({ text: "이번 주 결제 예정 알려줘", subscriptions: subs, now: NOW });
+  const chatItem = fromChat.items.find((item) => item.subscriptionId === "seed-spotify");
+  assert.equal(fromNotification.items[0].approval.id, chatItem.approval.id);
+  assert.match(fromNotification.summary, /내일 Spotify/);
+  const trialCard = buildRenewalResponse({ subscription: { ...subs[1], isTrial: true }, now: NOW });
+  assert.equal(trialCard.items[0].approval.kind, "trial_conversion");
+});
+
+test("서버에서 확정된 결정이 기기 기록보다 우선하고, 서버의 대기 상태가 기기 결정을 지우지 않는다", () => {
+  const row = { idempotency_key: "renewal:a:2026-10-02", kind: "renewal", subscription_id: "a", service_name: "A", amount_krw: 1000, previous_amount_krw: null, due_at: "2026-10-02T14:59:59.000Z", status: "declined", decided_at: "2026-10-01T01:00:00.000Z", created_at: "2026-10-01T00:00:00.000Z" };
+  const local = { [row.idempotency_key]: { id: row.idempotency_key, status: "approved_once", decidedAt: "2026-10-01T02:00:00.000Z" } };
+  assert.equal(mergeServerApprovals(local, [row])[row.idempotency_key].status, "declined");
+  const pendingRow = { ...row, status: "pending", decided_at: null };
+  assert.equal(mergeServerApprovals(local, [pendingRow])[row.idempotency_key].status, "approved_once");
 });

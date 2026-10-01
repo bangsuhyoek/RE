@@ -1,18 +1,48 @@
 import { useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
-import { Check, Copy, ExternalLink, Loader2, Send, ShieldCheck, Sparkles, X } from "lucide-react";
+import { AlertTriangle, Check, Copy, ExternalLink, FileText, Loader2, Send, ShieldCheck, Sparkles, X } from "lucide-react";
 import { BottomSheet, Button } from "./ui";
 import { formatWon } from "../lib/dates";
-import { readStoredValue, storageKeys, writeStoredValue } from "../lib/storage";
-import { buildSuggestions, decideApproval, mergeApproval, resolveApproval, runAgent } from "../lib/subscriptionAgent";
+import { readEvidenceCases, readStoredValue, saveEvidenceCase, storageKeys, writeStoredValue } from "../lib/storage";
+import {
+  appendDecisionToCase,
+  buildSuggestions,
+  createEvidenceCase,
+  decideApproval,
+  formatEvidenceSummary,
+  mergeApproval,
+  resolveApproval,
+  runAgent,
+} from "../lib/subscriptionAgent";
 import { interpretWithAi } from "../lib/agentClient";
+import { decideApprovalOnServer, fetchApprovals, mergeServerApprovals, recordApprovalRequest } from "../lib/approvalStore";
 
 const STATUS_TEXT = {
   approved: "허용함",
   approved_once: "이번만 허용함",
   declined: "거절함",
   expired: "시간이 지나 만료됨",
+};
+
+const isExpiredPending = (approval, now = Date.now()) =>
+  approval?.status === "pending" && new Date(approval.dueAt).getTime() < now;
+
+const approvalsInMessages = (messages) => messages.flatMap((message) => {
+  const response = message.response;
+  if (!response) return [];
+  if (response.type === "action" || response.type === "alert") return response.approval ? [response.approval] : [];
+  if (response.type === "upcoming") return response.items.map((item) => item.approval);
+  return [];
+});
+
+const copyText = async (value, onToast, successMessage) => {
+  try {
+    await navigator.clipboard.writeText(value);
+    onToast?.(successMessage);
+  } catch {
+    onToast?.("복사하지 못했어요. 길게 눌러 직접 복사해 주세요.");
+  }
 };
 
 const openExternal = (url) => {
@@ -24,13 +54,18 @@ const openExternal = (url) => {
   }
 };
 
-function DecisionBadge({ status, decidedAt }) {
+const ALERT_STATUS_TEXT = {
+  approved_once: "새 금액으로 계속 쓰기로 했어요",
+  declined: "해지하기로 했어요",
+};
+
+function DecisionBadge({ status, decidedAt, labels = STATUS_TEXT }) {
   const time = decidedAt ? new Date(decidedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }) : "";
   const positive = status === "approved" || status === "approved_once";
   return (
     <div className={"mt-3 flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-bold " + (positive ? "bg-[#E8F3FF] text-[#1B64DA]" : "bg-[#F2F4F6] text-[#6B7684]")}>
       {positive ? <Check size={14} /> : <X size={14} />}
-      {STATUS_TEXT[status] || status}{time ? " · " + time : ""}
+      {labels[status] || STATUS_TEXT[status] || status}{time ? " · " + time : ""}
     </div>
   );
 }
@@ -51,14 +86,7 @@ function ToolTrace({ tools }) {
 function RefundDraft({ refund, onToast }) {
   const [lang, setLang] = useState("ko");
   const draft = refund.draft[lang];
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(draft);
-      onToast?.("환불 요청서를 복사했어요.");
-    } catch {
-      onToast?.("복사하지 못했어요. 길게 눌러 직접 복사해 주세요.");
-    }
-  };
+  const copy = () => copyText(draft, onToast, "환불 요청서를 복사했어요.");
   return (
     <div className="mt-3 rounded-2xl border border-[#E5E8EB] bg-white p-3.5">
       <div className="flex items-center justify-between">
@@ -154,11 +182,15 @@ function UpcomingResponse({ response, approvals, onDecide, onStartCancel }) {
       <p className="text-[14px] font-semibold text-[#191F28]">{response.summary}</p>
       <div className="mt-2.5 space-y-2.5">
         {response.items.map((item) => {
-          const approval = resolveApproval(approvals, item.approval);
+          const stored = resolveApproval(approvals, item.approval);
+          const approval = isExpiredPending(stored) ? { ...stored, status: "expired" } : stored;
           return (
             <div key={item.approval.id} className="rounded-2xl border border-[#E5E8EB] bg-white p-3.5" data-testid="agent-renewal-card">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
+                  {item.isTrial && (
+                    <span className="mb-1 inline-block rounded-md bg-[#FFF0F0] px-1.5 py-0.5 text-[10px] font-bold text-[#F04452]">무료체험 종료 → 유료 전환</span>
+                  )}
                   <p className="truncate text-[14px] font-bold text-[#191F28]">{item.serviceName} <span className="font-medium text-[#8B95A1]">{item.plan}</span></p>
                   <p className="mt-0.5 text-[12px] text-[#6B7684]">{item.dateLabel} 결제 · {item.payment}</p>
                 </div>
@@ -169,7 +201,7 @@ function UpcomingResponse({ response, approvals, onDecide, onStartCancel }) {
               </div>
               {approval.status === "pending" ? (
                 <div className="mt-3 flex gap-2">
-                  <Button size="compact" variant="secondary" className="flex-1" onClick={() => onDecide(approval, "allow_once")}>이번만 허용</Button>
+                  <Button size="compact" variant="secondary" className="flex-1" onClick={() => onDecide(approval, "allow_once")}>{item.isTrial ? "유료로 계속 쓰기" : "이번만 허용"}</Button>
                   <Button size="compact" variant="outline" className="flex-1" onClick={() => { onDecide(approval, "deny"); onStartCancel(item.subscriptionId); }}>거절하고 해지</Button>
                 </div>
               ) : (
@@ -186,20 +218,86 @@ function UpcomingResponse({ response, approvals, onDecide, onStartCancel }) {
   );
 }
 
-export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose, onStartCancel, onToast }) {
+function AlertResponse({ response, approval, onDecide, onStartCancel, onUpdateAmount, onToast }) {
+  const decidable = Boolean(approval && response.subscriptionId);
+  const copyEvidence = () => {
+    const base = readEvidenceCases()[createEvidenceCase(response).id] || createEvidenceCase(response);
+    const withDecision = appendDecisionToCase(base, approval);
+    saveEvidenceCase(withDecision);
+    copyText(formatEvidenceSummary(withDecision), onToast, "증빙 기록을 복사했어요. 신고나 환불 요청에 붙여 넣으세요.");
+  };
+  return (
+    <div>
+      <ToolTrace tools={response.toolsUsed} />
+      <div className="rounded-2xl border-2 border-[#F04452] bg-[#FFF8F8] p-4" data-testid="agent-alert-card">
+        <div className="flex items-center gap-1.5 text-[12px] font-bold text-[#F04452]"><AlertTriangle size={14} /> 결제 경고</div>
+        <p className="mt-1.5 text-[15px] font-extrabold text-[#191F28]">{response.title}</p>
+        <dl className="mt-2 space-y-1.5">
+          {response.findings.map((item) => (
+            <div key={item.label} className="flex gap-2 text-[12px] leading-relaxed">
+              <dt className="w-[68px] shrink-0 font-semibold text-[#8B95A1]">{item.label}</dt>
+              <dd className="font-medium text-[#333D4B]">{item.value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-2.5 text-[11px] leading-relaxed text-[#6B7684]">{response.notice}</p>
+        {decidable && (
+          approval.status === "pending" ? (
+            <div className="mt-3 flex gap-2">
+              <Button size="compact" variant="outline" className="flex-1" onClick={() => { onDecide(approval, "deny"); onStartCancel(response.subscriptionId); }}>해지하기</Button>
+              <Button size="compact" variant="secondary" className="flex-1" onClick={() => { onDecide(approval, "allow_once"); onUpdateAmount?.(response); }}>
+                {response.kind === "trial_conversion" ? "유료로 계속 쓰기" : "새 금액으로 계속 쓰기"}
+              </Button>
+            </div>
+          ) : (
+            <DecisionBadge status={approval.status} decidedAt={approval.decidedAt} labels={ALERT_STATUS_TEXT} />
+          )
+        )}
+      </div>
+      {response.refund && <RefundDraft refund={response.refund} onToast={onToast} />}
+      <Button size="compact" variant="secondary" fullWidth className="mt-3" onClick={copyEvidence} prefixIcon={<FileText size={14} />}>증빙 기록 복사</Button>
+      <p className="mt-2 text-[11px] leading-relaxed text-[#8B95A1]">꾸독은 이미 된 결제를 취소할 수 없어요. 환불은 서비스 회사나 카드사에 직접 요청해야 해요.</p>
+    </div>
+  );
+}
+
+export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose, onStartCancel, onUpdateAmount, onToast, userId = null }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [approvals, setApprovals] = useState(() => readStoredValue(storageKeys.agentApprovals, {}));
   const endRef = useRef(null);
+  const approvalsRef = useRef(approvals);
+  const recordedRef = useRef(new Set());
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, loading]);
 
   const saveApprovals = (next) => {
+    approvalsRef.current = next;
     setApprovals(next);
     writeStoredValue(storageKeys.agentApprovals, next);
   };
+
+  // 로그인 사용자는 서버에 남은 결정을 먼저 불러온다. 다른 기기에서 내린 결정도 여기서 반영된다.
+  useEffect(() => {
+    if (!userId) return undefined;
+    let active = true;
+    fetchApprovals(userId).then((rows) => {
+      if (active && rows.length) saveApprovals(mergeServerApprovals(approvalsRef.current, rows));
+    });
+    return () => { active = false; };
+  }, [userId]);
+
+  // 화면에 나온 승인 요청은 대기 상태로 서버에 한 번 기록한다.
+  useEffect(() => {
+    if (!userId) return;
+    for (const request of approvalsInMessages(messages)) {
+      if (recordedRef.current.has(request.id)) continue;
+      recordedRef.current.add(request.id);
+      recordApprovalRequest(userId, request);
+    }
+  }, [messages, userId]);
 
   const send = async (raw) => {
     const text = String(raw || "").trim();
@@ -217,12 +315,16 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
     onMessagesChange([...history, { id: "a-" + Date.now(), role: "agent", response }]);
   };
 
-  const decide = (request, decision) => {
-    const current = resolveApproval(approvals, request);
+  const decide = async (request, decision) => {
+    const current = resolveApproval(approvalsRef.current, request);
     const result = decideApproval(current, decision);
-    saveApprovals(mergeApproval(approvals, result.request));
+    saveApprovals(mergeApproval(approvalsRef.current, result.request));
     if (!result.ok && result.reason === "already_decided") onToast?.("이미 결정한 요청이에요.");
     if (!result.ok && result.reason === "expired") onToast?.("승인 시간이 지났어요. 다시 요청해 주세요.");
+    if (!result.ok || !userId) return;
+    // 서버가 확정한 상태가 최종이다. 다른 기기에서 먼저 결정했다면 그 결정으로 바뀐다.
+    const row = await decideApprovalOnServer(userId, current, decision);
+    if (row) saveApprovals(mergeServerApprovals(approvalsRef.current, [row]));
   };
 
   const clarify = (response, option) => {
@@ -278,6 +380,16 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
                 )}
                 {message.response.type === "upcoming" && (
                   <UpcomingResponse response={message.response} approvals={approvals} onDecide={decide} onStartCancel={onStartCancel} />
+                )}
+                {message.response.type === "alert" && (
+                  <AlertResponse
+                    response={message.response}
+                    approval={message.response.approval ? resolveApproval(approvals, message.response.approval) : null}
+                    onDecide={decide}
+                    onStartCancel={onStartCancel}
+                    onUpdateAmount={onUpdateAmount}
+                    onToast={onToast}
+                  />
                 )}
                 {(message.response.type === "unknown" || message.response.type === "clarify") && (
                   <div>

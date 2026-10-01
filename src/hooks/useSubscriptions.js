@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { createMockSubscriptions, serviceCatalog } from "../data/subscriptionData";
 import { getMonthKey, isPastDueThisCycle } from "../lib/dates";
-import { clearStoredValue, readStoredValue, removeDemoSubscriptions, storageKeys, writeStoredValue } from "../lib/storage";
+import { appendCancelRecord, clearStoredValue, readStoredValue, removeDemoSubscriptions, storageKeys, writeStoredValue } from "../lib/storage";
 import { readHash } from "./useNavigation";
 import { upsertDbSubscription, deleteDbSubscription, fetchUserSubscriptions } from "../lib/supabase";
 import { isDuplicateSubscription } from "../lib/subscriptionAdd";
@@ -237,6 +237,7 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     );
     if (!target) return;
     const finalSaved = saved ?? (typeof subscriptionId === "object" ? subscriptionId.amount : target.amount);
+    appendCancelRecord(target);
     setSubscriptions((current) => current.filter((subscription) => subscription.subscriptionId !== target.subscriptionId));
     if (profile?.user_id) { deleteDbSubscription(profile.user_id, target.subscriptionId); }
     setSavedAmount((amount) => amount + (finalSaved || target.amount));
@@ -257,6 +258,7 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
       );
       notify?.(`${renewalSubscription.name}을 다음 결제 주기로 유지했어요.`);
     } else {
+      appendCancelRecord(renewalSubscription);
       setSubscriptions((current) =>
         current.filter((subscription) => subscription.subscriptionId !== renewalSubscription.subscriptionId)
       );

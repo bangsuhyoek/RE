@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
+import { LocalNotifications } from "@capacitor/local-notifications";
 import { Bell } from "lucide-react";
 import { AuthLogin, AuthRegister } from "./components/AuthScreens";
 import { SplashScreen, LandingScreen } from "./components/LandingScreen";
@@ -20,12 +21,16 @@ import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from
 import { NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
 import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
-import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue } from "./lib/storage";
+import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue, readCancelHistory, saveEvidenceCase } from "./lib/storage";
 import { generateSubscriptionAlerts } from "./lib/notifications";
+import { assessDetectedPayment, buildRenewalResponse, createEvidenceCase } from "./lib/subscriptionAgent";
 import { useNavigation } from "./hooks/useNavigation";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
 import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubscription } from "./lib/supabase";
+
+// 결제 사전 알림 중 갱신 승인 카드로 이어지는 종류
+const RENEWAL_NOTIFICATION_TYPES = new Set(["billing_d3", "billing_d1", "trial_d1"]);
 
 export default function App() {
   const [addOpen, setAddOpen] = useState(false);
@@ -37,6 +42,9 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [agentOpen, setAgentOpen] = useState(false);
   const [agentMessages, setAgentMessages] = useState([]);
+  // 알림·딥링크 리스너는 앱 시작 때 한 번만 등록되므로 최신 처리 함수를 ref로 넘긴다.
+  const detectedPaymentHandlerRef = useRef(null);
+  const renewalNotificationHandlerRef = useRef(null);
   const [showSplash, setShowSplash] = useState(() => {
     if (typeof window !== "undefined") {
       return !sessionStorage.getItem("kudok_splash_shown");
@@ -113,10 +121,9 @@ export default function App() {
             billingCycle: "매월",
             sourceType: "sms",
             autoDetected: true,
+            detectedAt: detectedDate.toISOString(),
           };
-          setQuickAddData(detected);
-          setAddInitialMode("quick-detect");
-          setAddOpen(true);
+          detectedPaymentHandlerRef.current?.(detected);
         }
       } catch (err) {
         console.warn("Failed to parse deep link URL:", rawUrl, err);
@@ -137,6 +144,19 @@ export default function App() {
       if (sub && typeof sub.then === "function") {
         sub.then((handle) => handle?.remove?.());
       }
+    };
+  }, []);
+
+  // 결제 사전 알림(D-3, D-1)을 누르면 그 구독의 갱신 승인 카드를 연다. 앱이 꺼져 있을 때 누른 알림도 시작 직후 전달된다.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    const handlePromise = LocalNotifications.addListener("localNotificationActionPerformed", (event) => {
+      const extra = event?.notification?.extra || {};
+      if (!extra.subscriptionId || !RENEWAL_NOTIFICATION_TYPES.has(extra.type)) return;
+      renewalNotificationHandlerRef.current?.(extra.subscriptionId);
+    });
+    return () => {
+      handlePromise.then((handle) => handle?.remove?.()).catch(() => {});
     };
   }, []);
 
@@ -165,7 +185,7 @@ export default function App() {
       });
       notify("⚡ 넷플릭스 17,000원 결제 알림이 발송되었습니다!");
     } else {
-      setQuickAddData({
+      detectedPaymentHandlerRef.current?.({
         name: "Netflix",
         amount: 17000,
         plan: "프리미엄",
@@ -176,9 +196,8 @@ export default function App() {
         billingCycle: "매월",
         sourceType: "sms",
         autoDetected: true,
+        detectedAt: new Date().toISOString(),
       });
-      setAddInitialMode("quick-detect");
-      setAddOpen(true);
       notify("⚡ 넷플릭스 17,000원 결제가 감지되었습니다! (체험 시뮬레이션)");
     }
   };
@@ -226,6 +245,51 @@ export default function App() {
     markAllRead,
     clearAll,
   } = useNotificationManager({ subscriptions });
+
+  const openAgentWith = useCallback((response) => {
+    if (!response) return;
+    setAgentMessages((current) => [...current, { id: "a-" + Date.now(), role: "agent", response }]);
+    setAgentOpen(true);
+  }, []);
+
+  // 감지한 결제가 요금 인상·유료 전환·해지 후 결제면 경고 카드와 증빙 사건을 만들고, 아니면 기존처럼 빠른 등록을 연다.
+  detectedPaymentHandlerRef.current = (detected) => {
+    const alert = assessDetectedPayment({ detected, subscriptions, cancelHistory: readCancelHistory() });
+    setAccountOpen(false);
+    setTermsOpen(false);
+    setNotificationCenterOpen(false);
+    if (alert) {
+      saveEvidenceCase(createEvidenceCase(alert));
+      setAddOpen(false);
+      openAgentWith(alert);
+      return;
+    }
+    setQuickAddData(detected);
+    setAddInitialMode("quick-detect");
+    setAddOpen(true);
+  };
+
+  renewalNotificationHandlerRef.current = (subscriptionId) => {
+    const target = getSubscriptionById(subscriptionId);
+    if (!target) {
+      notify("알림의 구독을 찾지 못했어요. 이미 해지했는지 확인해 주세요.");
+      return;
+    }
+    setNotificationCenterOpen(false);
+    openAgentWith(buildRenewalResponse({ subscription: target }));
+  };
+
+  // 경고 카드에서 "계속 쓰기"를 고르면 등록 금액을 실제 결제 금액으로 맞춘다. 공동 이용이면 1인 부담금도 다시 나눈다.
+  const handleAlertKeep = (alert) => {
+    const target = getSubscriptionById(alert?.subscriptionId);
+    if (!target) return;
+    const shareCount = Number(target.shareCount) || 0;
+    const update = target.sharingEnabled && shareCount > 1
+      ? { grossAmount: alert.amount, amount: Math.round(alert.amount / shareCount) }
+      : { grossAmount: alert.amount, amount: alert.amount };
+    if (alert.kind === "trial_conversion") Object.assign(update, { status: "active", isTrial: false });
+    updateSubscription(target.subscriptionId, update, notify);
+  };
 
   
   // Supabase Auth session & state change listener
@@ -654,10 +718,12 @@ export default function App() {
             setAgentOpen(false);
             startCancellation(subscriptionId, null, options);
           }}
+          onUpdateAmount={handleAlertKeep}
+          userId={profile?.user_id || null}
           onToast={notify}
         />
       )}
-      {renewalSubscription && !addOpen && !cancelSubscription && !notificationCenterOpen && !termsOpen && (
+      {renewalSubscription && !addOpen && !cancelSubscription && !notificationCenterOpen && !termsOpen && !agentOpen && (
         <RenewalSheet
           subscription={renewalSubscription}
           onKeep={() => handleRenewal(true, notify)}
