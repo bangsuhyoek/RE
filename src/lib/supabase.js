@@ -1,4 +1,5 @@
 import { serviceCatalog } from "../data/subscriptionData.js";
+import { getCancelGuide } from "../data/cancelGuides.js";
 import { Browser } from "@capacitor/browser";
 import { isNativePlatform } from "./platform.js";
 import { createClient } from '@supabase/supabase-js';
@@ -78,7 +79,7 @@ export function mapDbToSubscription(row) {
     dueDay: row.due_day,
     paymentMethod: row.payment_method || '',
     cancelUrl: row.cancel_url || matched?.cancelUrl || '',
-    guideSteps: (matched?.guideSteps && matched.guideSteps.length > 0) ? matched.guideSteps : [],
+    guideSteps: getCancelGuide(matched?.id || row.service_id).steps,
     status: row.status || 'active',
     sourceType: row.source_type || 'manual',
     subscriptionId: row.subscription_id,

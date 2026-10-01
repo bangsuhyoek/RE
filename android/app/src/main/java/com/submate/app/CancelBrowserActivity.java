@@ -258,11 +258,11 @@ public class CancelBrowserActivity extends AppCompatActivity {
             }
         }
 
-        // 가이드 스텝이 없는 경우 안정적인 기본 Fallback 3단계 생성
+        // 웹이 단계를 넘기지 않은 경우에만 쓴다. src/data/cancelGuides.js의 getCommonCancelSteps와 같은 공통 안내.
         if (stepList.isEmpty()) {
-            stepList.add(new GuideStepItem(1, "로그인", "서비스 계정으로 로그인하세요.", ""));
-            stepList.add(new GuideStepItem(2, "멤버십 관리", "프로필 > 멤버십 또는 계정 관리 메뉴를 선택하세요.", ""));
-            stepList.add(new GuideStepItem(3, "해지 완료", "해지 신청 후 최종 완료 화면을 확인하세요.", ""));
+            stepList.add(new GuideStepItem(1, "로그인", "서비스 공식 앱이나 웹사이트에 로그인하세요.", ""));
+            stepList.add(new GuideStepItem(2, "구독 관리 찾기", "계정이나 설정에서 [구독], [멤버십], [결제] 같은 메뉴를 찾으세요. 앱에서 결제했다면 App Store나 Google Play 구독에서 해지해요.", ""));
+            stepList.add(new GuideStepItem(3, "해지 확인", "해지 버튼을 직접 누르고 해지 완료 문구가 나오는지 확인하세요.", ""));
         }
     }
 

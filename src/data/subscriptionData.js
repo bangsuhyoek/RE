@@ -32,23 +32,6 @@ export const serviceCatalog = [
     "dueDay": 5,
     "paymentMethod": "KB국민카드 • 8831",
     "cancelUrl": "https://chatgpt.com/#settings/Subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "ChatGPT Plus 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-30T10:07:01.273Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -79,23 +62,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://claude.ai/settings/billing",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Claude Pro 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:41.716Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -126,23 +92,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.perplexity.ai/settings/account",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Perplexity Pro 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:41.608Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -173,23 +122,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.midjourney.com/account",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Midjourney 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:41.590Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -220,23 +152,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://app.runwayml.com/settings/plans",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Runway Gen-4.5 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:41.789Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -267,23 +182,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://v0.dev/chat/settings/billing",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "v0 by Vercel 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.248Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -314,23 +212,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.figma.com/settings",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Figma Professional 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.347Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -361,23 +242,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.canva.com/settings/billing-and-teams",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Canva Pro 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:41.617Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -438,26 +302,6 @@ export const serviceCatalog = [
     "dueDay": 8,
     "paymentMethod": "신한카드 • 4412",
     "cancelUrl": "https://account.adobe.com/plans",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 로그인",
-        "description": "account.adobe.com에 Adobe 계정으로 로그인합니다.",
-        "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=320&auto=format&fit=crop&q=80"
-      },
-      {
-        "stepNumber": 2,
-        "title": "플랜 관리",
-        "description": "내 플랜 카드에서 [플랜 관리]를 선택하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=320&auto=format&fit=crop&q=80"
-      },
-      {
-        "stepNumber": 3,
-        "title": "플랜 취소",
-        "description": "[플랜 취소] 버튼을 클릭하여 해지 절차를 완료하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=320&auto=format&fit=crop&q=80"
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:41.611Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -488,23 +332,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://framer.com/projects",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Framer Pro 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.180Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -535,23 +362,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://webflow.com/dashboard/account/plans",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Webflow 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.451Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -582,23 +392,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.cursor.com/settings",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Cursor Pro 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.793Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -629,23 +422,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://github.com/settings/billing",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "GitHub Copilot 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:41.622Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -676,23 +452,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://account.jetbrains.com/licenses",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "JetBrains All Products 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.115Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -723,23 +482,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.deepl.com/pro-account/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "DeepL Pro 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.103Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -770,23 +512,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://account.grammarly.com/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Grammarly 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.051Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -817,23 +542,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://slack.com/admin/billing",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Slack Pro 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.105Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -864,23 +572,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://zoom.us/billing",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Zoom Workplace Pro 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.375Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -911,23 +602,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://account.microsoft.com/services",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Microsoft 365 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.291Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -958,23 +632,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://one.google.com/settings",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Google One 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.015Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1005,23 +662,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://support.apple.com/ko-kr/HT207594",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Apple iCloud+ 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.317Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1052,23 +692,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.dropbox.com/account/plan",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Dropbox 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.728Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1099,23 +722,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.evernote.com/secure/BillingInfo.action",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Evernote 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.599Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1146,23 +752,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://app.todoist.com/app/settings/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Todoist 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.769Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1193,23 +782,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://my.1password.com/billing",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "1Password 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.877Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1240,23 +812,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://my.nordaccount.com/billing/my-subscriptions/",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "NordVPN 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.372Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -1287,23 +842,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.notion.so/settings",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Notion Plus 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.874Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -1354,23 +892,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신한카드 • 4412",
     "cancelUrl": "https://www.netflix.com/cancelplan",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Netflix 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-30T10:06:59.499Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -1411,23 +932,6 @@ export const serviceCatalog = [
     "dueDay": 22,
     "paymentMethod": "카카오페이",
     "cancelUrl": "https://www.youtube.com/paid_memberships",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "YouTube Premium 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-30T10:06:59.841Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -1478,23 +982,6 @@ export const serviceCatalog = [
     "dueDay": 10,
     "paymentMethod": "네이버페이",
     "cancelUrl": "https://www.tving.com/my/pass",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "TVING 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-30T10:07:01.036Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -1545,23 +1032,6 @@ export const serviceCatalog = [
     "dueDay": 18,
     "paymentMethod": "삼성카드 • 3701",
     "cancelUrl": "https://www.disneyplus.com/ko-kr/account",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Disney+ 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-30T10:07:00.432Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -1602,23 +1072,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.wavve.com/my/pass",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Wavve 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.842Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1679,23 +1132,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://watcha.com/settings",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "WATCHA 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.121Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -1746,23 +1182,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://loyalty.coupang.com/loyalty/sign-up/home",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Coupang Play 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.125Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -1793,23 +1212,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://laftel.net/mypage",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Laftel 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.957Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -1840,23 +1242,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://tv.apple.com/settings",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Apple TV+ 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:42.987Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1887,23 +1272,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.primevideo.com/settings/your-account/",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Amazon Prime Video 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.710Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1934,23 +1302,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.spotvnow.co.kr/my/pass",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "SPOTV NOW 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.030Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1981,23 +1332,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://weverse.io/more/my",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Weverse Digital Membership 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.035Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -2028,23 +1362,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.crunchyroll.com/account/membership",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Crunchyroll 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.052Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -2075,23 +1392,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://mubi.com/settings/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "MUBI 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.129Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -2122,23 +1422,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://my.dazn.com/myaccount/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "DAZN 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.123Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -2169,23 +1452,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://member.melon.com/pay/myservice/index.htm",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Melon 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.089Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -2226,23 +1492,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "토스페이",
     "cancelUrl": "https://www.spotify.com/kr-ko/account/overview/",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Spotify 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-30T10:07:00.321Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -2323,23 +1572,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.genie.co.kr/my/myTicket",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Genie Music 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.168Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -2370,23 +1602,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.music-flo.com/mypage/voucher",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "FLO 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.133Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -2537,23 +1752,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://secure.bugs.co.kr/my/ticket",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Bugs 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.202Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -2584,23 +1782,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://vibe.naver.com/membership",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "NAVER VIBE 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.142Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -2631,23 +1812,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://music.apple.com/account/settings",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Apple Music 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.155Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -2678,23 +1842,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.youtube.com/paid_memberships",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "YouTube Music 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.834Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -2725,23 +1872,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://my.tidal.com/account/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "TIDAL 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.493Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -2772,23 +1902,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://play.google.com/store/account/subscriptions",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "DearU Bubble 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.737Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -2819,23 +1932,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://play.google.com/store/account/subscriptions",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "fromm 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.842Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -2866,23 +1962,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.podbbang.com/mypage/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "팟빵 오디오매거진 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.407Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -2923,26 +2002,6 @@ export const serviceCatalog = [
     "dueDay": 12,
     "paymentMethod": "카카오페이",
     "cancelUrl": "https://www.millie.co.kr/v3/mypage/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "관리 이동",
-        "description": "하단 메뉴 [관리] 탭으로 이동합니다.",
-        "imageUrl": "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=320&auto=format&fit=crop&q=80"
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "[구독 관리] > [결제 예정 내역]을 확인하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=320&auto=format&fit=crop&q=80"
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 신청",
-        "description": "하단 [해지 신청]을 누르고 최종 확인을 완료하세요.",
-        "imageUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=320&auto=format&fit=crop&q=80"
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.462Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -2973,23 +2032,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://select.ridibooks.com/settings",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "리디셀렉트 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.483Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -3030,23 +2072,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.welaaa.com/my/membership",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "윌라 오디오북 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.525Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -3077,23 +2102,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.storytel.com/kr/ko/my-pages/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Storytel 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.059Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -3124,23 +2132,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.longblack.co/settings",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "롱블랙 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.527Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -3171,23 +2162,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.joongang.co.kr/plus/mypage/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "더중앙플러스 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.550Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -3218,23 +2192,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.nytimes.com/subscription/cancel",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "The New York Times 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.721Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -3265,23 +2222,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://customercenter.wsj.com/manage-subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "The Wall Street Journal 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.413Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -3312,23 +2252,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.ft.com/myaccount/subscription/overview",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Financial Times 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.641Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -3359,23 +2282,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.economist.com/manage/my-subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "The Economist 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.660Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -3406,23 +2312,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.audible.com/account/overview",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Audible 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.130Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -3453,23 +2342,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.scribd.com/account-settings",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Scribd 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.717Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -3500,23 +2372,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://app.usespeak.com/settings/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Speak 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.806Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -3547,23 +2402,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.duolingo.com/settings/super",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Duolingo Super 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.264Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -3594,23 +2432,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.ringleplus.com/ko/student/mypage",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Ringle 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.835Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -3641,23 +2462,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.cambly.com/en/student/settings#subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Cambly 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.435Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -3688,23 +2492,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.santatoeic.com/mypage",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "산타토익 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.801Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -3735,23 +2522,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://play.google.com/store/account/subscriptions",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "말해보카 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.274Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -3782,23 +2552,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://class101.net/ko/mypage/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "CLASS101+ 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.870Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -3829,23 +2582,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://fastcampus.co.kr/my/subscriptions",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "패스트캠퍼스 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.875Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -3876,23 +2612,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.inflearn.com/my-page/orders",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "인프런 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.878Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -3923,23 +2642,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.coursera.org/my-purchases",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Coursera Plus 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.185Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4090,23 +2792,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://nid.naver.com/membership/my",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "네이버플러스 멤버십 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.908Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -4137,23 +2822,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://baemin.me/club",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "배민클럽 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.911Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -4184,23 +2852,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.yogiyo.co.kr/mobile/#/mypage/",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "요기패스X 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.928Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4231,23 +2882,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.kurly.com/mypage/membership",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "컬리멤버스 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:43.906Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4278,23 +2912,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.coupang.com/np/membership/benefit",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "쿠팡 와우 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-30T10:06:59.994Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -4325,23 +2942,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://ec.nintendo.com/my/membership",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Nintendo Switch Online 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.440Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4372,23 +2972,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://store.playstation.com/ko-kr/subscriptions",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "PlayStation Plus 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.454Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4429,23 +3012,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://account.microsoft.com/services",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Xbox Game Pass Ultimate 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:45.435Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -4476,23 +3042,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://apps.apple.com/account/subscriptions",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Apple Arcade 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:45.036Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4523,23 +3072,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://play.google.com/store/account/subscriptions",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Google Play Pass 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.547Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4570,23 +3102,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://myaccount.ea.com/cp-ui/subscription/index",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "EA Play 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:45.638Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -4617,23 +3132,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://account.battle.net/games",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "World of Warcraft 정액제 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.146Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4664,23 +3162,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://my.kakao.com/product/DRIVE001",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "카카오톡 톡서랍 플러스 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.174Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4711,23 +3192,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://my.kakao.com/product/EMOTICON001",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "카카오톡 이모티콘 플러스 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.279Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4758,23 +3222,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://mybox.naver.com/#/capacity",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "네이버 MYBOX 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.224Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4805,23 +3252,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.strava.com/settings/subscription",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Strava 계정 서비스에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리",
-        "description": "계정 > 구독 관리 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "[구독 해지하기]를 클릭하여 완료합니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.450Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -4852,23 +3282,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://play.google.com/store/account/subscriptions",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "번핏 Pro 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.747Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -4899,23 +3312,6 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신용카드",
     "cancelUrl": "https://account.adobe.com/plans",
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Adobe Lightroom Mobile Premium 공식 웹사이트/앱에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독/결제 관리",
-        "description": "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [구독 취소/해지하기]를 누르면 완료됩니다."
-      }
-    ],
     "lastUpdated": "2026-09-15T11:20:44.826Z",
     "parseStatus": "FALLBACK_APPLIED"
   }

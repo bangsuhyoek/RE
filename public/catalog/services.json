@@ -27,23 +27,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 메뉴 열기",
-        "description": "화면 좌측 하단 프로필 아이콘 클릭 후 [Settings] 메뉴를 누르세요."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리 진입",
-        "description": "[Subscription] 탭에서 [Manage]를 클릭하여 Stripe 결제창으로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "플랜 취소",
-        "description": "결제 관리 화면에서 [플랜 취소(Cancel plan)]를 누르고 취소를 확정합니다."
-      }
     ]
   },
   {
@@ -73,23 +56,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 메뉴 진입",
-        "description": "좌측 하단 내 계정 이름/프로필 클릭 후 [Settings]를 선택합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "청구 탭 이동",
-        "description": "좌측 설정 사이드바에서 [Billing] 메뉴를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소",
-        "description": "Claude Pro 섹션에서 [Cancel Subscription]을 누르고 확인합니다."
-      }
     ]
   },
   {
@@ -118,23 +84,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 메뉴",
-        "description": "좌측 사이드바 하단 톱니바퀴 [Settings] 아이콘을 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "계정 탭 확인",
-        "description": "[Account] 탭에서 Perplexity Pro 멤버십 상태를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소",
-        "description": "요금제 우측 [Cancel Subscription] 버튼을 클릭하여 해지합니다."
-      }
     ]
   },
   {
@@ -162,23 +111,6 @@
         "amount": 14000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 페이지 접속",
-        "description": "Midjourney 공식 사이트(midjourney.com/account)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리 열기",
-        "description": "화면의 [Manage Sub] 버튼을 클릭해 결제 포털로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "플랜 취소 확정",
-        "description": "[Billing & Cancellation]에서 [Cancel Plan]을 누르고 주기 만료 취소를 선택합니다."
       }
     ]
   },
@@ -209,23 +141,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "Runway 우측 상단 프로필 아이콘 클릭 후 [Settings]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "요금제 탭 선택",
-        "description": "좌측 메뉴에서 [Plans & Billing]을 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 해지",
-        "description": "이용 중인 플랜 카드 우측 [Manage Plan] > [Cancel Subscription]을 누릅니다."
-      }
     ]
   },
   {
@@ -253,23 +168,6 @@
         "amount": 27000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정/청구 진입",
-        "description": "v0 우측 상단 프로필 > [Settings] > [Billing] 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 항목 선택",
-        "description": "이용 중인 v0 Premium 또는 Vercel 구독 항목을 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소",
-        "description": "[Cancel Subscription]을 클릭하여 차기 결제를 취소합니다."
       }
     ]
   },
@@ -299,23 +197,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 메뉴 진입",
-        "description": "Figma 좌측 상단 프로필 드롭다운을 누르고 [Settings]를 선택합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "청구 탭 이동",
-        "description": "[Billing] 탭 또는 관리자 워크스페이스 플랜 영역으로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "플랜 취소",
-        "description": "Professional 플랜 우측 [Cancel plan]을 누르고 다운그레이드를 확인합니다."
-      }
     ]
   },
   {
@@ -343,23 +224,6 @@
         "amount": 12900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 설정 열기",
-        "description": "우측 상단 톱니바퀴 [계정 설정] 아이콘을 클릭합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "결제 및 팀 선택",
-        "description": "좌측 메뉴에서 [결제 및 팀(Billing & teams)] 항목을 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소",
-        "description": "Canva Pro 요금제 옆 [더보기(···)] > [구독 취소]를 클릭하여 완료합니다."
       }
     ]
   },
@@ -391,23 +255,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "플랜 관리 접속",
-        "description": "Adobe 계정 페이지(account.adobe.com/plans)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "플랜 관리 선택",
-        "description": "구독 중인 Creative Cloud 플랜 카드의 [플랜 관리]를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "플랜 취소 완료",
-        "description": "[플랜 취소]를 누른 뒤, 할인 유지 제안 화면들을 지나 최종 취소를 확정합니다."
-      }
     ]
   },
   {
@@ -436,23 +283,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "워크스페이스 설정",
-        "description": "Framer 대시보드 좌측 상단 워크스페이스 이름을 누르고 [Settings]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "요금제 탭 이동",
-        "description": "좌측 [Plans & Billing] 메뉴를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소",
-        "description": "현재 요금제 카드 옆 [Cancel Subscription]을 누르고 취소를 확정합니다."
-      }
     ]
   },
   {
@@ -480,23 +310,6 @@
         "amount": 32000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 설정 진입",
-        "description": "Webflow 대시보드 우측 상단 계정 아바타 > [Account settings]를 클릭합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "요금제 탭 선택",
-        "description": "[Plans] 메뉴에서 Workspace 플랜 또는 Site 요금제를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "플랜 해지/다운그레이드",
-        "description": "[Cancel plan] 또는 [Downgrade to Starter]를 클릭하여 취소합니다."
       }
     ]
   },
@@ -527,23 +340,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 페이지 접속",
-        "description": "Cursor 공식 설정 페이지(cursor.com/settings)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 영역 확인",
-        "description": "[Subscription] 항목에서 현재 Pro 멤버십 상태를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "플랜 취소",
-        "description": "[Manage subscription]을 클릭하고 Stripe 화면에서 [Cancel Plan]을 누릅니다."
-      }
     ]
   },
   {
@@ -571,23 +367,6 @@
         "amount": 14000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "GitHub 설정 이동",
-        "description": "우측 상단 프로필 > [Settings] 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "청구 및 플랜 선택",
-        "description": "좌측 사이드바에서 [Billing and plans] > [Plans and usage]를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "Copilot 취소",
-        "description": "GitHub Copilot 항목 우측 [Edit] 드롭다운에서 [Cancel Copilot]을 선택합니다."
       }
     ]
   },
@@ -617,23 +396,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 라이선스 접속",
-        "description": "JetBrains Account(account.jetbrains.com/licenses)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "라이선스 확인",
-        "description": "구독 중인 All Products Pack 또는 IDE 라이선스 항목을 찾습니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "자동 갱신 취소",
-        "description": "[Cancel subscription] 또는 결제 정보 옆 [Cancel recurring payment]를 누릅니다."
-      }
     ]
   },
   {
@@ -661,23 +423,6 @@
         "amount": 12000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 페이지 이동",
-        "description": "DeepL 우측 상단 프로필 > [내 계정(Account)]으로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 탭 확인",
-        "description": "[구독(Subscription)] 탭에서 현재 Pro 플랜 정보를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "화면 하단의 [구독 취소(Cancel subscription)] 링크를 클릭하여 확정합니다."
       }
     ]
   },
@@ -707,23 +452,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 페이지 진입",
-        "description": "Grammarly 계정 설정(account.grammarly.com)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 메뉴 선택",
-        "description": "좌측 사이드바에서 [Subscription] 메뉴를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소",
-        "description": "화면 하단 [Cancel Subscription]을 누르고 설문 단계를 지나 취소를 확정합니다."
-      }
     ]
   },
   {
@@ -752,23 +480,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "관리자 청구 진입",
-        "description": "워크스페이스 이름 클릭 > [도구 및 설정] > [청구] 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "요금제 수정 선택",
-        "description": "청구 개요 화면에서 [요금제 수정] 버튼을 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "무료로 다운그레이드",
-        "description": "[무료 버전으로 다운그레이드]를 선택하여 다음 갱신을 취소합니다."
-      }
     ]
   },
   {
@@ -796,23 +507,6 @@
         "amount": 19000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "청구 관리 진입",
-        "description": "Zoom 웹 포털 로그인 후 좌측 [계정 관리] > [청구] 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "현재 요금제 관리",
-        "description": "[현재 요금제] 탭에서 Workplace Pro 옆 [요금제 관리]를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소",
-        "description": "[구독 취소]를 선택하고 사유를 선택한 뒤 취소를 완료합니다."
       }
     ]
   },
@@ -844,23 +538,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "서비스 및 구독 이동",
-        "description": "Microsoft 계정(account.microsoft.com/services)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "Microsoft 365 관리",
-        "description": "구독 항목 우측의 [관리] 버튼을 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "반복 청구 끄기/취소",
-        "description": "[구독 취소] 또는 [반복 청구 끄기]를 선택하여 해지 절차를 완료합니다."
-      }
     ]
   },
   {
@@ -890,23 +567,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "Google One 설정",
-        "description": "Google One 웹(one.google.com/settings)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버십 취소 선택",
-        "description": "[멤버십 취소] 메뉴 항목을 찾아 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "취소 확정",
-        "description": "용량 만료 안내 팝업에서 [멤버십 취소]를 최종 확인합니다."
-      }
     ]
   },
   {
@@ -934,23 +594,6 @@
         "amount": 1100,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "Apple 계정 설정",
-        "description": "iPhone [설정] > 맨 위 [내 이름] > [iCloud] 메뉴로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "저장 공간 관리",
-        "description": "[계정 저장 공간 관리] 또는 [요금제 관리]를 터치합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "다운그레이드 선택",
-        "description": "[다운그레이드 옵션]에서 무료 [5GB]를 선택하고 완료합니다."
       }
     ]
   },
@@ -980,23 +623,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 요금제 이동",
-        "description": "Dropbox 우측 상단 프로필 > [설정] > [요금제(Plan)]로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "요금제 취소 선택",
-        "description": "페이지 맨 아래로 스크롤하여 [요금제 취소]를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "취소 사유 및 확정",
-        "description": "해지 사유를 선택하고 [취소 계속하기]를 눌러 완료합니다."
-      }
     ]
   },
   {
@@ -1024,23 +650,6 @@
         "amount": 11900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 결제 정보 이동",
-        "description": "Evernote 웹 우측 상단 프로필 > [계정 정보] > [청구]로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 취소 링크",
-        "description": "[구독 상태] 항목에서 [Evernote 구독 취소] 링크를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "Free 플랜 다운그레이드",
-        "description": "무료 요금제(Evernote Free)로 다운그레이드함을 확인합니다."
       }
     ]
   },
@@ -1070,23 +679,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 이동",
-        "description": "Todoist 우측 상단 아바타 아이콘 > [설정] > [구독] 탭으로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리 열기",
-        "description": "[구독 관리] 버튼을 클릭하여 결제 포털로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "플랜 취소",
-        "description": "결제 상세 화면에서 [플랜 취소]를 누르고 확인합니다."
-      }
     ]
   },
   {
@@ -1114,23 +706,6 @@
         "amount": 4500,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "청구 페이지 이동",
-        "description": "1Password 웹(my.1password.com) 로그인 후 우측 상단 계정명 > [청구]를 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 옵션 확인",
-        "description": "현재 이용 중인 개인 또는 가족 플랜 정보를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소",
-        "description": "[구독 취소(Cancel Subscription)]를 클릭하고 확인 버튼을 누릅니다."
       }
     ]
   },
@@ -1160,23 +735,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "NordAccount 접속",
-        "description": "NordAccount(my.nordaccount.com)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "청구 및 구독 확인",
-        "description": "좌측 메뉴 [Billing] > [Subscriptions] 탭으로 이동합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "자동 갱신 취소",
-        "description": "[Auto-Renewal] 옆 [Manage] 클릭 후 [Cancel auto-renew]를 선택합니다."
-      }
     ]
   },
   {
@@ -1204,23 +762,6 @@
         "amount": 14000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "워크스페이스 설정",
-        "description": "Notion 좌측 상단 [설정(Settings)] 메뉴를 엽니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "요금제 탭 이동",
-        "description": "워크스페이스 섹션의 [요금제(Billing & Plans)]를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "무료로 다운그레이드",
-        "description": "Plus 요금제 카드에서 [무료 플랜으로 다운그레이드]를 선택합니다."
       }
     ]
   },
@@ -1251,23 +792,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "Adobe 플랜 이동",
-        "description": "Adobe 계정 페이지(account.adobe.com/plans)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "Lightroom 플랜 관리",
-        "description": "Lightroom 프리미엄 플랜의 [플랜 관리] 버튼을 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "플랜 취소 완료",
-        "description": "[플랜 취소]를 선택하여 해지합니다 (스토어 결제 시 구글플레이 구독 취소)."
-      }
     ]
   },
   {
@@ -1296,23 +820,6 @@
         "amount": 17000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 설정 진입",
-        "description": "넷플릭스 로그인 후 우측 상단 프로필 > [계정] 메뉴로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버십 해지 터치",
-        "description": "[멤버십 및 결제 정보] 섹션에서 [멤버십 해지] 버튼을 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "남은 결제 주기 안내를 확인하고 [해지 완료] 버튼을 눌러 끝냅니다."
       }
     ]
   },
@@ -1343,23 +850,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "구매 항목 및 멤버십",
-        "description": "우측 상단 내 프로필 아이콘 > [구매 항목 및 멤버십] 메뉴를 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버십 관리 선택",
-        "description": "YouTube Premium 항목 우측의 [관리] 화살표를 터치합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "그대로 취소 선택",
-        "description": "[비활성화]를 누른 뒤 '일시중지' 권유를 넘기고 하단 [그대로 취소]를 누릅니다."
-      }
     ]
   },
   {
@@ -1387,23 +877,6 @@
         "amount": 13500,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "MY 페이지 진입",
-        "description": "티빙 웹/앱 로그인 후 우측 상단 프로필 > [MY]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "이용권/구독 관리",
-        "description": "[이용권/구독 관리] 메뉴를 선택해 이용 중인 티빙권을 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "자동결제 해지 신청",
-        "description": "이용권 우측 [변경/해지] > 하단 [자동결제 해지 신청하기]를 누릅니다."
       }
     ]
   },
@@ -1434,23 +907,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 메뉴 진입",
-        "description": "디즈니+ 우측 상단 프로필 아이콘 > [계정]을 클릭합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 플랜 선택",
-        "description": "멤버십 섹션에서 이용 중인 [Disney+ 스탠다드/프리미엄]을 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 취소 확정",
-        "description": "하단 [멤버십 취소]를 누르고 취소 사유를 선택해 완료합니다."
-      }
     ]
   },
   {
@@ -1478,23 +934,6 @@
         "amount": 10900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "나의 이용권 이동",
-        "description": "웨이브 우측 상단 [MY] > [나의 이용권] 메뉴로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "자동결제 해지 클릭",
-        "description": "이용 중인 상품 정보 우측의 [자동결제 해지] 버튼을 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 계속하기",
-        "description": "유지 혜택 안내 화면에서 스크롤을 내려 [해지 계속하기]를 눌러 끝냅니다."
       }
     ]
   },
@@ -1524,23 +963,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 메뉴 진입",
-        "description": "왓챠 우측 상단 프로필 > [설정] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "이용권 상태 확인",
-        "description": "계정 설정 화면에서 현재 이용권 상태와 결제 정보를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 버튼 클릭",
-        "description": "하단 [해지] 버튼을 누르고 팝업에서 [이용권 해지하기]를 누릅니다."
-      }
     ]
   },
   {
@@ -1568,23 +990,6 @@
         "amount": 7890,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "마이쿠팡 진입",
-        "description": "쿠팡 앱 우측 하단 [마이쿠팡] > [와우 멤버십]을 선택합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "해지하기 버튼",
-        "description": "페이지 맨 아래로 스크롤을 끝까지 내려 [해지하기]를 터치합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "혜택 포기 및 확정",
-        "description": "[내가 누린 혜택 포기할게요] 선택 후 [해지 신청하기]를 완료합니다."
       }
     ]
   },
@@ -1614,23 +1019,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 메뉴 진입",
-        "description": "라프텔 우측 상단 프로필 아이콘 > [설정] 메뉴로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버십 관리 선택",
-        "description": "[멤버십 관리] 탭에서 현재 구독 중인 이용권을 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "하단의 [멤버십 해지하기]를 클릭하고 확인을 완료합니다."
-      }
     ]
   },
   {
@@ -1659,23 +1047,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 설정 이동",
-        "description": "Apple TV 웹(tv.apple.com) 우측 상단 프로필 > [설정]을 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리 선택",
-        "description": "[구독(Subscriptions)] 항목에서 [관리(Manage)]를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "[구독 취소(Cancel Subscription)]를 누르고 확인을 확정합니다."
-      }
     ]
   },
   {
@@ -1703,23 +1074,6 @@
         "amount": 7900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 및 설정 이동",
-        "description": "Prime Video 우측 상단 프로필 > [계정 및 설정]으로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "내 계정 확인",
-        "description": "[내 계정] 탭에서 Prime Video 멤버십 상태를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 종료",
-        "description": "[멤버십 종료(End Membership)]를 클릭하여 해지를 완료합니다."
       }
     ]
   },
@@ -1750,23 +1104,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "MY 페이지 진입",
-        "description": "SPOTV NOW 상단 메뉴의 [MY]를 클릭합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "이용권/결제 관리",
-        "description": "좌측 메뉴 [이용권/결제 관리] 탭을 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "자동결제 해지",
-        "description": "이용 중인 이용권 우측 [자동결제 해지] 버튼을 누르고 확정합니다."
-      }
     ]
   },
   {
@@ -1795,23 +1132,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "마이페이지 이동",
-        "description": "위버스 로그인 후 하단 [더보기] > [멤버십] 탭으로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 아티스트 선택",
-        "description": "현재 디지털 멤버십을 이용 중인 아티스트를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "정기결제 해지",
-        "description": "결제 상세 설정에서 [정기결제 해지]를 눌러 취소합니다."
-      }
     ]
   },
   {
@@ -1838,23 +1158,6 @@
         "amount": 8900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 메뉴 이동",
-        "description": "Crunchyroll 우측 상단 프로필 > [Settings]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버십 플랜 확인",
-        "description": "[Membership Plan] 메뉴에서 현재 요금제를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 취소",
-        "description": "화면 하단 [Cancel Membership]을 누르고 취소 설문을 완료합니다."
       }
     ]
   },
@@ -1884,23 +1187,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 진입",
-        "description": "MUBI 로그인 후 우측 상단 프로필 > [Settings]를 클릭합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 탭 확인",
-        "description": "[Subscription] 탭에서 현재 멤버십 상태를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소",
-        "description": "[Cancel Subscription]을 누르고 확인 버튼을 눌러 완료합니다."
-      }
     ]
   },
   {
@@ -1928,23 +1214,6 @@
         "amount": 25000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "내 계정 이동",
-        "description": "DAZN 우측 상단 메뉴 > [내 계정(My Account)]으로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 섹션 확인",
-        "description": "[구독(Subscription)] 항목에서 현재 요금제를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "[구독 취소(Cancel subscription)]를 클릭하고 확인합니다."
       }
     ]
   },
@@ -1974,23 +1243,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "내 정보 이동",
-        "description": "멜론 로그인 후 상단 [내 정보] 클릭 (모바일은 서랍 > [내 정보])."
-      },
-      {
-        "stepNumber": 2,
-        "title": "이용권 해지신청",
-        "description": "[이용권/쿠폰/캐시] 탭에서 [이용권 해지신청]을 누르고 비밀번호를 입력합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "정기결제 해지 완료",
-        "description": "하단 [정기결제 해지] 클릭 후 유지 혜택 팝업에서 [혜택 포기]를 선택합니다."
-      }
     ]
   },
   {
@@ -2018,23 +1270,6 @@
         "amount": 10900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 개요 접속",
-        "description": "Spotify 계정 페이지(spotify.com/account)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "요금제 변경 클릭",
-        "description": "[내 요금제] 카드 우측의 [요금제 변경] 버튼을 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "프리미엄 취소",
-        "description": "페이지 맨 아래로 스크롤하여 [Spotify 취소] > [프리미엄 취소하기]를 완료합니다."
       }
     ]
   },
@@ -2064,23 +1299,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "마이페이지 이동",
-        "description": "지니뮤직 우측 상단 [마이페이지] > [내 정보]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "이용권 내역 확인",
-        "description": "[이용권 내역/영수증] 탭에서 사용 중인 이용권을 찾습니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지신청 완료",
-        "description": "이용권 우측 [해지신청]을 누르고 비밀번호 확인 후 완료합니다."
-      }
     ]
   },
   {
@@ -2109,23 +1327,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 메뉴 진입",
-        "description": "FLO 앱 우측 상단 톱니바퀴 [설정] > [이용권 관리]를 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "이용권 상세 확인",
-        "description": "이용 중인 이용권 우측 [상세] 버튼을 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 예약 완료",
-        "description": "화면 맨 아래 [이용권 해지 예약]을 누르고 확인을 마칩니다."
-      }
     ]
   },
   {
@@ -2153,23 +1354,6 @@
         "amount": 7900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "내 정보 이동",
-        "description": "벅스 로그인 후 상단 [내 정보] > [이용권 관리]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "자동결제 관리",
-        "description": "이용 중인 상품 우측의 [자동결제 관리/해지]를 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 계속하기",
-        "description": "할인 혜택 안내를 지나 [해지 계속하기]를 눌러 완료합니다."
       }
     ]
   },
@@ -2200,23 +1384,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "멤버십 관리 이동",
-        "description": "NAVER VIBE 로그인 후 [마이페이지] > [멤버십 관리]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 멤버십 선택",
-        "description": "구독 중인 VIBE 멤버십 우측 [관리] 버튼을 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지하기 클릭",
-        "description": "[멤버십 해지]를 누른 후 [정기결제 해지하기]를 최종 선택합니다."
-      }
     ]
   },
   {
@@ -2244,23 +1411,6 @@
         "amount": 8900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 설정 진입",
-        "description": "Apple Music 앱 우측 상단 프로필 > [계정 설정]을 터치합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 메뉴 선택",
-        "description": "[구독 관리(Subscriptions)] 메뉴로 들어갑니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "[Apple Music] 선택 후 하단 [구독 취소]를 누르고 확인합니다."
       }
     ]
   },
@@ -2290,23 +1440,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "구매 항목 및 멤버십",
-        "description": "YouTube Music 프로필 > [구매 항목 및 멤버십]을 선택합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버십 관리 터치",
-        "description": "[Music Premium] 멤버십 우측 [관리]를 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "그대로 취소",
-        "description": "[비활성화] 클릭 후 '일시중지' 대신 하단 [그대로 취소]를 누릅니다."
-      }
     ]
   },
   {
@@ -2334,23 +1467,6 @@
         "amount": 14000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 페이지 이동",
-        "description": "TIDAL 계정 페이지(my.tidal.com)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 탭 확인",
-        "description": "좌측 메뉴에서 [Subscription]을 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 확정",
-        "description": "화면 하단의 [Cancel Subscription]을 누르고 취소를 확정합니다."
       }
     ]
   },
@@ -2382,23 +1498,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "Google Play 구독 이동",
-        "description": "Google Play 스토어 앱 실행 후 우측 상단 프로필을 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "정기 결제 메뉴",
-        "description": "[결제 및 정기 결제] > [정기 결제] 메뉴로 들어갑니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "[DearU bubble]을 선택하고 하단 [구독 취소]를 눌러 완료합니다."
-      }
     ]
   },
   {
@@ -2426,23 +1525,6 @@
         "amount": 4500,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "스토어 구독 진입",
-        "description": "Google Play 스토어 앱 > 우측 상단 프로필을 터치합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "정기 결제 선택",
-        "description": "[결제 및 정기 결제] > [정기 결제]로 들어갑니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "fromm 해지 완료",
-        "description": "[fromm] 구독을 선택하고 하단 [구독 취소]를 터치합니다."
       }
     ]
   },
@@ -2472,23 +1554,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "마이페이지 이동",
-        "description": "팟빵 웹/앱 로그인 후 [마이페이지] > [구독 관리]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 채널 확인",
-        "description": "정기구독 중인 매거진 및 유료 채널 목록을 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "정기결제 해지",
-        "description": "채널 우측의 [정기결제 해지] 버튼을 눌러 완료합니다."
-      }
     ]
   },
   {
@@ -2516,23 +1581,6 @@
         "amount": 9900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "멤버십 관리 이동",
-        "description": "윌라 로그인 후 [마이페이지] > [멤버십 관리] 메뉴로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "해지신청 선택",
-        "description": "이용 중인 멤버십 항목 우측 [해지신청]을 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지하기 확정",
-        "description": "유지 혜택 안내를 지나 하단 [해지하기]를 누르면 완료됩니다."
       }
     ]
   },
@@ -2562,23 +1610,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 관리 로그인",
-        "description": "스토리텔 계정 페이지(storytel.com/kr/login)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리 선택",
-        "description": "[내 계정] 메뉴에서 [구독 관리]를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "[구독 취소]를 누르고 취소 사유를 선택해 확정합니다."
-      }
     ]
   },
   {
@@ -2606,23 +1637,6 @@
         "amount": 9900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "구독 관리 이동",
-        "description": "밀리의 서재 로그인 후 하단 [관리] > [구독 관리]를 터치합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 해지 신청",
-        "description": "[결제/구독 관리] > [구독 해지 신청]을 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "지금 바로 해지",
-        "description": "해지 방어 혜택 화면 맨 아래로 스크롤하여 [지금 바로 해지하기]를 누릅니다."
       }
     ]
   },
@@ -2652,23 +1666,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "마이리디 셀렉트 관리",
-        "description": "리디 로그인 후 [마이리디] > [리디셀렉트 관리]로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "셀렉트 해지 신청",
-        "description": "구독 정보 카드 하단의 [셀렉트 해지 신청] 링크를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 예약/즉시 해지",
-        "description": "안내 화면 하단 [해지 예약하기] 또는 [즉시 해지]를 선택합니다."
-      }
     ]
   },
   {
@@ -2696,23 +1693,6 @@
         "amount": 4900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 메뉴 이동",
-        "description": "롱블랙 로그인 후 우측 상단 프로필 > [설정]으로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버십 관리 확인",
-        "description": "[멤버십 관리] 탭에서 현재 멤버십 결제 정보를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지",
-        "description": "[멤버십 해지하기]를 클릭하고 확인 버튼을 눌러 완료합니다."
       }
     ]
   },
@@ -2742,23 +1722,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "중앙플러스 관리",
-        "description": "중앙일보 로그인 후 [마이페이지] > [더중앙플러스]로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "결제/해지 관리 선택",
-        "description": "이용 중인 멤버십 항목 우측 [결제/해지 관리]를 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지 완료",
-        "description": "하단 [멤버십 해지하기]를 클릭하여 정기결제를 취소합니다."
-      }
     ]
   },
   {
@@ -2786,23 +1749,6 @@
         "amount": 6000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "취소 페이지 이동",
-        "description": "NYT 해지 페이지(nytimes.com/subscription/cancel)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 상태 확인",
-        "description": "취소할 Digital Subscription을 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "취소 절차 진행",
-        "description": "할인 제안을 지나 [Continue to Cancel]을 눌러 취소를 완료합니다."
       }
     ]
   },
@@ -2832,23 +1778,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "Customer Center 접속",
-        "description": "WSJ 고객센터(customercenter.wsj.com)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리 선택",
-        "description": "[Manage Subscription] 메뉴 항목을 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "[Cancel Subscription]을 누르고 확인 단계를 완료합니다."
-      }
     ]
   },
   {
@@ -2876,23 +1805,6 @@
         "amount": 45000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "My Account 진입",
-        "description": "FT.com 우측 상단 [My Account] > [Settings]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 및 결제 확인",
-        "description": "[Subscription & Billing] 탭에서 이용 플랜을 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 확정",
-        "description": "[Cancel Subscription]을 클릭하고 단계를 완료합니다."
       }
     ]
   },
@@ -2922,23 +1834,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "Manage Subscription",
-        "description": "The Economist 계정(economist.com/manage/my-subscription)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 세부사항 확인",
-        "description": "이용 중인 Digital Access 플랜 정보를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소",
-        "description": "[Cancel Subscription] 링크를 누르고 취소 절차를 완료합니다."
-      }
     ]
   },
   {
@@ -2967,23 +1862,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "Account Details 진입",
-        "description": "Audible 로그인 후 상단 [Hi, 이름!] > [Account Details]로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버십 상세 확인",
-        "description": "[View membership details] 아래 [Cancel membership]을 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "취소 확정",
-        "description": "할인 혜택 유지 제안을 지나 [Continue canceling]을 눌러 완료합니다."
-      }
     ]
   },
   {
@@ -3011,23 +1889,6 @@
         "amount": 13000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "Account Settings 이동",
-        "description": "Scribd 우측 상단 프로필 > [Account Settings]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "결제 상세 확인",
-        "description": "[Membership & Payment Details] 섹션으로 스크롤합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 종료",
-        "description": "[End My Membership] 링크를 누르고 취소 단계를 완료합니다."
       }
     ]
   },
@@ -3058,23 +1919,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 이동",
-        "description": "Speak 앱 우측 상단 프로필 > 톱니바퀴 [설정]으로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리 선택",
-        "description": "[멤버십 관리] 또는 [구독 관리] 메뉴를 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "스토어 결제창(Google Play/App Store)에서 [구독 취소]를 완료합니다."
-      }
     ]
   },
   {
@@ -3102,23 +1946,6 @@
         "amount": 9900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "설정 메뉴 이동",
-        "description": "듀오링고 우측 상단 프로필 > [설정] 메뉴로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "Super Duolingo 선택",
-        "description": "우측 사이드바에서 [Super Duolingo] 탭을 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 관리 및 취소",
-        "description": "[구독 관리] > [구독 취소]를 누르고 확인 단계를 완료합니다."
       }
     ]
   },
@@ -3148,23 +1975,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "마이페이지 이동",
-        "description": "링글 로그인 후 [마이페이지] > [수강권/결제 관리]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "정기구독 확인",
-        "description": "이용 중인 정기구독 수강권 내역을 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "정기구독 해지 신청",
-        "description": "[정기구독 해지 신청]을 누르고 해지 확인을 완료합니다."
-      }
     ]
   },
   {
@@ -3193,23 +2003,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 설정 진입",
-        "description": "캠블리 우측 상단 프로필 > [계정 설정] > [플랜]으로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "플랜 취소 링크",
-        "description": "[플랜 관리] 영역에서 [플랜 취소] 링크를 클릭합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "플랜 취소 확정",
-        "description": "취소 사유를 선택하고 [플랜 취소 확정]을 누릅니다."
-      }
     ]
   },
   {
@@ -3237,23 +2030,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "스토어 구독 진입",
-        "description": "Google Play 스토어 앱 실행 후 프로필 > [결제 및 정기 결제]를 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "정기 결제 선택",
-        "description": "[정기 결제] 목록에서 [산타 / Riiid] 항목을 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "하단의 [구독 취소]를 누르고 취소 사유를 선택해 완료합니다."
-      }
     ]
   },
   {
@@ -3280,23 +2056,6 @@
         "amount": 8900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "스토어 정기 결제",
-        "description": "Google Play 스토어 앱 > 우측 상단 프로필 > [결제 및 정기 결제]를 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "말해보카 선택",
-        "description": "[정기 결제] 목록에서 [말해보카]를 터치합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "하단 [구독 취소]를 누르고 취소 사유를 선택하여 완료합니다."
       }
     ]
   },
@@ -3326,23 +2085,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "마이페이지 이동",
-        "description": "클래스101 로그인 후 [마이페이지] > [구독 관리]로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 해지하기 선택",
-        "description": "현재 이용 중인 [CLASS101+] 플랜 우측 [구독 해지하기]를 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지 완료",
-        "description": "혜택 유지 제안을 지나 [해지 신청하기]를 최종 선택합니다."
-      }
     ]
   },
   {
@@ -3370,23 +2112,6 @@
         "amount": 39000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "내 강의실 이동",
-        "description": "패스트캠퍼스 로그인 후 [내 강의실] > [결제/구독 내역]으로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 이용권 관리",
-        "description": "구독형 이용권 항목 우측 [관리] 버튼을 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 해지 신청",
-        "description": "[구독 해지 신청]을 누르고 해지 확인을 완료합니다."
       }
     ]
   },
@@ -3416,23 +2141,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "마이페이지 이동",
-        "description": "인프런 로그인 후 [마이페이지] > [수강 바우처/결제 내역]으로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 패스 확인",
-        "description": "이용 중인 인프런패스 또는 멤버십 항목을 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "자동결제 해지",
-        "description": "[자동결제 해지] 버튼을 누르고 확인을 마칩니다."
-      }
     ]
   },
   {
@@ -3460,23 +2168,6 @@
         "amount": 69000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "My Purchases 이동",
-        "description": "Coursera 우측 상단 프로필 > [My Purchases] 메뉴로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 탭 확인",
-        "description": "[Subscriptions] 탭에서 Coursera Plus 항목을 찾습니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "Cancel Subscription",
-        "description": "[Cancel Subscription]을 누르고 취소 설문을 완료합니다."
       }
     ]
   },
@@ -3506,23 +2197,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "멤버십 설정 진입",
-        "description": "네이버플러스 멤버십 MY 페이지 우측 상단 톱니바퀴 [설정]을 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버십 관리 선택",
-        "description": "[네이버플러스 멤버십 관리] 메뉴를 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "정기결제 해지하기",
-        "description": "하단 [네이버플러스 멤버십 해지하기] > [정기결제 해지하기]를 누릅니다."
-      }
     ]
   },
   {
@@ -3551,23 +2225,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "My배민 배민클럽",
-        "description": "배달의민족 앱 우측 하단 [My배민] > [배민클럽] 배너를 터치합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버십 관리 선택",
-        "description": "배민클럽 화면 우측 상단 [설정] 또는 [멤버십 관리]를 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지하기 완료",
-        "description": "하단 [배민클럽 해지하기]를 누르고 혜택 포기 확인을 마칩니다."
-      }
     ]
   },
   {
@@ -3595,23 +2252,6 @@
         "amount": 2900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "마이요기요 진입",
-        "description": "요기요 앱 우측 하단 [마이요기요] 탭을 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "요기패스X 관리",
-        "description": "[요기패스X 관리] 메뉴를 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지하기 완료",
-        "description": "하단 [요기패스X 해지하기]를 누르고 해지 사유를 선택해 완료합니다."
       }
     ]
   },
@@ -3642,23 +2282,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "마이컬리 진입",
-        "description": "마켓컬리 앱 우측 하단 [마이컬리] > [컬리멤버스] 메뉴를 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버스 관리 선택",
-        "description": "멤버십 화면 맨 아래로 스크롤하여 [컬리멤버스 관리]를 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 해지 완료",
-        "description": "[멤버십 해지]를 누르고 [해지 신청하기]를 선택해 완료합니다."
-      }
     ]
   },
   {
@@ -3688,23 +2311,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "와우 멤버십 진입",
-        "description": "쿠팡 앱 우측 하단 [마이쿠팡] > [와우 멤버십]을 선택합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "해지하기 터치",
-        "description": "화면 맨 아래로 스크롤을 끝까지 내려 [해지하기] 버튼을 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "혜택 포기 및 확정",
-        "description": "[내가 누린 혜택 포기할게요] 선택 후 [해지 신청하기]를 누릅니다."
-      }
     ]
   },
   {
@@ -3732,23 +2338,6 @@
         "amount": 20000,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "숍 메뉴 접속",
-        "description": "닌텐도 어카운트 숍 메뉴(ec.nintendo.com/my/membership)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "이용 현황 확인",
-        "description": "[Nintendo Switch Online] 이용 현황을 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "자동 연장 갱신 중지",
-        "description": "[자동 연장 결제 갱신 중지] 버튼을 눌러 해지를 확정합니다."
       }
     ]
   },
@@ -3778,23 +2367,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "정기 구독 관리",
-        "description": "PlayStation Store 로그인 후 프로필 > [정기 구독 서비스 관리]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "PS Plus 선택",
-        "description": "[PlayStation Plus] 항목을 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "자동 갱신 끄기",
-        "description": "[자동 갱신 끄기] 또는 [구독 취소]를 눌러 완료합니다."
-      }
     ]
   },
   {
@@ -3823,23 +2395,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "서비스 및 구독 이동",
-        "description": "Microsoft 계정(account.microsoft.com/services)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "Game Pass 관리",
-        "description": "Xbox Game Pass 항목 우측 [관리] 버튼을 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "반복 청구 끄기",
-        "description": "[구독 취소] 또는 [반복 청구 끄기]를 선택하여 해지를 완료합니다."
-      }
     ]
   },
   {
@@ -3866,23 +2421,6 @@
         "amount": 6500,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "App Store 계정",
-        "description": "App Store 앱 실행 후 우측 상단 [내 프로필]을 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 메뉴 선택",
-        "description": "[구독(Subscriptions)] 메뉴로 들어갑니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "Apple Arcade 취소",
-        "description": "[Apple Arcade]를 선택하고 [구독 취소]를 눌러 완료합니다."
       }
     ]
   },
@@ -3911,23 +2449,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "스토어 정기 결제",
-        "description": "Google Play 스토어 앱 > 우측 상단 프로필 > [결제 및 정기 결제]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "Play Pass 선택",
-        "description": "[정기 결제] 목록에서 [Google Play Pass]를 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "하단 [구독 취소]를 누르고 취소 사유를 선택하여 완료합니다."
-      }
     ]
   },
   {
@@ -3954,23 +2475,6 @@
         "amount": 5500,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "EA 계정 설정",
-        "description": "EA 계정 포털(myaccount.ea.com)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "EA Play 탭 확인",
-        "description": "[EA Play] 탭에서 현재 멤버십 상태를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 취소 확정",
-        "description": "[멤버십 취소(Cancel Membership)]를 클릭하고 완료합니다."
       }
     ]
   },
@@ -4001,23 +2505,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "게임 및 정기 결제",
-        "description": "Battle.net 계정 관리(account.battle.net/games)에 로그인합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "와우 계정 선택",
-        "description": "[게임 및 정기 결제]에서 World of Warcraft 계정을 선택합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "정기 결제 취소",
-        "description": "[관리] > [정기 결제 취소]를 누르고 해지를 완료합니다."
-      }
     ]
   },
   {
@@ -4045,23 +2532,6 @@
         "amount": 990,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "톡서랍 / My구독 이동",
-        "description": "카카오톡 [더보기] > [서랍] 또는 My구독 웹에 접속합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 정보 선택",
-        "description": "우측 상단 프로필 > [구독 정보]에서 톡서랍 플러스를 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지하기 확정",
-        "description": "하단 [해지하기]를 누른 뒤 [정기결제 해지]를 선택하여 완료합니다."
       }
     ]
   },
@@ -4091,23 +2561,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "이모티콘샵 접속",
-        "description": "카카오 이모티콘샵(e.kakao.com) 로그인 후 우측 상단 [My]로 이동합니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "구독 관리 선택",
-        "description": "[이모티콘 플러스 관리] 메뉴를 누릅니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "해지하기 완료",
-        "description": "하단 [해지하기]를 누르고 해지 확인 팝업을 마칩니다."
-      }
     ]
   },
   {
@@ -4135,23 +2588,6 @@
         "amount": 1650,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "용량 관리 이동",
-        "description": "네이버 MYBOX 웹 좌측 하단 [용량 관리]를 누릅니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "이용권/결제 관리",
-        "description": "[이용권 / 결제 관리] 탭에서 이용 중인 요금제를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "이용권 해지",
-        "description": "[이용권 해지]를 누르고 정기결제 해지를 완료합니다."
       }
     ]
   },
@@ -4181,23 +2617,6 @@
         "billingCycle": "매월",
         "quality": "HD"
       }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "계정 설정 이동",
-        "description": "Strava 웹 우측 상단 프로필 > [설정] > [내 계정]으로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "멤버십 섹션 확인",
-        "description": "[멤버십(Membership)] 섹션에서 상태를 확인합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "멤버십 취소 확정",
-        "description": "[멤버십 취소(Cancel Membership)]를 누르고 단계를 완료합니다."
-      }
     ]
   },
   {
@@ -4225,23 +2644,6 @@
         "amount": 4900,
         "billingCycle": "매월",
         "quality": "HD"
-      }
-    ],
-    "guideSteps": [
-      {
-        "stepNumber": 1,
-        "title": "스토어 정기 결제",
-        "description": "Google Play 스토어 앱 > 우측 상단 프로필 > [결제 및 정기 결제]로 들어갑니다."
-      },
-      {
-        "stepNumber": 2,
-        "title": "번핏 Pro 선택",
-        "description": "[정기 결제] 목록에서 [번핏 - 운동일지 Pro]를 터치합니다."
-      },
-      {
-        "stepNumber": 3,
-        "title": "구독 취소 완료",
-        "description": "하단 [구독 취소]를 누르고 취소 사유를 선택해 완료합니다."
       }
     ]
   }

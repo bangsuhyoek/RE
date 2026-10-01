@@ -14,7 +14,7 @@ import { ParserAgent } from "./agents/parserAgent.js";
 import { FormalVerifier } from "./verifier.js";
 import { CatalogSyncer } from "./syncCatalog.js";
 
-export async function runCrawlerPipeline() {
+export async function runCrawlerPipeline({ catalogFilePath } = {}) {
   console.log("=================================================");
   console.log("[Pipeline Step 1] Initializing Multi-Agent Subscription Crawler...");
   console.log("=================================================");
@@ -22,7 +22,7 @@ export async function runCrawlerPipeline() {
   const crawler = new CrawlerAgent({ timeoutMs: CRAWLER_CONFIG.timeoutMs });
   const parser = new ParserAgent();
   const verifier = new FormalVerifier();
-  const syncer = new CatalogSyncer();
+  const syncer = new CatalogSyncer(catalogFilePath);
 
   const verifiedCatalogItems = [];
   let successCount = 0;

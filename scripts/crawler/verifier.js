@@ -50,10 +50,10 @@ export class FormalVerifier {
       errors.push("Field 'plans' must be a non-empty array");
     }
 
-    // 4. 해지 가이드 단계(guideSteps) 검증
-    if (!Array.isArray(item.guideSteps) || item.guideSteps.length === 0) {
-      errors.push("Field 'guideSteps' must be a non-empty array");
-    } else {
+    // 4. 해지 가이드는 src/data/cancelGuides.js가 관리한다. 크롤러 항목에 남아 있으면 형식만 확인한다.
+    if (item.guideSteps !== undefined && !Array.isArray(item.guideSteps)) {
+      errors.push("Field 'guideSteps' must be an array when present");
+    } else if (Array.isArray(item.guideSteps)) {
       item.guideSteps.forEach((step, idx) => {
         if (typeof step.stepNumber !== "number" || step.stepNumber <= 0) {
           errors.push(`guideSteps[${idx}]: stepNumber must be positive integer`);

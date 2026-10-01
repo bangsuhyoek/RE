@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -39,7 +40,9 @@ test("ParserAgent should produce valid catalog item structure", () => {
   assert.equal(parsed.amount, 17000);
   assert.ok(Array.isArray(parsed.availablePlans));
   assert.ok(Array.isArray(parsed.plans));
-  assert.ok(Array.isArray(parsed.guideSteps));
+  // 해지 가이드는 cancelGuides.js가 관리하므로 크롤러가 공통 문구를 만들어 덮어쓰면 안 된다.
+  assert.equal(parsed.guideSteps, undefined);
+  assert.equal(parser.buildCatalogItemFromFallback(target).guideSteps, undefined);
 });
 
 test("FormalVerifier should validate valid items and catch invalid schemas", () => {
@@ -64,16 +67,20 @@ test("FormalVerifier should validate valid items and catch invalid schemas", () 
   assert.ok(corrected.item.amount > 0);
 });
 
-test("Full Crawler Pipeline should execute and update subscriptionData.js", async () => {
-  const result = await runCrawlerPipeline();
+test("Full Crawler Pipeline should execute and update a catalog file", async () => {
+  const sourcePath = path.resolve(__dirname, "../src/data/subscriptionData.js");
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "submate-crawler-"));
+  const filePath = path.join(tempDir, "subscriptionData.js");
+  fs.copyFileSync(sourcePath, filePath);
+
+  const result = await runCrawlerPipeline({ catalogFilePath: filePath });
   assert.ok(result);
   assert.equal(result.targetsProcessed, CRAWLER_CONFIG.targets.length);
   assert.equal(result.successCount, CRAWLER_CONFIG.targets.length);
   assert.equal(result.syncResult.success, true);
 
-  // Check subscriptionData.js file content
-  const filePath = path.resolve(__dirname, "../src/data/subscriptionData.js");
   const content = fs.readFileSync(filePath, "utf-8");
   assert.ok(content.includes("export const serviceCatalog = ["));
   assert.ok(content.includes('"id": "netflix"'));
+  fs.rmSync(tempDir, { recursive: true, force: true });
 });

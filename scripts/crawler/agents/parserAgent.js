@@ -56,25 +56,6 @@ export class ParserAgent {
           : "HD",
       }));
 
-      // 5. 기본 guideSteps 생성 또는 기존 단계 보존
-      const guideSteps = target.fallbackData?.guideSteps || [
-        {
-          stepNumber: 1,
-          title: "설정 진입",
-          description: `${target.name} 공식 웹사이트/앱에 로그인합니다.`,
-        },
-        {
-          stepNumber: 2,
-          title: "구독/결제 관리",
-          description: "프로필 > 계정 설정에서 [구독 관리] 메뉴를 선택합니다.",
-        },
-        {
-          stepNumber: 3,
-          title: "멤버십 해지",
-          description: "하단의 [구독 취소/해지하기]를 누르면 완료됩니다.",
-        },
-      ];
-
       return {
         id: target.id,
         name: target.name,
@@ -88,7 +69,6 @@ export class ParserAgent {
         availablePlans,
         plans,
         cancelUrl: target.cancelUrl,
-        guideSteps,
         lastUpdated: new Date().toISOString(),
         parseStatus: "PARSED_SUCCESS",
       };
@@ -127,23 +107,6 @@ export class ParserAgent {
       availablePlans: fallback.availablePlans,
       plans,
       cancelUrl: target.cancelUrl,
-      guideSteps: [
-        {
-          stepNumber: 1,
-          title: "설정 진입",
-          description: `${target.name} 계정 서비스에 로그인합니다.`,
-        },
-        {
-          stepNumber: 2,
-          title: "구독 관리",
-          description: "계정 > 구독 관리 메뉴로 이동합니다.",
-        },
-        {
-          stepNumber: 3,
-          title: "해지 완료",
-          description: "[구독 해지하기]를 클릭하여 완료합니다.",
-        },
-      ],
       lastUpdated: new Date().toISOString(),
       parseStatus: reason,
     };
