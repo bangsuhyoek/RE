@@ -24,10 +24,20 @@ test("환불 요청 시 확인된 서비스는 정책과 출처를 함께 보여
   const now = new Date(2026, 9, 2, 10, 0, 0);
   const subscriptions = [
     { subscriptionId: "s-yt", id: "youtube", name: "YouTube Premium", amount: 14900, dueDay: 1, billingCycle: "매월", paymentMethod: "신한카드 ****4521" },
-    { subscriptionId: "s-tving", id: "tving", name: "티빙", amount: 9500, dueDay: 1, billingCycle: "매월", paymentMethod: "신한카드 ****4521" },
+    { subscriptionId: "s-cplay", id: "coupangplay", name: "쿠팡플레이", amount: 7890, dueDay: 1, billingCycle: "매월", paymentMethod: "신한카드 ****4521" },
   ];
   const youtube = runAgent({ text: "유튜브 환불 받아줘", subscriptions, now });
   assert.equal(youtube.policy.sourceLabel, "YouTube 고객센터 환불 안내");
-  const tving = runAgent({ text: "티빙 환불 받아줘", subscriptions, now });
-  assert.equal(tving.policy, null);
+  // 공식 원문을 확인하지 못한 서비스는 정책을 지어내지 않는다.
+  const coupangPlay = runAgent({ text: "쿠팡플레이 환불 받아줘", subscriptions, now });
+  assert.equal(coupangPlay.policy, null);
+});
+
+test("하이픈이 있는 서비스 ID도 검증 정책을 찾는다", () => {
+  const now = new Date(2026, 9, 2, 10, 0, 0);
+  const subscriptions = [
+    { subscriptionId: "s-ps", id: "ps-plus", name: "PlayStation Plus", amount: 9800, dueDay: 1, billingCycle: "매월", paymentMethod: "신한카드 ****4521" },
+  ];
+  const response = runAgent({ text: "PlayStation Plus 환불 받아줘", subscriptions, now });
+  assert.equal(response.policy?.sourceLabel, "PlayStation Store 환불 규정");
 });

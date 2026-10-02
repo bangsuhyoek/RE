@@ -78,9 +78,9 @@ test("검증된 정책이 있는 서비스는 출처를 보여준다", () => {
   assert.ok(response.policy.sourceUrl.startsWith("https://help.openai.com/"));
   const netflix = runAgent({ text: "넷플릭스 환불", subscriptions: subs, now: NOW });
   assert.ok(netflix.policy.sourceUrl.startsWith("https://help.netflix.com/"));
-  // 공식 원문을 확인하지 못한 서비스는 정책을 지어내지 않는다.
+  // Apple이 청구하는 구독은 Apple 환불 안내를 출처로 보여준다.
   const icloud = runAgent({ text: "아이클라우드 환불", subscriptions: subs, now: NOW });
-  assert.equal(icloud.policy, null);
+  assert.ok(icloud.policy.sourceUrl.startsWith("https://support.apple.com/"));
 });
 
 test("구독을 특정하지 못하면 되묻고, AI 해석은 목록 안의 구독만 쓴다", () => {
