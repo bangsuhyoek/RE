@@ -1,7 +1,7 @@
 # SubMate(꾸독) 구독 승인 에이전트 최종 기획서
 
-- 문서 버전: v1.0 (최종 기획)
-- 작성일: 2026-10-01
+- 문서 버전: v1.1 (1단계 남은 일 반영, 이메일 읽기 제외 결정)
+- 작성일: 2026-10-01 / 수정일: 2026-10-02
 - 상태: 1단계(MVP) 개발 착수 가능 / 2단계 출시 전 확인 필요 / 3단계 제휴·법률 검토 후 착수
 - 리서치 보조: Gemini 3.8 Flash(국내 동향·규제 1차 조사). 주요 수치와 법 해석은 공식 출처로 재확인함
 
@@ -54,7 +54,7 @@ ChatGPT 닷(dots)처럼 "결제 직전에 사용자 승인을 받는" 경험을 
 | 해지해도 환불은 따로 요청해야 하고 요청처가 결제 경로마다 다름 | 해지 페이지 이동·가이드 | 결제 경로·경과일 기반 환불 요청처·가능성 안내, 요청 문구 생성 |
 | 해지 후 계속 결제, 해외 가맹점 대응 어려움 | 없음 | 증빙 자동 수집 → 신고·이의제기 키트 |
 
-비목표: 사용자 계정 비밀번호를 받아 대신 로그인하는 해지·환불 대행, SubMate 명의 결제·정산, 카드번호 저장.
+비목표: 사용자 계정 비밀번호를 받아 대신 로그인하는 해지·환불 대행, SubMate 명의 결제·정산, 카드번호 저장, 사용자 이메일함 읽기(14장 참고).
 
 ## 3. 단계별 범위
 
@@ -129,7 +129,8 @@ ChatGPT 닷(dots)처럼 "결제 직전에 사용자 승인을 받는" 경험을 
 | `agent_mandates` | id, user_id, subscription_id, mode(`ask_every_time`/`auto_within_limit`), max_amount, currency, period, expires_at, revoked_at | "항상 허용" 범위 |
 | `approval_requests` | id, user_id, subscription_id, kind(`renewal`/`price_increase`/`trial_conversion`/`cancel`/`refund`), amount, currency, due_at, status(`pending`/`approved_once`/`approved_mandate`/`declined`/`expired`), decided_at, idempotency_key(unique) | 결정은 1회, 이후 불변 |
 | `refund_cases` | id, user_id, subscription_id, payment_channel, charged_at, reason, predicted_outcome, status, outcome_at | 환불 진행 |
-| `evidence_items` | id, case_id, user_id, type(`payment_message`/`screenshot`/`cancel_record`/`decision_log`), captured_at, storage_path | 사건별 증빙 |
+| `evidence_cases` | id, user_id, case_key(unique), kind(`price_increase`/`trial_conversion`/`charged_after_cancel`), subscription_id, service_name, amount_krw, previous_amount_krw, created_at, expires_at(만든 날 + 1년) | 증빙 사건. 사용자 동의 시에만 저장 |
+| `evidence_items` | id, case_id, user_id, item_key(사건 안에서 unique), type(`payment_message`/`cancel_record`/`decision_log`), captured_at, detail(카드 끝 4자리까지만), approval_key | 사건별 증빙. 수정 불가, 삭제만 가능 |
 | `service_refund_policies` | service_id, payment_channel, refund_window_days, conditions, source_url, verified_at | 크롤러로 검증·갱신 |
 
 무결성 규칙:
@@ -137,6 +138,8 @@ ChatGPT 닷(dots)처럼 "결제 직전에 사용자 승인을 받는" 경험을 
 - `approval_requests`는 `pending`에서만 한 번 전환할 수 있다(DB 조건부 update 또는 함수). 같은 구독·같은 결제 예정일에는 `idempotency_key`가 하나만 존재한다.
 - 금액이 `agent_mandates.max_amount`를 넘거나 kind가 `price_increase`/`trial_conversion`이면 자동 허용하지 않는다.
 - 카드번호는 끝 4자리 외에는 저장하지 않는다.
+- `agent_mandates`는 구독마다 하나만 유효하다. 만들기·해제는 `create_agent_mandate`·`revoke_agent_mandate` 함수로만 한다.
+- 증빙은 만든 날부터 1년이 지나면 읽을 수 없고, `purge-expired-evidence` 예약 작업(pg_cron, 매일 03:17 UTC)이 지운다.
 
 ## 8. 기존 코드 재사용
 
@@ -149,9 +152,9 @@ ChatGPT 닷(dots)처럼 "결제 직전에 사용자 승인을 받는" 경험을 
 
 ## 9. 약관·개인정보
 
-- 1·2단계는 현행 이용약관 제6조 제1항(구독 계약·결제·환불의 당사자가 아님)과 제4항(금융 거래 승인·취소 권한 없음)과 일치한다. 제5조(서비스 내용)에 "승인 카드는 결제를 직접 막지 않는다"는 문구를 추가한다.
+- 1·2단계는 현행 이용약관 제6조 제1항(구독 계약·결제·환불의 당사자가 아님)과 제4항(금융 거래 승인·취소 권한 없음)과 일치한다. 제5조 제7호·제8호에 "승인 카드와 항상 허용은 결제를 직접 막거나 실행하지 않는다"를 추가했다(2026-10-09 시행, 10-02 공지).
 - 3단계 전 제6조 제4항을 "제휴 카드사를 통한 승인 정책 전달" 범위로 개정한다.
-- 증빙 캡처·결제 알림 원문의 보관 목적과 보관 기간(예: 사건 종료 후 1년), 사용자 삭제 방법을 개인정보처리방침에 추가한다.
+- 개인정보처리방침에 승인 기록, 항상 허용 범위, 결제 증빙(선택 동의, 만든 날부터 1년, 내 계정 관리에서 삭제·철회)을 추가하고 이메일함 미접근을 명시했다. 결제 알림 원문은 여전히 서버로 보내지 않는다. 권한 고지에 생체인증(USE_BIOMETRIC)과 증빙 보관 동의를 추가했다.
 
 ## 10. 성과 지표
 
@@ -176,7 +179,9 @@ ChatGPT 닷(dots)처럼 "결제 직전에 사용자 승인을 받는" 경험을 
 
 | 항목 | 단계 | 담당 | 상태 |
 |---|---|---|---|
-| 서비스별 환불 정책 초기 데이터(상위 30개) | 1 | 크롤러 | 미착수 |
+| 서비스별 환불 정책 초기 데이터(상위 30개) | 1 | 크롤러 | 진행 중: 7개 원문 확인(ChatGPT, Netflix, YouTube Premium, Spotify, 쿠팡 와우, 웨이브, 왓챠). 출처 문구 정기 확인은 `npm run crawl:refunds`·스케줄러에 연결 |
+| 약관·개인정보처리방침 개정 공지 | 1 | PM | 문서 개정 완료, 2026-10-02 공지 → 10-09 시행. 시행 전에는 증빙 서버 보관을 배포하지 않음 |
+| Play Console 데이터 보안 양식 갱신(구매 내역 선택 수집) | 1 | PM | 미착수 |
 | 카드사별 해외이용 이의신청 경로·내부 마감 | 2 | PM | 미확인 |
 | 금융위 비조치의견서 | 3 | 법무 | 미착수 |
 | 카드사 제휴 제안 | 3 | 사업 | 미착수 |
@@ -205,8 +210,33 @@ ChatGPT 닷의 구성 요소 중 결제 실행을 뺀 나머지를 꾸독 안에
 - 결제 사전 알림(D-3, D-1, 체험 만료 D-1)을 누르면 그 구독의 갱신 승인 카드가 열린다. 대화에서 만든 카드와 같은 요청 키를 써서 결정이 하나만 남는다.
 - 결제 알림 감지 시 요금 인상(등록 금액보다 큼, 공동 이용은 전체 금액 기준), 무료체험 유료 전환, 해지 후 결제를 경고 카드로 띄우고 증빙 사건을 기기에 만든다. 해지 후 결제는 해지일을 넣은 환불 요청서를 함께 만든다. "새 금액으로 계속 쓰기"를 고르면 등록 금액을 실제 결제 금액으로 맞춘다.
 
+3차 반영(2026-10-02):
+
+- "항상 허용" 권한 범위: 갱신 승인 카드에 "이 금액 이하면 항상 허용"을 추가했다. 무엇이 자동 허용되는지 먼저 보여주고, Android는 지문·얼굴 또는 기기 잠금(`DeviceAuthPlugin`, androidx.biometric), 웹은 확인 버튼으로 본인 확인한 뒤 범위를 만든다. 이후 한도 이하 갱신 카드는 열리자마자 `approved_mandate`로 기록된다. 서버 `decide_approval_request`가 갱신 여부·해제·만료·한도를 다시 확인하므로 요금 인상·유료 전환·한도 초과는 자동 허용되지 않는다. 범위는 1년 뒤 끝나고 카드에서 해제할 수 있다(`supabase/migrations/20261001140000_create_agent_mandates.sql`).
+- 증빙 서버 저장: 결제 경고 카드나 내 계정 관리에서 동의한 로그인 사용자만 `evidence_cases`·`evidence_items`에 올린다. 동의를 철회하면 서버 기록을 지우고, 증빙 모두 지우기를 제공한다(`supabase/migrations/20261001141000_create_evidence_cases.sql`, `src/lib/evidenceStore.js`).
+- 검증 환불 정책: 공식 원문으로 확인한 Netflix, YouTube Premium, Spotify, 쿠팡 와우를 추가했다. 승인 카드에 요약·출처·확인일을 보여준다. 디즈니+ 한국 정책 페이지는 "[이전]" 버전 표시가 있어 현행 여부를 확인할 때까지 넣지 않았다. 티빙·웨이브·Claude·네이버플러스·밀리의서재는 공식 원문 확인 전이라 "확인 필요"로 답한다.
+- 검증: Supabase에서 실제 로그인 역할로 범위 판정(한도 이하 허용, 한도 초과·요금 인상·범위 없음 거절, 범위 1개 유지, 해제)과 다른 사용자 증빙 차단을 확인한 뒤 롤백했다. 단위 테스트, 프로덕션 빌드, Android 컴파일 통과.
+
+4차 반영(2026-10-02):
+
+- ChatGPT 환불 안내가 개정되어 요약을 고쳤다. 원칙적으로 환불되지 않지만 한국 거주자는 구매 후 7일 안에 요청하고 쓰지 않았다면 전액 환불된다. App Store 결제는 Apple에 요청한다. 원문에서 확인되지 않은 Google Play 경로 문구는 뺐다.
+- 웨이브(유료서비스 이용약관 제8·10·12조)와 왓챠(고객센터 해지 안내)를 추가했다. 왓챠는 외부 블로그에만 있는 "7일 안 미사용 시 환불" 조건을 넣지 않았다. 티빙은 환불 조항이 있는 유료 이용약관 원문을 확인하지 못해 "확인 필요"로 둔다.
+- 출처 문구 정기 확인: 정책마다 원문에 그대로 있는 문구(`checkPhrases`)를 저장하고, `scripts/crawler/refundPolicyCheck.js`가 페이지에 문구가 남아 있는지 본다. 문구가 사라지면 CHANGED, 페이지를 못 열면 UNREACHABLE로 알리고 정책은 자동으로 고치지 않는다. 매일 도는 크롤러 스케줄러에도 넣었다. 2026-10-02 실행에서 7개 모두 OK.
+
 남은 일:
 
-- "항상 허용" 권한 범위(`agent_mandates`)와 생체인증(네이티브 생체인증 플러그인 추가 필요).
-- 증빙 사건의 서버 저장(`evidence_items`)은 개인정보처리방침에 보관 목적·기간·삭제 방법을 넣은 뒤 진행한다. 현재는 기기에만 남는다.
-- 서비스별 검증 환불 정책 확대(현재 ChatGPT만 공식 출처 확인).
+- 실제 Android 기기에서 생체인증 창과 범위 생성 흐름 확인.
+- 환불 정책을 상위 30개로 확대(현재 7개). 공식 원문으로 확인한 정책만 넣는다.
+
+## 14. 결정 기록: 사용자 이메일 읽기 제외 (2026-10-02)
+
+결정: SubMate는 사용자의 이메일함(Gmail, 네이버 메일, Outlook 등)을 읽지 않는다. 메일로 얻으려던 정보는 결제 알림 감지, 사용자가 직접 첨부하는 캡처, 승인·해지 기록으로 대신한다.
+
+| 검토한 방식 | 제외 이유 |
+|---|---|
+| Gmail API `gmail.readonly` | 제한 범위(restricted scope)라 Google 검증이 필요하고, 서버로 데이터를 받으면 매년 외부 보안 평가(CASA)를 받아야 한다. 결제·해지 메일 외의 개인 메일까지 읽을 수 있는 권한이라 얻는 정보에 비해 위험과 비용이 크다. |
+| Gmail API `gmail.metadata` | 같은 제한 범위라 심사 부담은 같고, 본문을 읽지 못해 금액을 알 수 없어 인상 경고에 쓸 수 없다. |
+| 네이버 메일 IMAP | OAuth가 없어 사용자의 애플리케이션 비밀번호를 받아야 한다. 2장 비목표의 "비밀번호를 받지 않는다" 원칙과 충돌한다. |
+| 사용자가 메일을 전달·공유 | 가능하지만 1단계 증빙은 결제 알림과 캡처로 충분해 우선순위에서 뺐다. 필요하면 영수증 OCR 흐름을 재사용해 다시 검토한다. |
+
+영향: 개인정보처리방침과 권한 고지에 "이메일함에 접근하지 않는다"를 명시했다. 증빙 요약은 "해지 확인 메일이 있으면 직접 첨부하라"고 안내한다.

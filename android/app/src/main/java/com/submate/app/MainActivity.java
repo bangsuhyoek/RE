@@ -13,6 +13,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(CancelBrowserPlugin.class);
         registerPlugin(CharacterAssetPlugin.class);
+        registerPlugin(DeviceAuthPlugin.class);
         registerPlugin(PaymentCapturePlugin.class);
         super.onCreate(savedInstanceState);
 

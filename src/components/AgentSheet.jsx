@@ -1,28 +1,43 @@
 import { useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
-import { AlertTriangle, Check, Copy, ExternalLink, FileText, Loader2, Send, ShieldCheck, Sparkles, X } from "lucide-react";
+import { AlertTriangle, Check, CloudUpload, Copy, ExternalLink, FileText, Fingerprint, Loader2, Send, ShieldCheck, Sparkles, X } from "lucide-react";
 import { BottomSheet, Button } from "./ui";
 import { formatWon } from "../lib/dates";
-import { readEvidenceCases, readStoredValue, saveEvidenceCase, storageKeys, writeStoredValue } from "../lib/storage";
+import { readEvidenceCases, readStoredValue, storageKeys, writeStoredValue } from "../lib/storage";
 import {
   appendDecisionToCase,
   buildSuggestions,
   createEvidenceCase,
+  createMandate,
   decideApproval,
+  findApplicableMandate,
   formatEvidenceSummary,
+  isMandateActive,
   mergeApproval,
+  mergeMandates,
   resolveApproval,
+  revokeMandate,
   runAgent,
 } from "../lib/subscriptionAgent";
 import { interpretWithAi } from "../lib/agentClient";
 import { decideApprovalOnServer, fetchApprovals, mergeServerApprovals, recordApprovalRequest } from "../lib/approvalStore";
+import { createMandateOnServer, fetchMandates, revokeMandateOnServer } from "../lib/mandateStore";
+import { grantEvidenceConsent, persistEvidenceCase, pullServerEvidence, readEvidenceConsent } from "../lib/evidenceStore";
+import { canUseDeviceAuth, confirmUserPresence } from "../lib/deviceAuth";
 
 const STATUS_TEXT = {
   approved: "허용함",
   approved_once: "이번만 허용함",
+  approved_mandate: "항상 허용 범위 안이라 자동으로 허용함",
   declined: "거절함",
   expired: "시간이 지나 만료됨",
+};
+
+const DEVICE_AUTH_FAIL_TEXT = {
+  not_enrolled: "휴대폰 잠금(지문·얼굴·PIN)을 먼저 설정해 주세요.",
+  unavailable: "이 기기에서는 본인 확인을 쓸 수 없어요.",
+  cancelled: "본인 확인을 취소했어요. 범위를 만들지 않았어요.",
 };
 
 const isExpiredPending = (approval, now = Date.now()) =>
@@ -61,7 +76,7 @@ const ALERT_STATUS_TEXT = {
 
 function DecisionBadge({ status, decidedAt, labels = STATUS_TEXT }) {
   const time = decidedAt ? new Date(decidedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }) : "";
-  const positive = status === "approved" || status === "approved_once";
+  const positive = status === "approved" || status === "approved_once" || status === "approved_mandate";
   return (
     <div className={"mt-3 flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-bold " + (positive ? "bg-[#E8F3FF] text-[#1B64DA]" : "bg-[#F2F4F6] text-[#6B7684]")}>
       {positive ? <Check size={14} /> : <X size={14} />}
@@ -131,9 +146,12 @@ function ActionResponse({ response, approval, onDecide, onStartCancel, onToast }
         </dl>
         {response.wantsRefund && (
           response.policy ? (
-            <button type="button" onClick={() => openExternal(response.policy.sourceUrl)} className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-[#3182F6]">
-              <ExternalLink size={11} /> 출처: {response.policy.sourceLabel}
-            </button>
+            <div className="mt-2">
+              <p className="text-[12px] leading-relaxed text-[#333D4B]">{response.policy.summary}</p>
+              <button type="button" onClick={() => openExternal(response.policy.sourceUrl)} className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-[#3182F6]">
+                <ExternalLink size={11} /> 출처: {response.policy.sourceLabel}{response.policy.verifiedAt ? " · " + response.policy.verifiedAt + " 확인" : ""}
+              </button>
+            </div>
           ) : (
             <p className="mt-2 text-[11px] text-[#8B95A1]">이 서비스의 공식 환불 정책은 아직 꾸독이 확인하지 못했어요. 최종 결정은 서비스 회사가 해요.</p>
           )
@@ -175,7 +193,34 @@ function ActionResponse({ response, approval, onDecide, onStartCancel, onToast }
   );
 }
 
-function UpcomingResponse({ response, approvals, onDecide, onStartCancel }) {
+function MandateConfirm({ item, busy, onCancel, onConfirm }) {
+  return (
+    <div className="mt-3 rounded-xl bg-[#F2F8FF] p-3" data-testid="agent-mandate-confirm">
+      <p className="text-[12px] font-bold text-[#191F28]">{item.serviceName} 갱신이 {formatWon(item.amount)} 이하이면 앞으로 묻지 않고 허용으로 기록해요.</p>
+      <ul className="mt-1.5 space-y-0.5 text-[11px] leading-relaxed text-[#4E5968]">
+        <li>· 금액이 오르거나 무료체험이 끝나면 다시 물어봐요.</li>
+        <li>· 1년 뒤 끝나고, 언제든 해제할 수 있어요.</li>
+        <li>· 꾸독은 결제를 막지 않아요. 원하지 않으면 해지해야 멈춰요.</li>
+      </ul>
+      <div className="mt-2.5 flex gap-2">
+        <Button size="compact" variant="secondary" className="flex-1" onClick={onCancel} disabled={busy}>취소</Button>
+        <Button size="compact" className="flex-[2]" onClick={onConfirm} disabled={busy} prefixIcon={canUseDeviceAuth() ? <Fingerprint size={14} /> : null}>
+          {canUseDeviceAuth() ? "본인 확인하고 허용" : "확인하고 허용"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function UpcomingResponse({ response, approvals, mandates, onDecide, onStartCancel, onCreateMandate, onRevokeMandate }) {
+  const [confirmingId, setConfirmingId] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const confirmMandate = async (item) => {
+    setBusy(true);
+    const created = await onCreateMandate(item);
+    setBusy(false);
+    if (created) setConfirmingId(null);
+  };
   return (
     <div>
       <ToolTrace tools={response.toolsUsed} />
@@ -184,6 +229,8 @@ function UpcomingResponse({ response, approvals, onDecide, onStartCancel }) {
         {response.items.map((item) => {
           const stored = resolveApproval(approvals, item.approval);
           const approval = isExpiredPending(stored) ? { ...stored, status: "expired" } : stored;
+          const mandate = mandates[item.subscriptionId];
+          const mandateActive = isMandateActive(mandate);
           return (
             <div key={item.approval.id} className="rounded-2xl border border-[#E5E8EB] bg-white p-3.5" data-testid="agent-renewal-card">
               <div className="flex items-start justify-between gap-2">
@@ -200,12 +247,31 @@ function UpcomingResponse({ response, approvals, onDecide, onStartCancel }) {
                 </div>
               </div>
               {approval.status === "pending" ? (
-                <div className="mt-3 flex gap-2">
-                  <Button size="compact" variant="secondary" className="flex-1" onClick={() => onDecide(approval, "allow_once")}>{item.isTrial ? "유료로 계속 쓰기" : "이번만 허용"}</Button>
-                  <Button size="compact" variant="outline" className="flex-1" onClick={() => { onDecide(approval, "deny"); onStartCancel(item.subscriptionId); }}>거절하고 해지</Button>
-                </div>
+                confirmingId === approval.id ? (
+                  <MandateConfirm item={item} busy={busy} onCancel={() => setConfirmingId(null)} onConfirm={() => confirmMandate(item)} />
+                ) : (
+                  <>
+                    <div className="mt-3 flex gap-2">
+                      <Button size="compact" variant="secondary" className="flex-1" onClick={() => onDecide(approval, "allow_once")}>{item.isTrial ? "유료로 계속 쓰기" : "이번만 허용"}</Button>
+                      <Button size="compact" variant="outline" className="flex-1" onClick={() => { onDecide(approval, "deny"); onStartCancel(item.subscriptionId); }}>거절하고 해지</Button>
+                    </div>
+                    {!item.isTrial && (
+                      <button type="button" onClick={() => setConfirmingId(approval.id)} className="mt-2 w-full rounded-xl py-1.5 text-[12px] font-bold text-[#3182F6] hover:bg-[#F2F8FF]">
+                        이 금액 이하면 항상 허용
+                      </button>
+                    )}
+                  </>
+                )
               ) : (
-                <DecisionBadge status={approval.status} decidedAt={approval.decidedAt} />
+                <>
+                  <DecisionBadge status={approval.status} decidedAt={approval.decidedAt} />
+                  {approval.status === "approved_mandate" && mandateActive && (
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-[#6B7684]">
+                      <span>항상 허용 · {formatWon(mandate.maxAmount)} 이하 · {new Date(mandate.expiresAt).toLocaleDateString("ko-KR")}까지</span>
+                      <button type="button" onClick={() => onRevokeMandate(item.subscriptionId)} className="shrink-0 font-bold text-[#F04452]">해제</button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           );
@@ -218,12 +284,47 @@ function UpcomingResponse({ response, approvals, onDecide, onStartCancel }) {
   );
 }
 
-function AlertResponse({ response, approval, onDecide, onStartCancel, onUpdateAmount, onToast }) {
+function EvidenceConsent({ userId, onToast }) {
+  const [consented, setConsented] = useState(() => Boolean(readEvidenceConsent(userId)));
+  const [busy, setBusy] = useState(false);
+  if (!userId) return <p className="mt-2 text-[11px] leading-relaxed text-[#8B95A1]">증빙은 이 기기에만 저장돼요. 로그인하면 계정에 보관할 수 있어요.</p>;
+  if (consented) {
+    return <p className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-[#1B64DA]"><Check size={12} /> 계정에 보관 중 · 만든 날부터 1년 뒤 자동 삭제</p>;
+  }
+  const grant = async () => {
+    setBusy(true);
+    const ok = await grantEvidenceConsent(userId);
+    setBusy(false);
+    setConsented(true);
+    onToast?.(ok ? "증빙을 계정에 보관했어요. 내 계정 관리에서 언제든 지울 수 있어요." : "보관에 동의했어요. 일부 증빙은 연결되면 다시 올릴게요.");
+  };
+  return (
+    <div className="mt-3 rounded-xl border border-[#E5E8EB] bg-white p-3" data-testid="agent-evidence-consent">
+      <p className="text-[12px] font-bold text-[#191F28]">증빙을 내 계정에 보관할까요? (선택)</p>
+      <p className="mt-1 text-[11px] leading-relaxed text-[#6B7684]">
+        서비스명, 결제 금액·일시, 결제수단 이름과 카드 끝 4자리, 해지 일시, 꾸독 승인 기록을 보관해요. 휴대폰을 바꿔도 남고, 만든 날부터 1년 뒤 자동으로 지워져요. 내 계정 관리에서 언제든 지울 수 있어요.
+      </p>
+      <Button size="compact" variant="outline" fullWidth className="mt-2" onClick={grant} disabled={busy} prefixIcon={<CloudUpload size={14} />}>동의하고 계정에 보관</Button>
+    </div>
+  );
+}
+
+function AlertResponse({ response, approval, onDecide, onStartCancel, onUpdateAmount, onToast, userId }) {
   const decidable = Boolean(approval && response.subscriptionId);
-  const copyEvidence = () => {
+  const currentCase = () => {
     const base = readEvidenceCases()[createEvidenceCase(response).id] || createEvidenceCase(response);
-    const withDecision = appendDecisionToCase(base, approval);
-    saveEvidenceCase(withDecision);
+    return appendDecisionToCase(base, approval);
+  };
+  // 경고 카드에서 결정하면 그 결정을 증빙 사건에 붙인다.
+  const decidedStatus = approval?.status;
+  useEffect(() => {
+    if (!decidedStatus || decidedStatus === "pending") return;
+    persistEvidenceCase(userId, currentCase());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decidedStatus, userId]);
+  const copyEvidence = () => {
+    const withDecision = currentCase();
+    persistEvidenceCase(userId, withDecision);
     copyText(formatEvidenceSummary(withDecision), onToast, "증빙 기록을 복사했어요. 신고나 환불 요청에 붙여 넣으세요.");
   };
   return (
@@ -256,6 +357,7 @@ function AlertResponse({ response, approval, onDecide, onStartCancel, onUpdateAm
       </div>
       {response.refund && <RefundDraft refund={response.refund} onToast={onToast} />}
       <Button size="compact" variant="secondary" fullWidth className="mt-3" onClick={copyEvidence} prefixIcon={<FileText size={14} />}>증빙 기록 복사</Button>
+      <EvidenceConsent userId={userId} onToast={onToast} />
       <p className="mt-2 text-[11px] leading-relaxed text-[#8B95A1]">꾸독은 이미 된 결제를 취소할 수 없어요. 환불은 서비스 회사나 카드사에 직접 요청해야 해요.</p>
     </div>
   );
@@ -265,9 +367,12 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [approvals, setApprovals] = useState(() => readStoredValue(storageKeys.agentApprovals, {}));
+  const [mandates, setMandates] = useState(() => readStoredValue(storageKeys.agentMandates, {}));
   const endRef = useRef(null);
   const approvalsRef = useRef(approvals);
+  const mandatesRef = useRef(mandates);
   const recordedRef = useRef(new Set());
+  const autoDecidedRef = useRef(new Set());
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -279,13 +384,23 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
     writeStoredValue(storageKeys.agentApprovals, next);
   };
 
-  // 로그인 사용자는 서버에 남은 결정을 먼저 불러온다. 다른 기기에서 내린 결정도 여기서 반영된다.
+  const saveMandates = (next) => {
+    mandatesRef.current = next;
+    setMandates(next);
+    writeStoredValue(storageKeys.agentMandates, next);
+  };
+
+  // 로그인 사용자는 서버에 남은 결정·항상 허용 범위·증빙을 먼저 불러온다. 다른 기기에서 한 일도 여기서 반영된다.
   useEffect(() => {
     if (!userId) return undefined;
     let active = true;
     fetchApprovals(userId).then((rows) => {
       if (active && rows.length) saveApprovals(mergeServerApprovals(approvalsRef.current, rows));
     });
+    fetchMandates(userId).then((rows) => {
+      if (active && rows.length) saveMandates(mergeMandates(mandatesRef.current, rows));
+    });
+    pullServerEvidence(userId);
     return () => { active = false; };
   }, [userId]);
 
@@ -317,7 +432,7 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
 
   const decide = async (request, decision) => {
     const current = resolveApproval(approvalsRef.current, request);
-    const result = decideApproval(current, decision);
+    const result = decideApproval(current, decision, new Date(), mandatesRef.current);
     saveApprovals(mergeApproval(approvalsRef.current, result.request));
     if (!result.ok && result.reason === "already_decided") onToast?.("이미 결정한 요청이에요.");
     if (!result.ok && result.reason === "expired") onToast?.("승인 시간이 지났어요. 다시 요청해 주세요.");
@@ -325,6 +440,55 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
     // 서버가 확정한 상태가 최종이다. 다른 기기에서 먼저 결정했다면 그 결정으로 바뀐다.
     const row = await decideApprovalOnServer(userId, current, decision);
     if (row) saveApprovals(mergeServerApprovals(approvalsRef.current, [row]));
+  };
+
+  // 항상 허용 범위 안의 갱신 승인 카드는 열리자마자 자동으로 허용으로 기록한다.
+  useEffect(() => {
+    for (const request of approvalsInMessages(messages)) {
+      const current = resolveApproval(approvalsRef.current, request);
+      if (autoDecidedRef.current.has(current.id) || isExpiredPending(current)) continue;
+      if (!findApplicableMandate(mandates, current)) continue;
+      autoDecidedRef.current.add(current.id);
+      decide(current, "allow_mandate");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, mandates]);
+
+  const createMandateFor = async (item) => {
+    const auth = await confirmUserPresence({
+      title: "항상 허용 범위 만들기",
+      subtitle: item.serviceName + " " + formatWon(item.amount) + " 이하 갱신",
+    });
+    if (!auth.ok) {
+      onToast?.(DEVICE_AUTH_FAIL_TEXT[auth.reason] || "본인 확인에 실패했어요. 범위를 만들지 않았어요.");
+      return false;
+    }
+    const local = createMandate({
+      subscriptionId: item.subscriptionId,
+      serviceName: item.serviceName,
+      maxAmount: item.amount,
+      verifiedWith: auth.method,
+    });
+    if (!local) {
+      onToast?.("금액 정보가 없어 범위를 만들 수 없어요.");
+      return false;
+    }
+    // 로그인 사용자는 서버 범위가 있어야 서버 결정도 자동 허용된다. 서버 저장에 실패하면 범위를 만들지 않는다.
+    const mandate = userId ? await createMandateOnServer(userId, local) : local;
+    if (!mandate) {
+      onToast?.("범위를 저장하지 못했어요. 연결을 확인하고 다시 시도해 주세요.");
+      return false;
+    }
+    saveMandates({ ...mandatesRef.current, [mandate.subscriptionId]: mandate });
+    await decide(item.approval, "allow_mandate");
+    onToast?.(item.serviceName + " 갱신은 " + formatWon(mandate.maxAmount) + " 이하면 앞으로 자동으로 허용해요.");
+    return true;
+  };
+
+  const revokeMandateFor = async (subscriptionId) => {
+    saveMandates(revokeMandate(mandatesRef.current, subscriptionId));
+    if (userId) await revokeMandateOnServer(userId, subscriptionId);
+    onToast?.("항상 허용을 해제했어요. 다음 결제부터 다시 물어볼게요.");
   };
 
   const clarify = (response, option) => {
@@ -379,7 +543,15 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
                   />
                 )}
                 {message.response.type === "upcoming" && (
-                  <UpcomingResponse response={message.response} approvals={approvals} onDecide={decide} onStartCancel={onStartCancel} />
+                  <UpcomingResponse
+                    response={message.response}
+                    approvals={approvals}
+                    mandates={mandates}
+                    onDecide={decide}
+                    onStartCancel={onStartCancel}
+                    onCreateMandate={createMandateFor}
+                    onRevokeMandate={revokeMandateFor}
+                  />
                 )}
                 {message.response.type === "alert" && (
                   <AlertResponse
@@ -389,6 +561,7 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
                     onStartCancel={onStartCancel}
                     onUpdateAmount={onUpdateAmount}
                     onToast={onToast}
+                    userId={userId}
                   />
                 )}
                 {(message.response.type === "unknown" || message.response.type === "clarify") && (

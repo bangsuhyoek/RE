@@ -12,6 +12,7 @@ const ACTION_APPROVAL_TTL_MS = 10 * 60 * 1000;
 const ALERT_DECISION_DAYS = 7;
 const UPCOMING_WINDOW_DAYS = 7;
 const WITHDRAWAL_DAYS = 7;
+const MANDATE_TTL_DAYS = 365;
 
 export const AGENT_INTENTS = ["cancel_refund", "cancel", "refund", "upcoming", "unknown"];
 
@@ -41,12 +42,65 @@ const KEYWORDS = {
   upcoming: ["결제예정", "예정", "이번주", "다음결제", "언제결제", "곧결제", "나갈", "나가는", "결제일"],
 };
 
-// 공식 출처로 확인한 정책만 넣는다. 없으면 "확인 필요"로 답한다.
+// 공식 출처 원문으로 확인한 정책만 넣는다. 없으면 "확인 필요"로 답한다.
+// verifiedAt은 원문을 마지막으로 확인한 날이다. 정책이 바뀌면 출처를 다시 확인하고 날짜를 고친다.
+// checkPhrases는 sourceUrl 원문에 그대로 있는 문구다. 크롤러(npm run crawl:refunds)가 문구가 사라졌는지 주기적으로 확인한다.
 export const VERIFIED_REFUND_POLICIES = {
   chatgpt: {
-    summary: "해지해도 이미 결제된 금액은 자동 환불되지 않아요. 웹·Google Play 결제는 OpenAI 고객지원, App Store 결제는 Apple에 요청해요.",
+    summary: "결제 금액은 원칙적으로 환불되지 않지만, 한국 거주자는 구매 후 7일 안에 요청하고 그동안 쓰지 않았다면 전액 환불돼요. 해지만으로는 환불되지 않아요. App Store 결제는 Apple에 요청해요.",
     sourceUrl: "https://help.openai.com/en/articles/7232895-how-do-i-request-a-refund-for-chatgpt-plus",
     sourceLabel: "OpenAI 환불 안내",
+    verifiedAt: "2026-10-02",
+    checkPhrases: [
+      "If you live in the Republic of Korea, you will receive a full refund if you request a refund within 7 days",
+      "cancellations and refunds must be requested directly from Apple",
+    ],
+  },
+  netflix: {
+    summary: "해지하면 현재 결제 기간이 끝날 때 계정이 종료되고 더 청구되지 않아요. Apple로 결제했다면 결제 문의는 Apple 지원에 해요.",
+    sourceUrl: "https://help.netflix.com/ko/node/124418",
+    sourceLabel: "넷플릭스 고객 센터",
+    verifiedAt: "2026-10-02",
+    checkPhrases: ["계정은 현재 결제 기간이 종료될 때 자동으로 종료되어 요금이 다시 청구되지 않습니다"],
+  },
+  youtube: {
+    summary: "해지해도 결제 기간 마지막 날까지 혜택이 남고, 남은 기간은 환불되지 않아요. 즉시 해지·환불은 YouTube 지원팀에 요청해요(마지막 결제 후 14일이 지났으면 지원팀 문의). App Store 결제는 Apple 정책을 따라요.",
+    sourceUrl: "https://support.google.com/youtube/answer/12014038?hl=ko",
+    sourceLabel: "YouTube 고객센터 환불 안내",
+    verifiedAt: "2026-10-02",
+    checkPhrases: ["마지막 결제 주기 후 14일이 지났다면 지원팀에 문의하여 환불을 요청하세요"],
+  },
+  spotify: {
+    summary: "해지해도 청구 기간이 끝날 때까지 Premium이 유지되고 이후 Free로 바뀌어요. 통신사 등 파트너를 통해 결제했다면 그 파트너에 환불을 요청해요.",
+    sourceUrl: "https://support.spotify.com/kr-ko/article/refund-policy/",
+    sourceLabel: "Spotify 환불 정책",
+    verifiedAt: "2026-10-02",
+    checkPhrases: ["청구 기간이 끝날 때까지 계정은 Premium으로 유지됩니다", "파트너를 통해 결제한 Premium 요금"],
+  },
+  coupang: {
+    summary: "그달 혜택을 쓰지 않았다면 해지할 때 그달 월회비를 돌려받아요(최대 7일, 일부 해외카드 최대 14일). 혜택을 썼다면 환불되지 않고 종료 예정일까지 혜택이 유지돼요.",
+    sourceUrl: "https://news.coupang.com/archives/64216/",
+    sourceLabel: "쿠팡 와우 멤버십 FAQ",
+    verifiedAt: "2026-10-02",
+    checkPhrases: ["결제된 당월 월회비 환불이 진행되며", "결제된 당월 월회비는 환불되지 않습니다"],
+  },
+  wavve: {
+    summary: "해지하면 다음 결제부터 멈추고 남은 기간은 그대로 볼 수 있어요. 결제 후 7일 안에는 청약철회를 요청할 수 있어요(제한 사유 있음). 그 밖에 환불을 요청하면 쓴 날만큼 일할로 빼고, 회원 사정이면 남은 금액의 10%를 더 빼요. 카드 결제 취소는 결제 후 60일 안에 가능하고, 앱 마켓 결제는 그 마켓 정책을 따라요.",
+    sourceUrl: "https://member.wavve.com/signup/terms?category=payment",
+    sourceLabel: "웨이브 유료서비스 이용약관",
+    verifiedAt: "2026-10-02",
+    checkPhrases: [
+      "수신확인의 통지를 받은 날로부터 7일 이내에는 청약의 철회를 할 수 있습니다",
+      "잔여 금액에서 10% (결제대행수수료 및 부대비용)를 제외한 금액을 환불 조치합니다",
+      "결제당일 ~ 2개월(60일) 이내에 결제취소가 가능합니다",
+    ],
+  },
+  watcha: {
+    summary: "만료일 전에 해지해도 남은 일수만큼 환불되지 않아요. App Store 결제는 Apple 기기나 Apple 고객센터에서만 해지할 수 있어요.",
+    sourceUrl: "https://help.watcha.com/hc/ko/articles/31326576396825",
+    sourceLabel: "왓챠 고객센터 해지 안내",
+    verifiedAt: "2026-10-02",
+    checkPhrases: ["만료일 이전에 해지하셔도 남은 일수 만큼 환불되지 않아요", "애플 기기 혹은 애플 고객센터를 통해서만 가능해요"],
   },
 };
 
@@ -240,10 +294,15 @@ export function createApprovalRequest({ kind, subscription, amount, dueAt, now =
 const DECISION_STATUS = {
   allow: "approved",
   allow_once: "approved_once",
+  allow_mandate: "approved_mandate",
   deny: "declined",
 };
 
-export function decideApproval(request, decision, now = new Date()) {
+/**
+ * 승인 요청을 한 번만 결정한다.
+ * "allow_mandate"(항상 허용 범위로 자동 허용)는 갱신 결제이고 살아 있는 범위의 한도 이하일 때만 된다.
+ */
+export function decideApproval(request, decision, now = new Date(), mandates = null) {
   if (!request) return { ok: false, reason: "not_found", request };
   if (request.status !== "pending") return { ok: false, reason: "already_decided", request };
   if (now.getTime() > new Date(request.dueAt).getTime()) {
@@ -251,6 +310,11 @@ export function decideApproval(request, decision, now = new Date()) {
   }
   const status = DECISION_STATUS[decision];
   if (!status) return { ok: false, reason: "invalid_decision", request };
+  if (decision === "allow_mandate") {
+    const mandate = findApplicableMandate(mandates, request, now);
+    if (!mandate) return { ok: false, reason: "mandate_not_applicable", request };
+    return { ok: true, request: { ...request, status, decidedAt: now.toISOString(), mandateId: mandate.id } };
+  }
   return { ok: true, request: { ...request, status, decidedAt: now.toISOString() } };
 }
 
@@ -262,6 +326,56 @@ export function mergeApproval(approvals = {}, request) {
 
 export function resolveApproval(approvals = {}, request) {
   return approvals[request.id] || request;
+}
+
+// ---------- "항상 허용" 권한 범위(mandate) ----------
+
+/**
+ * 구독 하나에 대해 "이 금액 이하면 항상 허용" 범위를 만든다. 본인 확인(생체인증·기기 잠금·웹 확인)을 거친 뒤에만 부른다.
+ * 범위는 1년 뒤 만료되고, 같은 구독에 새로 만들면 이전 범위를 대체한다.
+ */
+export function createMandate({ subscriptionId, serviceName = "", maxAmount, verifiedWith, now = new Date() }) {
+  const limit = Math.round(Number(maxAmount) || 0);
+  if (!subscriptionId || limit <= 0) return null;
+  return {
+    id: "mandate:" + subscriptionId + ":" + now.getTime(),
+    subscriptionId: String(subscriptionId),
+    serviceName,
+    maxAmount: limit,
+    verifiedWith,
+    createdAt: now.toISOString(),
+    expiresAt: new Date(now.getTime() + MANDATE_TTL_DAYS * DAY_MS).toISOString(),
+    revokedAt: null,
+  };
+}
+
+export function isMandateActive(mandate, now = new Date()) {
+  return Boolean(mandate && !mandate.revokedAt && new Date(mandate.expiresAt).getTime() > now.getTime());
+}
+
+/** 갱신 결제 승인 요청에 쓸 수 있는 범위를 찾는다. 요금 인상·유료 전환·한도 초과는 자동 허용하지 않는다. */
+export function findApplicableMandate(mandates, request, now = new Date()) {
+  if (!mandates || !request || request.kind !== "renewal" || request.status !== "pending") return null;
+  const mandate = mandates[request.subscriptionId];
+  if (!isMandateActive(mandate, now)) return null;
+  return Number(request.amount) <= mandate.maxAmount ? mandate : null;
+}
+
+export function revokeMandate(mandates = {}, subscriptionId, now = new Date()) {
+  const mandate = mandates[subscriptionId];
+  if (!isMandateActive(mandate, now)) return mandates;
+  return { ...mandates, [subscriptionId]: { ...mandate, revokedAt: now.toISOString() } };
+}
+
+/** 서버 기록과 기기 기록 중 구독마다 더 최근에 만들거나 해제한 범위를 남긴다. */
+export function mergeMandates(local = {}, remote = []) {
+  const next = { ...local };
+  const stamp = (mandate) => Math.max(new Date(mandate.createdAt).getTime(), mandate.revokedAt ? new Date(mandate.revokedAt).getTime() : 0);
+  for (const mandate of remote) {
+    const current = next[mandate.subscriptionId];
+    if (!current || stamp(mandate) >= stamp(current)) next[mandate.subscriptionId] = mandate;
+  }
+  return next;
 }
 
 // ---------- 에이전트 실행 ----------
@@ -430,6 +544,8 @@ const ALERT_COPY = {
   },
 };
 
+export const EVIDENCE_TITLES = Object.fromEntries(Object.entries(ALERT_COPY).map(([kind, copy]) => [kind, copy.title]));
+
 /**
  * 결제 알림으로 감지한 결제를 등록된 구독·해지 기록과 비교한다.
  * 요금 인상, 무료체험 유료 전환, 해지 후 결제일 때만 경고 응답을 돌려주고, 평소 결제면 null을 돌려준다.
@@ -551,6 +667,7 @@ export function createEvidenceCase(alert, now = new Date()) {
   return {
     id: "case:" + alert.kind + ":" + (alert.subscriptionId || normalize(alert.serviceName)) + ":" + alert.detectedAt.slice(0, 10) + ":" + alert.amount,
     kind: alert.kind,
+    subscriptionId: alert.subscriptionId || null,
     title: alert.title,
     serviceName: alert.serviceName,
     amount: alert.amount,

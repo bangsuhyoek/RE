@@ -21,7 +21,8 @@ import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from
 import { NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
 import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
-import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue, readCancelHistory, saveEvidenceCase } from "./lib/storage";
+import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue, readCancelHistory } from "./lib/storage";
+import { persistEvidenceCase } from "./lib/evidenceStore";
 import { generateSubscriptionAlerts } from "./lib/notifications";
 import { assessDetectedPayment, buildRenewalResponse, createEvidenceCase } from "./lib/subscriptionAgent";
 import { useNavigation } from "./hooks/useNavigation";
@@ -259,7 +260,7 @@ export default function App() {
     setTermsOpen(false);
     setNotificationCenterOpen(false);
     if (alert) {
-      saveEvidenceCase(createEvidenceCase(alert));
+      persistEvidenceCase(profile?.user_id || null, createEvidenceCase(alert));
       setAddOpen(false);
       openAgentWith(alert);
       return;
@@ -764,6 +765,8 @@ export default function App() {
       {accountOpen && (
         <AccountModal
           profile={profile}
+          userId={profile?.user_id || null}
+          onToast={notify}
           onClose={() => setAccountOpen(false)}
           onUpdateNickname={handleUpdateNickname}
           onTestPaymentDetection={handleTestPaymentDetection}

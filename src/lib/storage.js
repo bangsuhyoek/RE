@@ -7,8 +7,10 @@ export const storageKeys = {
   onboardingComplete: `${KEY_PREFIX}:onboarding-complete`,
   savedAmount: `${KEY_PREFIX}:saved-amount`,
   agentApprovals: `${KEY_PREFIX}:agent-approvals`,
+  agentMandates: `${KEY_PREFIX}:agent-mandates`,
   cancelHistory: `${KEY_PREFIX}:cancel-history`,
   evidenceCases: `${KEY_PREFIX}:evidence-cases`,
+  evidenceConsent: `${KEY_PREFIX}:evidence-consent`,
 };
 
 export const readStoredValue = (key, fallback) => {
