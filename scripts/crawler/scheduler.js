@@ -7,6 +7,7 @@
 
 import { runCrawlerPipeline } from "./index.js";
 import { runPromotionPipeline } from "./runPromotionPipeline.js";
+import { runRefundPolicyCheck } from "./refundPolicyCheck.js";
 
 export class CrawlerScheduler {
   constructor(cronIntervalMs = 86400000) { // 기본 24시간 (매일)
@@ -47,6 +48,19 @@ export class CrawlerScheduler {
       console.log(`[Scheduler Success] Promotions kept ${report.applied.kept}, removed ${report.applied.removed.length}.`);
     } catch (err) {
       console.error(`[Scheduler Error] Promotion check failed:`, err);
+    }
+
+    // 환불 정책 출처 확인: 문구가 사라진 정책은 사람이 원문을 다시 확인한다.
+    try {
+      const results = await runRefundPolicyCheck();
+      const needsReview = results.filter((result) => result.status !== "OK");
+      if (needsReview.length) {
+        console.warn(`[Scheduler Warning] Refund policies to review: ${needsReview.map((r) => r.id + "(" + r.status + ")").join(", ")}`);
+      } else {
+        console.log(`[Scheduler Success] Refund policy sources unchanged (${results.length}).`);
+      }
+    } catch (err) {
+      console.error(`[Scheduler Error] Refund policy check failed:`, err);
     }
   }
 

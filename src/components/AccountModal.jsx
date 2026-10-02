@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { LogOut, Check, X, AlertCircle, ChevronRight, ImagePlus, RotateCcw } from "lucide-react";
+import { LogOut, Check, X, AlertCircle, ChevronRight, ImagePlus, RotateCcw, FileText } from "lucide-react";
 import { BottomSheet, Button } from "./ui";
+import { readEvidenceCases } from "../lib/storage";
+import { deleteAllEvidence, grantEvidenceConsent, readEvidenceConsent, revokeEvidenceConsent } from "../lib/evidenceStore";
 import {
   DEFAULT_CHARACTER_SRC,
   applyPendingCharacter,
@@ -9,6 +11,73 @@ import {
   pickCharacterPng,
   resetCharacterAsset,
 } from "../lib/characterAsset";
+
+/** 결제 경고 증빙의 계정 보관 동의와 삭제 */
+function EvidenceSettings({ userId, onToast }) {
+  const [consented, setConsented] = useState(() => Boolean(readEvidenceConsent(userId)));
+  const [count, setCount] = useState(() => Object.keys(readEvidenceCases()).length);
+  const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const toggle = async () => {
+    setBusy(true);
+    if (consented) {
+      const ok = await revokeEvidenceConsent(userId);
+      if (ok) setConsented(false);
+      onToast?.(ok ? "계정 보관을 끄고 서버의 증빙을 지웠어요. 이 기기 기록은 남아 있어요." : "서버 증빙을 지우지 못했어요. 다시 시도해 주세요.");
+    } else {
+      await grantEvidenceConsent(userId);
+      setConsented(true);
+      onToast?.("증빙을 계정에 보관해요. 만든 날부터 1년 뒤 자동으로 지워져요.");
+    }
+    setBusy(false);
+  };
+
+  const removeAll = async () => {
+    setBusy(true);
+    const ok = await deleteAllEvidence(userId);
+    setBusy(false);
+    setConfirmDelete(false);
+    if (ok) setCount(0);
+    onToast?.(ok ? "증빙 기록을 모두 지웠어요." : "서버 증빙을 지우지 못했어요. 다시 시도해 주세요.");
+  };
+
+  return (
+    <div className="mt-5 rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs" data-testid="account-evidence-settings">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <strong className="flex items-center gap-1.5 text-[13px] font-bold text-[#191F28]"><FileText size={14} /> 결제 증빙 기록</strong>
+          <span className="mt-0.5 block text-[11px] leading-relaxed text-[#8B95A1]">
+            요금 인상·유료 전환·해지 후 결제 증빙 {count}건 · {userId ? (consented ? "계정에 보관 중(1년 뒤 자동 삭제)" : "이 기기에만 저장") : "이 기기에만 저장"}
+          </span>
+        </div>
+        {userId && (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={consented}
+            aria-label="증빙 계정 보관"
+            disabled={busy}
+            onClick={toggle}
+            className={"relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 " + (consented ? "bg-[#3182F6]" : "bg-[#D1D6DB]")}
+          >
+            <span className={"absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform " + (consented ? "translate-x-[22px]" : "translate-x-0.5")} />
+          </button>
+        )}
+      </div>
+      {count > 0 && (
+        confirmDelete ? (
+          <div className="mt-3 flex gap-2">
+            <Button size="compact" variant="secondary" className="flex-1" onClick={() => setConfirmDelete(false)} disabled={busy}>취소</Button>
+            <Button size="compact" className="flex-1 !bg-[#F04452]" onClick={removeAll} disabled={busy}>모두 지우기</Button>
+          </div>
+        ) : (
+          <button type="button" onClick={() => setConfirmDelete(true)} className="mt-2 text-[11px] font-semibold text-[#F04452]">증빙 모두 지우기</button>
+        )
+      )}
+    </div>
+  );
+}
 
 function GoogleIcon({ className = "h-4 w-4 shrink-0" }) {
   return (
@@ -35,6 +104,8 @@ function GoogleIcon({ className = "h-4 w-4 shrink-0" }) {
 
 export function AccountModal({
   profile,
+  userId = null,
+  onToast,
   onClose,
   onUpdateNickname,
   onLogout,
@@ -412,6 +483,8 @@ export function AccountModal({
           </div>
         </div>
       </div>
+
+      <EvidenceSettings userId={userId} onToast={onToast} />
 
       {/* 로그아웃 블록 */}
       <div className="mt-6 pt-2">
