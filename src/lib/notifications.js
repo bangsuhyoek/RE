@@ -2,10 +2,12 @@ import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { daysUntilCharge, formatWon, getNextChargeDate } from "./dates.js";
 import { readStoredValue, writeStoredValue, storageKeys } from "./storage.js";
+import { formatKoreanDateTime } from "./businessDays.js";
 
 export const NOTIFICATION_STORAGE_KEY = "submate-mvp:notifications";
 export const NOTIFICATION_SETTINGS_KEY = "submate-mvp:notification-settings";
 export const DEFAULT_NOTIFICATION_DURATION = 2500; // 사용자 피드백 반영: 2~3초 내 빠른 자동 사라짐 (2.5초)
+export const CANCEL_REMINDER_TYPE = "cancel_reminder";
 
 export function getStoredNotifications() {
   return readStoredValue(NOTIFICATION_STORAGE_KEY, []);
@@ -267,6 +269,73 @@ function stringHashCode(str) {
   return hash;
 }
 
+// 해지 다시 알림: 어카운트인포처럼 정해진 시간에만 해지되는 곳을 이용시간 밖에 눌렀을 때, 다음 해지 가능 시각에 알린다.
+export function readCancelReminders() {
+  const list = readStoredValue(storageKeys.cancelReminders, []);
+  return Array.isArray(list) ? list : [];
+}
+
+function cancelReminderNotification(reminder) {
+  return {
+    id: Math.abs(stringHashCode(reminder.id)) % 100000000,
+    title: `[해지 가능] ${reminder.serviceName} 지금 해지할 수 있어요`,
+    body: `${reminder.routeLabel || "해지"} 이용시간이 시작됐어요. 눌러서 해지를 이어가세요.`,
+    channelId: "submate-billing-channel",
+    schedule: { at: new Date(reminder.at) },
+    extra: { subscriptionId: reminder.subscriptionId, type: CANCEL_REMINDER_TYPE },
+  };
+}
+
+export async function addCancelReminder({ subscription, at, routeLabel = "어카운트인포" }) {
+  const subscriptionId = subscription.subscriptionId || subscription.id;
+  const reminder = {
+    id: `cancel-reminder-${subscriptionId}-${new Date(at).getTime()}`,
+    subscriptionId,
+    serviceName: subscription.name,
+    routeLabel,
+    at: new Date(at).toISOString(),
+  };
+  // 같은 구독의 다시 알림은 하나만 둔다.
+  const others = readCancelReminders().filter((item) => item.subscriptionId !== subscriptionId);
+  writeStoredValue(storageKeys.cancelReminders, [...others, reminder]);
+
+  let scheduled = false;
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const perm = await LocalNotifications.checkPermissions();
+      if (perm.display !== "granted") {
+        const requested = await LocalNotifications.requestPermissions();
+        if (requested.display !== "granted") return { reminder, scheduled: false };
+      }
+      await LocalNotifications.schedule({ notifications: [cancelReminderNotification(reminder)] });
+      scheduled = true;
+    } catch (err) {
+      console.warn("cancel reminder schedule error:", err);
+    }
+  }
+  return { reminder, scheduled };
+}
+
+// 시각이 지난 다시 알림을 꺼내 알림 센터 항목으로 바꾸고 저장소에서 지운다.
+export function takeDueCancelReminders(now = new Date()) {
+  const list = readCancelReminders();
+  const due = list.filter((item) => new Date(item.at) <= now);
+  if (due.length === 0) return [];
+  writeStoredValue(storageKeys.cancelReminders, list.filter((item) => new Date(item.at) > now));
+  return due.map((item) => ({
+    id: item.id,
+    subscriptionId: item.subscriptionId,
+    serviceName: item.serviceName,
+    monogram: item.serviceName?.slice(0, 1) || "S",
+    type: CANCEL_REMINDER_TYPE,
+    badge: "해지 가능",
+    title: `[해지 가능] ${item.serviceName} 지금 해지할 수 있어요`,
+    message: `${formatKoreanDateTime(new Date(item.at))}부터 ${item.routeLabel || "해지"} 이용시간이에요.`,
+    timestamp: item.at,
+    read: false,
+  }));
+}
+
 /**
  * 향후 30~60일간의 결제 사전 알림(D-3, D-1)을 네이티브 로컬 알림 큐에 배치 스케줄링
  */
@@ -329,6 +398,11 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
           });
         }
       }
+    }
+
+    // 위에서 대기 알림을 모두 지웠으므로 아직 오지 않은 해지 다시 알림을 다시 건다.
+    for (const reminder of readCancelReminders()) {
+      if (new Date(reminder.at) > now) scheduledList.push(cancelReminderNotification(reminder));
     }
 
     if (scheduledList.length > 0) {

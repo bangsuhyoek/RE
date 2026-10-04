@@ -24,6 +24,8 @@ import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
 import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue, readCancelHistory } from "./lib/storage";
 import { persistEvidenceCase } from "./lib/evidenceStore";
 import { generateSubscriptionAlerts } from "./lib/notifications";
+import { CANCEL_REMINDER_TYPE } from "./lib/notifications";
+import { consumePendingShare, listenForShares, sharedImageToFile, sharedTextToDetected } from "./lib/shareIntake";
 import { assessDetectedPayment, buildRenewalResponse, createEvidenceCase } from "./lib/subscriptionAgent";
 import { useNavigation } from "./hooks/useNavigation";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
@@ -37,6 +39,7 @@ export default function App() {
   const [addOpen, setAddOpen] = useState(false);
   const [addInitialMode, setAddInitialMode] = useState("manual");
   const [quickAddData, setQuickAddData] = useState(null);
+  const [sharedFile, setSharedFile] = useState(null);
   const [accountOpen, setAccountOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [termsTab, setTermsTab] = useState("terms");
@@ -46,6 +49,8 @@ export default function App() {
   // 알림·딥링크 리스너는 앱 시작 때 한 번만 등록되므로 최신 처리 함수를 ref로 넘긴다.
   const detectedPaymentHandlerRef = useRef(null);
   const renewalNotificationHandlerRef = useRef(null);
+  const cancelReminderHandlerRef = useRef(null);
+  const shareHandlerRef = useRef(null);
   const [showSplash, setShowSplash] = useState(() => {
     if (typeof window !== "undefined") {
       return !sessionStorage.getItem("kudok_splash_shown");
@@ -153,11 +158,28 @@ export default function App() {
     if (!Capacitor.isNativePlatform()) return undefined;
     const handlePromise = LocalNotifications.addListener("localNotificationActionPerformed", (event) => {
       const extra = event?.notification?.extra || {};
+      if (extra.subscriptionId && extra.type === CANCEL_REMINDER_TYPE) {
+        cancelReminderHandlerRef.current?.(extra.subscriptionId);
+        return;
+      }
       if (!extra.subscriptionId || !RENEWAL_NOTIFICATION_TYPES.has(extra.type)) return;
       renewalNotificationHandlerRef.current?.(extra.subscriptionId);
     });
     return () => {
       handlePromise.then((handle) => handle?.remove?.()).catch(() => {});
+    };
+  }, []);
+
+  // 다른 앱에서 '공유'로 보낸 결제 문자·영수증 캡처를 받는다. 앱이 꺼져 있었으면 시작 직후, 켜져 있으면 바로 전달된다.
+  useEffect(() => {
+    let active = true;
+    consumePendingShare().then((shared) => {
+      if (active && shared) shareHandlerRef.current?.(shared);
+    });
+    const stop = listenForShares((shared) => shareHandlerRef.current?.(shared));
+    return () => {
+      active = false;
+      stop();
     };
   }, []);
 
@@ -278,6 +300,52 @@ export default function App() {
     }
     setNotificationCenterOpen(false);
     openAgentWith(buildRenewalResponse({ subscription: target }));
+  };
+
+  // 어카운트인포 이용시간에 맞춘 해지 다시 알림을 누르면 그 구독의 해지 안내를 바로 연다.
+  cancelReminderHandlerRef.current = (subscriptionId) => {
+    const target = getSubscriptionById(subscriptionId);
+    if (!target) {
+      notify("알림의 구독을 찾지 못했어요. 이미 해지했는지 확인해 주세요.");
+      return;
+    }
+    setNotificationCenterOpen(false);
+    startCancellation(target.subscriptionId);
+  };
+
+  shareHandlerRef.current = (shared) => {
+    setAccountOpen(false);
+    setTermsOpen(false);
+    setNotificationCenterOpen(false);
+    if (shared.error === "IMAGE_TOO_LARGE") {
+      notify("공유한 이미지가 8MB를 넘어요. 더 작은 캡처로 다시 공유해 주세요.");
+      return;
+    }
+    if (shared.error) {
+      notify("공유한 내용을 읽지 못했어요. 다시 공유해 주세요.");
+      return;
+    }
+    if (shared.type === "text") {
+      const detected = sharedTextToDetected(shared.text);
+      if (detected) {
+        detectedPaymentHandlerRef.current?.(detected);
+        return;
+      }
+      notify("공유한 글에서 결제 정보를 찾지 못했어요. 직접 입력해 주세요.");
+      setQuickAddData(null);
+      setAddInitialMode("manual");
+      setAddOpen(true);
+      return;
+    }
+    const file = sharedImageToFile(shared);
+    if (!file) {
+      notify("JPG, PNG, WEBP 이미지만 등록할 수 있어요.");
+      return;
+    }
+    setQuickAddData(null);
+    setSharedFile(file);
+    setAddInitialMode("ai");
+    setAddOpen(true);
   };
 
   // 경고 카드에서 "계속 쓰기"를 고르면 등록 금액을 실제 결제 금액으로 맞춘다. 공동 이용이면 1인 부담금도 다시 나눈다.
@@ -605,6 +673,7 @@ export default function App() {
         subscriptions={subscriptions}
         onUpdate={(id, update) => updateSubscription(id, update, notify)}
         onStartCancel={startCancellation}
+        onToast={notify}
         onBack={() => {
           setHighlightCancelId(null);
           navigate("subscriptions");
@@ -686,13 +755,16 @@ export default function App() {
           subscriptions={subscriptions}
           initialMode={addInitialMode}
           initialData={quickAddData}
+          initialFile={sharedFile}
           onClose={() => {
             setAddOpen(false);
             setQuickAddData(null);
+            setSharedFile(null);
           }}
           onAdd={(data) => {
             const result = handleAddSubscription(data, notify);
             setQuickAddData(null);
+            setSharedFile(null);
             return result;
           }}
         />

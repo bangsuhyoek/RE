@@ -11,6 +11,8 @@ export const storageKeys = {
   cancelHistory: `${KEY_PREFIX}:cancel-history`,
   evidenceCases: `${KEY_PREFIX}:evidence-cases`,
   evidenceConsent: `${KEY_PREFIX}:evidence-consent`,
+  paymentChannels: `${KEY_PREFIX}:payment-channels`,
+  cancelReminders: `${KEY_PREFIX}:cancel-reminders`,
 };
 
 export const readStoredValue = (key, fallback) => {

@@ -28,6 +28,18 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="submate" />
             </intent-filter>
+
+            <!-- 다른 앱의 '공유'로 결제 문자나 영수증 캡처를 받아 구독 등록에 쓴다. 권한은 필요 없다. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
         </activity>
 
         <activity

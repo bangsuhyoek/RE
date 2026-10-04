@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Check, CheckCircle2, ExternalLink } from "lucide-react";
+import { BellRing, Check, CheckCircle2, ExternalLink } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { BottomSheet, Button, ServiceMark } from "./ui";
@@ -8,8 +8,66 @@ import { CancelBrowserModal } from "./CancelBrowserModal";
 import { serviceCatalog } from "../data/subscriptionData";
 import { getCancelGuide } from "../data/cancelGuides";
 import { openCancelBrowser, stopFloatingGuide } from "../lib/cancelBrowser";
+import { CANCEL_CHANNELS, getCancelRoutes, resolvePaymentChannel, saveChannelOverride } from "../lib/cancelRoutes";
+import { describeAccountInfoAvailability } from "../lib/businessDays";
+import { addCancelReminder } from "../lib/notifications";
 
 const COMPLETE_LABEL = "해지 완료했어요";
+
+const openExternal = (url) => window.open(url, "_blank", "noopener,noreferrer");
+
+// 어카운트인포는 영업일 09:00~22:00에만 해지된다. 시간 밖이면 다음 가능 시각과 다시 알림을 보여준다.
+function AccountInfoRoute({ route, subscription, compact = false, onOpened, onToast }) {
+  const availability = describeAccountInfoAvailability(new Date());
+  const [reminderSet, setReminderSet] = useState(false);
+
+  const remind = async () => {
+    const { scheduled } = await addCancelReminder({ subscription, at: availability.nextOpen, routeLabel: "어카운트인포 해지" });
+    setReminderSet(true);
+    onToast?.(scheduled
+      ? `${availability.nextOpenLabel}에 다시 알려드릴게요.`
+      : `${availability.nextOpenLabel} 이후 꾸독을 열면 알림 센터에 띄워드릴게요.`);
+  };
+
+  const body = (
+    <>
+      <p className={"text-[12px] leading-relaxed text-[#6B7684] " + (compact ? "mt-2" : "")}>{route.note}</p>
+      <div className={"rounded-xl px-3.5 py-3 text-[13px] leading-relaxed " + (availability.open ? "bg-[#F2F8FF] text-[#1B64DA]" : "bg-[#FFF8E6] text-[#8A5A00]") + " mt-2"}>
+        {availability.open
+          ? "지금 해지 신청할 수 있어요 (오늘 22:00까지)."
+          : `지금은 해지 신청 시간이 아니에요. 다음 해지 가능 시각은 ${availability.nextOpenLabel}이에요. 조회는 매일 08:00~24:00에 돼요.`}
+        {!availability.holidayDataKnown && " 공휴일이면 그다음 영업일에 다시 시도해 주세요."}
+      </div>
+      <div className="mt-2 space-y-2">
+        {!availability.open && (
+          <Button size="large" fullWidth variant={compact ? "secondary" : "primary"} onClick={remind} disabled={reminderSet} prefixIcon={<BellRing size={16} />}>
+            {reminderSet ? "다시 알림을 예약했어요" : `${availability.nextOpenLabel}에 다시 알려주기`}
+          </Button>
+        )}
+        <Button
+          size="large"
+          fullWidth
+          variant={availability.open && !compact ? "primary" : "secondary"}
+          onClick={() => { openExternal(route.url); onOpened?.(); }}
+          prefixIcon={<ExternalLink size={16} />}
+        >
+          {availability.open ? "어카운트인포 열기" : "어카운트인포에서 미리 조회하기"}
+        </Button>
+      </div>
+    </>
+  );
+
+  // 보조 경로일 때는 접어 두어 기본 해지 흐름을 가리지 않는다.
+  if (compact) {
+    return (
+      <details className="rounded-2xl border border-[#E5E8EB] px-3.5 py-3">
+        <summary className="cursor-pointer text-[13px] font-bold text-[#333D4B]">{route.label}</summary>
+        {body}
+      </details>
+    );
+  }
+  return <div>{body}</div>;
+}
 
 export function CancelModal({ subscription: rawSub, promotion, autoOpen = false, onClose, onComplete, onToast }) {
   // 해지 단계는 공식 자료로 확인한 cancelGuides만 쓴다. 해지 주소는 가이드 → 구독 데이터 → 카탈로그 순서로 고른다.
@@ -36,13 +94,37 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
     };
   }, [rawSub]);
 
-  const steps = subscription.guideSteps.map((s) => ({ title: s.title, description: s.description }));
+  // 결제한 곳(웹·Google Play·App Store·카드 자동납부)에 따라 해지 버튼이 여는 곳이 달라진다. 사용자가 고친 값은 기기에 기억한다.
+  const [channel, setChannel] = useState(() => resolvePaymentChannel(rawSub));
+  const routes = useMemo(
+    () => getCancelRoutes({ ...rawSub, paymentChannel: channel }, { serviceCancelUrl: subscription.cancelUrl, overrides: {} }),
+    [rawSub, channel, subscription.cancelUrl]
+  );
+  const usesServicePage = routes.primary.kind === "service";
+  const isStoreRoute = routes.primary.kind === "google_play" || routes.primary.kind === "app_store";
+
+  const steps = usesServicePage
+    ? subscription.guideSteps.map((s) => ({ title: s.title, description: s.description }))
+    : routes.primary.steps.map((description) => ({ title: "", description }));
 
   const [checked, setChecked] = useState(() => new Array(steps.length).fill(false));
   const [celebrating, setCelebrating] = useState(false);
-  const [showBrowserModal, setShowBrowserModal] = useState(() => Boolean(autoOpen && subscription.cancelUrl));
+  const [showBrowserModal, setShowBrowserModal] = useState(() => Boolean(autoOpen && subscription.cancelUrl && usesServicePage));
   const [cancelSessionActive, setCancelSessionActive] = useState(false);
   const isNative = Capacitor.isNativePlatform();
+
+  const changeChannel = (next) => {
+    setChannel(next);
+    saveChannelOverride(rawSub, next);
+    setChecked([]);
+    setCancelSessionActive(false);
+  };
+
+  const openStoreRoute = () => {
+    openExternal(routes.primary.url);
+    setCancelSessionActive(true);
+    markFirstStepDone();
+  };
 
   useEffect(() => {
     let listenerPromise;
@@ -200,8 +282,56 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
         </div>
       )}
 
-      <div className="mt-5 space-y-2">
-        {!hasCancelUrl ? (
+      <div className="mt-5">
+        <p className="text-[12px] font-bold text-[#8B95A1]">결제한 곳</p>
+        <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="결제한 곳 선택">
+          {CANCEL_CHANNELS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              aria-pressed={channel === option.id}
+              onClick={() => changeChannel(option.id)}
+              className={"rounded-full border px-3 py-1.5 text-[12px] font-bold transition-colors " + (channel === option.id ? "border-[#191F28] bg-[#191F28] text-white" : "border-[#E5E8EB] bg-white text-[#4E5968] hover:border-[#D1D6DB]")}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        {(isStoreRoute ? routes.primary.note : routes.note) && (
+          <p className="mt-2 text-[12px] leading-relaxed text-[#6B7684]">{isStoreRoute ? routes.primary.note : routes.note}</p>
+        )}
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {routes.primary.kind === "card_autopay" ? (
+          <>
+            <AccountInfoRoute
+              route={routes.primary}
+              subscription={rawSub}
+              onOpened={() => { setCancelSessionActive(true); markFirstStepDone(); }}
+              onToast={onToast}
+            />
+            <Button size="large" fullWidth variant="secondary" onClick={complete}>{COMPLETE_LABEL}</Button>
+          </>
+        ) : isStoreRoute ? (
+          cancelSessionActive ? (
+            <>
+              <Button size="large" fullWidth onClick={complete}>{COMPLETE_LABEL}</Button>
+              <Button size="large" fullWidth variant="secondary" onClick={openStoreRoute} prefixIcon={<ExternalLink size={16} />}>
+                {routes.primary.label.replace(" 열기", "")} 다시 열기
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button size="large" fullWidth onClick={openStoreRoute} prefixIcon={<ExternalLink size={17} />}>
+                {routes.primary.label}
+              </Button>
+              <Button size="large" fullWidth variant="secondary" onClick={complete}>
+                이미 해지했어요
+              </Button>
+            </>
+          )
+        ) : !hasCancelUrl ? (
           <>
             <p className="rounded-xl bg-[#F9FAFB] px-3.5 py-3 text-[13px] leading-relaxed text-[#4E5968]">
               해지 페이지 주소가 아직 등록되지 않았어요. 아래 순서대로 {subscription.name} 앱이나 웹사이트에서 해지해 주세요.
@@ -227,7 +357,7 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
         )}
       </div>
 
-      {hasCancelUrl && isNative && (
+      {hasCancelUrl && isNative && usesServicePage && (
         <button
           type="button"
           onClick={openInSystemBrowser}
@@ -237,8 +367,20 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
         </button>
       )}
 
+      {routes.secondary.map((route) => (
+        <div key={route.kind} className="mt-3">
+          {route.kind === "card_autopay" ? (
+            <AccountInfoRoute route={route} subscription={rawSub} compact onToast={onToast} />
+          ) : route.url ? (
+            <Button size="large" fullWidth variant="secondary" onClick={goToCancel} prefixIcon={<ExternalLink size={16} />}>
+              {route.label}
+            </Button>
+          ) : null}
+        </div>
+      ))}
+
       <p className="mt-3 text-center text-[12px] leading-relaxed text-[#8B95A1]">
-        꾸독은 해지를 대신하지 않아요. {subscription.name} 화면에서 해지가 끝난 걸 확인한 뒤 완료를 눌러주세요.
+        꾸독은 해지를 대신하지 않아요. {{ google_play: "Google Play", app_store: "Apple", card_autopay: "어카운트인포" }[routes.primary.kind] || subscription.name} 화면에서 해지가 끝난 걸 확인한 뒤 완료를 눌러주세요.
       </p>
 
       <section className="mt-6">
@@ -273,7 +415,17 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
           ))}
         </ol>
 
-        {!guide.verified && (
+        {!usesServicePage && routes.primary.source && (
+          <p className="mt-3 text-[11px] text-[#8B95A1]">
+            출처{" "}
+            <a href={routes.primary.source} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+              {new URL(routes.primary.source).hostname}
+            </a>
+            {" "}· 2026-10-04 확인
+          </p>
+        )}
+
+        {usesServicePage && !guide.verified && (
           <p className="mt-3 text-[12px] leading-relaxed text-[#6B7684]">
             {subscription.name}의 해지 메뉴는 아직 공식 안내로 확인하지 못했어요. 실제 메뉴 이름은 서비스마다 달라요.
             {guide.helpUrl && (
@@ -287,7 +439,7 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
           </p>
         )}
 
-        {guide.verified && guide.notes.length > 0 && (
+        {usesServicePage && guide.verified && guide.notes.length > 0 && (
           <ul className="mt-3 space-y-1.5">
             {guide.notes.map((note) => (
               <li key={note} className="flex gap-2 text-[12px] leading-relaxed text-[#6B7684]">
@@ -298,7 +450,7 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
           </ul>
         )}
 
-        {guide.verified && guide.altRoutes.map((route) => (
+        {usesServicePage && guide.verified && guide.altRoutes.map((route) => (
           <details key={route.id} className="mt-3 rounded-2xl border border-[#E5E8EB] px-3.5 py-3">
             <summary className="cursor-pointer text-[13px] font-bold text-[#333D4B]">{route.label}</summary>
             <ol className="mt-2 space-y-1.5">
@@ -312,7 +464,7 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
           </details>
         ))}
 
-        {guide.verified && (
+        {usesServicePage && guide.verified && (
           <p className="mt-3 text-[11px] text-[#8B95A1]">
             출처{" "}
             {guide.sources.map((source, index) => (

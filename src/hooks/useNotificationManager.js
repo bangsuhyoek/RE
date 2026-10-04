@@ -9,7 +9,10 @@ import {
   initAndroidNotificationChannel,
   sendAppNotification,
   scheduleSubscriptionNotifications,
+  takeDueCancelReminders,
+  sendBrowserNotification,
 } from "../lib/notifications";
+import { Capacitor } from "@capacitor/core";
 import { readHash } from "./useNavigation";
 
 export function useNotificationManager({ subscriptions = [] } = {}) {
@@ -56,6 +59,24 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
     }
     scheduleSubscriptionNotifications(subscriptions).catch(() => {});
   }, [subscriptions]);
+
+  // 해지 다시 알림이 시각을 지나면 알림 센터에 넣는다. 웹은 예약 알림이 없어 열려 있는 동안 브라우저 알림도 보낸다.
+  useEffect(() => {
+    const collect = () => {
+      const due = takeDueCancelReminders();
+      if (due.length === 0) return;
+      if (!Capacitor.isNativePlatform()) {
+        due.forEach((item) => sendBrowserNotification(item.title, { body: item.message }));
+      }
+      setNotifications((current) => {
+        const existingIds = new Set(current.map((n) => n.id));
+        return [...due.filter((n) => !existingIds.has(n.id)), ...current];
+      });
+    };
+    collect();
+    const timer = window.setInterval(collect, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.read).length,

@@ -623,6 +623,7 @@ export function AddModal({
   subscriptions = [],
   initialMode = "manual",
   initialData = null,
+  initialFile = null,
   onClose,
   onAdd,
 }) {
@@ -999,6 +1000,15 @@ export function AddModal({
       setScanning(false);
     }
   }
+
+  // 다른 앱에서 공유받은 영수증 이미지는 열자마자 인식한다. 같은 파일을 두 번 보내지 않게 기억한다.
+  const recognizedFileRef = useRef(null);
+  useEffect(() => {
+    if (!initialFile || recognizedFileRef.current === initialFile) return;
+    recognizedFileRef.current = initialFile;
+    recognizeImage(initialFile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFile]);
 
   function handleFileChange(event) {
     const file =
