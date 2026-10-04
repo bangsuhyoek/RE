@@ -250,14 +250,18 @@ export function HomeScreen({
   }, [subscriptions]);
 
   if (subscriptions.length === 0) {
+    // 마지막 구독을 해지해도 해지 확인 카드는 계속 보여야 한다.
     return (
-      <EmptyState
-        onAdd={onAdd}
-        onScan={onScan || onAdd}
-        onLogout={onLogout}
-        onOpenAccount={onOpenAccount}
-        profile={profile}
-      />
+      <>
+        {careSlot && <div className="px-4 sm:px-5">{careSlot}</div>}
+        <EmptyState
+          onAdd={onAdd}
+          onScan={onScan || onAdd}
+          onLogout={onLogout}
+          onOpenAccount={onOpenAccount}
+          profile={profile}
+        />
+      </>
     );
   }
 

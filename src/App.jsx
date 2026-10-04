@@ -432,6 +432,7 @@ export default function App() {
       case "share_settlement": {
         const result = await shareText({ title: item.request.title, text: item.request.message });
         if (result.method === "clipboard") notify("정산 요청 문구를 복사했어요. 카카오톡 단톡방에 붙여 넣어 보내세요.");
+        else if (result.method === "web-share") notify("정산 요청을 공유했어요. 받으면 '이미 받았어요'를 눌러 주세요.");
         else if (!result.ok && result.method !== "cancelled") notify("공유하지 못했어요. 다시 시도해 주세요.");
         break;
       }

@@ -22,6 +22,18 @@ const PRIORITY = {
 };
 const ROTATION_CATEGORIES = ["OTT", "음악"];
 
+// 해지한 뒤 같은 서비스를 다시 등록했다면 그 결제는 정상이므로 해지 확인을 멈춘다.
+export function activeCancelRecords(cancelHistory = [], subscriptions = []) {
+  return cancelHistory.filter((record) => {
+    if (record.verification !== "watching" && record.verification !== "asking") return true;
+    const serviceId = record.serviceId || record.id;
+    return !subscriptions.some((subscription) =>
+      subscription.status !== "cancelled" &&
+      serviceId && (subscription.id === serviceId || subscription.serviceId === serviceId) &&
+      (!subscription.createdAt || new Date(subscription.createdAt) >= new Date(record.cancelledAt)));
+  });
+}
+
 // 저장한 순환 계획으로 일정을 다시 만든다. 해지한 구독은 목록에서 빠지므로 저장 때 남긴 서비스 정보(services)를 먼저 쓴다.
 export function rebuildRotationPlan(saved, subscriptions = []) {
   if (!saved?.order?.length) return null;
@@ -66,7 +78,7 @@ export function buildCareItems({
   now = new Date(),
 } = {}) {
   const items = [];
-  items.push(...cancelCheckItems(cancelHistory, now));
+  items.push(...cancelCheckItems(activeCancelRecords(cancelHistory, subscriptions), now));
   items.push(...trialGuardItems(subscriptions, acks, now));
   items.push(...usageCheckItems(subscriptions, usageAnswers, { now, catalog }));
 
@@ -118,7 +130,7 @@ export function buildCareItems({
 // 앱 밖 로컬 알림으로 예약할 항목(오전 9시). 결제 사전 알림을 다시 예약할 때 함께 건다.
 export function buildCareNotifications({ subscriptions = [], cancelHistory = [], rotation = null, now = new Date() } = {}) {
   const list = [];
-  for (const record of cancelHistory) {
+  for (const record of activeCancelRecords(cancelHistory, subscriptions)) {
     if (record.verification !== "watching") continue;
     const at = verificationDueAt(record);
     if (!at || at <= now) continue;

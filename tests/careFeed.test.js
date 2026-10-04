@@ -70,3 +70,12 @@ test("해지해서 목록에서 빠진 구독도 저장한 순환 계획으로 �
   const items = buildCareItems({ subscriptions: remaining, rotation, now, acks: { rotation_suggest: true } });
   assert.ok(!items.some((item) => item.reminderType === "rotation_cancel" && item.subscriptionId === "n"));
 });
+
+test("해지 후 같은 서비스를 다시 등록하면 해지 확인을 멈춘다", () => {
+  const record = { subscriptionId: "old-y", id: "youtube", serviceId: "youtube", name: "YouTube Premium", amount: 14900, cancelledAt: new Date(2026, 9, 1).toISOString(), expectedChargeOn: new Date(2026, 9, 22).toISOString(), verification: "watching" };
+  const before = buildCareItems({ subscriptions: [], cancelHistory: [record], now, acks: { rotation_suggest: true } });
+  assert.ok(before.some((item) => item.type === "cancel_watching"));
+  const again = [{ subscriptionId: "new-y", id: "youtube", name: "YouTube Premium", amount: 14900, dueDay: 25, billingCycle: "매월", status: "active", createdAt: new Date(2026, 9, 3).toISOString() }];
+  const after = buildCareItems({ subscriptions: again, cancelHistory: [record], now, acks: { rotation_suggest: true } });
+  assert.ok(!after.some((item) => item.type === "cancel_watching"));
+});

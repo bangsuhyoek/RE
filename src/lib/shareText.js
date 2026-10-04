@@ -12,7 +12,9 @@ export async function shareText({ title = "", text = "" }) {
       console.warn("shareText 실패:", err);
     }
   }
-  if (typeof navigator !== "undefined" && navigator.share) {
+  // PC 브라우저의 Web Share는 창 없이 끝나기도 해서 휴대폰(터치) 브라우저에서만 쓰고, 나머지는 클립보드에 복사한다.
+  const touch = typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
+  if (touch && navigator.share) {
     try {
       await navigator.share({ title, text });
       return { ok: true, method: "web-share" };
@@ -27,4 +29,3 @@ export async function shareText({ title = "", text = "" }) {
     return { ok: false, method: "none" };
   }
 }
-
