@@ -101,7 +101,14 @@ public class SystemIntentsPlugin extends Plugin {
         }
         Intent send = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text);
         try {
-            getActivity().startActivity(Intent.createChooser(send, title));
+            Intent chooser = Intent.createChooser(send, title);
+            // 꾸독 자신(공유로 등록 받기)이 보낼 곳 목록에 뜨지 않게 한다.
+            if (android.os.Build.VERSION.SDK_INT >= 24) {
+                chooser.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, new android.content.ComponentName[] {
+                    new android.content.ComponentName(getContext(), MainActivity.class)
+                });
+            }
+            getActivity().startActivity(chooser);
             call.resolve();
         } catch (ActivityNotFoundException e) {
             call.reject("보낼 앱을 찾지 못했어요.", "NO_SHARE_APP");
