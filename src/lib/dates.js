@@ -2,6 +2,10 @@ const startOfDay = (date) => new Date(date.getFullYear(), date.getMonth(), date.
 
 export const formatWon = (amount) => `₩${Number(amount || 0).toLocaleString("ko-KR")}`;
 
+// 기기 시간대 기준 YYYY-MM-DD. toISOString()은 UTC라 한국 자정이 전날로 바뀌므로 날짜 키에는 이 함수를 쓴다.
+export const toLocalDateKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
 export const getMonthKey = (date = new Date()) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 

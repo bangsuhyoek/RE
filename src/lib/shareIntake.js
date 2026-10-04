@@ -1,5 +1,6 @@
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { parseReceiptText } from "../../api/_lib/receiptParser.js";
+import { detectTrialText } from "./trialGuard.js";
 
 // 다른 앱의 '공유'로 받은 결제 문자·영수증 캡처를 등록 흐름에 넘긴다. 사용자가 고른 내용만 받으므로 권한이 필요 없다.
 export const SystemIntents = registerPlugin("SystemIntents");
@@ -30,10 +31,12 @@ export function listenForShares(onShare) {
 // 공유받은 글을 기기 안에서 파싱해 빠른 등록 초안으로 바꾼다. 서비스명과 금액을 모두 못 찾으면 null.
 export function sharedTextToDetected(text, now = new Date()) {
   const parsed = parseReceiptText(text);
+  const trial = detectTrialText(text, now);
   if (!parsed.ok) return null;
   const data = parsed.data || {};
   if (!data.name && !data.amount) return null;
-  const dueDay = Number(data.dueDay);
+  // 무료체험 가입 문자면 체험이 끝나는 날을 결제일로 두고 체험 중으로 등록한다(무료체험 가드).
+  const dueDay = trial.trialEndsOn ? trial.trialEndsOn.getDate() : Number(data.dueDay);
   return {
     name: data.name || "",
     amount: Number(data.amount) || 0,
@@ -46,6 +49,7 @@ export function sharedTextToDetected(text, now = new Date()) {
     sourceType: "sms",
     autoDetected: true,
     detectedAt: now.toISOString(),
+    ...(trial.isTrial ? { isTrial: true, status: "trial" } : {}),
   };
 }
 

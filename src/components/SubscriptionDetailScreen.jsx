@@ -20,6 +20,8 @@ import {
 import { formatWon } from "../lib/dates";
 import { shouldAutoOpenServicePage } from "../lib/cancelRoutes";
 import { addBillingToCalendar } from "../lib/calendarExport";
+import { buildSettlementRequest } from "../lib/settlement";
+import { shareText } from "../lib/shareText";
 
 /**
  * 프리미엄 iOS/쿠퍼티노 스타일 스크롤 휠 드럼롤 컬럼
@@ -406,6 +408,28 @@ export function SubscriptionDetailScreen({
           </section>
 
           {/* 4-3. 결제일을 내 캘린더에 넣기 (캘린더 권한 없이 캘린더 앱 일정 화면을 채워 연다) */}
+          {subscription.sharingEnabled && Number(subscription.shareCount) > 1 && (
+            <section className="flex items-center justify-between gap-3 py-1 mt-6">
+              <div className="min-w-0">
+                <h2 className="text-[16px] font-bold text-black tracking-tight">정산 요청 보내기</h2>
+                <span className="text-[13px] text-gray-400 block mt-0.5">
+                  {subscription.shareCount}명이 나눠 내요. 1인 {formatWon(buildSettlementRequest(subscription).perPerson)} 요청 문구를 보내요.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const request = buildSettlementRequest(subscription);
+                  const result = await shareText({ title: request.title, text: request.message });
+                  if (result.method === "clipboard") onToast?.("정산 요청 문구를 복사했어요. 단톡방에 붙여 넣어 보내세요.");
+                }}
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-[13px] font-bold text-gray-800 active:scale-95 transition-transform"
+              >
+                보내기
+              </button>
+            </section>
+          )}
+
           <section className="flex items-center justify-between gap-3 py-1 mt-6">
             <div className="min-w-0">
               <h2 className="text-[16px] font-bold text-black tracking-tight">내 캘린더에 결제일 추가</h2>

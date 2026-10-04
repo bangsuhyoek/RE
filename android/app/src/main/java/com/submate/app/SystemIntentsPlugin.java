@@ -90,6 +90,24 @@ public class SystemIntentsPlugin extends Plugin {
         return true;
     }
 
+    /** 정산 요청 문구 등을 카카오톡·문자 같은 앱으로 보낸다. 받는 앱은 사용자가 고른다. */
+    @PluginMethod
+    public void shareText(PluginCall call) {
+        String text = call.getString("text", "");
+        String title = call.getString("title", "공유하기");
+        if (text == null || text.isEmpty()) {
+            call.reject("보낼 내용이 없어요.", "EMPTY_TEXT");
+            return;
+        }
+        Intent send = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text);
+        try {
+            getActivity().startActivity(Intent.createChooser(send, title));
+            call.resolve();
+        } catch (ActivityNotFoundException e) {
+            call.reject("보낼 앱을 찾지 못했어요.", "NO_SHARE_APP");
+        }
+    }
+
     @PluginMethod
     public void addCalendarEvent(PluginCall call) {
         String title = call.getString("title", "");
@@ -121,4 +139,3 @@ public class SystemIntentsPlugin extends Plugin {
         }
     }
 }
-

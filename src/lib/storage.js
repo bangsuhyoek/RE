@@ -1,3 +1,5 @@
+import { expectedChargeAfterCancel } from "./cancelVerification.js";
+
 const KEY_PREFIX = "submate-mvp";
 
 export const storageKeys = {
@@ -12,6 +14,9 @@ export const storageKeys = {
   evidenceCases: `${KEY_PREFIX}:evidence-cases`,
   evidenceConsent: `${KEY_PREFIX}:evidence-consent`,
   cancelReminders: `${KEY_PREFIX}:cancel-reminders`,
+  usageAnswers: `${KEY_PREFIX}:usage-answers`,
+  careAcks: `${KEY_PREFIX}:care-acks`,
+  rotationPlan: `${KEY_PREFIX}:rotation-plan`,
 };
 
 export const readStoredValue = (key, fallback) => {
@@ -57,8 +62,15 @@ export const appendCancelRecord = (subscription, cancelledAt = new Date()) => {
     paymentMethod: [issuer, last4].filter(Boolean).join(" "),
     supportUrl: subscription.supportUrl || null,
     cancelledAt: cancelledAt.toISOString(),
+    // 해지 확인 루프: 다음 결제일까지 결제가 없는지 지켜본다.
+    expectedChargeOn: expectedChargeAfterCancel(subscription, cancelledAt)?.toISOString() || null,
+    verification: expectedChargeAfterCancel(subscription, cancelledAt) ? "watching" : null,
   };
   writeStoredValue(storageKeys.cancelHistory, [record, ...readCancelHistory()].slice(0, MAX_CANCEL_HISTORY));
+};
+
+export const writeCancelHistory = (list) => {
+  writeStoredValue(storageKeys.cancelHistory, Array.isArray(list) ? list.slice(0, MAX_CANCEL_HISTORY) : []);
 };
 
 export const readEvidenceCases = () => {

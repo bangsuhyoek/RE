@@ -17,3 +17,9 @@ test("결제 정보가 없는 글은 초안을 만들지 않는다", () => {
   assert.equal(sharedTextToDetected("", now), null);
 });
 
+test("무료체험 가입 문자는 체험 중으로, 끝나는 날을 결제일로 등록한다", () => {
+  const detected = sharedTextToDetected("[넷플릭스] 무료 체험이 시작되었습니다. 2026.10.20부터 17,000원이 결제됩니다.", now);
+  assert.ok(detected);
+  assert.equal(detected.isTrial, true);
+  assert.equal(detected.dueDay, 20);
+});

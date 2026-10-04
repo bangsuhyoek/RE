@@ -3,6 +3,7 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 import { daysUntilCharge, formatWon, getNextChargeDate } from "./dates.js";
 import { readStoredValue, writeStoredValue, storageKeys } from "./storage.js";
 import { formatKoreanDateTime } from "./businessDays.js";
+import { buildCareNotifications } from "./careFeed.js";
 
 export const NOTIFICATION_STORAGE_KEY = "submate-mvp:notifications";
 export const NOTIFICATION_SETTINGS_KEY = "submate-mvp:notification-settings";
@@ -403,6 +404,25 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
     // 위에서 대기 알림을 모두 지웠으므로 아직 오지 않은 해지 다시 알림을 다시 건다.
     for (const reminder of readCancelReminders()) {
       if (new Date(reminder.at) > now) scheduledList.push(cancelReminderNotification(reminder));
+    }
+
+    // 오늘 챙길 일: 해지 확인, 무료체험 D-2, 정산일, 구독 순환 알림
+    const careList = buildCareNotifications({
+      subscriptions,
+      cancelHistory: readStoredValue(storageKeys.cancelHistory, []),
+      rotation: readStoredValue(storageKeys.rotationPlan, null),
+      now,
+    });
+    for (const item of careList) {
+      scheduledList.push({
+        // 결제 사전 알림(1억 미만)과 겹치지 않게 1억부터 쓴다.
+        id: 100000000 + (Math.abs(stringHashCode(item.key)) % 100000000),
+        title: item.title,
+        body: item.body,
+        channelId: "submate-billing-channel",
+        schedule: { at: item.at },
+        extra: { subscriptionId: item.subscriptionId, type: item.type },
+      });
     }
 
     if (scheduledList.length > 0) {

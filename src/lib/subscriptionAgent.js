@@ -704,7 +704,7 @@ export function findActiveSubscriptionForPayment(detected = {}, subscriptions = 
   return byId || findSubscriptionInText(detected.name || "", active);
 }
 
-function findCancelRecordForPayment(detected = {}, cancelHistory = [], detectedAt) {
+export function findCancelRecordForPayment(detected = {}, cancelHistory = [], detectedAt = new Date()) {
   const byText = findSubscriptionInText(detected.name || "", cancelHistory);
   return cancelHistory
     .filter((record) => sameService(record.id, detected.serviceId) || sameService(record.serviceId, detected.serviceId) || record === byText)

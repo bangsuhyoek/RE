@@ -212,6 +212,7 @@ export function HomeScreen({
   onLogout,
   onOpenAccount,
   onOpenAgent,
+  careSlot = null,
 }) {
   const [annual, setAnnual] = useState(false);
 
@@ -371,6 +372,8 @@ export function HomeScreen({
       )}
 
       {/* 3. 내 구독 파트 (피로도 제로: 편안한 16px 굵기와 넉넉한 20px+ 여백) */}
+      {careSlot}
+
       <section className="mt-5">
         <div className="flex items-center justify-between pb-3 border-b border-gray-100/80">
           <h2 className="text-[16px] font-bold text-[#191F28] tracking-tight">

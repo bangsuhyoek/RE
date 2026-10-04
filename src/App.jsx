@@ -21,12 +21,18 @@ import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from
 import { NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
 import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
-import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue, readCancelHistory } from "./lib/storage";
+import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue, readCancelHistory, writeCancelHistory } from "./lib/storage";
 import { persistEvidenceCase } from "./lib/evidenceStore";
 import { generateSubscriptionAlerts } from "./lib/notifications";
-import { CANCEL_REMINDER_TYPE } from "./lib/notifications";
+import { CANCEL_REMINDER_TYPE, scheduleSubscriptionNotifications } from "./lib/notifications";
 import { consumePendingShare, listenForShares, sharedImageToFile, sharedTextToDetected } from "./lib/shareIntake";
-import { assessDetectedPayment, buildRenewalResponse, createEvidenceCase } from "./lib/subscriptionAgent";
+import { assessDetectedPayment, buildRenewalResponse, createEvidenceCase, findCancelRecordForPayment } from "./lib/subscriptionAgent";
+import { markRecordCharged, recordKey } from "./lib/cancelVerification";
+import { shareText } from "./lib/shareText";
+import { formatWon } from "./lib/dates";
+import { useCareFeed } from "./hooks/useCareFeed";
+import { CareSection } from "./components/CareSection";
+import { RotationSheet } from "./components/RotationSheet";
 import { useNavigation } from "./hooks/useNavigation";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
@@ -34,6 +40,9 @@ import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubs
 
 // 결제 사전 알림 중 갱신 승인 카드로 이어지는 종류
 const RENEWAL_NOTIFICATION_TYPES = new Set(["billing_d3", "billing_d1", "trial_d1"]);
+// 오늘 챙길 일 알림: 해지 화면으로 바로 가는 종류와 홈으로 가는 종류
+const CARE_CANCEL_TYPES = new Set(["trial_d2", "rotation_cancel"]);
+const CARE_HOME_TYPES = new Set(["cancel_check", "settlement_due", "rotation_resume"]);
 
 export default function App() {
   const [addOpen, setAddOpen] = useState(false);
@@ -50,7 +59,9 @@ export default function App() {
   const detectedPaymentHandlerRef = useRef(null);
   const renewalNotificationHandlerRef = useRef(null);
   const cancelReminderHandlerRef = useRef(null);
+  const careNotificationHandlerRef = useRef(null);
   const shareHandlerRef = useRef(null);
+  const [rotationOpen, setRotationOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(() => {
     if (typeof window !== "undefined") {
       return !sessionStorage.getItem("kudok_splash_shown");
@@ -162,6 +173,10 @@ export default function App() {
         cancelReminderHandlerRef.current?.(extra.subscriptionId);
         return;
       }
+      if (CARE_CANCEL_TYPES.has(extra.type) || CARE_HOME_TYPES.has(extra.type)) {
+        careNotificationHandlerRef.current?.(extra);
+        return;
+      }
       if (!extra.subscriptionId || !RENEWAL_NOTIFICATION_TYPES.has(extra.type)) return;
       renewalNotificationHandlerRef.current?.(extra.subscriptionId);
     });
@@ -269,6 +284,30 @@ export default function App() {
     clearAll,
   } = useNotificationManager({ subscriptions });
 
+  // 오늘 챙길 일: 해지 확인 루프의 결과(확정·질문)를 알림 센터에 넣는다.
+  const handleCareEvents = useCallback((events) => {
+    const items = events.map((event) => ({
+      id: "care-" + event.kind + "-" + recordKey(event.record),
+      subscriptionId: event.record.subscriptionId,
+      serviceName: event.record.name,
+      monogram: event.record.name?.slice(0, 1) || "S",
+      category: "기타",
+      type: event.kind === "verified" ? "cancel_verified" : "cancel_check",
+      badge: event.kind === "verified" ? "해지 확인" : "확인 필요",
+      title: event.kind === "verified" ? event.record.name + " 해지가 확인됐어요" : event.record.name + " 해지됐는지 알려주세요",
+      message: event.kind === "verified"
+        ? "결제일이 지나도 결제가 없었어요. 매달 " + formatWon(event.record.amount) + "을 아끼고 있어요."
+        : "결제일이 지났어요. 홈의 '오늘 챙길 일'에서 결제가 있었는지 알려주세요.",
+      timestamp: new Date().toISOString(),
+      read: false,
+    }));
+    setNotifications((current) => {
+      const ids = new Set(current.map((item) => item.id));
+      return [...items.filter((item) => !ids.has(item.id)), ...current];
+    });
+  }, [setNotifications]);
+  const care = useCareFeed({ subscriptions, catalog: serviceCatalog, onEvents: handleCareEvents });
+
   const openAgentWith = useCallback((response) => {
     if (!response) return;
     setAgentMessages((current) => [...current, { id: "a-" + Date.now(), role: "agent", response }]);
@@ -282,6 +321,15 @@ export default function App() {
     setTermsOpen(false);
     setNotificationCenterOpen(false);
     if (alert) {
+      // 해지 확인 루프: 해지한 구독에서 결제가 잡히면 그 해지 기록을 '결제됨'으로 바꾼다.
+      if (alert.kind === "charged_after_cancel") {
+        const history = readCancelHistory();
+        const record = findCancelRecordForPayment(detected, history, detected.detectedAt ? new Date(detected.detectedAt) : new Date());
+        if (record) {
+          writeCancelHistory(markRecordCharged(history, record));
+          care.refreshHistory();
+        }
+      }
       persistEvidenceCase(profile?.user_id || null, createEvidenceCase(alert));
       setAddOpen(false);
       openAgentWith(alert);
@@ -311,6 +359,99 @@ export default function App() {
     }
     setNotificationCenterOpen(false);
     startCancellation(target.subscriptionId);
+  };
+
+  // 오늘 챙길 일 알림을 누르면: 무료체험 D-2·순환 해지일은 해지 화면, 나머지는 홈의 '오늘 챙길 일'로 간다.
+  careNotificationHandlerRef.current = (extra) => {
+    setNotificationCenterOpen(false);
+    if (CARE_CANCEL_TYPES.has(extra.type) && getSubscriptionById(extra.subscriptionId)) {
+      startCancellation(extra.subscriptionId);
+      return;
+    }
+    navigate("home");
+  };
+
+  // 해지했다고 처리한 구독은 목록에서 빠지므로, 해지 기록으로 결제 감지 흐름(증빙·환불 요청)을 다시 만든다.
+  const openChargedAfterCancel = (record) => {
+    if (!record) return;
+    detectedPaymentHandlerRef.current?.({
+      name: record.name,
+      serviceId: record.serviceId || record.id,
+      amount: record.amount,
+      paymentMethod: record.paymentMethod || "",
+      detectedAt: record.chargedAt || new Date().toISOString(),
+      sourceType: "manual",
+    });
+  };
+
+  const handleCareAction = async (item, action) => {
+    const subscription = item.subscriptionId ? getSubscriptionById(item.subscriptionId) : null;
+    switch (action) {
+      case "cancel_no_charge":
+        care.answerCancel(item.key, "no_charge");
+        notify(item.serviceName + " 해지가 확인됐어요. 매달 " + formatWon(item.amount) + "을 아껴요.");
+        break;
+      case "cancel_charged":
+        openChargedAfterCancel(care.answerCancel(item.key, "charged"));
+        break;
+      case "cancel_later":
+        care.answerCancel(item.key, "later");
+        notify("내일 오전 9시에 다시 물어볼게요.");
+        break;
+      case "open_refund":
+        openChargedAfterCancel(item.record);
+        break;
+      case "start_cancel":
+      case "rotation_act":
+        if (item.reminderType === "rotation_resume") {
+          // 다시 가입할 차례: 가입은 서비스에서 직접 하고, 꾸독에는 저장해 둔 정보로 바로 다시 등록한다.
+          const snapshot = care.rotation?.services?.find((service) => service.subscriptionId === item.subscriptionId);
+          setQuickAddData(snapshot ? { ...snapshot, subscriptionId: undefined, autoDetected: true, sourceType: "manual" } : null);
+          setAddInitialMode(snapshot ? "quick-detect" : "manual");
+          setAddOpen(true);
+          care.ack(item.key);
+          break;
+        }
+        if (subscription) startCancellation(subscription.subscriptionId);
+        else notify("이미 목록에 없는 구독이에요. 해지됐는지 확인해 주세요.");
+        if (action === "rotation_act") care.ack(item.key);
+        break;
+      case "trial_keep":
+        care.ack(item.ackKey);
+        notify(item.serviceName + "을 계속 쓰기로 했어요. 다음 결제부터 유료예요.");
+        break;
+      case "usage_used":
+        if (subscription) care.answerUsage(subscription, "used");
+        break;
+      case "usage_unused":
+        if (subscription) care.answerUsage(subscription, "unused");
+        break;
+      case "open_detail":
+        navigate("detail", item.subscriptionId);
+        break;
+      case "share_settlement": {
+        const result = await shareText({ title: item.request.title, text: item.request.message });
+        if (result.method === "clipboard") notify("정산 요청 문구를 복사했어요. 카카오톡 단톡방에 붙여 넣어 보내세요.");
+        else if (!result.ok && result.method !== "cancelled") notify("공유하지 못했어요. 다시 시도해 주세요.");
+        break;
+      }
+      case "open_rotation":
+        setRotationOpen(true);
+        break;
+      case "dismiss":
+        care.ack(item.key);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleSaveRotation = (plan) => {
+    care.saveRotation(plan);
+    care.ack("rotation_suggest");
+    setRotationOpen(false);
+    scheduleSubscriptionNotifications(subscriptions).catch(() => {});
+    notify("구독 순환 계획을 저장했어요. 해지·가입할 날마다 알려드릴게요.");
   };
 
   shareHandlerRef.current = (shared) => {
@@ -648,6 +789,14 @@ export default function App() {
         onOpenAccount={() => setAccountOpen(true)}
         onTogglePin={(id) => togglePinSubscription(id, notify)}
         onOpenAgent={() => setAgentOpen(true)}
+        careSlot={
+          <CareSection
+            items={care.items}
+            onAction={handleCareAction}
+            hasRotation={Boolean(care.rotation)}
+            onOpenRotation={() => setRotationOpen(true)}
+          />
+        }
       />
     );
   } else if (screen.route === "subscriptions") {
@@ -679,8 +828,9 @@ export default function App() {
           navigate("subscriptions");
         }}
         onDelete={(id) => {
-          deleteSubscription(id);
-          notify("구독이 삭제되었습니다.");
+          // '해지 완료로 표시'는 해지 기록을 남겨 해지 확인 루프와 해지 후 결제 경고가 이어지게 한다.
+          finishCancellation(id);
+          notify("해지 완료로 기록했어요. 다음 결제일까지 결제가 없는지 지켜볼게요.");
           setHighlightCancelId(null);
           navigate("subscriptions");
         }}
@@ -795,6 +945,20 @@ export default function App() {
           onUpdateAmount={handleAlertKeep}
           userId={profile?.user_id || null}
           onToast={notify}
+        />
+      )}
+      {rotationOpen && (
+        <RotationSheet
+          subscriptions={subscriptions}
+          saved={care.rotation}
+          onSave={handleSaveRotation}
+          onClear={() => {
+            care.clearRotation();
+            setRotationOpen(false);
+            scheduleSubscriptionNotifications(subscriptions).catch(() => {});
+            notify("구독 순환 계획을 껐어요.");
+          }}
+          onClose={() => setRotationOpen(false)}
         />
       )}
       {renewalSubscription && !addOpen && !cancelSubscription && !notificationCenterOpen && !termsOpen && !agentOpen && (
