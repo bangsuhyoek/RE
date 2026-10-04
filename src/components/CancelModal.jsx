@@ -8,7 +8,7 @@ import { CancelBrowserModal } from "./CancelBrowserModal";
 import { serviceCatalog } from "../data/subscriptionData";
 import { getCancelGuide } from "../data/cancelGuides";
 import { openCancelBrowser, stopFloatingGuide } from "../lib/cancelBrowser";
-import { CANCEL_CHANNELS, getCancelRoutes, resolvePaymentChannel, saveChannelOverride } from "../lib/cancelRoutes";
+import { CANCEL_CHANNELS, getCancelRoutes, resolvePaymentChannel } from "../lib/cancelRoutes";
 import { describeAccountInfoAvailability } from "../lib/businessDays";
 import { addCancelReminder } from "../lib/notifications";
 
@@ -69,7 +69,7 @@ function AccountInfoRoute({ route, subscription, compact = false, onOpened, onTo
   return <div>{body}</div>;
 }
 
-export function CancelModal({ subscription: rawSub, promotion, autoOpen = false, onClose, onComplete, onToast }) {
+export function CancelModal({ subscription: rawSub, promotion, autoOpen = false, onClose, onComplete, onToast, onChannelChange }) {
   // 해지 단계는 공식 자료로 확인한 cancelGuides만 쓴다. 해지 주소는 가이드 → 구독 데이터 → 카탈로그 순서로 고른다.
   const { subscription, guide } = useMemo(() => {
     const targetName = (rawSub.name || "").toLowerCase().replace(/\s+/g, "");
@@ -94,10 +94,10 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
     };
   }, [rawSub]);
 
-  // 결제한 곳(웹·Google Play·App Store·카드 자동납부)에 따라 해지 버튼이 여는 곳이 달라진다. 사용자가 고친 값은 기기에 기억한다.
+  // 결제한 곳(웹·Google Play·App Store·카드 자동납부)에 따라 해지 버튼이 여는 곳이 달라진다. 사용자가 고친 값은 구독에 저장돼 서버와 동기화된다.
   const [channel, setChannel] = useState(() => resolvePaymentChannel(rawSub));
   const routes = useMemo(
-    () => getCancelRoutes({ ...rawSub, paymentChannel: channel }, { serviceCancelUrl: subscription.cancelUrl, overrides: {} }),
+    () => getCancelRoutes({ ...rawSub, paymentChannel: channel }, { serviceCancelUrl: subscription.cancelUrl }),
     [rawSub, channel, subscription.cancelUrl]
   );
   const usesServicePage = routes.primary.kind === "service";
@@ -115,7 +115,7 @@ export function CancelModal({ subscription: rawSub, promotion, autoOpen = false,
 
   const changeChannel = (next) => {
     setChannel(next);
-    saveChannelOverride(rawSub, next);
+    onChannelChange?.(rawSub.subscriptionId || rawSub.id, next);
     setChecked([]);
     setCancelSessionActive(false);
   };

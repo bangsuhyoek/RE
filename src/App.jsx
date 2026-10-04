@@ -779,6 +779,7 @@ export default function App() {
             if (screen.route === "detail") navigate("subscriptions");
           })}
           onToast={notify}
+          onChannelChange={(id, channel) => updateSubscription(id, { paymentChannel: channel })}
         />
       )}
       {agentOpen && !cancelSubscription && (

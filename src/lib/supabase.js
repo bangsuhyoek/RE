@@ -1,5 +1,6 @@
 import { serviceCatalog } from "../data/subscriptionData.js";
 import { getCancelGuide } from "../data/cancelGuides.js";
+import { PAYMENT_CHANNEL_IDS } from "./paymentChannels.js";
 import { Browser } from "@capacitor/browser";
 import { isNativePlatform } from "./platform.js";
 import { createClient } from '@supabase/supabase-js';
@@ -95,6 +96,7 @@ export function mapDbToSubscription(row) {
     currency: row.currency || 'KRW',
     originalAmount: row.original_amount != null ? Number(row.original_amount) : null,
     planId: row.plan_id || null,
+    paymentChannel: PAYMENT_CHANNEL_IDS.includes(row.payment_channel) ? row.payment_channel : null,
   };
 }
 
@@ -126,6 +128,7 @@ export function mapSubscriptionToDb(sub, userId) {
     mark_tone: sub.markTone || null,
     next_billing_date: sub.nextBillingDate || null,
     renewal_reviewed_for: sub.renewalReviewedFor || null,
+    payment_channel: PAYMENT_CHANNEL_IDS.includes(sub.paymentChannel) ? sub.paymentChannel : null,
     updated_at: new Date().toISOString(),
   };
 }

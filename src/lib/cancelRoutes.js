@@ -1,15 +1,11 @@
 import { detectPaymentChannel } from "./subscriptionAgent.js";
 import { getPaymentMethodInfo } from "./paymentMethod.js";
-import { readStoredValue, writeStoredValue, storageKeys } from "./storage.js";
+import { CANCEL_CHANNELS, PAYMENT_CHANNEL_IDS } from "./paymentChannels.js";
+
+export { CANCEL_CHANNELS };
 
 // 결제한 곳에 따라 해지를 어디서 해야 하는지 고른다. 모든 경로는 공식 화면을 열 뿐이고, 해지 확정은 사용자가 직접 한다.
-export const CANCEL_CHANNELS = [
-  { id: "web", label: "서비스 웹·앱" },
-  { id: "google_play", label: "Google Play" },
-  { id: "app_store", label: "App Store" },
-  { id: "card_autopay", label: "카드 자동납부" },
-  { id: "carrier", label: "휴대폰 요금" },
-];
+// 사용자가 고른 값은 구독의 paymentChannel(서버 subscriptions.payment_channel)에 저장되고, 없으면 결제수단으로 추정한다.
 
 export const GOOGLE_PLAY_SUBSCRIPTIONS_URL = "https://play.google.com/store/account/subscriptions";
 export const APPLE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
@@ -57,28 +53,8 @@ const ACCOUNTINFO_ROUTE = {
 
 const CARD_BRANDS = new Set(["card", "shinhan", "hyundai", "kb", "samsung", "lotte", "woori", "hana", "bc", "nh"]);
 
-const channelKey = (subscription) => subscription?.subscriptionId || subscription?.id || "";
-
-export function readChannelOverrides() {
-  try {
-    return readStoredValue(storageKeys.paymentChannels, {}) || {};
-  } catch {
-    return {};
-  }
-}
-
-export function saveChannelOverride(subscription, channel) {
-  const key = channelKey(subscription);
-  if (!key) return;
-  const next = { ...readChannelOverrides() };
-  if (channel) next[key] = channel;
-  else delete next[key];
-  writeStoredValue(storageKeys.paymentChannels, next);
-}
-
-export function resolvePaymentChannel(subscription = {}, overrides = readChannelOverrides()) {
-  const override = overrides[channelKey(subscription)] || subscription.paymentChannel;
-  if (CANCEL_CHANNELS.some((channel) => channel.id === override)) return override;
+export function resolvePaymentChannel(subscription = {}) {
+  if (PAYMENT_CHANNEL_IDS.includes(subscription.paymentChannel)) return subscription.paymentChannel;
   return detectPaymentChannel(subscription);
 }
 
@@ -88,8 +64,8 @@ const isCardPayment = (subscription) => {
 };
 
 // primary: 해지 버튼이 먼저 여는 곳. secondary: 함께 보여줄 다른 길.
-export function getCancelRoutes(subscription = {}, { serviceCancelUrl = "", overrides } = {}) {
-  const channel = resolvePaymentChannel(subscription, overrides);
+export function getCancelRoutes(subscription = {}, { serviceCancelUrl = "" } = {}) {
+  const channel = resolvePaymentChannel(subscription);
   const serviceRoute = {
     kind: "service",
     label: "해지 페이지 열기",
@@ -114,7 +90,6 @@ export function getCancelRoutes(subscription = {}, { serviceCancelUrl = "", over
 }
 
 // 상세 화면처럼 바로 해지 페이지를 띄워도 되는지 판단한다. 스토어·어카운트인포는 안내를 먼저 보여준다.
-export function shouldAutoOpenServicePage(subscription = {}, overrides) {
-  return getCancelRoutes(subscription, { overrides }).primary.kind === "service";
+export function shouldAutoOpenServicePage(subscription = {}) {
+  return getCancelRoutes(subscription).primary.kind === "service";
 }
-
