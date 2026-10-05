@@ -3314,6 +3314,136 @@ export const serviceCatalog = [
     "cancelUrl": "https://account.adobe.com/plans",
     "lastUpdated": "2026-09-15T11:20:44.826Z",
     "parseStatus": "FALLBACK_APPLIED"
+  },
+  // DB(subscription_services)에만 있던 4개 서비스. 해지 주소는 공식 고객센터·상품 안내로 확인했다(2026-10-04).
+  {
+    "id": "kakao-emoticon",
+    "name": "카카오 이모티콘 플러스",
+    "monogram": "K",
+    "category": "생활/모빌리티",
+    "plan": "정기구독",
+    "amount": 3900,
+    "brandColor": "#3C1E1E",
+    "brandBg": "#FFF9D6",
+    "brandText": "#3C1E1E",
+    "availablePlans": [
+      {
+        "plan": "정기구독",
+        "amount": 3900
+      }
+    ],
+    "plans": [
+      {
+        "name": "정기구독",
+        "amount": 3900,
+        "billingCycle": "매월"
+      }
+    ],
+    "billingCycle": "매월",
+    "dueDay": 15,
+    "paymentMethod": "신용카드",
+    "cancelUrl": "https://my.kakao.com/",
+    "lastUpdated": "2026-10-04T00:00:00.000Z",
+    "parseStatus": "PARSED_SUCCESS"
+  },
+  {
+    "id": "kurly",
+    "name": "컬리패스",
+    "monogram": "K",
+    "category": "쇼핑",
+    "plan": "컬리패스 월정액",
+    "amount": 4500,
+    "brandColor": "#5F0080",
+    "brandBg": "#F5EDF8",
+    "brandText": "#5F0080",
+    "availablePlans": [
+      {
+        "plan": "컬리패스 월정액",
+        "amount": 4500
+      }
+    ],
+    "plans": [
+      {
+        "name": "컬리패스 월정액",
+        "amount": 4500,
+        "billingCycle": "매월"
+      }
+    ],
+    "billingCycle": "매월",
+    "dueDay": 15,
+    "paymentMethod": "신용카드",
+    "cancelUrl": "",
+    "lastUpdated": "2026-10-04T00:00:00.000Z",
+    "parseStatus": "PARSED_SUCCESS"
+  },
+  {
+    "id": "shinsegae-universe",
+    "name": "신세계 유니버스 클럽",
+    "monogram": "S",
+    "category": "쇼핑",
+    "plan": "연간 멤버십",
+    "amount": 30000,
+    "brandColor": "#E4002B",
+    "brandBg": "#FDEBEE",
+    "brandText": "#E4002B",
+    "availablePlans": [
+      {
+        "plan": "연간 멤버십",
+        "amount": 30000
+      }
+    ],
+    "plans": [
+      {
+        "name": "연간 멤버십",
+        "amount": 30000,
+        "billingCycle": "매년"
+      }
+    ],
+    "billingCycle": "매년",
+    "dueDay": 15,
+    "paymentMethod": "신용카드",
+    "cancelUrl": "https://www.ssg.com/myssg/main.ssg",
+    "lastUpdated": "2026-10-04T00:00:00.000Z",
+    "parseStatus": "PARSED_SUCCESS"
+  },
+  {
+    "id": "t-universe",
+    "name": "T우주 우주패스",
+    "monogram": "T",
+    "category": "생활/모빌리티",
+    "plan": "우주패스 all",
+    "amount": 9900,
+    "brandColor": "#3617CE",
+    "brandBg": "#EEEBFC",
+    "brandText": "#3617CE",
+    "availablePlans": [
+      {
+        "plan": "우주패스 all",
+        "amount": 9900
+      },
+      {
+        "plan": "우주패스 life",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "우주패스 all",
+        "amount": 9900,
+        "billingCycle": "매월"
+      },
+      {
+        "name": "우주패스 life",
+        "amount": 9900,
+        "billingCycle": "매월"
+      }
+    ],
+    "billingCycle": "매월",
+    "dueDay": 15,
+    "paymentMethod": "신용카드",
+    "cancelUrl": "https://m.sktuniverse.co.kr/",
+    "lastUpdated": "2026-10-04T00:00:00.000Z",
+    "parseStatus": "PARSED_SUCCESS"
   }
 ];
 

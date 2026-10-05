@@ -4,7 +4,25 @@ import {
   generateSubscriptionAlerts,
   createTestNotification,
   DEFAULT_NOTIFICATION_DURATION,
+  selectOverdueToRearm,
 } from "../src/lib/notifications.js";
+
+test("다시 예약할 때 시각이 지났지만 아직 오지 않은 알림만 다시 건다", () => {
+  const now = new Date("2026-10-06T09:09:00Z");
+  const subscriptions = [
+    { subscriptionId: "yt", status: "active" },
+    { subscriptionId: "gone", status: "cancelled" },
+  ];
+  const pending = [
+    // 플러그인 getPending은 Java Date 문자열로 돌려준다.
+    { id: 1, schedule: { at: "Tue Oct 06 09:00:00 GMT 2026" }, extra: { subscriptionId: "yt", type: "cancel_reminder" } },
+    { id: 2, schedule: { at: "2026-10-08T09:00:00.000Z" }, extra: { subscriptionId: "yt" } }, // 아직 미래
+    { id: 3, schedule: { at: "2026-10-06T06:00:00.000Z" }, extra: { subscriptionId: "yt" } }, // 2시간 넘게 지남
+    { id: 4, schedule: { at: "2026-10-06T08:30:00.000Z" }, extra: { subscriptionId: "gone" } }, // 해지한 구독
+    { id: 5, schedule: { at: "2026-10-06T08:30:00.000Z" }, extra: { subscriptionId: "deleted" } }, // 지운 구독
+  ];
+  assert.deepEqual(selectOverdueToRearm(pending, subscriptions, now).map((n) => n.id), [1]);
+});
 
 test("D-1 알림 대상 구독에 대해 알림 객체를 정상 생성한다", () => {
   const testSub = {

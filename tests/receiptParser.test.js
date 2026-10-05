@@ -2,6 +2,39 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { parseReceiptText } from "../api/_lib/receiptParser.js";
 
+test("요금제 표에 없는 카탈로그 서비스도 이름으로 알아본다(요금제는 비워 둔다)", () => {
+  const result = parseReceiptText(`
+    결제 완료
+    상품명: 웨이브 베이직 (월정기결제)
+    결제금액: 7,900원
+    결제수단: 신한카드 (1234)
+    다음 결제일: 2026.11.05
+  `);
+  assert.equal(result.data.serviceId, "wavve");
+  assert.equal(result.data.name, "Wavve");
+  assert.equal(result.data.plan, "");
+  assert.equal(result.data.amount, 7900);
+  assert.equal(result.data.dueDay, 5);
+});
+
+test("결제 문자 속 한국어 서비스명도 알아본다", () => {
+  const melon = parseReceiptText("[신한카드] 승인 멜론 10,900원 일시불 10/05 12:30");
+  assert.equal(melon.data.serviceId, "melon");
+  const millie = parseReceiptText("[KB국민카드] 밀리의서재 9,900원 승인");
+  assert.equal(millie.data.serviceId, "millie");
+});
+
+test("요금제 표 서비스는 그대로 우선한다", () => {
+  const result = parseReceiptText("[신한카드] 승인 넷플릭스 17,000원 일시불");
+  assert.equal(result.data.serviceId, "netflix");
+  assert.equal(result.data.plan, "프리미엄");
+});
+
+test("일반 단어나 음식 주문은 구독으로 오인하지 않는다", () => {
+  assert.equal(parseReceiptText("Thank you for anything 12,000원 결제").data.serviceId, "");
+  assert.equal(parseReceiptText("[현대카드] 배달의민족 23,500원 승인").data.serviceId, "");
+});
+
 test("상품명 표현과 금액으로 티빙 스탠다드를 채운다", () => {
   const result = parseReceiptText(`
     상품명: TVING

@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Clock,
   ExternalLink,
+  CalendarPlus,
 } from "lucide-react";
 import {
   BottomSheet,
@@ -17,6 +18,10 @@ import {
   PaymentMethodTriggerField,
 } from "./ui";
 import { formatWon } from "../lib/dates";
+import { shouldAutoOpenServicePage } from "../lib/cancelRoutes";
+import { addBillingToCalendar } from "../lib/calendarExport";
+import { buildSettlementRequest } from "../lib/settlement";
+import { shareText } from "../lib/shareText";
 
 /**
  * 프리미엄 iOS/쿠퍼티노 스타일 스크롤 휠 드럼롤 컬럼
@@ -185,6 +190,7 @@ export function SubscriptionDetailScreen({
   subscriptions = [],
   onUpdate,
   onStartCancel,
+  onToast,
   onBack,
   onDelete,
   promotion,
@@ -401,6 +407,49 @@ export function SubscriptionDetailScreen({
             />
           </section>
 
+          {/* 4-3. 결제일을 내 캘린더에 넣기 (캘린더 권한 없이 캘린더 앱 일정 화면을 채워 연다) */}
+          {subscription.sharingEnabled && Number(subscription.shareCount) > 1 && (
+            <section className="flex items-center justify-between gap-3 py-1 mt-6">
+              <div className="min-w-0">
+                <h2 className="text-[16px] font-bold text-black tracking-tight">정산 요청 보내기</h2>
+                <span className="text-[13px] text-gray-400 block mt-0.5">
+                  {subscription.shareCount}명이 나눠 내요. 1인 {formatWon(buildSettlementRequest(subscription).perPerson)} 요청 문구를 보내요.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const request = buildSettlementRequest(subscription);
+                  const result = await shareText({ title: request.title, text: request.message });
+                  if (result.method === "clipboard") onToast?.("정산 요청 문구를 복사했어요. 단톡방에 붙여 넣어 보내세요.");
+                }}
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-[13px] font-bold text-gray-800 active:scale-95 transition-transform"
+              >
+                보내기
+              </button>
+            </section>
+          )}
+
+          <section className="flex items-center justify-between gap-3 py-1 mt-6">
+            <div className="min-w-0">
+              <h2 className="text-[16px] font-bold text-black tracking-tight">내 캘린더에 결제일 추가</h2>
+              <span className="text-[13px] text-gray-400 block mt-0.5">
+                {Capacitor.isNativePlatform() ? "캘린더 앱에서 저장을 누르면 결제일이 반복 일정으로 들어가요." : "일정 파일(.ics)을 받아 쓰는 캘린더에 추가해요."}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                const result = await addBillingToCalendar(subscription);
+                if (!result.ok) onToast?.(result.code === "NO_CALENDAR_APP" ? "캘린더 앱을 찾지 못했어요." : "캘린더를 열지 못했어요.");
+                else if (result.method === "ics") onToast?.("일정 파일을 받았어요. 열어서 캘린더에 추가해 주세요.");
+              }}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-[13px] font-bold text-gray-800 active:scale-95 transition-transform"
+            >
+              <CalendarPlus size={15} /> 추가
+            </button>
+          </section>
+
           <div className="h-px bg-gray-100/80 my-8" />
 
           {/* 5. 하단 2-트랙 해지 CTA 버튼 */}
@@ -408,16 +457,18 @@ export function SubscriptionDetailScreen({
             <button
               type="button"
               onClick={() => {
-                if (subscription.cancelUrl && !Capacitor.isNativePlatform()) {
+                // Google Play·App Store·카드 자동납부로 결제한 구독은 서비스 웹사이트 대신 해지 안내를 먼저 보여준다.
+                const autoOpen = shouldAutoOpenServicePage(subscription);
+                if (autoOpen && subscription.cancelUrl && !Capacitor.isNativePlatform()) {
                   window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
                 }
-                onStartCancel(subscription.subscriptionId, promotion, { autoOpen: true });
+                onStartCancel(subscription.subscriptionId, promotion, { autoOpen });
               }}
               className={`w-full rounded-2xl bg-[#111827] text-white font-bold py-4 text-[16px] text-center active:scale-[0.98] transition-all shadow-sm cursor-pointer hover:bg-black ${
                 highlightCancel ? "ring-2 ring-blue-500 ring-offset-2 animate-pulse" : ""
               }`}
             >
-              웹사이트에서 해지하기
+              해지하기
             </button>
             <button
               type="button"

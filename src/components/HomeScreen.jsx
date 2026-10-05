@@ -211,6 +211,8 @@ export function HomeScreen({
   onOpenTerms,
   onLogout,
   onOpenAccount,
+  onOpenAgent,
+  careSlot = null,
 }) {
   const [annual, setAnnual] = useState(false);
 
@@ -248,14 +250,18 @@ export function HomeScreen({
   }, [subscriptions]);
 
   if (subscriptions.length === 0) {
+    // 마지막 구독을 해지해도 해지 확인 카드는 계속 보여야 한다.
     return (
-      <EmptyState
-        onAdd={onAdd}
-        onScan={onScan || onAdd}
-        onLogout={onLogout}
-        onOpenAccount={onOpenAccount}
-        profile={profile}
-      />
+      <>
+        {careSlot && <div className="px-4 sm:px-5">{careSlot}</div>}
+        <EmptyState
+          onAdd={onAdd}
+          onScan={onScan || onAdd}
+          onLogout={onLogout}
+          onOpenAccount={onOpenAccount}
+          profile={profile}
+        />
+      </>
     );
   }
 
@@ -330,6 +336,24 @@ export function HomeScreen({
       </div>
 
       {/* 알림 권한 꺼짐 안내 (필요 시 노출) */}
+      {onOpenAgent && (
+        <button
+          type="button"
+          onClick={onOpenAgent}
+          className="mt-1 flex w-full items-center gap-3 rounded-2xl bg-[#191F28] px-4 py-3.5 text-left shadow-sm transition-all active:scale-[0.98]"
+          aria-label="꾸독에게 시키기"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-white">
+            <Sparkles size={17} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <strong className="block text-[14px] font-bold text-white">꾸독에게 시키기</strong>
+            <span className="block truncate text-[12px] font-medium text-white/60">"넷플릭스 해지하고 환불 받아줘"</span>
+          </span>
+          <ChevronRight size={18} className="shrink-0 text-white/50" />
+        </button>
+      )}
+
       {notificationDenied && (
         <button
           type="button"
@@ -352,6 +376,8 @@ export function HomeScreen({
       )}
 
       {/* 3. 내 구독 파트 (피로도 제로: 편안한 16px 굵기와 넉넉한 20px+ 여백) */}
+      {careSlot}
+
       <section className="mt-5">
         <div className="flex items-center justify-between pb-3 border-b border-gray-100/80">
           <h2 className="text-[16px] font-bold text-[#191F28] tracking-tight">

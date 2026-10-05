@@ -1,4 +1,10 @@
 import ocrHandler from "../api/ocr.js";
+import agentHandler from "../api/agent.js";
+
+const LOCAL_API_ROUTES = {
+  "/api/ocr": ocrHandler,
+  "/api/agent": agentHandler,
+};
 
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
 
@@ -43,14 +49,15 @@ const createResponseAdapter = (response) => ({
 
 export const createLocalOcrMiddleware = () => async (request, response, next) => {
   const requestUrl = new URL(request.url || "/", "http://localhost");
-  if (requestUrl.pathname !== "/api/ocr") {
+  const routeHandler = LOCAL_API_ROUTES[requestUrl.pathname];
+  if (!routeHandler) {
     next();
     return;
   }
 
   try {
     request.body = await readJsonBody(request);
-    await ocrHandler(request, createResponseAdapter(response));
+    await routeHandler(request, createResponseAdapter(response));
   } catch (error) {
     if (response.writableEnded) return;
     response.statusCode = error?.statusCode || 500;

@@ -13,7 +13,9 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(CancelBrowserPlugin.class);
         registerPlugin(CharacterAssetPlugin.class);
+        registerPlugin(DeviceAuthPlugin.class);
         registerPlugin(PaymentCapturePlugin.class);
+        registerPlugin(SystemIntentsPlugin.class);
         super.onCreate(savedInstanceState);
 
         // 안드로이드 시스템 메뉴바(뒤로가기/홈/목록) 및 상단 상태바에 맞춰 앱 크기 자동 조정

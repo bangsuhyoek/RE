@@ -48,6 +48,10 @@ test("mapSubscriptionToDb는 클라이언트 객체를 DB 스키마 컬럼과 sn
   assert.equal(mapped.monogram, "N");
   assert.equal(mapped.mark_tone, "#E50914");
   assert.equal(mapped.next_billing_date, "2026-09-15");
+  assert.equal(mapped.payment_channel, null);
+  assert.equal(mapSubscriptionToDb({ ...sub, paymentChannel: "card_autopay" }, "u").payment_channel, "card_autopay");
+  // DB check 제약에 없는 값은 보내지 않아 저장 전체가 실패하지 않게 한다.
+  assert.equal(mapSubscriptionToDb({ ...sub, paymentChannel: "bank_magic" }, "u").payment_channel, null);
 });
 
 test("mapDbToSubscription은 DB 레코드를 클라이언트 객체로 정확히 복원한다", () => {
@@ -97,4 +101,6 @@ test("mapDbToSubscription은 DB 레코드를 클라이언트 객체로 정확히
   assert.equal(clientObj.currency, "USD");
   assert.equal(clientObj.originalAmount, 13.99);
   assert.equal(clientObj.planId, "youtube-plan-individual");
+  assert.equal(clientObj.paymentChannel, null);
+  assert.equal(mapDbToSubscription({ ...row, payment_channel: "google_play" }).paymentChannel, "google_play");
 });
