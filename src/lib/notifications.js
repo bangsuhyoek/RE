@@ -11,12 +11,14 @@ export const DEFAULT_NOTIFICATION_DURATION = 2500; // 사용자 피드백 반영
 export const CANCEL_REMINDER_TYPE = "cancel_reminder";
 
 /**
- * 예약 알림 시각. allowWhileIdle을 켜야 절전(Doze) 중에도 기기를 깨워 알린다.
- * Android 14+는 정확한 알람 권한이 기본 거부라 플러그인이 부정확 알람으로 바꾸는데,
- * 이 값이 없으면 기기를 깨우지 않는 AlarmManager.set(RTC)이 되어 화면을 켤 때까지 밀린다.
+ * 예약 알림 필드. 오전 9시 안내라 분 단위 정확도는 필요 없으므로 부정확 알람을 쓴다.
+ * - isExactNotification: false — 기본값(true)이면 Android 12+에서 정확한 알람 권한이 없을 때
+ *   플러그인이 예약할 때마다 시스템 '알람 및 리마인더' 설정 화면을 연다(앱 실행마다 재예약됨).
+ * - allowWhileIdle: true — 없으면 기기를 깨우지 않는 AlarmManager.set(RTC)이 되어
+ *   절전(Doze) 중에는 화면을 켤 때까지 밀린다. 켜면 setAndAllowWhileIdle로 최대 1시간 안에 울린다.
  */
-export function notificationSchedule(at) {
-  return { at, allowWhileIdle: true };
+export function scheduledAt(at) {
+  return { schedule: { at, allowWhileIdle: true }, isExactNotification: false };
 }
 
 export function getStoredNotifications() {
@@ -255,7 +257,7 @@ export async function sendAppNotification(title, options = {}) {
             title,
             body: options.body || options.message || "",
             channelId: "submate-billing-channel",
-            schedule: options.at ? notificationSchedule(options.at) : undefined,
+            ...(options.at ? scheduledAt(options.at) : {}),
             extra: options.extra || {},
           },
         ],
@@ -291,7 +293,7 @@ function cancelReminderNotification(reminder) {
     title: `[해지 가능] ${reminder.serviceName} 지금 해지할 수 있어요`,
     body: `${reminder.routeLabel || "해지"} 이용시간이 시작됐어요. 눌러서 해지를 이어가세요.`,
     channelId: "submate-billing-channel",
-    schedule: notificationSchedule(new Date(reminder.at)),
+    ...scheduledAt(new Date(reminder.at)),
     extra: { subscriptionId: reminder.subscriptionId, type: CANCEL_REMINDER_TYPE },
   };
 }
@@ -381,7 +383,7 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
             title: `[결제 D-3] ${sub.name} 결제 예정`,
             body: `3일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
             channelId: "submate-billing-channel",
-            schedule: notificationSchedule(d3Date),
+            ...scheduledAt(d3Date),
             extra: { subscriptionId: sub.subscriptionId || sub.id, type: "billing_d3" },
           });
         }
@@ -403,7 +405,7 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
               ? `내일 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
               : `내일 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
             channelId: "submate-billing-channel",
-            schedule: notificationSchedule(d1Date),
+            ...scheduledAt(d1Date),
             extra: { subscriptionId: sub.subscriptionId || sub.id, type: isTrial ? "trial_d1" : "billing_d1" },
           });
         }
@@ -429,7 +431,7 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
         title: item.title,
         body: item.body,
         channelId: "submate-billing-channel",
-        schedule: notificationSchedule(item.at),
+        ...scheduledAt(item.at),
         extra: { subscriptionId: item.subscriptionId, type: item.type },
       });
     }
