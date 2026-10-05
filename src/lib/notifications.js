@@ -21,6 +21,24 @@ export function scheduledAt(at) {
   return { schedule: { at, allowWhileIdle: true }, isExactNotification: false };
 }
 
+// 부정확 알람은 예정 시각보다 최대 1시간(절전 중에는 더) 늦게 온다. 그 사이 다시 예약하면서 대기 알림을
+// 모두 지우면, 시각이 지났지만 아직 오지 않은 알림이 사라진다. 이런 알림은 곧바로 다시 건다.
+export const OVERDUE_REARM_WINDOW_MS = 2 * 60 * 60 * 1000;
+
+/** 대기 중 알림 가운데 시각이 지났지만 아직 오지 않았고, 구독이 남아 있는 것을 고른다. */
+export function selectOverdueToRearm(pendingNotifications = [], subscriptions = [], now = new Date()) {
+  const liveIds = new Set(
+    subscriptions.filter((sub) => sub.status !== "cancelled").map((sub) => String(sub.subscriptionId || sub.id))
+  );
+  return pendingNotifications.filter((notification) => {
+    const at = new Date(notification?.schedule?.at).getTime();
+    if (!Number.isFinite(at)) return false;
+    const overdueMs = now.getTime() - at;
+    if (overdueMs < 0 || overdueMs > OVERDUE_REARM_WINDOW_MS) return false;
+    return liveIds.has(String(notification?.extra?.subscriptionId));
+  });
+}
+
 export function getStoredNotifications() {
   return readStoredValue(NOTIFICATION_STORAGE_KEY, []);
 }
@@ -357,13 +375,14 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
     const perm = await LocalNotifications.checkPermissions();
     if (perm.display !== "granted") return false;
 
+    const now = new Date();
     const pending = await LocalNotifications.getPending();
+    const overdue = selectOverdueToRearm(pending?.notifications || [], subscriptions, now);
     if (pending?.notifications?.length > 0) {
       await LocalNotifications.cancel({ notifications: pending.notifications });
     }
 
     const scheduledList = [];
-    const now = new Date();
 
     for (const sub of subscriptions) {
       if (sub.status === "cancelled") continue;
@@ -433,6 +452,20 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
         channelId: "submate-billing-channel",
         ...scheduledAt(item.at),
         extra: { subscriptionId: item.subscriptionId, type: item.type },
+      });
+    }
+
+    // 시각이 지났지만 아직 오지 않은 알림은 5초 뒤로 다시 건다(같은 id가 새로 잡혀 있으면 그쪽을 쓴다).
+    const rearmAt = new Date(now.getTime() + 5000);
+    for (const notification of overdue) {
+      if (scheduledList.some((item) => item.id === notification.id)) continue;
+      scheduledList.push({
+        id: notification.id,
+        title: notification.title,
+        body: notification.body,
+        channelId: "submate-billing-channel",
+        ...scheduledAt(rearmAt),
+        extra: notification.extra || {},
       });
     }
 

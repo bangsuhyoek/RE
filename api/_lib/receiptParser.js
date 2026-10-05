@@ -1,3 +1,5 @@
+import { SERVICE_ALIAS_CATALOG } from "./serviceAliases.js";
+
 export const PLAN_CATALOG_VERSION = "submate-project-2026-09-02";
 
 // 금액 기반 요금제 판정은 이 프로젝트가 지원하는 기준 요금제에만 적용한다.
@@ -49,6 +51,19 @@ export const receiptServiceCatalog = [
 ];
 
 export const compact = (value = "") => String(value || "").toLowerCase().replace(/[\s._:/\\()[\]{}-]+/g, "");
+
+// 요금제 표가 있는 서비스 뒤에 앱 카탈로그 전체 별칭을 붙인다. 별칭 표 서비스는 이름만 알아보고
+// 요금제는 채우지 않는다(plans: []). 같은 길이로 겹치면 요금제 표 서비스가 이긴다(안정 정렬).
+const primaryServiceIds = new Set(receiptServiceCatalog.map((service) => service.id));
+const detectableServices = [
+  ...receiptServiceCatalog,
+  ...SERVICE_ALIAS_CATALOG.filter((service) => !primaryServiceIds.has(service.id) && service.aliases.length > 0).map((service) => ({
+    id: service.id,
+    name: service.name,
+    aliases: service.aliases,
+    plans: [],
+  })),
+];
 export const normalizedLines = (text) => String(text || "").replace(/\r/g, "").split("\n").map((line) => line.trim()).filter(Boolean);
 
 export const escapeRegExp = (value) => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -70,7 +85,7 @@ export const detectService = (text, lines) => {
 
   for (const candidate of candidates) {
     const normalized = compact(candidate);
-    const matches = receiptServiceCatalog
+    const matches = detectableServices
       .map((service) => ({
         service,
         aliasLength: Math.max(0, ...service.aliases.filter((alias) => normalized.includes(compact(alias))).map((alias) => compact(alias).length)),
