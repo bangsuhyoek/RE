@@ -10,6 +10,15 @@ export const NOTIFICATION_SETTINGS_KEY = "submate-mvp:notification-settings";
 export const DEFAULT_NOTIFICATION_DURATION = 2500; // 사용자 피드백 반영: 2~3초 내 빠른 자동 사라짐 (2.5초)
 export const CANCEL_REMINDER_TYPE = "cancel_reminder";
 
+/**
+ * 예약 알림 시각. allowWhileIdle을 켜야 절전(Doze) 중에도 기기를 깨워 알린다.
+ * Android 14+는 정확한 알람 권한이 기본 거부라 플러그인이 부정확 알람으로 바꾸는데,
+ * 이 값이 없으면 기기를 깨우지 않는 AlarmManager.set(RTC)이 되어 화면을 켤 때까지 밀린다.
+ */
+export function notificationSchedule(at) {
+  return { at, allowWhileIdle: true };
+}
+
 export function getStoredNotifications() {
   return readStoredValue(NOTIFICATION_STORAGE_KEY, []);
 }
@@ -246,7 +255,7 @@ export async function sendAppNotification(title, options = {}) {
             title,
             body: options.body || options.message || "",
             channelId: "submate-billing-channel",
-            schedule: options.at ? { at: options.at } : undefined,
+            schedule: options.at ? notificationSchedule(options.at) : undefined,
             extra: options.extra || {},
           },
         ],
@@ -282,7 +291,7 @@ function cancelReminderNotification(reminder) {
     title: `[해지 가능] ${reminder.serviceName} 지금 해지할 수 있어요`,
     body: `${reminder.routeLabel || "해지"} 이용시간이 시작됐어요. 눌러서 해지를 이어가세요.`,
     channelId: "submate-billing-channel",
-    schedule: { at: new Date(reminder.at) },
+    schedule: notificationSchedule(new Date(reminder.at)),
     extra: { subscriptionId: reminder.subscriptionId, type: CANCEL_REMINDER_TYPE },
   };
 }
@@ -372,7 +381,7 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
             title: `[결제 D-3] ${sub.name} 결제 예정`,
             body: `3일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
             channelId: "submate-billing-channel",
-            schedule: { at: d3Date },
+            schedule: notificationSchedule(d3Date),
             extra: { subscriptionId: sub.subscriptionId || sub.id, type: "billing_d3" },
           });
         }
@@ -394,7 +403,7 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
               ? `내일 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
               : `내일 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
             channelId: "submate-billing-channel",
-            schedule: { at: d1Date },
+            schedule: notificationSchedule(d1Date),
             extra: { subscriptionId: sub.subscriptionId || sub.id, type: isTrial ? "trial_d1" : "billing_d1" },
           });
         }
@@ -420,7 +429,7 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
         title: item.title,
         body: item.body,
         channelId: "submate-billing-channel",
-        schedule: { at: item.at },
+        schedule: notificationSchedule(item.at),
         extra: { subscriptionId: item.subscriptionId, type: item.type },
       });
     }
