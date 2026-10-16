@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button, SubscriptionCard, ServiceMark } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
+import { calculateMonthlyTotal, calculateYearlyTotal } from "../lib/subscriptionAgent";
 
 function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile }) {
   return (
@@ -217,17 +218,11 @@ export function HomeScreen({
   const [annual, setAnnual] = useState(false);
 
   const monthly = useMemo(() => {
-    return subscriptions.reduce((sum, sub) => {
-      const amt = sub.billingCycle === "매년" ? Math.round(sub.amount / 12) : sub.amount;
-      return sum + amt;
-    }, 0);
+    return calculateMonthlyTotal(subscriptions);
   }, [subscriptions]);
 
   const yearly = useMemo(() => {
-    return subscriptions.reduce((sum, sub) => {
-      const amt = sub.billingCycle === "매년" ? sub.amount : sub.amount * 12;
-      return sum + amt;
-    }, 0);
+    return calculateYearlyTotal(subscriptions);
   }, [subscriptions]);
 
   const displayAmount = annual ? yearly : monthly;

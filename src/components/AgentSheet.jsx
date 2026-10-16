@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
-import { AlertTriangle, Check, CloudUpload, Copy, ExternalLink, FileText, Fingerprint, Loader2, Send, ShieldCheck, Sparkles, X } from "lucide-react";
+import { AlertTriangle, Check, CloudUpload, Copy, ExternalLink, FileText, Fingerprint, HelpCircle, Loader2, Send, ShieldCheck, Sparkles, TrendingDown, TrendingUp, X } from "lucide-react";
 import { BottomSheet, Button } from "./ui";
 import { formatWon } from "../lib/dates";
 import { readEvidenceCases, readStoredValue, storageKeys, writeStoredValue } from "../lib/storage";
@@ -94,6 +94,143 @@ function ToolTrace({ tools }) {
           <Check size={10} /> {tool}
         </span>
       ))}
+    </div>
+  );
+}
+
+function SpendingResponse({ response }) {
+  return (
+    <div className="rounded-2xl border border-[#E5E8EB] bg-white p-4">
+      <ToolTrace tools={response.toolsUsed} />
+      <div className="flex items-center gap-2">
+        <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#E8F3FF] text-[#1B64DA]"><TrendingUp size={16} /></span>
+        <div>
+          <p className="text-[14px] font-extrabold text-[#191F28]">월 총 {formatWon(response.monthly)}</p>
+          <p className="text-[11px] font-medium text-[#8B95A1]">활성 구독 {response.count}개 기준</p>
+        </div>
+      </div>
+      <p className="mt-3 text-[13px] leading-relaxed text-[#333D4B]">{response.summary}</p>
+      <div className="mt-3 rounded-xl bg-[#F9FAFB] p-3 text-[12px] text-[#4E5968]">
+        <div className="flex justify-between py-1 border-b border-[#F2F4F6]">
+          <span>월 지출 합계</span>
+          <span className="font-bold text-[#191F28]">{formatWon(response.monthly)}</span>
+        </div>
+        <div className="flex justify-between py-1 pt-1.5">
+          <span>연간 예상 지출</span>
+          <span className="font-bold text-[#191F28]">{formatWon(response.yearly)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TopCostResponse({ response, onStartCancel }) {
+  return (
+    <div className="rounded-2xl border border-[#E5E8EB] bg-white p-4">
+      <ToolTrace tools={response.toolsUsed} />
+      <p className="text-[14px] font-extrabold text-[#191F28]">{response.summary}</p>
+      <div className="mt-3 space-y-2">
+        {response.items.map((item, idx) => (
+          <div key={item.subscriptionId || idx} className="flex items-center justify-between rounded-xl bg-[#F9FAFB] p-3">
+            <div className="flex items-center gap-2.5">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-[#E5E8EB] text-[11px] font-black text-[#4E5968]">
+                {idx + 1}
+              </span>
+              <div>
+                <p className="text-[13px] font-bold text-[#191F28]">{item.name}</p>
+                <p className="text-[11px] text-[#8B95A1]">
+                  {item.billingCycle === "매년" ? "연 " + formatWon(item.amount) + " (월 환산 " + formatWon(item.monthlyEquivalent) + ")" : item.plan || "월 결제"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] font-extrabold text-[#191F28]">{formatWon(item.monthlyEquivalent)}/월</span>
+              {onStartCancel && (
+                <button
+                  type="button"
+                  onClick={() => onStartCancel(item.subscriptionId)}
+                  className="rounded-lg border border-[#E5E8EB] bg-white px-2 py-1 text-[11px] font-semibold text-[#6B7684] hover:border-[#191F28]"
+                >
+                  해지
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function UnusedResponse({ response, onStartCancel }) {
+  return (
+    <div className="rounded-2xl border border-[#E5E8EB] bg-white p-4">
+      <ToolTrace tools={response.toolsUsed} />
+      <div className="flex items-center gap-2">
+        <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#FFF1F0] text-[#E03131]">
+          <TrendingDown size={16} />
+        </span>
+        <p className="text-[14px] font-extrabold text-[#191F28]">안 쓰는 구독 점검</p>
+      </div>
+      <p className="mt-2 text-[13px] leading-relaxed text-[#333D4B]">{response.summary}</p>
+      {response.items?.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {response.items.map((item) => (
+            <div key={item.subscriptionId} className="flex items-center justify-between rounded-xl bg-[#F9FAFB] p-3">
+              <div>
+                <p className="text-[13px] font-bold text-[#191F28]">{item.name}</p>
+                <p className="text-[11px] font-medium text-[#E03131]">{item.streak}달 연속 '거의 안 씀'</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[13px] font-extrabold text-[#191F28]">{formatWon(item.amount)}</span>
+                {onStartCancel && (
+                  <button
+                    type="button"
+                    onClick={() => onStartCancel(item.subscriptionId)}
+                    className="rounded-lg bg-[#191F28] px-2.5 py-1 text-[11px] font-semibold text-white"
+                  >
+                    해지하기
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ServiceInfoResponse({ response, onStartCancel }) {
+  return (
+    <div className="rounded-2xl border border-[#E5E8EB] bg-white p-4">
+      <ToolTrace tools={response.toolsUsed} />
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[15px] font-extrabold text-[#191F28]">{response.serviceName}</p>
+          {response.plan && <p className="text-[11px] font-medium text-[#8B95A1]">{response.plan}</p>}
+        </div>
+        <span className="text-[15px] font-black text-[#191F28]">{formatWon(response.amount)}</span>
+      </div>
+      <div className="mt-3 rounded-xl bg-[#F9FAFB] p-3 text-[12px] text-[#4E5968] space-y-1.5">
+        <div className="flex justify-between">
+          <span>결제 주기</span>
+          <span className="font-semibold text-[#191F28]">{response.billingCycle}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>다음 결제일</span>
+          <span className="font-semibold text-[#191F28]">{response.nextPaymentDate}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>결제 수단</span>
+          <span className="font-semibold text-[#191F28]">{response.paymentMethod}</span>
+        </div>
+      </div>
+      {onStartCancel && (
+        <Button size="compact" variant="outline" fullWidth className="mt-3" onClick={() => onStartCancel(response.subscriptionId)}>
+          {response.serviceName} 해지 진행
+        </Button>
+      )}
     </div>
   );
 }
@@ -363,9 +500,10 @@ function AlertResponse({ response, approval, onDecide, onStartCancel, onUpdateAm
   );
 }
 
-export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose, onStartCancel, onUpdateAmount, onToast, userId = null }) {
+export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose, onStartCancel, onUpdateAmount, onToast, userId = null, usageAnswers = null }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [context, setContext] = useState({ lastSubscriptionId: null, lastIntent: null });
   const [approvals, setApprovals] = useState(() => readStoredValue(storageKeys.agentApprovals, {}));
   const [mandates, setMandates] = useState(() => readStoredValue(storageKeys.agentMandates, {}));
   const endRef = useRef(null);
@@ -373,6 +511,13 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
   const mandatesRef = useRef(mandates);
   const recordedRef = useRef(new Set());
   const autoDecidedRef = useRef(new Set());
+
+  // 메시지가 모두 비워지면 대화 단기 기억도 초기화한다
+  useEffect(() => {
+    if (messages.length === 0) {
+      setContext({ lastSubscriptionId: null, lastIntent: null });
+    }
+  }, [messages.length]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -421,10 +566,19 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
     const history = [...messages, { id: "u-" + Date.now(), role: "user", text }];
     onMessagesChange(history);
     setLoading(true);
-    let response = runAgent({ text, subscriptions });
+    const effectiveUsageAnswers = usageAnswers || readStoredValue(storageKeys.usageAnswers, {});
+    let response = runAgent({ text, subscriptions, context, usageAnswers: effectiveUsageAnswers });
     if (response.type === "unknown" || response.type === "clarify") {
       const interpretation = await interpretWithAi(text, subscriptions);
-      if (interpretation) response = runAgent({ text, subscriptions, interpretation });
+      if (interpretation) response = runAgent({ text, subscriptions, interpretation, context, usageAnswers: effectiveUsageAnswers });
+    }
+    const newSubId = response.subscriptionId || (response.subscription ? (response.subscription.subscriptionId || response.subscription.id) : null);
+    const newIntent = response.intent && response.intent !== "unknown" ? response.intent : null;
+    if (newSubId || newIntent) {
+      setContext((prev) => ({
+        lastSubscriptionId: newSubId || prev.lastSubscriptionId,
+        lastIntent: newIntent || prev.lastIntent,
+      }));
     }
     setLoading(false);
     onMessagesChange([...history, { id: "a-" + Date.now(), role: "agent", response }]);
@@ -492,7 +646,13 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
   };
 
   const clarify = (response, option) => {
-    const verb = response.intent === "cancel_refund" ? "해지하고 환불 받아줘" : response.intent === "refund" ? "환불 받아줘" : "해지해줘";
+    const verb = response.intent === "cancel_refund"
+      ? "해지하고 환불 받아줘"
+      : response.intent === "refund"
+      ? "환불 받아줘"
+      : response.intent === "service_info"
+      ? "얼마야?"
+      : "해지해줘";
     send(option.name + " " + verb);
   };
 
@@ -552,6 +712,18 @@ export function AgentSheet({ subscriptions, messages, onMessagesChange, onClose,
                     onCreateMandate={createMandateFor}
                     onRevokeMandate={revokeMandateFor}
                   />
+                )}
+                {message.response.type === "spending" && (
+                  <SpendingResponse response={message.response} />
+                )}
+                {message.response.type === "top_cost" && (
+                  <TopCostResponse response={message.response} onStartCancel={onStartCancel} />
+                )}
+                {message.response.type === "unused" && (
+                  <UnusedResponse response={message.response} onStartCancel={onStartCancel} />
+                )}
+                {message.response.type === "service_info" && (
+                  <ServiceInfoResponse response={message.response} onStartCancel={onStartCancel} />
                 )}
                 {message.response.type === "alert" && (
                   <AlertResponse

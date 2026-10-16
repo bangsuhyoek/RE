@@ -203,13 +203,17 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
   }, [subscriptions, profile?.user_id]);
 
   const muteSubscription = useCallback((subscriptionId, notify) => {
+    const target = subscriptions.find((s) => s.subscriptionId === subscriptionId || s.id === subscriptionId);
+    if (target && profile?.user_id) {
+      upsertDbSubscription(profile.user_id, { ...target, alertD3: false, alertD1: false }).catch(console.error);
+    }
     setSubscriptions((current) =>
       current.map((subscription) =>
         subscription.subscriptionId === subscriptionId ? { ...subscription, alertD3: false, alertD1: false } : subscription
       )
     );
     notify?.("사전 알림을 모두 껐어요.");
-  }, []);
+  }, [subscriptions, profile?.user_id]);
 
   const startCancellation = useCallback((subscriptionId, promotion = null, options = {}) => {
     const target = subscriptions.find((subscription) =>
@@ -249,10 +253,14 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
   const handleRenewal = useCallback((keep, notify) => {
     if (!renewalSubscription) return;
     if (keep) {
+      const updated = { ...renewalSubscription, renewalPending: false, renewalReviewedFor: getMonthKey() };
+      if (profile?.user_id) {
+        upsertDbSubscription(profile.user_id, updated).catch(console.error);
+      }
       setSubscriptions((current) =>
         current.map((subscription) =>
           subscription.subscriptionId === renewalSubscription.subscriptionId
-            ? { ...subscription, renewalPending: false, renewalReviewedFor: getMonthKey() }
+            ? updated
             : subscription
         )
       );
@@ -262,11 +270,14 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
       setSubscriptions((current) =>
         current.filter((subscription) => subscription.subscriptionId !== renewalSubscription.subscriptionId)
       );
+      if (profile?.user_id) {
+        deleteDbSubscription(profile.user_id, renewalSubscription.subscriptionId);
+      }
       setSavedAmount((amount) => amount + renewalSubscription.amount);
       notify?.(`${renewalSubscription.name}을 목록에서 해지 처리했어요.`);
     }
     setRenewalTarget(null);
-  }, [renewalSubscription]);
+  }, [renewalSubscription, profile?.user_id]);
 
   const deleteSubscription = useCallback((subscriptionId) => {
     const target = subscriptions.find((sub) => (sub.subscriptionId || sub.id) === subscriptionId);

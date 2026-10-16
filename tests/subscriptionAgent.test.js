@@ -1,14 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  applyConversationContext,
   assessDetectedPayment,
   assessRefund,
   buildRenewalResponse,
   buildRefundDraft,
+  calculateMonthlyTotal,
+  calculateYearlyTotal,
   createApprovalRequest,
   createEvidenceCase,
   decideApproval,
   detectPaymentChannel,
+  findSubscriptionInText,
   formatEvidenceSummary,
   getLastChargeDate,
   mergeApproval,
@@ -192,4 +196,188 @@ test("서버에서 확정된 결정이 기기 기록보다 우선하고, 서버�
   assert.equal(mergeServerApprovals(local, [row])[row.idempotency_key].status, "declined");
   const pendingRow = { ...row, status: "pending", decided_at: null };
   assert.equal(mergeServerApprovals(local, [pendingRow])[row.idempotency_key].status, "approved_once");
+});
+
+// ---------- 신규 의도(spending, top_cost, unused, service_info) 검증 ----------
+
+test("신규 의도 파싱: spending, top_cost, unused, service_info", () => {
+  assert.equal(parseAgentIntent("이번 달 총 지출 얼마야?", subs).intent, "spending");
+  assert.equal(parseAgentIntent("한 달에 구독료 총 얼마 나가?", subs).intent, "spending");
+  assert.equal(parseAgentIntent("가장 비싼 구독이 뭐야?", subs).intent, "top_cost");
+  assert.equal(parseAgentIntent("제일 비싼 거 알려줘", subs).intent, "top_cost");
+  assert.equal(parseAgentIntent("안 쓰는 구독 있어?", subs).intent, "unused");
+  assert.equal(parseAgentIntent("넷플릭스 얼마야?", subs).intent, "service_info");
+  assert.equal(parseAgentIntent("넷플릭스 결제수단 뭐야?", subs).intent, "service_info");
+  assert.equal(parseAgentIntent("넷플릭스 결제일 언제야?", subs).intent, "service_info");
+  // 환불 및 해지 키워드 우선순위 유지
+  assert.equal(parseAgentIntent("넷플릭스 얼마 환불돼?", subs).intent, "refund");
+  assert.equal(parseAgentIntent("넷플릭스 얼마 환불돼?", subs).subscription.id, "netflix");
+});
+
+test("spending 의도: 홈 화면과 동일한 월 지출 합산 및 연간 지출 계산", () => {
+  const testSubs = [
+    ...subs,
+    { subscriptionId: "seed-dropbox", id: "dropbox", name: "Dropbox", amount: 120000, billingCycle: "매년" },
+  ];
+  // 홈 화면 계산식: sub.billingCycle === "매년" ? Math.round(sub.amount / 12) : sub.amount
+  const homeMonthly = testSubs.reduce((sum, sub) => {
+    const amt = sub.billingCycle === "매년" ? Math.round(sub.amount / 12) : sub.amount;
+    return sum + amt;
+  }, 0);
+  const homeYearly = testSubs.reduce((sum, sub) => {
+    const amt = sub.billingCycle === "매년" ? sub.amount : sub.amount * 12;
+    return sum + amt;
+  }, 0);
+
+  assert.equal(calculateMonthlyTotal(testSubs), homeMonthly);
+  assert.equal(calculateYearlyTotal(testSubs), homeYearly);
+
+  const res = runAgent({ text: "한 달 총 지출 얼마야?", subscriptions: testSubs, now: NOW });
+  assert.equal(res.type, "spending");
+  assert.equal(res.monthly, homeMonthly);
+  assert.equal(res.yearly, homeYearly);
+  assert.equal(res.count, testSubs.length);
+});
+
+test("top_cost 의도: 월 환산 기준 상위 3개 구독 반환", () => {
+  const testSubs = [
+    { subscriptionId: "s1", id: "sub1", name: "싼 거", amount: 3000, billingCycle: "매월" },
+    { subscriptionId: "s2", id: "sub2", name: "중간 거", amount: 10000, billingCycle: "매월" },
+    { subscriptionId: "s3", id: "sub3", name: "비싼 연간", amount: 240000, billingCycle: "매년" }, // 월 20,000
+    { subscriptionId: "s4", id: "sub4", name: "가장 비싼 월간", amount: 25000, billingCycle: "매월" },
+  ];
+  const res = runAgent({ text: "가장 비싼 구독 3개 알려줘", subscriptions: testSubs, now: NOW });
+  assert.equal(res.type, "top_cost");
+  assert.equal(res.items.length, 3);
+  assert.equal(res.items[0].name, "가장 비싼 월간"); // 25,000
+  assert.equal(res.items[1].name, "비싼 연간"); // 20,000
+  assert.equal(res.items[2].name, "중간 거"); // 10,000
+});
+
+test("unused 의도: 사용 체크 답변이 없을 때와 있을 때의 처리", () => {
+  const emptyRes = runAgent({ text: "안 쓰는 구독 있어?", subscriptions: subs, now: NOW, usageAnswers: {} });
+  assert.equal(emptyRes.type, "unused");
+  assert.equal(emptyRes.hasRecords, false);
+  assert.match(emptyRes.summary, /사용 체크 답변이 없어요/);
+
+  const usageAnswers = {
+    "seed-netflix@2026-09-28": { answer: "unused", subscriptionId: "seed-netflix" },
+    "seed-netflix@2026-08-28": { answer: "unused", subscriptionId: "seed-netflix" },
+    "seed-spotify@2026-09-02": { answer: "used", subscriptionId: "seed-spotify" },
+  };
+  const answeredRes = runAgent({ text: "안 쓰는 구독 찾아줘", subscriptions: subs, now: NOW, usageAnswers });
+  assert.equal(answeredRes.type, "unused");
+  assert.equal(answeredRes.hasRecords, true);
+  assert.equal(answeredRes.items.length, 1);
+  assert.equal(answeredRes.items[0].name, "Netflix");
+  assert.equal(answeredRes.items[0].streak, 2);
+});
+
+test("service_info 의도: 특정 구독의 금액, 다음 결제일, 결제수단 안내 및 미지정 시 clarify", () => {
+  const res = runAgent({ text: "넷플릭스 얼마야?", subscriptions: subs, now: NOW });
+  assert.equal(res.type, "service_info");
+  assert.equal(res.serviceName, "Netflix");
+  assert.equal(res.amount, 17000);
+  assert.match(res.paymentMethod, /신한카드/);
+  assert.match(res.paymentMethod, /4521/);
+  assert.ok(res.nextPaymentDate);
+
+  // 구독명이 없고 단기 기억도 없으면 unknown으로 떨어져 AI fallback 또는 일반 안내가 처리
+  const unknownRes = runAgent({ text: "얼마야?", subscriptions: subs, now: NOW });
+  assert.equal(unknownRes.type, "unknown");
+
+  // AI 해석이나 컨텍스트를 통해 service_info로 판별되었으나 subscription이 비어 있는 경우 clarify
+  const clarifyRes = runAgent({ text: "얼마야?", subscriptions: subs, now: NOW, interpretation: { intent: "service_info", subscriptionId: null } });
+  assert.equal(clarifyRes.type, "clarify");
+  assert.equal(clarifyRes.intent, "service_info");
+});
+
+// ---------- 단기 대화 컨텍스트 규칙 (a, b, c) 검증 ----------
+
+test("단기 대화 컨텍스트 규칙: (a) 참조어와 lastSubscriptionId가 있으면 해당 구독 사용", () => {
+  const context = { lastSubscriptionId: "seed-netflix", lastIntent: "service_info" };
+  const parsed = parseAgentIntent("그거 해지해줘", subs);
+  const applied = applyConversationContext(parsed, context, subs, "그거 해지해줘");
+  assert.equal(applied.intent, "cancel");
+  assert.equal(applied.subscription.id, "netflix");
+
+  const res = runAgent({ text: "그거 해지해줘", subscriptions: subs, now: NOW, context });
+  assert.equal(res.type, "action");
+  assert.equal(res.serviceName, "Netflix");
+  assert.equal(res.approval.status, "pending");
+});
+
+test("단기 대화 컨텍스트 규칙: (b) 구독은 있지만 intent가 unknown이고 lastIntent가 재사용 가능이면 재사용", () => {
+  const context = { lastSubscriptionId: "seed-netflix", lastIntent: "cancel" };
+  const parsed = parseAgentIntent("스포티파이는?", subs);
+  assert.equal(parsed.intent, "unknown");
+  assert.equal(parsed.subscription.id, "spotify");
+
+  const applied = applyConversationContext(parsed, context, subs, "스포티파이는?");
+  assert.equal(applied.intent, "cancel");
+  assert.equal(applied.subscription.id, "spotify");
+
+  const res = runAgent({ text: "스포티파이는?", subscriptions: subs, now: NOW, context });
+  assert.equal(res.type, "action");
+  assert.equal(res.serviceName, "Spotify");
+  assert.equal(res.intent, "cancel");
+});
+
+test("단기 대화 컨텍스트 규칙: (c) 변경 없음 및 clarify 시 이전 구독이 최상단 옵션으로 정렬", () => {
+  const context = { lastSubscriptionId: "seed-icloud", lastIntent: "cancel" };
+  // 일반 대화에서는 변경 없음
+  const res = runAgent({ text: "해지해줘", subscriptions: subs, now: NOW, context });
+  assert.equal(res.type, "clarify");
+  // context의 lastSubscriptionId인 seed-icloud가 첫 번째 옵션에 와야 함
+  assert.equal(res.options[0].id, "seed-icloud");
+  assert.equal(res.options[0].name, "iCloud+");
+});
+
+// ---------- SERVICE_ALIAS_CATALOG 연동 및 별칭 매칭 / 쿠팡 모호성 검증 ----------
+
+test("SERVICE_ALIAS_CATALOG 기반 별칭 매칭 및 쿠팡플레이 vs 쿠팡 와우 모호성 해결", () => {
+  const testSubs = [
+    { subscriptionId: "seed-coupang", id: "coupang", name: "쿠팡 와우" },
+    { subscriptionId: "seed-coupangplay", id: "coupangplay", name: "쿠팡플레이" },
+    { subscriptionId: "seed-claude", id: "claude", name: "Claude" },
+  ];
+
+  assert.equal(findSubscriptionInText("쿠팡플레이 해지해줘", testSubs)?.id, "coupangplay");
+  assert.equal(findSubscriptionInText("쿠팡플레이 결제일 언제야", testSubs)?.id, "coupangplay");
+  assert.equal(findSubscriptionInText("쿠플 환불", testSubs)?.id, "coupangplay");
+  assert.equal(findSubscriptionInText("쿠팡 와우 해지해줘", testSubs)?.id, "coupang");
+  assert.equal(findSubscriptionInText("쿠팡 해지해줘", testSubs)?.id, "coupang");
+  assert.equal(findSubscriptionInText("클로드 해지해줘", testSubs)?.id, "claude");
+});
+
+test("일반 단어 오탐 방지: 구독명이 없으면 service_info가 아닌 unknown으로 처리", () => {
+  assert.equal(parseAgentIntent("카드 등록 어떻게 해?", subs).intent, "unknown");
+  assert.equal(parseAgentIntent("내 정보 수정", subs).intent, "unknown");
+  assert.equal(parseAgentIntent("시간 낭비야", subs).intent, "unknown");
+  assert.equal(parseAgentIntent("비용 처리 어떻게 해?", subs).intent, "unknown");
+  assert.equal(parseAgentIntent("결제수단 추가", subs).intent, "unknown");
+
+  // 구독명이 명시되면 정상적으로 service_info로 인식
+  assert.equal(parseAgentIntent("넷플릭스 결제일 언제야", subs).intent, "service_info");
+  assert.equal(parseAgentIntent("넷플릭스 결제일 언제야", subs).subscription.id, "netflix");
+});
+
+test("spending 합산 일치: calculateMonthlyTotal과 HomeScreen의 계산 결과가 항상 일치하며 cancelled 제외", () => {
+  const testSubs = [
+    { subscriptionId: "s1", id: "netflix", name: "Netflix", amount: 17000, billingCycle: "매월", status: "active" },
+    { subscriptionId: "s2", id: "dropbox", name: "Dropbox", amount: 120000, billingCycle: "매년", status: "active" },
+    { subscriptionId: "s3", id: "tving", name: "TVING", amount: 5500, billingCycle: "매월", status: "cancelled" },
+  ];
+
+  const monthly = calculateMonthlyTotal(testSubs);
+  const yearly = calculateYearlyTotal(testSubs);
+
+  // active만 반영되어야 함: 17000 + 10000 = 27000 (cancelled인 5500 제외)
+  assert.equal(monthly, 27000);
+  assert.equal(yearly, 17000 * 12 + 120000);
+
+  const res = runAgent({ text: "총 지출 얼마야?", subscriptions: testSubs, now: NOW });
+  assert.equal(res.monthly, monthly);
+  assert.equal(res.yearly, yearly);
+  assert.equal(res.count, 2);
 });

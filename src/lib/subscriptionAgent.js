@@ -1,4 +1,6 @@
 import { dateForDueDay, formatWon, getNextChargeDate } from "./dates.js";
+import { SERVICE_ALIAS_CATALOG } from "../../api/_lib/serviceAliases.js";
+import { unusedStreak } from "./usageCheck.js";
 
 /**
  * 꾸독 에이전트(미니 닷) 판단 로직
@@ -14,24 +16,16 @@ const UPCOMING_WINDOW_DAYS = 7;
 const WITHDRAWAL_DAYS = 7;
 const MANDATE_TTL_DAYS = 365;
 
-export const AGENT_INTENTS = ["cancel_refund", "cancel", "refund", "upcoming", "unknown"];
+export const AGENT_INTENTS = ["cancel_refund", "cancel", "refund", "upcoming", "spending", "top_cost", "unused", "service_info", "unknown"];
 
-const SERVICE_ALIASES = {
-  netflix: ["넷플릭스", "넷플", "netflix"],
-  spotify: ["스포티파이", "스포티", "spotify"],
-  chatgpt: ["챗지피티", "챗gpt", "지피티", "chatgpt", "gpt"],
-  youtube: ["유튜브", "유튜브프리미엄", "youtube", "유튭"],
-  adobe: ["어도비", "adobe", "포토샵"],
-  icloud: ["아이클라우드", "icloud"],
+const CLIENT_EXTRA_ALIASES = {
+  spotify: ["스포티"],
+  chatgpt: ["지피티", "gpt"],
+  youtube: ["유튜브프리미엄", "유튭"],
+  adobe: ["포토샵"],
+  disney: ["디즈니", "disney"],
   claude: ["클로드", "claude"],
-  tving: ["티빙", "tving"],
-  wavve: ["웨이브", "wavve"],
-  watcha: ["왓챠", "watcha"],
-  coupangplay: ["쿠팡플레이", "coupangplay"],
-  disney: ["디즈니", "디즈니플러스", "disney"],
-  melon: ["멜론", "melon"],
-  canva: ["캔바", "canva"],
-  notion: ["노션", "notion"],
+  "claude-pro": ["클로드", "claude"],
 };
 
 const APPLE_BILLED_SERVICE_IDS = ["icloud", "applemusic", "appletv", "apple-arcade", "arcade"];
@@ -39,7 +33,11 @@ const APPLE_BILLED_SERVICE_IDS = ["icloud", "applemusic", "appletv", "apple-arca
 const KEYWORDS = {
   cancel: ["해지", "취소", "그만", "끊어", "끊고", "해약", "탈퇴", "cancel"],
   refund: ["환불", "돌려받", "돌려줘", "refund"],
-  upcoming: ["결제예정", "예정", "이번주", "다음결제", "언제결제", "곧결제", "나갈", "나가는", "결제일"],
+  upcoming: ["결제예정", "예정", "이번주", "다음결제", "언제결제", "곧결제", "나갈", "나가는"],
+  spending: ["총지출", "한달지출", "한달얼마", "월지출", "얼마나가", "얼마써", "얼마쓰", "총얼마", "전체지출", "한달구독료", "월구독료", "총구독료", "구독료얼마", "지출얼마", "얼마내", "지출내역"],
+  top_cost: ["가장비싼", "제일비싼", "가장큰", "제일큰", "비싼구독", "비싼거", "최대지출", "금액높은", "비싼순"],
+  unused: ["안쓰는", "안쓴", "사용안한", "거의안쓴", "정리할"],
+  service_info: ["금액", "얼마야", "얼마니", "얼마인지", "얼마지", "결제수단", "요금", "다음결제일", "결제일"],
 };
 
 // 공식 출처 원문으로 확인한 정책만 넣는다. 없으면 "확인 필요"로 답한다.
@@ -326,10 +324,22 @@ const subscriptionKey = (subscription) => subscription?.subscriptionId || subscr
 
 const aliasesFor = (subscription) => {
   const id = normalize(subscription?.id);
-  const fromMap = Object.entries(SERVICE_ALIASES)
-    .filter(([key]) => id && (id === key || id.startsWith(key)))
-    .flatMap(([, aliases]) => aliases);
-  return [subscription?.name, subscription?.id, ...fromMap].map(normalize).filter((alias) => alias.length >= 2);
+  const catalogAliases = SERVICE_ALIAS_CATALOG
+    .filter((entry) => {
+      const entryId = normalize(entry.id);
+      return id && (
+        id === entryId ||
+        id === entryId.replace(/[-_]?(pro|plus|all|sub)$/, "") ||
+        entryId === id.replace(/[-_]?(pro|plus|all|sub)$/, "") ||
+        id.startsWith(entryId + "-") ||
+        entryId.startsWith(id + "-")
+      );
+    })
+    .flatMap((entry) => [entry.name, ...(entry.aliases || [])]);
+  const extra = CLIENT_EXTRA_ALIASES[id] || [];
+  return [subscription?.name, subscription?.id, ...catalogAliases, ...extra]
+    .map(normalize)
+    .filter((alias) => alias && alias.length >= 2);
 };
 
 export function findSubscriptionInText(text, subscriptions = []) {
@@ -352,15 +362,24 @@ export function parseAgentIntent(text, subscriptions = []) {
   const has = (list) => list.some((keyword) => compact.includes(normalize(keyword)));
   const wantsCancel = has(KEYWORDS.cancel);
   const wantsRefund = has(KEYWORDS.refund);
+  const wantsTopCost = has(KEYWORDS.top_cost);
+  const wantsSpending = has(KEYWORDS.spending);
+  const wantsUnused = has(KEYWORDS.unused);
   const wantsUpcoming = has(KEYWORDS.upcoming);
+  const wantsServiceInfo = has(KEYWORDS.service_info);
+  const subscription = findSubscriptionInText(text, subscriptions);
 
   let intent = "unknown";
   if (wantsCancel && wantsRefund) intent = "cancel_refund";
   else if (wantsRefund) intent = "refund";
   else if (wantsCancel) intent = "cancel";
+  else if (wantsTopCost) intent = "top_cost";
+  else if (wantsSpending) intent = "spending";
+  else if (wantsUnused) intent = "unused";
   else if (wantsUpcoming) intent = "upcoming";
+  else if (wantsServiceInfo && subscription) intent = "service_info";
 
-  return { intent, subscription: findSubscriptionInText(text, subscriptions) };
+  return { intent, subscription };
 }
 
 export function detectPaymentChannel(subscription = {}) {
@@ -563,10 +582,22 @@ export function mergeMandates(local = {}, remote = []) {
 
 // ---------- 에이전트 실행 ----------
 
-const listForClarify = (subscriptions) => subscriptions.slice(0, 6).map((subscription) => ({
-  id: subscriptionKey(subscription),
-  name: subscription.name,
-}));
+const listForClarify = (subscriptions, preferredId = null) => {
+  const list = [...subscriptions];
+  if (preferredId) {
+    list.sort((a, b) => {
+      const aMatch = subscriptionKey(a) === preferredId || a.id === preferredId;
+      const bMatch = subscriptionKey(b) === preferredId || b.id === preferredId;
+      if (aMatch && !bMatch) return -1;
+      if (!aMatch && bMatch) return 1;
+      return 0;
+    });
+  }
+  return list.slice(0, 6).map((subscription) => ({
+    id: subscriptionKey(subscription),
+    name: subscription.name,
+  }));
+};
 
 function buildActionResponse({ intent, subscription, now, text }) {
   const channel = detectPaymentChannel(subscription);
@@ -669,6 +700,130 @@ function buildUpcomingResponse({ subscriptions, now }) {
   };
 }
 
+export function calculateMonthlyTotal(subscriptions = []) {
+  return subscriptions
+    .filter((sub) => sub.status !== "cancelled")
+    .reduce((sum, sub) => {
+    const amt = sub.billingCycle === "매년" ? Math.round(sub.amount / 12) : sub.amount;
+    return sum + amt;
+  }, 0);
+}
+
+export function calculateYearlyTotal(subscriptions = []) {
+  return subscriptions
+    .filter((sub) => sub.status !== "cancelled")
+    .reduce((sum, sub) => {
+    const amt = sub.billingCycle === "매년" ? sub.amount : sub.amount * 12;
+    return sum + amt;
+  }, 0);
+}
+
+function buildSpendingResponse({ subscriptions = [] }) {
+  const monthly = calculateMonthlyTotal(subscriptions);
+  const yearly = calculateYearlyTotal(subscriptions);
+  const count = subscriptions.filter((s) => s.status !== "cancelled").length;
+  return {
+    type: "spending",
+    toolsUsed: ["구독 목록 조회", "지출 계산"],
+    monthly,
+    yearly,
+    count,
+    summary: "현재 이용 중인 구독 " + count + "개의 월 지출은 " + formatWon(monthly) + ", 연간 예상 지출은 " + formatWon(yearly) + "이에요.",
+  };
+}
+
+function buildTopCostResponse({ subscriptions = [] }) {
+  const active = subscriptions.filter((s) => s.status !== "cancelled");
+  const sorted = [...active].sort((a, b) => {
+    const amtA = a.billingCycle === "매년" ? Math.round(a.amount / 12) : a.amount;
+    const amtB = b.billingCycle === "매년" ? Math.round(b.amount / 12) : b.amount;
+    return amtB - amtA;
+  });
+  const top3 = sorted.slice(0, 3).map((sub) => {
+    const monthlyEquivalent = sub.billingCycle === "매년" ? Math.round(sub.amount / 12) : sub.amount;
+    return {
+      subscriptionId: subscriptionKey(sub),
+      name: sub.name,
+      plan: sub.plan || "",
+      amount: sub.amount,
+      billingCycle: sub.billingCycle || "매월",
+      monthlyEquivalent,
+    };
+  });
+  return {
+    type: "top_cost",
+    toolsUsed: ["구독 목록 조회", "금액 정렬"],
+    items: top3,
+    summary: top3.length
+      ? "가장 지출이 큰 구독 상위 " + top3.length + "개예요."
+      : "등록된 구독이 없어요.",
+  };
+}
+
+function buildUnusedResponse({ subscriptions = [], usageAnswers = {} }) {
+  const hasAnswers = usageAnswers && Object.keys(usageAnswers).length > 0;
+  if (!hasAnswers) {
+    return {
+      type: "unused",
+      toolsUsed: ["사용 체크 기록 조회"],
+      hasRecords: false,
+      items: [],
+      summary: "아직 기록된 사용 체크 답변이 없어요. 홈의 '오늘 챙길 일'에서 결제 전 사용 여부를 체크해 보세요.",
+    };
+  }
+
+  const active = subscriptions.filter((s) => s.status !== "cancelled" && !s.isTrial && s.status !== "trial");
+  const candidates = active
+    .map((sub) => {
+      const streak = unusedStreak(usageAnswers, sub);
+      return {
+        subscriptionId: subscriptionKey(sub),
+        name: sub.name,
+        amount: sub.amount,
+        streak,
+      };
+    })
+    .filter((item) => item.streak > 0)
+    .sort((a, b) => b.streak - a.streak);
+
+  if (candidates.length === 0) {
+    return {
+      type: "unused",
+      toolsUsed: ["사용 체크 기록 조회", "연속 미사용 계산"],
+      hasRecords: true,
+      items: [],
+      summary: "최근 사용 체크에서 '안 씀'으로 표시된 구독이 없어요. 모두 잘 활용하고 계시네요!",
+    };
+  }
+
+  return {
+    type: "unused",
+    toolsUsed: ["사용 체크 기록 조회", "연속 미사용 계산"],
+    hasRecords: true,
+    items: candidates,
+    summary: "사용 체크에서 잘 안 쓴다고 답한 구독이 " + candidates.length + "개 있어요.",
+  };
+}
+
+function buildServiceInfoResponse({ subscription, now = new Date() }) {
+  const nextCharge = getNextChargeDate(subscription, now);
+  const nextChargeLabel = (nextCharge.getMonth() + 1) + "월 " + nextCharge.getDate() + "일";
+  const paymentDesc = describePaymentMethod(subscription.paymentMethod);
+  return {
+    type: "service_info",
+    toolsUsed: ["구독 정보 조회", "결제일 계산"],
+    subscriptionId: subscriptionKey(subscription),
+    serviceName: subscription.name,
+    plan: subscription.plan || "",
+    amount: subscription.amount,
+    billingCycle: subscription.billingCycle || "매월",
+    nextPaymentDate: nextChargeLabel,
+    paymentMethod: paymentDesc,
+    summary: subscription.name + (subscription.plan ? " (" + subscription.plan + ")" : "") + "은 " +
+      subscription.billingCycle + " " + formatWon(subscription.amount) + "이며, 다음 결제일은 " +
+      nextChargeLabel + ", 결제수단은 " + paymentDesc + "이에요.",
+  };
+}
 /**
  * 결제 사전 알림(D-3, D-1)을 눌렀을 때 그 구독 하나에 대한 갱신 승인 카드를 만든다.
  */
@@ -893,15 +1048,52 @@ export function formatEvidenceSummary(evidenceCase) {
   return lines.join("\n");
 }
 
+const REFERENCE_WORDS = ["그거", "그것", "이거", "이것", "거기", "방금", "아까", "그 구독"];
+const CONTEXT_REUSABLE_INTENTS = ["cancel", "refund", "cancel_refund", "service_info"];
+
+export function applyConversationContext(parsed, context = {}, subscriptions = [], rawText = "") {
+  let { intent, subscription } = parsed;
+  const compact = normalize(rawText);
+  const hasRef = REFERENCE_WORDS.some((w) => compact.includes(normalize(w)));
+
+  // (a) if no subscription found and text contains a reference word and lastSubscriptionId exists -> use that subscription
+  if (!subscription && hasRef && context.lastSubscriptionId) {
+    const found = subscriptions.find(
+      (s) => subscriptionKey(s) === context.lastSubscriptionId || s.id === context.lastSubscriptionId
+    );
+    if (found) {
+      subscription = found;
+      if (intent === "unknown") {
+        const has = (list) => list.some((keyword) => compact.includes(normalize(keyword)));
+        if (has(KEYWORDS.service_info)) {
+          intent = "service_info";
+        }
+      }
+    }
+  }
+
+  // (b) if a subscription is found but intent is unknown and lastIntent is one of cancel/refund/cancel_refund/service_info -> reuse lastIntent
+  if (subscription && intent === "unknown" && context.lastIntent && CONTEXT_REUSABLE_INTENTS.includes(context.lastIntent)) {
+    intent = context.lastIntent;
+  }
+
+  return { intent, subscription };
+}
+
 /**
  * @param {object} options
  * @param {string} options.text 사용자 요청
  * @param {Array} options.subscriptions 사용자 구독 목록
  * @param {Date} [options.now]
  * @param {{intent?: string, subscriptionId?: string|null}} [options.interpretation] AI 해석 결과(검증된 값만)
+ * @param {{lastSubscriptionId?: string|null, lastIntent?: string|null}} [options.context] 대화 단기 기억
+ * @param {object} [options.usageAnswers] 사용 체크 기록
  */
-export function runAgent({ text = "", subscriptions = [], now = new Date(), interpretation = null }) {
-  const parsed = parseAgentIntent(text, subscriptions);
+export function runAgent({ text = "", subscriptions = [], now = new Date(), interpretation = null, context = null, usageAnswers = {} }) {
+  let parsed = parseAgentIntent(text, subscriptions);
+  if (context) {
+    parsed = applyConversationContext(parsed, context, subscriptions, text);
+  }
   let { intent, subscription } = parsed;
   if (interpretation && AGENT_INTENTS.includes(interpretation.intent)) {
     if (intent === "unknown") intent = interpretation.intent;
@@ -910,12 +1102,26 @@ export function runAgent({ text = "", subscriptions = [], now = new Date(), inte
     }
   }
 
+  if (intent === "spending") return buildSpendingResponse({ subscriptions });
+  if (intent === "top_cost") return buildTopCostResponse({ subscriptions });
+  if (intent === "unused") return buildUnusedResponse({ subscriptions, usageAnswers });
   if (intent === "upcoming") return buildUpcomingResponse({ subscriptions, now });
+  if (intent === "service_info") {
+    if (!subscription) {
+      return {
+        type: "clarify",
+        intent,
+        message: "어떤 구독의 정보를 확인할까요?",
+        options: listForClarify(subscriptions, context?.lastSubscriptionId),
+      };
+    }
+    return buildServiceInfoResponse({ subscription, now });
+  }
 
   if (intent === "unknown") {
     return {
       type: "unknown",
-      message: "아직 해지, 환불, 결제 예정 확인을 도와드릴 수 있어요. 이렇게 말해 보세요.",
+      message: "해지, 환불, 결제 예정, 총 지출, 가장 비싼 구독, 안 쓰는 구독 조회를 도와드릴 수 있어요. 이렇게 말해 보세요.",
       suggestions: buildSuggestions(subscriptions),
     };
   }
@@ -925,7 +1131,7 @@ export function runAgent({ text = "", subscriptions = [], now = new Date(), inte
       type: "clarify",
       intent,
       message: "어떤 구독을 말씀하시는지 골라 주세요.",
-      options: listForClarify(subscriptions),
+      options: listForClarify(subscriptions, context?.lastSubscriptionId),
     };
   }
 
@@ -936,6 +1142,9 @@ export function buildSuggestions(subscriptions = []) {
   const first = subscriptions[0]?.name || "넷플릭스";
   const second = subscriptions[1]?.name || first;
   return [
+    "한 달 총 지출 얼마야?",
+    "가장 비싼 구독이 뭐야?",
+    "안 쓰는 구독 있어?",
     first + " 해지하고 환불 받아줘",
     "이번 주 결제 예정 알려줘",
     second + " 해지해줘",
