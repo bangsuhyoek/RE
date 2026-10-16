@@ -37,6 +37,7 @@ import { useNavigation } from "./hooks/useNavigation";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
 import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubscription } from "./lib/supabase";
+import { getInitialPromotions, loadLivePromotions } from "./lib/promotionsSync";
 
 // 결제 사전 알림 중 갱신 승인 카드로 이어지는 종류
 const RENEWAL_NOTIFICATION_TYPES = new Set(["billing_d3", "billing_d1", "trial_d1"]);
@@ -55,6 +56,9 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [agentOpen, setAgentOpen] = useState(false);
   const [agentMessages, setAgentMessages] = useState([]);
+  const [livePromotions, setLivePromotions] = useState(() =>
+    getInitialPromotions({ fallbackPromotions: promotionCatalog })
+  );
   // 알림·딥링크 리스너는 앱 시작 때 한 번만 등록되므로 최신 처리 함수를 ref로 넘긴다.
   const detectedPaymentHandlerRef = useRef(null);
   const renewalNotificationHandlerRef = useRef(null);
@@ -68,6 +72,21 @@ export default function App() {
     }
     return false;
   });
+
+  useEffect(() => {
+    let active = true;
+    loadLivePromotions({
+      fallbackPromotions: promotionCatalog,
+      supabaseClient: supabase,
+    }).then((items) => {
+      if (active && Array.isArray(items) && items.length > 0) {
+        setLivePromotions(items);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const notify = useCallback((message, duration = 6000) => {
     setToast({ message, duration, id: Date.now() });
@@ -591,7 +610,9 @@ export default function App() {
 
     let listenerHandle = null;
     CapApp.addListener("backButton", () => {
-      if (accountOpen) {
+      if (termsOpen) {
+        setTermsOpen(false);
+      } else if (accountOpen) {
         setAccountOpen(false);
       } else if (notificationCenterOpen) {
         setNotificationCenterOpen(false);
@@ -599,6 +620,10 @@ export default function App() {
         setAddOpen(false);
       } else if (cancelTarget) {
         closeCancellation();
+      } else if (agentOpen) {
+        setAgentOpen(false);
+      } else if (rotationOpen) {
+        setRotationOpen(false);
       } else if (renewalTarget) {
         setRenewalTarget(null);
       } else if (screen.route === "detail") {
@@ -619,10 +644,13 @@ export default function App() {
       listenerHandle?.remove();
     };
   }, [
+    termsOpen,
     accountOpen,
     notificationCenterOpen,
     addOpen,
     cancelTarget,
+    agentOpen,
+    rotationOpen,
     renewalTarget,
     screen.route,
     closeCancellation,
@@ -765,7 +793,7 @@ export default function App() {
     content = (
       <HomeScreen
         subscriptions={subscriptions}
-        promotions={promotionCatalog}
+        promotions={livePromotions}
         profile={profile}
         notificationDenied={profile?.notificationsAllowed === false}
         onOpenSubscription={(id) => navigate("detail", id)}
@@ -815,7 +843,7 @@ export default function App() {
   } else if (screen.route === "calendar") {
     content = <CalendarScreen subscriptions={subscriptions} onOpen={(id) => navigate("detail", id)} />;
   } else if (screen.route === "promotions") {
-    content = <PromotionScreen subscriptions={subscriptions} promotions={promotionCatalog} onOpenPromotion={handlePromotion} />;
+    content = <PromotionScreen subscriptions={subscriptions} promotions={livePromotions} onOpenPromotion={handlePromotion} />;
   } else if (screen.route === "detail") {
     content = (
       <SubscriptionDetailScreen
@@ -835,7 +863,7 @@ export default function App() {
           setHighlightCancelId(null);
           navigate("subscriptions");
         }}
-        promotion={promotionCatalog.find((p) => p.sourceServiceIds?.includes(selectedSubscription?.id))}
+        promotion={livePromotions.find((p) => p.sourceServiceIds?.includes(selectedSubscription?.id))}
         onTriggerNotification={(sub) => handleTriggerTestNotification(sub, notify)}
         highlightCancel={highlightCancelId === selectedSubscription?.subscriptionId}
       />
@@ -946,6 +974,7 @@ export default function App() {
           onUpdateAmount={handleAlertKeep}
           userId={profile?.user_id || null}
           onToast={notify}
+          usageAnswers={care.usageAnswers}
         />
       )}
       {rotationOpen && (
