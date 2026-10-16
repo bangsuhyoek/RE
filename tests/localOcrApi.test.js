@@ -62,3 +62,14 @@ test("OCR 이외의 경로는 다음 Vite 미들웨어로 넘긴다", async () =
   assert.equal(result.nextCalled, true);
   assert.equal(result.payload, null);
 });
+
+test("Vite 로컬 API 미들웨어에서 OPTIONS preflight 요청이 204로 정상 종료된다", async () => {
+  const ocrPreflight = await runMiddleware({ method: "OPTIONS", url: "/api/ocr" });
+  assert.equal(ocrPreflight.response.statusCode, 204);
+  assert.equal(ocrPreflight.response.writableEnded, true);
+
+  const agentPreflight = await runMiddleware({ method: "OPTIONS", url: "/api/agent" });
+  assert.equal(agentPreflight.response.statusCode, 204);
+  assert.equal(agentPreflight.response.writableEnded, true);
+});
+

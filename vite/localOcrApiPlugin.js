@@ -45,6 +45,10 @@ const createResponseAdapter = (response) => ({
     if (!response.headersSent) response.setHeader("Content-Type", "application/json; charset=utf-8");
     response.end(JSON.stringify(payload));
   },
+  end(data = "") {
+    response.end(data);
+    return this;
+  },
 });
 
 export const createLocalOcrMiddleware = () => async (request, response, next) => {

@@ -71,9 +71,14 @@ const callSingleGeminiModel = async ({ model, imageBase64, mimeType, apiKey, sig
   return candidate?.text || "";
 };
 
+const TOTAL_BUDGET_MS = 28_000;
+const MODEL_TIMEOUT_MS = 10_000;
+const MIN_REMAINING_BUDGET_MS = 1_500;
+
 const callGeminiVision = async ({ imageBase64, mimeType, apiKey }) => {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 28_000);
+  const overallController = new AbortController();
+  const overallTimer = setTimeout(() => overallController.abort(), TOTAL_BUDGET_MS);
+  const startTime = Date.now();
   const defaultModel = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
   const candidateModels = Array.from(new Set([
     defaultModel,
@@ -87,23 +92,45 @@ const callGeminiVision = async ({ imageBase64, mimeType, apiKey }) => {
   let lastError = null;
   try {
     for (const model of candidateModels) {
+      const elapsed = Date.now() - startTime;
+      const remainingTotal = TOTAL_BUDGET_MS - elapsed;
+      if (remainingTotal < MIN_REMAINING_BUDGET_MS) {
+        break;
+      }
+
+      const modelTimeout = Math.min(MODEL_TIMEOUT_MS, remainingTotal);
+      const modelController = new AbortController();
+      const onOverallAbort = () => modelController.abort();
+      overallController.signal.addEventListener("abort", onOverallAbort, { once: true });
+      const modelTimer = setTimeout(() => modelController.abort(), modelTimeout);
+
       try {
         return await callSingleGeminiModel({
           model,
           imageBase64,
           mimeType,
           apiKey,
-          signal: controller.signal,
+          signal: modelController.signal,
         });
       } catch (err) {
         lastError = err;
-        if (controller.signal.aborted) throw err;
+        if (overallController.signal.aborted) throw err;
         const lower = String(err.message || "").toLowerCase();
         if (err.status === 401 || (err.status === 403 && lower.includes("api_key_invalid"))) {
           throw err;
         }
-        await sleep(500);
+        if (err.name !== "AbortError") {
+          await sleep(300);
+        }
+      } finally {
+        clearTimeout(modelTimer);
+        overallController.signal.removeEventListener("abort", onOverallAbort);
       }
+    }
+    if (overallController.signal.aborted) {
+      const timeoutErr = new Error("이미지 인식 총 예산 시간 초과");
+      timeoutErr.name = "AbortError";
+      throw timeoutErr;
     }
     if (lastError && isHighDemandOrOverloaded(lastError.status, lastError.message)) {
       const err = new Error("AI 모델 서비스에 일시적인 트래픽이 몰려 지연되고 있습니다. 잠시 후 다시 시도해 주시거나 결제 문자로 입력해 주세요.");
@@ -112,7 +139,7 @@ const callGeminiVision = async ({ imageBase64, mimeType, apiKey }) => {
     }
     throw lastError || new Error("Gemini OCR 호출에 실패했습니다.");
   } finally {
-    clearTimeout(timer);
+    clearTimeout(overallTimer);
   }
 };
 
