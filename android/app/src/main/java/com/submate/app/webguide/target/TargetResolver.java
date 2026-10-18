@@ -5,6 +5,7 @@ import android.webkit.WebView;
 
 import com.submate.app.webguide.WebSecurityPolicy;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -47,6 +48,17 @@ public final class TargetResolver {
             put(target, "hrefContains", spec.getHrefContains());
             put(target, "dataName", spec.getDataAttributeName());
             put(target, "dataValue", spec.getDataAttributeValue());
+            if (spec.getTextMatches() != null && !spec.getTextMatches().isEmpty()) {
+                JSONArray arr = new JSONArray();
+                for (String tm : spec.getTextMatches()) {
+                    if (tm != null && !tm.trim().isEmpty()) {
+                        arr.put(tm.trim());
+                    }
+                }
+                if (arr.length() > 0) {
+                    target.put("textMatches", arr);
+                }
+            }
         } catch (Exception e) {
             callback.onResolved(new TargetResolution(
                     TargetResolutionStatus.ERROR, null, 0, "", "", "", "spec_serialization_failed"));
@@ -92,6 +104,10 @@ public final class TargetResolver {
                         TargetResolutionStatus.ERROR, null, 0, "", "", "", "result_parse_failed"));
             }
         });
+    }
+
+    public static String getInjectedScriptForTesting(String targetJson) {
+        return buildScript(targetJson == null ? "{}" : targetJson);
     }
 
     public void resolveBySelectors(WebView webView, List<String> orderedSelectors, Callback callback) {
@@ -162,6 +178,9 @@ public final class TargetResolver {
                 "if(spec.className){try{addAll(document.getElementsByClassName(spec.className),'class');}catch(e){}}" +
                 "var clickables=document.querySelectorAll('a,button,[role=\"button\"],[role=\"link\"],[onclick],[tabindex],input[type=\"button\"],input[type=\"submit\"]');" +
                 "if(spec.text){for(var i=0;i<clickables.length;i++){if(norm(clickables[i].innerText||clickables[i].textContent)===norm(spec.text))push(clickables[i],'text');}}" +
+                "var textMatchesList=(spec.textMatches&&Array.isArray(spec.textMatches))?spec.textMatches:(spec.textMatch?[spec.textMatch]:[]);" +
+                "var hasTextMatch=function(t){if(!t)return false;var nl=norm(t).toLowerCase();for(var m=0;m<textMatchesList.length;m++){if(textMatchesList[m]&&nl.indexOf(norm(textMatchesList[m]).toLowerCase())>=0)return true;}return false;};" +
+                "if(textMatchesList.length>0){for(var i=0;i<clickables.length;i++){if(hasTextMatch(clickables[i].innerText||clickables[i].textContent))push(clickables[i],'textMatch');}}" +
                 "if(spec.ariaLabel){var aria=document.querySelectorAll('[aria-label]');for(var i=0;i<aria.length;i++){if(norm(aria[i].getAttribute('aria-label'))===norm(spec.ariaLabel))push(aria[i],'aria-label');}}" +
                 "if(spec.role){var roles=document.querySelectorAll('[role]');for(var i=0;i<roles.length;i++){if(norm(roles[i].getAttribute('role'))===norm(spec.role))push(roles[i],'role');}}" +
                 "if(spec.hrefContains){var links=document.querySelectorAll('a[href]');for(var i=0;i<links.length;i++){if((links[i].getAttribute('href')||'').indexOf(spec.hrefContains)>=0)push(links[i],'href');}}" +
@@ -170,12 +189,14 @@ public final class TargetResolver {
                 "var all=document.querySelectorAll('body *');" +
                 "for(var i=0;i<all.length;i++){if(norm(all[i].textContent)===norm(spec.text)){var c=all[i].closest('a,button,[role=\"button\"],[role=\"link\"],[onclick],[tabindex]');push(c||all[i],'text-descendant');}}" +
                 "}" +
+                "if(pool.length===0&&textMatchesList.length>0){var all=document.querySelectorAll('body *');for(var i=0;i<all.length;i++){if(hasTextMatch(all[i].textContent)){var c=all[i].closest('a,button,[role=\"button\"],[role=\"link\"],[onclick],[tabindex]');push(c||all[i],'textMatch-descendant');}}}" +
                 "var matches=[];" +
                 "var matchAll=function(el){" +
                 "if(spec.selector){try{if(!el.matches(spec.selector))return false;}catch(e){return false;}}" +
                 "if(spec.id&&el.id!==spec.id)return false;" +
                 "if(spec.className&&!el.classList.contains(spec.className))return false;" +
                 "if(spec.text&&norm(el.innerText||el.textContent)!==norm(spec.text))return false;" +
+                "if(textMatchesList.length>0&&!hasTextMatch(el.innerText||el.textContent))return false;" +
                 "if(spec.ariaLabel&&norm(el.getAttribute('aria-label'))!==norm(spec.ariaLabel))return false;" +
                 "if(spec.role&&norm(el.getAttribute('role'))!==norm(spec.role))return false;" +
                 "if(spec.hrefContains&&String(el.getAttribute('href')||'').indexOf(spec.hrefContains)<0)return false;" +

@@ -299,7 +299,7 @@ public class OverlayGuideService extends Service {
         Intent broadcast = new Intent(ACTION_COMPLETE);
         broadcast.setPackage(getPackageName());
         broadcast.putExtra("serviceName", serviceName);
-        sendBroadcast(broadcast);
+        sendBroadcast(broadcast, CancelBrowserPlugin.PERMISSION_CANCEL_COMPLETE);
 
         stopSelf();
     }
@@ -358,11 +358,25 @@ public class OverlayGuideService extends Service {
 
     @Override
     public void onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE);
+        } else {
+            stopForeground(true);
+        }
+
         if (bubbleView != null && bubbleView.isAttachedToWindow()) {
-            windowManager.removeView(bubbleView);
+            try {
+                windowManager.removeView(bubbleView);
+            } catch (IllegalArgumentException e) {
+                Log.w("OverlayGuideService", "bubbleView already detached or invalid", e);
+            }
         }
         if (cardView != null && cardView.isAttachedToWindow()) {
-            windowManager.removeView(cardView);
+            try {
+                windowManager.removeView(cardView);
+            } catch (IllegalArgumentException e) {
+                Log.w("OverlayGuideService", "cardView already detached or invalid", e);
+            }
         }
         executor.shutdownNow();
         super.onDestroy();

@@ -9,6 +9,8 @@ import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -22,6 +24,7 @@ import java.io.InputStream;
 public class SystemIntentsPlugin extends Plugin {
     private static final int MAX_IMAGE_BYTES = 8 * 1024 * 1024;
     private JSObject pending;
+    private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
 
     @Override
     public void load() {
@@ -36,16 +39,85 @@ public class SystemIntentsPlugin extends Plugin {
     protected void handleOnNewIntent(Intent intent) {
         super.handleOnNewIntent(intent);
         if (readShare(intent) && pending != null) {
-            notifyListeners("shareReceived", pending);
-            pending = null;
+            if ("image_pending_read".equals(pending.optString("status"))) {
+                Uri uri = (Uri) pending.opt("uri");
+                String mimeType = pending.optString("mimeType");
+                pending = null;
+                if (uri != null) {
+                    readImageAsyncForNotification(uri, mimeType);
+                }
+            } else {
+                notifyListeners("shareReceived", pending);
+                pending = null;
+            }
         }
     }
 
     @PluginMethod
     public void getPending(PluginCall call) {
-        JSObject result = pending != null ? pending : new JSObject();
+        if (pending == null) {
+            call.resolve(new JSObject());
+            return;
+        }
+        if (!"image_pending_read".equals(pending.optString("status"))) {
+            JSObject result = pending;
+            pending = null;
+            call.resolve(result);
+            return;
+        }
+        Uri uri = (Uri) pending.opt("uri");
+        String mimeType = pending.optString("mimeType");
         pending = null;
-        call.resolve(result);
+        if (uri == null) {
+            JSObject err = new JSObject();
+            err.put("type", "image");
+            err.put("error", "READ_FAILED");
+            call.resolve(err);
+            return;
+        }
+        readImageAsync(uri, mimeType, call);
+    }
+
+    private void readImageAsync(Uri uri, String mimeType, PluginCall call) {
+        ioExecutor.execute(() -> {
+            JSObject shared = processImageStream(uri, mimeType);
+            call.resolve(shared);
+        });
+    }
+
+    private void readImageAsyncForNotification(Uri uri, String mimeType) {
+        ioExecutor.execute(() -> {
+            JSObject shared = processImageStream(uri, mimeType);
+            notifyListeners("shareReceived", shared);
+        });
+    }
+
+    private JSObject processImageStream(Uri uri, String mimeType) {
+        JSObject shared = new JSObject();
+        shared.put("type", "image");
+        shared.put("mimeType", mimeType);
+        try (InputStream input = getContext().getContentResolver().openInputStream(uri)) {
+            if (input == null) {
+                shared.put("error", "READ_FAILED");
+                return shared;
+            }
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            byte[] buffer = new byte[16384];
+            int read;
+            int total = 0;
+            while ((read = input.read(buffer)) != -1) {
+                total += read;
+                if (total > MAX_IMAGE_BYTES) {
+                    shared.put("error", "IMAGE_TOO_LARGE");
+                    return shared;
+                }
+                output.write(buffer, 0, read);
+            }
+            shared.put("base64", Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP));
+        } catch (Exception e) {
+            shared.put("error", "READ_FAILED");
+        }
+        return shared;
     }
 
     private boolean readShare(Intent intent) {
@@ -64,25 +136,8 @@ public class SystemIntentsPlugin extends Plugin {
             String mimeType = getContext().getContentResolver().getType(uri);
             shared.put("type", "image");
             shared.put("mimeType", mimeType != null ? mimeType : type);
-            try (InputStream input = getContext().getContentResolver().openInputStream(uri)) {
-                if (input == null) return false;
-                ByteArrayOutputStream output = new ByteArrayOutputStream();
-                byte[] buffer = new byte[16384];
-                int read;
-                int total = 0;
-                while ((read = input.read(buffer)) != -1) {
-                    total += read;
-                    if (total > MAX_IMAGE_BYTES) {
-                        shared.put("error", "IMAGE_TOO_LARGE");
-                        pending = shared;
-                        return true;
-                    }
-                    output.write(buffer, 0, read);
-                }
-                shared.put("base64", Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP));
-            } catch (Exception e) {
-                shared.put("error", "READ_FAILED");
-            }
+            shared.put("status", "image_pending_read");
+            shared.put("uri", uri);
         } else {
             return false;
         }
@@ -144,5 +199,43 @@ public class SystemIntentsPlugin extends Plugin {
         } catch (ActivityNotFoundException e) {
             call.reject("캘린더 앱을 찾지 못했어요.", "NO_CALENDAR_APP");
         }
+    }
+
+    @PluginMethod
+    public void openApp(PluginCall call) {
+        String packageName = call.getString("package");
+        String fallbackUrl = call.getString("fallbackUrl");
+        if (packageName == null || packageName.trim().isEmpty()) {
+            call.reject("패키지명이 필요합니다.", "INVALID_PACKAGE");
+            return;
+        }
+        try {
+            Intent launchIntent = getContext().getPackageManager().getLaunchIntentForPackage(packageName.trim());
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(launchIntent);
+                JSObject ret = new JSObject();
+                ret.put("status", "LAUNCHED");
+                call.resolve(ret);
+                return;
+            }
+            String targetUrl = (fallbackUrl != null && !fallbackUrl.trim().isEmpty())
+                    ? fallbackUrl.trim()
+                    : "https://play.google.com/store/apps/details?id=" + packageName.trim();
+            Intent marketIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl));
+            marketIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(marketIntent);
+            JSObject ret = new JSObject();
+            ret.put("status", "FALLBACK_OPENED");
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("앱을 열지 못했어요: " + e.getMessage(), "OPEN_FAILED");
+        }
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        ioExecutor.shutdownNow();
+        super.handleOnDestroy();
     }
 }

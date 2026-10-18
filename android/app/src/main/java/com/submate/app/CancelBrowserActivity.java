@@ -2,9 +2,11 @@ package com.submate.app;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
@@ -40,12 +42,17 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.submate.app.webguide.CancelGuideRoute;
+import com.submate.app.webguide.CancelRouteRegistry;
+import com.submate.app.webguide.WebSecurityPolicy;
 import com.submate.app.webguide.GuideOverlayContainer;
 import com.submate.app.webguide.KkudokNaverGuideController;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -82,9 +89,14 @@ public class CancelBrowserActivity extends AppCompatActivity {
     private String currentCancelUrl = "";
     private String serviceId = "";
     private boolean automaticGuideEnabled = false;
+    private CancelGuideRoute guideRoute;
     private GuideOverlayContainer guideOverlay;
     private KkudokNaverGuideController naverGuideController;
     private TextView btnToggleManualGuide;
+    private TextView btnManualOverride;
+
+    private boolean isFinishingFlow = false;
+    private Intent completedResultIntent = null;
 
     private final ExecutorService executor = Executors.newFixedThreadPool(2);
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -111,7 +123,8 @@ public class CancelBrowserActivity extends AppCompatActivity {
         serviceId = getIntent().getStringExtra("serviceId");
         if (serviceId == null) serviceId = "";
         String serviceName = getIntent().getStringExtra("serviceName");
-        automaticGuideEnabled = isNaverPlus(serviceId, serviceName);
+        guideRoute = CancelRouteRegistry.findRoute(serviceId, serviceName);
+        automaticGuideEnabled = (guideRoute != null);
         currentCancelUrl = getIntent().getStringExtra("cancelUrl");
         String stepsJson = getIntent().getStringExtra("guideStepsJson");
 
@@ -127,6 +140,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
         rvGuideSteps = findViewById(R.id.rvGuideSteps);
         guideOverlay = findViewById(R.id.guideOverlay);
         btnToggleManualGuide = findViewById(R.id.btnToggleManualGuide);
+        btnManualOverride = findViewById(R.id.btnManualOverride);
         webView = findViewById(R.id.webViewCancel);
 
         if (serviceName != null) {
@@ -142,19 +156,13 @@ public class CancelBrowserActivity extends AppCompatActivity {
             }
         }
 
-        btnClose.setOnClickListener(v -> {
-            setResult(RESULT_CANCELED);
-            finish();
-        });
+        btnClose.setOnClickListener(v -> closeWithResult("closed", null));
 
         if (btnComplete != null) {
-            btnComplete.setOnClickListener(v -> {
-                setResult(RESULT_OK);
-                finish();
-            });
+            btnComplete.setOnClickListener(v -> handleSuccessCompletion("manual", "user_completed_button"));
         }
 
-        // 외부 브라우저(Chrome/삼성인터넷 등)로 열기 버튼: 이미 로그인된 세션 및 구글 로그인 문제 회피용
+        // 외부 브라우저(Chrome/삼성인터넷 등)로 열기 버튼
         if (btnOpenExternal != null) {
             btnOpenExternal.setOnClickListener(v -> {
                 String targetUrl = (webView != null && webView.getUrl() != null && !webView.getUrl().isEmpty())
@@ -165,7 +173,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
                         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl));
                         browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(browserIntent);
-                        Toast.makeText(this, "외부 브라우저에서는 캐릭터 위치 안내가 이어지지 않아요.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "외부 브라우저에서는 위치 안내가 이어지지 않아요.", Toast.LENGTH_LONG).show();
                     } catch (Exception e) {
                         Toast.makeText(this, "브라우저를 열 수 없습니다.", Toast.LENGTH_SHORT).show();
                     }
@@ -203,10 +211,36 @@ public class CancelBrowserActivity extends AppCompatActivity {
 
         if (automaticGuideEnabled && guideOverlay != null) {
             naverGuideController = new KkudokNaverGuideController(
-                    webView, guideOverlay, tvStepBadge, tvStepDescription, rvGuideSteps, btnToggleManualGuide);
+                    guideRoute, webView, guideOverlay, tvStepBadge, tvStepDescription, rvGuideSteps, btnToggleManualGuide);
+
+            naverGuideController.setListener(new KkudokNaverGuideController.Listener() {
+                @Override
+                public void onAutoAdvanceCountdownStarted(long durationMs, Runnable onCancelOptOut) {
+                    if (btnManualOverride != null) {
+                        btnManualOverride.setVisibility(View.VISIBLE);
+                        btnManualOverride.setOnClickListener(v -> {
+                            btnManualOverride.setVisibility(View.GONE);
+                            if (onCancelOptOut != null) onCancelOptOut.run();
+                        });
+                    }
+                }
+
+                @Override
+                public void onAutoAdvanceCountdownCancelled() {
+                    if (btnManualOverride != null) {
+                        btnManualOverride.setVisibility(View.GONE);
+                    }
+                }
+
+                @Override
+                public void onCancellationSuccessDetected(String detectedBy, String matchedSignal) {
+                    handleSuccessCompletion(detectedBy, matchedSignal);
+                }
+            });
+
             webView.setOnTouchListener((v, event) -> {
-                if (event.getActionMasked() == MotionEvent.ACTION_UP && naverGuideController != null) {
-                    naverGuideController.onUserInteraction();
+                if (naverGuideController != null) {
+                    naverGuideController.onTouch(event);
                 }
                 return false;
             });
@@ -228,6 +262,9 @@ public class CancelBrowserActivity extends AppCompatActivity {
         // 웹뷰 환경 설정 (구글 OAuth 허용 및 팝업창 처리 포함)
         setupWebView(currentCancelUrl);
 
+        // 30일 지난 증빙 이미지 백그라운드 정리
+        executor.execute(this::cleanOldProofs);
+
         // 뒤로가기 제어
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -235,10 +272,126 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 if (webView != null && webView.canGoBack()) {
                     webView.goBack();
                 } else {
-                    finish();
+                    closeWithResult("closed", null);
                 }
             }
         });
+    }
+
+    private void handleSuccessCompletion(String detectedBy, String matchedSignal) {
+        if (isFinishingFlow) return;
+        isFinishingFlow = true;
+
+        if (btnManualOverride != null) {
+            btnManualOverride.setVisibility(View.GONE);
+        }
+        if (guideOverlay != null) {
+            guideOverlay.setVisibility(View.GONE);
+        }
+        tvStepDescription.setText("해지가 확인됐어요");
+
+        String proofPath = captureWebViewProof();
+        String proofWebPath = null;
+        if (proofPath != null) {
+            proofWebPath = "https://localhost/_capacitor_file_" + proofPath;
+        }
+
+        completedResultIntent = new Intent();
+        completedResultIntent.putExtra("serviceId", serviceId);
+        completedResultIntent.putExtra("status", "completed");
+        completedResultIntent.putExtra("detectedBy", detectedBy);
+        completedResultIntent.putExtra("url", webView != null ? webView.getUrl() : currentCancelUrl);
+        completedResultIntent.putExtra("proofPath", proofPath);
+        completedResultIntent.putExtra("proofWebPath", proofWebPath);
+        int autoTaps = naverGuideController != null ? naverGuideController.getAutoAdvancer().getSessionAutoTapCount() : 0;
+        completedResultIntent.putExtra("autoTaps", autoTaps);
+        setResult(RESULT_OK, completedResultIntent);
+
+        mainHandler.postDelayed(() -> {
+            if (isFinishing() || isDestroyed() || webView == null) return;
+            finish();
+        }, 1500L);
+    }
+
+    private void closeWithResult(String status, String proofPath) {
+        if (completedResultIntent != null) {
+            setResult(RESULT_OK, completedResultIntent);
+            finish();
+            return;
+        }
+        if (isFinishingFlow) return;
+        isFinishingFlow = true;
+
+        Intent data = new Intent();
+        data.putExtra("serviceId", serviceId);
+        data.putExtra("status", status != null ? status : "closed");
+        data.putExtra("detectedBy", (String) null);
+        data.putExtra("url", webView != null ? webView.getUrl() : currentCancelUrl);
+        data.putExtra("proofPath", proofPath);
+        data.putExtra("proofWebPath", proofPath != null ? "https://localhost/_capacitor_file_" + proofPath : null);
+        int autoTaps = naverGuideController != null ? naverGuideController.getAutoAdvancer().getSessionAutoTapCount() : 0;
+        data.putExtra("autoTaps", autoTaps);
+        setResult("completed".equalsIgnoreCase(status) ? RESULT_OK : RESULT_CANCELED, data);
+        finish();
+    }
+
+
+    private void cleanOldProofs() {
+        try {
+            File cacheDir = getCacheDir();
+            if (cacheDir == null) return;
+            File proofDir = new File(cacheDir, "proofs");
+            if (!proofDir.exists() || !proofDir.isDirectory()) return;
+            long threshold = System.currentTimeMillis() - (30L * 24L * 60L * 60L * 1000L);
+            File[] files = proofDir.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    if (f.isFile() && f.lastModified() < threshold) {
+                        f.delete();
+                    }
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private String captureWebViewProof() {
+        try {
+            if (webView == null || webView.getWidth() <= 0 || webView.getHeight() <= 0) {
+                return null;
+            }
+            int w = webView.getWidth();
+            int h = webView.getHeight();
+            float scale = Math.min(1.0f, 1080.0f / (float) w);
+            int targetW = Math.max(1, Math.round(w * scale));
+            int targetH = Math.max(1, Math.round(h * scale));
+
+            Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            webView.draw(canvas);
+
+            Bitmap finalBitmap = bitmap;
+            if (scale < 1.0f) {
+                finalBitmap = Bitmap.createScaledBitmap(bitmap, targetW, targetH, true);
+                if (finalBitmap != bitmap) {
+                    bitmap.recycle();
+                }
+            }
+
+            File cacheDir = getCacheDir();
+            File proofDir = new File(cacheDir, "proofs");
+            if (!proofDir.exists()) proofDir.mkdirs();
+            File proofFile = new File(proofDir, "cancel_proof_" + System.currentTimeMillis() + ".jpg");
+            FileOutputStream fos = new FileOutputStream(proofFile);
+            finalBitmap.compress(Bitmap.CompressFormat.JPEG, 70, fos);
+            fos.flush();
+            fos.close();
+            finalBitmap.recycle();
+            return proofFile.getAbsolutePath();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            return null;
+        }
     }
 
     private void parseGuideSteps(String jsonStr) {
@@ -258,7 +411,6 @@ public class CancelBrowserActivity extends AppCompatActivity {
             }
         }
 
-        // 웹이 단계를 넘기지 않은 경우에만 쓴다. src/data/cancelGuides.js의 getCommonCancelSteps와 같은 공통 안내.
         if (stepList.isEmpty()) {
             stepList.add(new GuideStepItem(1, "로그인", "서비스 공식 앱이나 웹사이트에 로그인하세요.", ""));
             stepList.add(new GuideStepItem(2, "구독 관리 찾기", "계정이나 설정에서 [구독], [멤버십], [결제] 같은 메뉴를 찾으세요. 앱에서 결제했다면 App Store나 Google Play 구독에서 해지해요.", ""));
@@ -279,24 +431,18 @@ public class CancelBrowserActivity extends AppCompatActivity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(!automaticGuideEnabled);
+        settings.setAllowFileAccess(false);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            settings.setAllowContentAccess(!automaticGuideEnabled);
+            settings.setAllowContentAccess(false);
         }
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
 
-        // 팝업 창(Google, 카카오 등 소셜 로그인 및 본인인증 window.open) 허용
         settings.setSupportMultipleWindows(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
 
-        // Mixed Content 허용
-        settings.setMixedContentMode(automaticGuideEnabled
-                ? WebSettings.MIXED_CONTENT_NEVER_ALLOW
-                : WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
-        // Google OAuth의 403 disallowed_useragent 차단을 해제하기 위해
-        // WebView 전용 식별자("; wv" 및 "Version/X.X")를 제거한 순수 Chrome Mobile User-Agent 구성
         String defaultUA = settings.getUserAgentString();
         String cleanUA = defaultUA
                 .replaceAll("(?i);\\s*wv", "")
@@ -364,7 +510,6 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 }
             }
 
-            // 소셜 로그인(Google, Kakao 등) 및 본인인증 팝업창 window.open 완벽 지원
             @SuppressLint("SetJavaScriptEnabled")
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
@@ -376,11 +521,9 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 newSettings.setSupportMultipleWindows(true);
                 newSettings.setJavaScriptCanOpenWindowsAutomatically(true);
                 newSettings.setUserAgentString(cleanUA);
-                newSettings.setMixedContentMode(automaticGuideEnabled
-                        ? WebSettings.MIXED_CONTENT_NEVER_ALLOW
-                        : WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-                newSettings.setAllowFileAccess(!automaticGuideEnabled);
-                newSettings.setAllowContentAccess(!automaticGuideEnabled);
+                newSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+                newSettings.setAllowFileAccess(false);
+                newSettings.setAllowContentAccess(false);
 
                 CookieManager.getInstance().setAcceptThirdPartyCookies(newWebView, true);
 
@@ -425,24 +568,26 @@ public class CancelBrowserActivity extends AppCompatActivity {
         }
     }
 
-    private boolean isNaverPlus(String id, String name) {
-        String sid = id == null ? "" : id.toLowerCase();
-        String sname = name == null ? "" : name.replace(" ", "").toLowerCase();
-        return sid.contains("naverplus") || sid.equals("naver")
-                || sname.contains("네이버플러스") || sname.contains("naverplus");
-    }
-
     private boolean handleCustomScheme(String url) {
         try {
             Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
-            if (intent.resolveActivity(getPackageManager()) != null) {
+            intent.addCategory(Intent.CATEGORY_BROWSABLE);
+            intent.setComponent(null);
+            intent.setSelector(null);
+            try {
                 startActivity(intent);
                 return true;
-            }
-            String fallbackUrl = intent.getStringExtra("browser_fallback_url");
-            if (fallbackUrl != null && !fallbackUrl.isEmpty()) {
-                webView.loadUrl(fallbackUrl);
-                return true;
+            } catch (ActivityNotFoundException e) {
+                String fallbackUrl = intent.getStringExtra("browser_fallback_url");
+                if (fallbackUrl != null && !fallbackUrl.isEmpty()) {
+                    WebSecurityPolicy policy = (guideRoute != null && guideRoute.getSecurityPolicy() != null)
+                            ? guideRoute.getSecurityPolicy()
+                            : new WebSecurityPolicy();
+                    if (policy.isHttpOrHttps(fallbackUrl) && policy.isAllowedHost(fallbackUrl)) {
+                        webView.loadUrl(fallbackUrl);
+                        return true;
+                    }
+                }
             }
         } catch (Exception ignored) {
         }
@@ -457,7 +602,6 @@ public class CancelBrowserActivity extends AppCompatActivity {
             int screenHeight = rootView.getRootView().getHeight();
             int keypadHeight = screenHeight - r.bottom;
 
-            // 키보드가 화면 높이의 15% 이상 차지하면 열린 것으로 간주
             if (keypadHeight > screenHeight * 0.15) {
                 bottomGuideDock.setVisibility(View.GONE);
             } else {
@@ -468,6 +612,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        mainHandler.removeCallbacksAndMessages(null);
         if (naverGuideController != null) {
             naverGuideController.destroy();
             naverGuideController = null;
@@ -480,9 +625,6 @@ public class CancelBrowserActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    // ==========================================
-    // 가이드 카드 리사이클러뷰 어댑터
-    // ==========================================
     public class GuideAdapter extends RecyclerView.Adapter<GuideAdapter.ViewHolder> {
         private final List<GuideStepItem> items;
         private final OnItemClickListener listener;
@@ -523,7 +665,6 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 holder.itemView.setAlpha(0.6f);
             }
 
-            // 비동기 이미지 로딩
             holder.ivStepThumb.setImageBitmap(null);
             if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
                 executor.execute(() -> {

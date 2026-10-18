@@ -8,22 +8,24 @@ public final class GuideStep {
     private final String instruction;
     private final GuideTargetSpec target;
     private final GuideInteractionType interactionType;
-    private final CharacterPlacement preferredPlacement;
+    private final PointerPlacement preferredPlacement;
     private final int offsetDp;
     private final String expectedNextStepId;
     private final TargetVerificationStatus verificationStatus;
+    private final boolean userMustTap;
+    private final boolean autoTapAllowed;
 
     public GuideStep(
             String stepId,
             String instruction,
             GuideTargetSpec target,
-            CharacterPlacement preferredPlacement,
+            PointerPlacement preferredPlacement,
             int offsetDp
     ) {
         this(stepId, null, instruction, target, GuideInteractionType.TAP,
                 preferredPlacement, offsetDp, "",
                 target == null ? TargetVerificationStatus.LIVE_UNVERIFIED
-                        : TargetVerificationStatus.LIVE_VERIFIED);
+                        : TargetVerificationStatus.LIVE_VERIFIED, false, false);
     }
 
     public GuideStep(
@@ -32,21 +34,56 @@ public final class GuideStep {
             String instruction,
             GuideTargetSpec target,
             GuideInteractionType interactionType,
-            CharacterPlacement preferredPlacement,
+            PointerPlacement preferredPlacement,
             int offsetDp,
             String expectedNextStepId,
             TargetVerificationStatus verificationStatus
+    ) {
+        this(stepId, logicalPageState, instruction, target, interactionType,
+                preferredPlacement, offsetDp, expectedNextStepId, verificationStatus, false, false);
+    }
+
+    public GuideStep(
+            String stepId,
+            PageState logicalPageState,
+            String instruction,
+            GuideTargetSpec target,
+            GuideInteractionType interactionType,
+            PointerPlacement preferredPlacement,
+            int offsetDp,
+            String expectedNextStepId,
+            TargetVerificationStatus verificationStatus,
+            boolean userMustTap
+    ) {
+        this(stepId, logicalPageState, instruction, target, interactionType,
+                preferredPlacement, offsetDp, expectedNextStepId, verificationStatus, userMustTap, false);
+    }
+
+    public GuideStep(
+            String stepId,
+            PageState logicalPageState,
+            String instruction,
+            GuideTargetSpec target,
+            GuideInteractionType interactionType,
+            PointerPlacement preferredPlacement,
+            int offsetDp,
+            String expectedNextStepId,
+            TargetVerificationStatus verificationStatus,
+            boolean userMustTap,
+            boolean autoTapAllowed
     ) {
         this.stepId = clean(stepId);
         this.logicalPageState = logicalPageState;
         this.instruction = clean(instruction);
         this.target = target;
         this.interactionType = interactionType == null ? GuideInteractionType.TAP : interactionType;
-        this.preferredPlacement = preferredPlacement == null ? CharacterPlacement.AUTO : preferredPlacement;
+        this.preferredPlacement = preferredPlacement == null ? PointerPlacement.AUTO : preferredPlacement;
         this.offsetDp = Math.max(0, offsetDp);
         this.expectedNextStepId = clean(expectedNextStepId);
         this.verificationStatus = verificationStatus == null
                 ? TargetVerificationStatus.LIVE_UNVERIFIED : verificationStatus;
+        this.userMustTap = userMustTap;
+        this.autoTapAllowed = autoTapAllowed && !userMustTap;
     }
 
     private static String clean(String value) {
@@ -58,8 +95,10 @@ public final class GuideStep {
     public String getInstruction() { return instruction; }
     public GuideTargetSpec getTarget() { return target; }
     public GuideInteractionType getInteractionType() { return interactionType; }
-    public CharacterPlacement getPreferredPlacement() { return preferredPlacement; }
+    public PointerPlacement getPreferredPlacement() { return preferredPlacement; }
     public int getOffsetDp() { return offsetDp; }
     public String getExpectedNextStepId() { return expectedNextStepId; }
     public TargetVerificationStatus getVerificationStatus() { return verificationStatus; }
+    public boolean isUserMustTap() { return userMustTap; }
+    public boolean isAutoTapAllowed() { return autoTapAllowed; }
 }

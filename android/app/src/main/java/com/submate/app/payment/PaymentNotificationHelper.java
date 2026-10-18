@@ -22,6 +22,14 @@ public class PaymentNotificationHelper {
     public static void dispatchQuickAddNotification(Context context, PaymentParser.ParsedPayment payment) {
         if (context == null || payment == null) return;
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                Log.w(TAG, "POST_NOTIFICATIONS permission not granted. Skip notification.");
+                return;
+            }
+        }
+
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm == null) return;
 

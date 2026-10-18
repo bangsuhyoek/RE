@@ -73,7 +73,9 @@ public class PaymentParser {
 
     private static final Pattern AMOUNT_PATTERN = Pattern.compile("([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,7})\\s*원|[$]\\s*([0-9]+(?:[.][0-9]{2})?)");
     private static final Pattern RECURRING_KEYWORD = Pattern.compile("(정기|자동결제|정기결제|매월|구독|멤버십|와우|플러스멤버십|월간)");
-    private static final Pattern NEGATIVE_KEYWORD = Pattern.compile("(취소|환불|승인취소|결제취소|반품|카드대금|후불교통|교통카드|송금|이체|출금|적금|대출|이자|현금서비스|배송완료|주문취소|장바구니)");
+    private static final Pattern NEGATIVE_KEYWORD = Pattern.compile("(취소|환불|승인취소|결제취소|반품|카드대금|후불교통|교통카드|송금|이체|적금|대출|이자|현금서비스|배송완료|주문취소|장바구니)");
+    private static final Pattern WITHDRAWAL_NEGATIVE = Pattern.compile("(ATM|계좌|이체|송금|예금|입금)");
+    private static final Pattern CARD_APPROVAL_HINT = Pattern.compile("(체크카드|체크|승인|결제)");
     private static final Pattern BUSINESS_SUFFIX = Pattern.compile("(헤어|미용실|치과|식당|마트|로지스틱스|물류|카페|베이커리|의원|병원|모텔|호텔|빌딩|세탁|주유소|약국|분식|반점)");
 
     public static ParsedPayment parse(String packageName, String title, String body) {
@@ -84,6 +86,13 @@ public class PaymentParser {
         // 1. 제외 키워드(취소, 대금, 이체 등)가 포함된 경우 즉시 기각
         if (NEGATIVE_KEYWORD.matcher(combined).find()) {
             return null;
+        }
+
+        boolean containsWithdrawal = combined.contains("출금");
+        if (containsWithdrawal) {
+            if (WITHDRAWAL_NEGATIVE.matcher(combined).find()) {
+                return null;
+            }
         }
 
         // 2. 금액 파싱
@@ -124,6 +133,13 @@ public class PaymentParser {
                         bestMatch = service;
                     }
                 }
+            }
+        }
+
+        if (containsWithdrawal) {
+            boolean hasCardApprovalHint = CARD_APPROVAL_HINT.matcher(combined).find();
+            if (bestMatch == null && !hasCardApprovalHint) {
+                return null;
             }
         }
 

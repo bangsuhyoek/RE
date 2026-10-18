@@ -2,6 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <queries>
+        <package android:name="com.kakaopay.app" />
+        <package android:name="com.nhn.android.search" />
+        <package android:name="viva.republica.toss" />
+        <package android:name="com.nhnent.payapp" />
+        <package android:name="com.sktelecom.minit" />
+        <package android:name="com.ktshow.cs" />
+        <package android:name="com.lguplus.mobile.cs" />
+    </queries>
+
+    <permission
+        android:name="com.submate.app.permission.RECEIVE_CANCEL_COMPLETE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="com.submate.app.permission.RECEIVE_CANCEL_COMPLETE" />
+
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"

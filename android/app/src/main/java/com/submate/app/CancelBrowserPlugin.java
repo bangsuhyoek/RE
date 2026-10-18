@@ -19,6 +19,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "CancelBrowser")
 public class CancelBrowserPlugin extends Plugin {
 
+    public static final String PERMISSION_CANCEL_COMPLETE = "com.submate.app.permission.RECEIVE_CANCEL_COMPLETE";
+
     private BroadcastReceiver completeReceiver;
 
     @PluginMethod
@@ -109,9 +111,9 @@ public class CancelBrowserPlugin extends Plugin {
         };
         IntentFilter filter = new IntentFilter(OverlayGuideService.ACTION_COMPLETE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            getContext().registerReceiver(completeReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            getContext().registerReceiver(completeReceiver, filter, PERMISSION_CANCEL_COMPLETE, null, Context.RECEIVER_NOT_EXPORTED);
         } else {
-            getContext().registerReceiver(completeReceiver, filter);
+            getContext().registerReceiver(completeReceiver, filter, PERMISSION_CANCEL_COMPLETE, null);
         }
     }
 
@@ -146,12 +148,65 @@ public class CancelBrowserPlugin extends Plugin {
 
     @ActivityCallback
     private void handleCancelBrowserResult(PluginCall call, ActivityResult result) {
-        JSObject ret = new JSObject();
-        if (result != null && result.getResultCode() == Activity.RESULT_OK) {
-            ret.put("action", "COMPLETED");
-        } else {
-            ret.put("action", "CLOSED");
+        Intent data = result != null ? result.getData() : null;
+
+        String serviceId = (data != null && data.hasExtra("serviceId"))
+                ? data.getStringExtra("serviceId")
+                : "";
+
+        String status = "closed";
+        if (data != null && data.hasExtra("status")) {
+            status = data.getStringExtra("status");
+        } else if (result != null && result.getResultCode() == Activity.RESULT_OK) {
+            status = "completed";
         }
+
+        String detectedBy = (data != null && data.hasExtra("detectedBy"))
+                ? data.getStringExtra("detectedBy")
+                : null;
+
+        String url = (data != null && data.hasExtra("url"))
+                ? data.getStringExtra("url")
+                : "";
+
+        String proofPath = (data != null && data.hasExtra("proofPath"))
+                ? data.getStringExtra("proofPath")
+                : null;
+
+        String proofWebPath = (data != null && data.hasExtra("proofWebPath"))
+                ? data.getStringExtra("proofWebPath")
+                : null;
+
+        int autoTaps = (data != null && data.hasExtra("autoTaps"))
+                ? data.getIntExtra("autoTaps", 0)
+                : 0;
+
+        if (proofWebPath == null && proofPath != null) {
+            String localUrl = (getBridge() != null && getBridge().getLocalUrl() != null)
+                    ? getBridge().getLocalUrl()
+                    : "https://localhost";
+            proofWebPath = localUrl + "/_capacitor_file_" + proofPath;
+        }
+
+        JSObject eventObj = new JSObject();
+        eventObj.put("serviceId", serviceId);
+        eventObj.put("status", status);
+        eventObj.put("detectedBy", detectedBy);
+        eventObj.put("url", url);
+        eventObj.put("proofPath", proofPath);
+        eventObj.put("proofWebPath", proofWebPath);
+        eventObj.put("autoTaps", autoTaps);
+        notifyListeners("cancelFlowResult", eventObj);
+
+        JSObject ret = new JSObject();
+        ret.put("action", "completed".equalsIgnoreCase(status) ? "COMPLETED" : "CLOSED");
+        ret.put("serviceId", serviceId);
+        ret.put("status", status);
+        ret.put("detectedBy", detectedBy);
+        ret.put("url", url);
+        ret.put("proofPath", proofPath);
+        ret.put("proofWebPath", proofWebPath);
+        ret.put("autoTaps", autoTaps);
         call.resolve(ret);
     }
 }

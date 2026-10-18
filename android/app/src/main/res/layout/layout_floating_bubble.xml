@@ -11,7 +11,7 @@
         android:background="@drawable/bg_bubble_circle"
         android:elevation="8dp"
         android:padding="6dp"
-        android:src="@drawable/kkudok_character_mascot"
+        android:src="@mipmap/ic_launcher"
         android:contentDescription="해지 가이드 버블" />
 
     <TextView
