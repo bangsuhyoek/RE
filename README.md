@@ -75,3 +75,18 @@ pnpm build
    pnpm run cap:open:android
    ```
 
+### 4. 크롤러 / 카탈로그 갱신
+```bash
+# 전체 카탈로그 크롤링 파이프라인 실행
+pnpm crawl
+
+# 프로모션 정보 수집 및 검증 파이프라인 실행
+pnpm crawl:promotions
+
+# 서비스별 환불/해지 정책 검증 실행
+pnpm crawl:refunds
+
+# 주기적 크롤러 스케줄러 실행
+pnpm crawl:schedule
+```
+

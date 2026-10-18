@@ -4,6 +4,9 @@ dist/
 .env.*
 !.env.example
 *.apk
+*.zip
+temp_*.txt
+test_py.txt
 *.idsig
 .idea/
 public/screenshots/
