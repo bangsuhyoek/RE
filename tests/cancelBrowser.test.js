@@ -10,6 +10,10 @@ import {
   isNativeGuideSupported,
   canShowManualComplete,
   isAutoCancelDetectionAvailable,
+  getStepVisualMeta,
+  CANCEL_AI_CONSENT_KEY,
+  readCancelAiConsent,
+  setCancelAiConsent,
 } from "../src/lib/cancelBrowser.js";
 
 test("웹/테스트 환경에서 openCancelBrowser 호출 시 FALLBACK_WEB을 반환한다", async () => {
@@ -347,4 +351,53 @@ test("canShowManualComplete: Naver Plus는 웹/비Android에서 수동 완료 �
     canShowManualComplete({ serviceId: "netflix", isNaverPlus: false, platform: "web" }),
     true
   );
+});
+
+test("getStepVisualMeta: 네이버플러스·넷플릭스·유튜브 및 일반 서비스의 단계별 시각 가이드와 마지막 단계 userMustTap 플래그를 반환한다", () => {
+  const naverStep1 = getStepVisualMeta({ serviceId: "naverplus", stepNumber: 1, totalSteps: 5 });
+  assert.equal(naverStep1.brandLabel, "NAVER+");
+  assert.equal(naverStep1.action, "설정 ⚙");
+  assert.equal(naverStep1.userMustTap, false);
+
+  const naverStep5 = getStepVisualMeta({ serviceId: "naverplus", stepNumber: 5, totalSteps: 5 });
+  assert.equal(naverStep5.action, "해지하기");
+  assert.equal(naverStep5.userMustTap, true);
+
+  const netflixFinal = getStepVisualMeta({ serviceId: "netflix", stepNumber: 3, totalSteps: 3 });
+  assert.equal(netflixFinal.brandLabel, "NETFLIX");
+  assert.equal(netflixFinal.userMustTap, true);
+  assert.match(netflixFinal.action, /해지 완료/);
+
+  const youtubeStep2 = getStepVisualMeta({ serviceId: "youtube", stepNumber: 2, totalSteps: 4 });
+  assert.equal(youtubeStep2.brandLabel, "YouTube");
+  assert.equal(youtubeStep2.action, "멤버십 관리");
+  assert.equal(youtubeStep2.userMustTap, false);
+
+  const genericFinal = getStepVisualMeta({
+    serviceId: "spotify",
+    serviceName: "Spotify",
+    stepNumber: 3,
+    totalSteps: 3,
+    step: { title: "구독 취소 확인", description: "취소 확인을 눌러 마무리하세요." },
+  });
+  assert.equal(genericFinal.brandLabel, "Spotify");
+  assert.equal(genericFinal.action, "구독 취소 확인");
+  assert.equal(genericFinal.userMustTap, true);
+});
+
+test("readCancelAiConsent 및 setCancelAiConsent: 기본값은 false이며 명시적 동의/철회를 저장한다", () => {
+  const map = new Map();
+  const mockStorage = {
+    getItem: (k) => (map.has(k) ? map.get(k) : null),
+    setItem: (k, v) => map.set(k, String(v)),
+  };
+
+  assert.equal(readCancelAiConsent(mockStorage), false);
+  assert.equal(setCancelAiConsent(true, mockStorage), true);
+  assert.equal(mockStorage.getItem(CANCEL_AI_CONSENT_KEY), "granted");
+  assert.equal(readCancelAiConsent(mockStorage), true);
+
+  assert.equal(setCancelAiConsent(false, mockStorage), false);
+  assert.equal(mockStorage.getItem(CANCEL_AI_CONSENT_KEY), "declined");
+  assert.equal(readCancelAiConsent(mockStorage), false);
 });

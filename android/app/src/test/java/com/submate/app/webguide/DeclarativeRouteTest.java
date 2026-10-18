@@ -13,6 +13,7 @@ import com.submate.app.webguide.declarative.DeclarativeStep;
 import com.submate.app.webguide.services.naver.NaverCancelGuideRoute;
 import com.submate.app.webguide.services.naver.NaverMonthlyCancelRoute;
 import com.submate.app.webguide.services.netflix.NetflixCancelRoute;
+import com.submate.app.webguide.services.universal.UniversalCancelRoute;
 import com.submate.app.webguide.services.youtube.YouTubeCancelRoute;
 import com.submate.app.webguide.state.GuideState;
 import com.submate.app.webguide.state.PageState;
@@ -44,6 +45,18 @@ public class DeclarativeRouteTest {
 
         CancelGuideRoute unsupported = CancelRouteRegistry.findRoute("spotify", "Spotify");
         assertNull("Unregistered service must return null route", unsupported);
+
+        // resolveRoute must return UniversalCancelRoute for any service in the catalog
+        String stepsJson = "[{\"stepNumber\":1,\"title\":\"계정\",\"description\":\"[구독 관리]에서 [구독 취소]를 누르세요.\"}]";
+        CancelGuideRoute universalSpotify = CancelRouteRegistry.resolveRoute(
+                "spotify", "Spotify", "https://www.spotify.com/kr-ko/account/subscription/", stepsJson);
+        assertNotNull("resolveRoute must return UniversalCancelRoute for Spotify", universalSpotify);
+        assertEquals("spotify", universalSpotify.getServiceId());
+        assertTrue(universalSpotify.getSecurityPolicy().isAllowedForInjection("https://www.spotify.com/kr-ko/account/subscription/"));
+        assertTrue(universalSpotify instanceof UniversalCancelRoute);
+        UniversalCancelRoute uRoute = (UniversalCancelRoute) universalSpotify;
+        assertTrue(uRoute.getCustomStepHints().contains("구독 관리"));
+        assertTrue(uRoute.getCustomStepHints().contains("구독 취소"));
     }
 
     @Test

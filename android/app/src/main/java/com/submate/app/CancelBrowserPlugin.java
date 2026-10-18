@@ -136,12 +136,16 @@ public class CancelBrowserPlugin extends Plugin {
         String guideStepsJson = call.getArray("guideSteps") != null
                 ? call.getArray("guideSteps").toString()
                 : "[]";
+        String aiEndpoint = call.getString("aiEndpoint", "");
+        String aiAuthToken = call.getString("aiAuthToken", "");
 
         Intent intent = new Intent(getContext(), CancelBrowserActivity.class);
         intent.putExtra("serviceId", serviceId);
         intent.putExtra("serviceName", serviceName);
         intent.putExtra("cancelUrl", cancelUrl);
         intent.putExtra("guideStepsJson", guideStepsJson);
+        intent.putExtra("aiEndpoint", aiEndpoint);
+        intent.putExtra("aiAuthToken", aiAuthToken);
 
         startActivityForResult(call, intent, "handleCancelBrowserResult");
     }

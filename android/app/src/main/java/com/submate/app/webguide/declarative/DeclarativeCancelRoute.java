@@ -5,6 +5,7 @@ import android.webkit.WebView;
 import com.submate.app.webguide.CancelGuideRoute;
 import com.submate.app.webguide.RouteEvaluation;
 import com.submate.app.webguide.WebSecurityPolicy;
+import com.submate.app.webguide.services.universal.UniversalCancelRoute;
 import com.submate.app.webguide.target.GuideStep;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class DeclarativeCancelRoute implements CancelGuideRoute {
     private final List<DeclarativeStep> steps;
     private final List<Pattern> successUrlPatterns;
     private final List<String> successTextMatches;
+    private final UniversalCancelRoute.FlowState flowState = new UniversalCancelRoute.FlowState();
 
     public DeclarativeCancelRoute(
             String serviceId,
@@ -171,6 +173,14 @@ public class DeclarativeCancelRoute implements CancelGuideRoute {
             return;
         }
 
-        callback.onEvaluated(RouteEvaluation.hidden("공식 페이지를 확인하고 있어요."));
+        UniversalCancelRoute.evaluateDom(
+                webView,
+                currentUrl,
+                securityPolicy,
+                Collections.emptyList(),
+                Math.max(3, steps.size()),
+                flowState,
+                callback
+        );
     }
 }

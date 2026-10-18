@@ -94,6 +94,24 @@ public class CancelBrowserActivity extends AppCompatActivity {
     private KkudokNaverGuideController naverGuideController;
     private TextView btnToggleManualGuide;
     private TextView btnManualOverride;
+    private View agentCoverLayout;
+    private View loginNoticeBanner;
+    private TextView tvLoginNoticeText;
+    private TextView btnReturnAgentMode;
+    private TextView tvAgentStatusPill;
+    private TextView tvAgentStepBadge;
+    private TextView tvAgentHeadline;
+    private TextView tvAgentSubtext;
+    private TextView tvAgentTargetButton;
+    private ImageView ivAgentWebPreview;
+    private TextView btnAgentFinalConfirm;
+    private TextView btnToggleWebView;
+    private ProgressBar pbAgentWorking;
+    private View agentCoverSpacer;
+    private Runnable pendingAutoAdvanceOptOut;
+    // 해지 관련 중간 버튼은 꾸독이 혼자 누르지 않고 사용자의 확인을 받는다. 확인 대기 중인 버튼 문구를 기억한다.
+    private String userStepTapTarget = null;
+    private boolean userRequestedRawWebView = false;
 
     private boolean isFinishingFlow = false;
     private Intent completedResultIntent = null;
@@ -123,10 +141,12 @@ public class CancelBrowserActivity extends AppCompatActivity {
         serviceId = getIntent().getStringExtra("serviceId");
         if (serviceId == null) serviceId = "";
         String serviceName = getIntent().getStringExtra("serviceName");
-        guideRoute = CancelRouteRegistry.findRoute(serviceId, serviceName);
-        automaticGuideEnabled = (guideRoute != null);
         currentCancelUrl = getIntent().getStringExtra("cancelUrl");
         String stepsJson = getIntent().getStringExtra("guideStepsJson");
+        String aiEndpoint = getIntent().getStringExtra("aiEndpoint");
+        String aiAuthToken = getIntent().getStringExtra("aiAuthToken");
+        guideRoute = CancelRouteRegistry.resolveRoute(serviceId, serviceName, currentCancelUrl, stepsJson, aiEndpoint, aiAuthToken);
+        automaticGuideEnabled = (guideRoute != null);
 
         TextView tvServiceName = findViewById(R.id.tvServiceName);
         TextView tvServiceUrl = findViewById(R.id.tvServiceUrl);
@@ -142,9 +162,74 @@ public class CancelBrowserActivity extends AppCompatActivity {
         btnToggleManualGuide = findViewById(R.id.btnToggleManualGuide);
         btnManualOverride = findViewById(R.id.btnManualOverride);
         webView = findViewById(R.id.webViewCancel);
+        agentCoverLayout = findViewById(R.id.agentCoverLayout);
+        loginNoticeBanner = findViewById(R.id.loginNoticeBanner);
+        tvLoginNoticeText = findViewById(R.id.tvLoginNoticeText);
+        btnReturnAgentMode = findViewById(R.id.btnReturnAgentMode);
+        tvAgentStatusPill = findViewById(R.id.tvAgentStatusPill);
+        tvAgentStepBadge = findViewById(R.id.tvAgentStepBadge);
+        tvAgentHeadline = findViewById(R.id.tvAgentHeadline);
+        tvAgentSubtext = findViewById(R.id.tvAgentSubtext);
+        tvAgentTargetButton = findViewById(R.id.tvAgentTargetButton);
+        ivAgentWebPreview = findViewById(R.id.ivAgentWebPreview);
+        btnAgentFinalConfirm = findViewById(R.id.btnAgentFinalConfirm);
+        btnToggleWebView = findViewById(R.id.btnToggleWebView);
+        pbAgentWorking = findViewById(R.id.pbAgentWorking);
+        agentCoverSpacer = findViewById(R.id.agentCoverSpacer);
+
+        if (automaticGuideEnabled) {
+            showAgentCover();
+        } else if (agentCoverLayout != null) {
+            agentCoverLayout.setVisibility(View.GONE);
+        }
 
         if (serviceName != null) {
             tvServiceName.setText(serviceName);
+            if (tvAgentHeadline != null) {
+                tvAgentHeadline.setText(serviceName + " 해지 페이지를 열고 있어요");
+            }
+        }
+
+        if (btnToggleWebView != null) {
+            btnToggleWebView.setOnClickListener(v -> {
+                userRequestedRawWebView = true;
+                // 직접 하겠다고 하면 예약된 자동 넘김도 멈춘다.
+                if (pendingAutoAdvanceOptOut != null) {
+                    pendingAutoAdvanceOptOut.run();
+                    pendingAutoAdvanceOptOut = null;
+                }
+                showWebPage("화면을 보면서 직접 진행하고 있어요.", true);
+            });
+        }
+
+        if (btnReturnAgentMode != null) {
+            btnReturnAgentMode.setOnClickListener(v -> {
+                userRequestedRawWebView = false;
+                showAgentCover();
+            });
+        }
+
+        if (btnAgentFinalConfirm != null) {
+            btnAgentFinalConfirm.setOnClickListener(v -> {
+                btnAgentFinalConfirm.setEnabled(false);
+                if (userStepTapTarget != null) {
+                    btnAgentFinalConfirm.setText("누르는 중…");
+                    userStepTapTarget = null;
+                    if (naverGuideController != null) {
+                        naverGuideController.performUserConfirmedStepTap();
+                    }
+                    return;
+                }
+                btnAgentFinalConfirm.setText("해지 요청 중…");
+                if (tvAgentSubtext != null) {
+                    tvAgentSubtext.setText("해지 버튼을 누르고 완료 화면이 뜨는지 확인하고 있어요.");
+                }
+                if (naverGuideController != null) {
+                    naverGuideController.performUserConfirmedFinalTap(null);
+                } else {
+                    handleSuccessCompletion("manual", "user_completed_button");
+                }
+            });
         }
 
         if (currentCancelUrl != null) {
@@ -210,12 +295,17 @@ public class CancelBrowserActivity extends AppCompatActivity {
         }
 
         if (automaticGuideEnabled && guideOverlay != null) {
+            // 하단 도크(bottomGuideDock)가 이미 안내 문구를 보여주므로, 웹뷰 위 말풍선은 기본적으로 접어두어
+            // 스크롤 시 화면을 가리거나 펼쳐지지 않게 하고 타깃 하이라이트 테두리와 화살표만 깔끔하게 표시한다.
+            guideOverlay.setBubbleEnabled(false);
+            guideOverlay.setUserMinimized(true);
             naverGuideController = new KkudokNaverGuideController(
                     guideRoute, webView, guideOverlay, tvStepBadge, tvStepDescription, rvGuideSteps, btnToggleManualGuide);
 
             naverGuideController.setListener(new KkudokNaverGuideController.Listener() {
                 @Override
                 public void onAutoAdvanceCountdownStarted(long durationMs, Runnable onCancelOptOut) {
+                    pendingAutoAdvanceOptOut = onCancelOptOut;
                     if (btnManualOverride != null) {
                         btnManualOverride.setVisibility(View.VISIBLE);
                         btnManualOverride.setOnClickListener(v -> {
@@ -235,6 +325,134 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 @Override
                 public void onCancellationSuccessDetected(String detectedBy, String matchedSignal) {
                     handleSuccessCompletion(detectedBy, matchedSignal);
+                }
+
+                @Override
+                public void onLoginStateChanged(boolean isLoginRequired, String message) {
+                    if (isLoginRequired) {
+                        // 로그인 화면은 사용자가 직접 입력해야 하므로 웹뷰를 보여주고, 로그인이 끝나면 다시 진행 화면으로 덮는다.
+                        showWebPage("로그인해 주세요. 로그인이 끝나면 꾸독이 이어서 진행해요.", false);
+                    } else if (!userRequestedRawWebView) {
+                        showAgentCover();
+                    }
+                }
+
+                @Override
+                public void onStepProgressUpdated(String badge, String instruction, boolean isFinalStep, String matchedTargetText) {
+                    if (tvAgentStepBadge != null && badge != null && !badge.isEmpty()) {
+                        tvAgentStepBadge.setText(badge);
+                    }
+                    String sName = serviceName != null ? serviceName : "구독";
+                    boolean hasTarget = matchedTargetText != null && !matchedTargetText.trim().isEmpty();
+                    if (isFinalStep) {
+                        userStepTapTarget = null;
+                        // 최종 해지 버튼은 대신 누르지 않고, 화면 미리보기와 함께 사용자의 확정을 받는다.
+                        if (!userRequestedRawWebView) showAgentCover();
+                        if (pbAgentWorking != null) pbAgentWorking.setVisibility(View.GONE);
+                        if (tvAgentStatusPill != null) {
+                            tvAgentStatusPill.setText("마지막 확인이 필요해요");
+                            tvAgentStatusPill.setTextColor(Color.parseColor("#F04452"));
+                        }
+                        if (tvAgentHeadline != null) {
+                            tvAgentHeadline.setText(sName + " 해지 직전이에요");
+                        }
+                        if (tvAgentSubtext != null) {
+                            tvAgentSubtext.setText("아래 화면을 확인하고 해지 확정하기를 누르면, 꾸독이 페이지의 해지 버튼을 눌러요.");
+                        }
+                        if (tvAgentTargetButton != null) {
+                            tvAgentTargetButton.setText(hasTarget
+                                    ? "누를 버튼: " + matchedTargetText.trim()
+                                    : "누를 버튼: 해지 확인");
+                        }
+                        if (btnAgentFinalConfirm != null) {
+                            btnAgentFinalConfirm.setVisibility(View.VISIBLE);
+                            btnAgentFinalConfirm.setEnabled(true);
+                            btnAgentFinalConfirm.setBackgroundResource(R.drawable.bg_btn_danger);
+                            btnAgentFinalConfirm.setText("해지 확정하기");
+                        }
+                        updateAgentWebPreview();
+                    } else if (userStepTapTarget != null && hasTarget && userStepTapTarget.equals(matchedTargetText.trim())) {
+                        // 같은 버튼을 다시 스캔한 경우: 사용자 확인 화면을 그대로 둔다.
+                        return;
+                    } else {
+                        userStepTapTarget = null;
+                        if (hasTarget && !userRequestedRawWebView) {
+                            showAgentCover();
+                        }
+                        if (pbAgentWorking != null) pbAgentWorking.setVisibility(View.VISIBLE);
+                        if (tvAgentStatusPill != null) {
+                            tvAgentStatusPill.setText("꾸독이 진행하는 중");
+                            tvAgentStatusPill.setTextColor(Color.parseColor("#3182F6"));
+                        }
+                        if (tvAgentHeadline != null) {
+                            tvAgentHeadline.setText(sName + " 해지 메뉴로 이동하고 있어요");
+                        }
+                        if (tvAgentSubtext != null && instruction != null && !instruction.isEmpty()) {
+                            tvAgentSubtext.setText(instruction);
+                        }
+                        if (tvAgentTargetButton != null) {
+                            tvAgentTargetButton.setText(hasTarget
+                                    ? "지금 누르는 버튼: " + matchedTargetText.trim()
+                                    : "다음 버튼을 찾고 있어요");
+                        }
+                        if (btnAgentFinalConfirm != null) {
+                            btnAgentFinalConfirm.setVisibility(View.GONE);
+                        }
+                        setPreviewVisible(false);
+                    }
+                }
+
+                @Override
+                public void onUserTapRequired(String targetText) {
+                    if (targetText == null || targetText.trim().isEmpty()) return;
+                    String label = targetText.trim();
+                    userStepTapTarget = label;
+                    String sName = serviceName != null ? serviceName : "구독";
+                    if (!userRequestedRawWebView) showAgentCover();
+                    if (pbAgentWorking != null) pbAgentWorking.setVisibility(View.GONE);
+                    if (tvAgentStatusPill != null) {
+                        tvAgentStatusPill.setText("확인이 필요해요");
+                        tvAgentStatusPill.setTextColor(Color.parseColor("#3182F6"));
+                    }
+                    if (tvAgentHeadline != null) tvAgentHeadline.setText(sName + " 해지 버튼을 찾았어요");
+                    if (tvAgentSubtext != null) {
+                        tvAgentSubtext.setText("해지와 관련된 버튼은 꾸독이 혼자 누르지 않아요. 화면을 확인하고 아래 버튼을 누르면 대신 눌러 드릴게요.");
+                    }
+                    if (tvAgentTargetButton != null) tvAgentTargetButton.setText("누를 버튼: " + label);
+                    if (btnAgentFinalConfirm != null) {
+                        btnAgentFinalConfirm.setVisibility(View.VISIBLE);
+                        btnAgentFinalConfirm.setEnabled(true);
+                        btnAgentFinalConfirm.setBackgroundResource(R.drawable.bg_btn_primary);
+                        btnAgentFinalConfirm.setText("'" + label + "' 누르기");
+                    }
+                    updateAgentWebPreview();
+                }
+
+                @Override
+                public void onStepTapFailed(String reason) {
+                    userRequestedRawWebView = true;
+                    showWebPage("버튼을 누르지 못했어요. 화면에서 직접 눌러 주세요.", true);
+                }
+
+                @Override
+                public void onManualFallbackRequired(String reason) {
+                    // 버튼을 찾지 못한 화면은 사용자가 직접 볼 수 있게 열되, 다음 화면에서 버튼을 찾으면 다시 진행 카드로 복귀할 수 있게 둔다.
+                    if (userRequestedRawWebView) return;
+                    showWebPage("꾸독이 다음 버튼을 찾지 못했어요. 화면을 보면서 직접 진행해 주세요.", true);
+                }
+
+                @Override
+                public void onFinalTapUnverified(String reason) {
+                    // 해지 버튼을 누르지 못했거나 완료 화면을 확인하지 못하면 완료로 처리하지 않고 실제 화면을 보여준다.
+                    userRequestedRawWebView = true;
+                    if (btnAgentFinalConfirm != null) {
+                        btnAgentFinalConfirm.setEnabled(true);
+                        btnAgentFinalConfirm.setText("해지 확정하기");
+                    }
+                    String notice = "click_not_found".equals(reason) || "click_error".equals(reason)
+                            ? "해지 버튼을 누르지 못했어요. 화면에서 직접 눌러 주세요."
+                            : "해지 완료 화면을 확인하지 못했어요. 해지가 끝났다면 위의 [해지 완료]를 눌러 주세요.";
+                    showWebPage(notice, false);
                 }
             });
 
@@ -333,6 +551,51 @@ public class CancelBrowserActivity extends AppCompatActivity {
         data.putExtra("autoTaps", autoTaps);
         setResult("completed".equalsIgnoreCase(status) ? RESULT_OK : RESULT_CANCELED, data);
         finish();
+    }
+
+    private void updateAgentWebPreview() {
+        try {
+            if (ivAgentWebPreview == null || webView == null || webView.getWidth() <= 0 || webView.getHeight() <= 0) {
+                return;
+            }
+            int w = webView.getWidth();
+            int h = webView.getHeight();
+            float scale = Math.min(1.0f, 540.0f / (float) w);
+            int targetW = Math.max(1, Math.round(w * scale));
+            int targetH = Math.max(1, Math.round(h * scale));
+            Bitmap bmp = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bmp);
+            canvas.scale(scale, scale);
+            webView.draw(canvas);
+            ivAgentWebPreview.setImageBitmap(bmp);
+            setPreviewVisible(true);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void setPreviewVisible(boolean visible) {
+        if (ivAgentWebPreview != null) ivAgentWebPreview.setVisibility(visible ? View.VISIBLE : View.GONE);
+        if (agentCoverSpacer != null) agentCoverSpacer.setVisibility(visible ? View.GONE : View.VISIBLE);
+    }
+
+    /** 진행 화면으로 웹뷰를 덮는다. 하단 단계 도크는 진행 화면과 같은 내용을 보여주므로 함께 숨긴다. */
+    private void showAgentCover() {
+        if (agentCoverLayout != null) agentCoverLayout.setVisibility(View.VISIBLE);
+        if (loginNoticeBanner != null) loginNoticeBanner.setVisibility(View.GONE);
+        if (bottomGuideDock != null) bottomGuideDock.setVisibility(View.GONE);
+    }
+
+    /** 실제 웹 화면을 보여주고 위쪽에 한 줄 안내를 띄운다. */
+    private void showWebPage(String notice, boolean allowReturnToAgent) {
+        if (agentCoverLayout != null) agentCoverLayout.setVisibility(View.GONE);
+        if (bottomGuideDock != null) bottomGuideDock.setVisibility(View.VISIBLE);
+        if (loginNoticeBanner != null) {
+            loginNoticeBanner.setVisibility(View.VISIBLE);
+            if (tvLoginNoticeText != null && notice != null) tvLoginNoticeText.setText(notice);
+            if (btnReturnAgentMode != null) {
+                btnReturnAgentMode.setVisibility(allowReturnToAgent ? View.VISIBLE : View.GONE);
+            }
+        }
     }
 
 
@@ -491,6 +754,14 @@ public class CancelBrowserActivity extends AppCompatActivity {
             }
 
             @Override
+            public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
+                super.doUpdateVisitedHistory(view, url, isReload);
+                if (naverGuideController != null) {
+                    naverGuideController.onPageFinished();
+                }
+            }
+
+            @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
                 if (request.isForMainFrame() && pbLoading != null) {
@@ -604,7 +875,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
 
             if (keypadHeight > screenHeight * 0.15) {
                 bottomGuideDock.setVisibility(View.GONE);
-            } else {
+            } else if (agentCoverLayout == null || agentCoverLayout.getVisibility() != View.VISIBLE) {
                 bottomGuideDock.setVisibility(View.VISIBLE);
             }
         });

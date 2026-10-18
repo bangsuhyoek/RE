@@ -60,6 +60,19 @@ public final class RouteEvaluation {
         );
     }
 
+    public static RouteEvaluation waiting(String instruction) {
+        return new RouteEvaluation(
+                GuideState.PAUSED,
+                PageState.UNSUPPORTED_PAGE,
+                null,
+                "",
+                instruction,
+                false,
+                false,
+                false
+        );
+    }
+
     public static RouteEvaluation hidden(String instruction) {
         return new RouteEvaluation(
                 GuideState.HIDDEN,

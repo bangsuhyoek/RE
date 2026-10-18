@@ -37,6 +37,8 @@ public class GuideOverlayContainer extends FrameLayout {
     private GuideState preMinimizedGuideState;
     private RectF preMinimizedTargetRect;
     private GuideStep preMinimizedStep;
+    private boolean userMinimized = false;
+    private boolean bubbleEnabled = true;
     private long presentationGeneration = 0L;
 
     public GuideOverlayContainer(Context context) {
@@ -195,7 +197,53 @@ public class GuideOverlayContainer extends FrameLayout {
         preMinimizedTargetRect = null;
         preMinimizedStep = null;
         hideTargetHighlight();
-        setVisibility(GONE);
+        if (!bubbleEnabled) {
+            if (bubbleCard != null) bubbleCard.setVisibility(GONE);
+            if (restoreButton != null) restoreButton.setVisibility(GONE);
+            setVisibility(GONE);
+        } else if (userMinimized) {
+            if (bubbleCard != null) bubbleCard.setVisibility(GONE);
+            if (restoreButton != null) restoreButton.setVisibility(VISIBLE);
+        } else {
+            setVisibility(GONE);
+        }
+    }
+
+    public void setBubbleEnabled(boolean enabled) {
+        this.bubbleEnabled = enabled;
+        if (!enabled) {
+            if (bubbleCard != null) bubbleCard.setVisibility(GONE);
+            if (restoreButton != null) restoreButton.setVisibility(GONE);
+        }
+    }
+
+    public void setUserMinimized(boolean minimized) {
+        this.userMinimized = minimized;
+        if (minimized) {
+            if (bubbleCard != null) bubbleCard.setVisibility(GONE);
+            if (restoreButton != null && getVisibility() == VISIBLE) {
+                restoreButton.setVisibility(VISIBLE);
+            }
+        }
+    }
+
+    public boolean isUserMinimized() {
+        return userMinimized;
+    }
+
+    private void applyBubbleVisibility() {
+        if (!bubbleEnabled) {
+            if (bubbleCard != null) bubbleCard.setVisibility(GONE);
+            if (restoreButton != null) restoreButton.setVisibility(GONE);
+            return;
+        }
+        if (userMinimized) {
+            bubbleCard.setVisibility(GONE);
+            restoreButton.setVisibility(VISIBLE);
+        } else {
+            restoreButton.setVisibility(GONE);
+            bubbleCard.setVisibility(VISIBLE);
+        }
     }
 
     public void updatePageState(PageState newPageState) {
@@ -213,8 +261,10 @@ public class GuideOverlayContainer extends FrameLayout {
 
         messageView.setText(NaverMembershipGuide.messageFor(pageState));
         setVisibility(VISIBLE);
-        restoreButton.setVisibility(GONE);
-        bubbleCard.setVisibility(VISIBLE);
+        if (userMinimized) {
+            guideState = GuideState.MINIMIZED;
+        }
+        applyBubbleVisibility();
     }
 
     public void showNeedsLiveVerification(GuideStep step) {
@@ -222,10 +272,9 @@ public class GuideOverlayContainer extends FrameLayout {
         activeTargetRect = null;
         hideTargetHighlight();
         resetBubbleDefaultPosition();
-        guideState = GuideState.NEEDS_LIVE_VERIFICATION;
+        guideState = userMinimized ? GuideState.MINIMIZED : GuideState.NEEDS_LIVE_VERIFICATION;
         setVisibility(VISIBLE);
-        restoreButton.setVisibility(GONE);
-        bubbleCard.setVisibility(VISIBLE);
+        applyBubbleVisibility();
         String instruction = step == null ? "" : step.getInstruction();
         messageView.setText(
                 "실제 NAVER 가입자 화면 검증이 필요한 단계예요. "
@@ -238,10 +287,9 @@ public class GuideOverlayContainer extends FrameLayout {
         activeTargetRect = null;
         hideTargetHighlight();
         resetBubbleDefaultPosition();
-        guideState = GuideState.TALKING;
+        guideState = userMinimized ? GuideState.MINIMIZED : GuideState.TALKING;
         setVisibility(VISIBLE);
-        restoreButton.setVisibility(GONE);
-        bubbleCard.setVisibility(VISIBLE);
+        applyBubbleVisibility();
         messageView.setText(message == null ? "" : message);
     }
 
@@ -253,10 +301,9 @@ public class GuideOverlayContainer extends FrameLayout {
         }
 
         activeTargetRect = new RectF(rect);
-        guideState = GuideState.TALKING;
+        guideState = userMinimized ? GuideState.MINIMIZED : GuideState.TALKING;
         setVisibility(VISIBLE);
-        restoreButton.setVisibility(GONE);
-        bubbleCard.setVisibility(VISIBLE);
+        applyBubbleVisibility();
         messageView.setText(step.getInstruction());
 
         activeStep = step;
@@ -266,7 +313,9 @@ public class GuideOverlayContainer extends FrameLayout {
             PointerPlacement actual = choosePointerPlacement(
                     rect, step.getPreferredPlacement(), step.getOffsetDp());
             placePointer(rect, actual);
-            placeBubbleAwayFromTarget(rect);
+            if (!userMinimized) {
+                placeBubbleAwayFromTarget(rect);
+            }
             FrameLayout.LayoutParams outlineParams =
                     (FrameLayout.LayoutParams) targetOutline.getLayoutParams();
             RectF highlightRect = new RectF(
@@ -301,8 +350,8 @@ public class GuideOverlayContainer extends FrameLayout {
         }
 
         setVisibility(VISIBLE);
-        bubbleCard.setVisibility(VISIBLE);
-        restoreButton.setVisibility(GONE);
+        guideState = userMinimized ? GuideState.MINIMIZED : GuideState.TALKING;
+        applyBubbleVisibility();
         messageView.setText(message);
     }
 
@@ -316,6 +365,7 @@ public class GuideOverlayContainer extends FrameLayout {
 
     private void minimizeGuide() {
         presentationGeneration++;
+        userMinimized = true;
         if (guideState == GuideState.HIDDEN) return;
         preMinimizedGuideState = guideState;
         preMinimizedTargetRect = activeTargetRect != null ? new RectF(activeTargetRect) : null;
@@ -323,10 +373,10 @@ public class GuideOverlayContainer extends FrameLayout {
         guideState = GuideState.MINIMIZED;
         bubbleCard.setVisibility(GONE);
         restoreButton.setVisibility(VISIBLE);
-        hideTargetHighlight();
     }
 
     private void restoreGuide() {
+        userMinimized = false;
         GuideState targetState = preMinimizedGuideState;
         RectF targetRect = preMinimizedTargetRect;
         GuideStep targetStep = preMinimizedStep;

@@ -15,9 +15,17 @@ import com.submate.app.webguide.state.GuideState;
 import com.submate.app.webguide.state.PageState;
 import com.submate.app.webguide.target.CoordinateMapper;
 import com.submate.app.webguide.target.GuideStep;
+import com.submate.app.webguide.target.GuideTargetSpec;
 import com.submate.app.webguide.target.TargetResolution;
 import com.submate.app.webguide.target.TargetResolutionStatus;
+import com.submate.app.webguide.target.TargetRect;
 import com.submate.app.webguide.target.TargetResolver;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Hosts the cancel guide runtime (Naver verified guide and declarative assist routes)
@@ -31,6 +39,12 @@ public final class KkudokNaverGuideController {
         void onAutoAdvanceCountdownStarted(long durationMs, Runnable onCancelOptOut);
         void onAutoAdvanceCountdownCancelled();
         void onCancellationSuccessDetected(String detectedBy, String matchedSignal);
+        default void onLoginStateChanged(boolean isLoginRequired, String message) {}
+        default void onStepProgressUpdated(String badge, String instruction, boolean isFinalStep, String matchedTargetText) {}
+        default void onManualFallbackRequired(String reason) {}
+        default void onFinalTapUnverified(String reason) {}
+        default void onUserTapRequired(String targetText) {}
+        default void onStepTapFailed(String reason) {}
     }
 
     public static final String FINAL_STEP_DOCK_COPY = "마지막 버튼은 직접 눌러 주세요. 누르면 해지가 진행돼요.";
@@ -56,6 +70,7 @@ public final class KkudokNaverGuideController {
     private boolean popupOpen = false;
     private boolean destroyed = false;
     private boolean manualGuideRequested = false;
+    private boolean successTriggered = false;
     private Runnable pendingEvaluate;
     private Runnable pendingRetry;
     private Runnable pendingTextSuccessCheck;
@@ -64,6 +79,10 @@ public final class KkudokNaverGuideController {
     private RectF lastPresentedRect;
     private GuideStep currentStep;
     private boolean currentStepIsFinal = false;
+    private String currentMatchedTargetText = "";
+    private boolean lastReportedLoginState = false;
+    private String lastReportedUserTapRequiredStepId = null;
+    private final Set<String> autoScrolledStepUrls = new HashSet<>();
 
     public KkudokNaverGuideController(
             WebView webView,
@@ -204,7 +223,7 @@ public final class KkudokNaverGuideController {
     }
 
     public boolean isCurrentStepFinal() {
-        return currentStepIsFinal || (currentStep != null && currentStep.isUserMustTap());
+        return currentStepIsFinal;
     }
 
     public void onPageLoading() {
@@ -215,6 +234,7 @@ public final class KkudokNaverGuideController {
         lastPresentedRect = null;
         currentStep = null;
         currentStepIsFinal = false;
+        lastReportedUserTapRequiredStepId = null;
         overlay.onPageLoading();
         applyManualGuidePreference();
         stepDescription.setText("공식 페이지를 확인하고 있어요.");
@@ -345,7 +365,7 @@ public final class KkudokNaverGuideController {
     }
 
     private void checkSuccessSignals() {
-        if (destroyed || webView == null) return;
+        if (destroyed || webView == null || successTriggered) return;
         if (!successDetector.isFinalStepTappedByUser()) return;
 
         String currentUrl = webView.getUrl();
@@ -356,7 +376,7 @@ public final class KkudokNaverGuideController {
 
         // Check text immediately and schedule another check ~1s later (Requirement 4)
         successDetector.checkTextSuccess(webView, (detectedBy, matchedSignal) -> {
-            if (destroyed) return;
+            if (destroyed || successTriggered) return;
             if (detectedBy != null) {
                 triggerSuccess(detectedBy, matchedSignal);
             }
@@ -367,9 +387,9 @@ public final class KkudokNaverGuideController {
         }
         pendingTextSuccessCheck = () -> {
             pendingTextSuccessCheck = null;
-            if (destroyed || webView == null || !successDetector.isFinalStepTappedByUser()) return;
+            if (destroyed || webView == null || successTriggered || !successDetector.isFinalStepTappedByUser()) return;
             successDetector.checkTextSuccess(webView, (detectedBy, matchedSignal) -> {
-                if (destroyed) return;
+                if (destroyed || successTriggered) return;
                 if (detectedBy != null) {
                     triggerSuccess(detectedBy, matchedSignal);
                 }
@@ -379,6 +399,8 @@ public final class KkudokNaverGuideController {
     }
 
     private void triggerSuccess(String detectedBy, String signal) {
+        if (successTriggered) return;
+        successTriggered = true;
         if (listener != null) {
             listener.onCancellationSuccessDetected(detectedBy, signal);
         }
@@ -409,15 +431,31 @@ public final class KkudokNaverGuideController {
             stepDescription.setText(evaluation.getInstructionText());
             if (evaluation.isLogin()) {
                 overlay.updatePageState(PageState.LOGIN);
+                if (!lastReportedLoginState && listener != null) {
+                    lastReportedLoginState = true;
+                    listener.onLoginStateChanged(true, evaluation.getInstructionText());
+                }
             } else {
                 overlay.showStandaloneMessage(evaluation.getInstructionText());
+                if (lastReportedLoginState && listener != null) {
+                    lastReportedLoginState = false;
+                    listener.onLoginStateChanged(false, evaluation.getInstructionText());
+                }
             }
             applyManualGuidePreference();
             return;
         }
 
+        if (lastReportedLoginState && listener != null) {
+            lastReportedLoginState = false;
+            listener.onLoginStateChanged(false, "");
+        }
+
         if (evaluation.getGuideState() == GuideState.HIDDEN) {
             showManualFallback(evaluation.getInstructionText());
+            if (listener != null) {
+                listener.onManualFallbackRequired("hidden");
+            }
             return;
         }
 
@@ -433,10 +471,16 @@ public final class KkudokNaverGuideController {
         if (currentStep == null || !currentStep.getStepId().equals(step.getStepId())) {
             lastPresentedStepId = null;
             lastPresentedRect = null;
+            lastReportedUserTapRequiredStepId = null;
         }
         currentStep = step;
-        currentStepIsFinal = step.isUserMustTap();
-        if (currentStepIsFinal || evaluation.isUserMustTap()) {
+        boolean isUserTapRequired = step.isUserMustTap()
+                && step.getLogicalPageState() != PageState.FINAL_CANCEL_CONFIRM
+                && route != null
+                && route.getStepNumber(step.getStepId()) < route.getTotalSteps();
+
+        currentStepIsFinal = step.isUserMustTap() && !isUserTapRequired;
+        if (currentStepIsFinal || (evaluation.isUserMustTap() && !isUserTapRequired)) {
             successDetector.setFinalStepReached(true);
         }
 
@@ -445,6 +489,9 @@ public final class KkudokNaverGuideController {
                 ? FINAL_STEP_DOCK_COPY
                 : step.getInstruction();
         stepDescription.setText(dockText);
+        if (listener != null) {
+            listener.onStepProgressUpdated(evaluation.getBadgeText(), dockText, currentStepIsFinal, currentMatchedTargetText);
+        }
         applyManualGuidePreference();
         resolveTarget(requestGeneration, requestUrl, step, 0);
     }
@@ -481,12 +528,19 @@ public final class KkudokNaverGuideController {
                 return;
             }
 
+            currentMatchedTargetText = resolution.getMatchedText() != null ? resolution.getMatchedText() : "";
+
             // Keyword validation: hard keywords or non-permitted soft keywords
             boolean textAllowed = AutoAdvancer.isKeywordAllowed(resolution.getMatchedText(), step.isAutoTapAllowed());
             boolean descAllowed = AutoAdvancer.isKeywordAllowed(resolution.getElementDescriptor(), step.isAutoTapAllowed());
 
+            boolean isUserTapRequired = step.isUserMustTap()
+                    && step.getLogicalPageState() != PageState.FINAL_CANCEL_CONFIRM
+                    && route != null
+                    && route.getStepNumber(step.getStepId()) < route.getTotalSteps();
+
             GuideStep presentationStep = step;
-            if (!textAllowed || !descAllowed || step.isUserMustTap()) {
+            if (!textAllowed || !descAllowed || (step.isUserMustTap() && !isUserTapRequired)) {
                 currentStepIsFinal = true;
                 if (!step.isUserMustTap()) {
                     presentationStep = new GuideStep(
@@ -512,6 +566,22 @@ public final class KkudokNaverGuideController {
                 lastPresentedStepId = presentationStep.getStepId();
             }
             lastPresentedRect = new RectF(mapped);
+            if (listener != null) {
+                String dockMsg = currentStepIsFinal
+                        ? FINAL_STEP_DOCK_COPY
+                        : presentationStep.getInstruction();
+                listener.onStepProgressUpdated(
+                        stepBadge.getText() != null ? stepBadge.getText().toString() : "",
+                        dockMsg,
+                        currentStepIsFinal,
+                        currentMatchedTargetText
+                );
+
+                if (isUserTapRequired && !presentationStep.getStepId().equals(lastReportedUserTapRequiredStepId)) {
+                    lastReportedUserTapRequiredStepId = presentationStep.getStepId();
+                    listener.onUserTapRequired(currentMatchedTargetText);
+                }
+            }
 
             // Wire AutoAdvancer: request auto-advance for eligible intermediate step
             if (!currentStepIsFinal && !presentationStep.isUserMustTap()) {
@@ -523,6 +593,23 @@ public final class KkudokNaverGuideController {
         if (status == TargetResolutionStatus.FOUND_OFFSCREEN) {
             lastPresentedRect = null;
             applyManualGuidePreference();
+            TargetRect rawRect = resolution.getRect();
+            String scrollKey = step.getStepId() + "@" + (requestUrl == null ? "" : requestUrl);
+            if (rawRect != null && !autoScrolledStepUrls.contains(scrollKey)) {
+                autoScrolledStepUrls.add(scrollKey);
+                float targetCenterY = rawRect.topCssPx + (rawRect.heightCssPx / 2f);
+                float viewportCenterY = (rawRect.viewportHeightCssPx > 0 ? rawRect.viewportHeightCssPx : 600f) / 2f;
+                int deltaY = Math.round(targetCenterY - viewportCenterY);
+                if (Math.abs(deltaY) > 24 && webView != null) {
+                    stepDescription.setText("해지 버튼 위치로 화면을 이동하고 있어요…");
+                    webView.evaluateJavascript(
+                            "(function(){try{window.scrollBy({top:" + deltaY + ",left:0,behavior:'smooth'});}catch(e){window.scrollBy(0," + deltaY + ");}})()",
+                            null
+                    );
+                    scheduleEvaluate(480L);
+                    return;
+                }
+            }
             overlay.showTargetStatus(step, status, resolution.getRect());
             stepDescription.setText("버튼이 화면 밖에 있어요. 안내 방향으로 스크롤해주세요.");
             return;
@@ -545,6 +632,9 @@ public final class KkudokNaverGuideController {
 
         if (route.isGracefulFallbackOnTargetNotFound()) {
             handleGracefulFallback(step);
+            if (listener != null) {
+                listener.onManualFallbackRequired("target_not_found");
+            }
             return;
         }
 
@@ -554,6 +644,9 @@ public final class KkudokNaverGuideController {
             showManualFallback("현재 화면에서 버튼 위치를 찾지 못해 수동 안내로 전환했어요.");
         } else {
             showManualFallback("자동 위치 안내를 사용할 수 없어 수동 안내로 전환했어요.");
+        }
+        if (listener != null) {
+            listener.onManualFallbackRequired(status.name());
         }
     }
 
@@ -576,6 +669,129 @@ public final class KkudokNaverGuideController {
         lastPresentedStepId = null;
         lastPresentedRect = null;
         applyManualGuidePreference();
+    }
+
+    /**
+     * 사용자가 꾸독의 무화면 승인 카드에서 [마지막 해지 확정하기]를 직접 눌렀을 때
+     * 백그라운드 웹뷰의 최종 해지 버튼에 클릭을 전달하고 해지 완료 검증을 시작한다.
+     */
+    public void performUserConfirmedFinalTap(Runnable onAfterTap) {
+        if (destroyed || webView == null || successTriggered) return;
+
+        GuideTargetSpec spec = currentStep != null ? currentStep.getTarget() : null;
+        String clickScript = buildFinalConfirmClickScript(spec, currentMatchedTargetText);
+        webView.evaluateJavascript(clickScript, res -> {
+            if (onAfterTap != null) onAfterTap.run();
+            if (destroyed) return;
+
+            String clickResult = parseFinalConfirmClickResult(res);
+            if (!isClickSuccessResult(clickResult)) {
+                String reason = "not_found".equals(clickResult) ? "click_not_found" : "click_error";
+                if (listener != null) {
+                    listener.onFinalTapUnverified(reason);
+                }
+                return;
+            }
+
+            successDetector.setFinalStepReached(true);
+            successDetector.markFinalStepTappedByUser();
+
+            long[] pollDelays = {450L, 1100L, 2000L, 3200L, 4500L};
+            for (long delay : pollDelays) {
+                handler.postDelayed(() -> {
+                    if (!destroyed && !successTriggered) {
+                        checkSuccessSignals();
+                    }
+                }, delay);
+            }
+
+            handler.postDelayed(() -> {
+                if (!destroyed && !successTriggered) {
+                    if (listener != null) {
+                        listener.onFinalTapUnverified("no_success_signal");
+                    }
+                }
+            }, 5000L);
+        });
+    }
+
+    /**
+     * 사용자가 꾸독의 승인 카드에서 중간 단계 수동 클릭([진행하기])을 직접 눌렀을 때
+     * 백그라운드 웹뷰의 해당 버튼에 클릭을 전달하고 다음 단계를 재평가한다.
+     * 최종 해지 상태 변경이나 완료 검증은 수행하지 않는다.
+     */
+    public void performUserConfirmedStepTap() {
+        if (destroyed || webView == null) return;
+
+        GuideTargetSpec spec = currentStep != null ? currentStep.getTarget() : null;
+        String clickScript = buildFinalConfirmClickScript(spec, currentMatchedTargetText);
+        webView.evaluateJavascript(clickScript, res -> {
+            if (destroyed) return;
+
+            String clickResult = parseFinalConfirmClickResult(res);
+            if (!isClickSuccessResult(clickResult)) {
+                String reason = "not_found".equals(clickResult) ? "click_not_found" : "click_error";
+                if (listener != null) {
+                    listener.onStepTapFailed(reason);
+                }
+                return;
+            }
+
+            scheduleEvaluate(600L);
+        });
+    }
+
+    static String parseFinalConfirmClickResult(String rawResult) {
+        if (rawResult == null) return "error";
+        String s = rawResult.trim();
+        if ("null".equals(s) || s.isEmpty()) return "error";
+        if (s.startsWith("\"") && s.endsWith("\"") && s.length() >= 2) {
+            s = s.substring(1, s.length() - 1);
+        }
+        return s;
+    }
+
+    static boolean isClickSuccessResult(String result) {
+        return "clicked_id".equals(result)
+                || "clicked_exact".equals(result)
+                || "clicked_match".equals(result)
+                || "clicked_sel".equals(result);
+    }
+
+    private static String buildFinalConfirmClickScript(GuideTargetSpec spec, String fallbackText) {
+        JSONObject target = new JSONObject();
+        try {
+            if (spec != null) {
+                if (spec.getSelector() != null) target.put("selector", spec.getSelector());
+                if (spec.getElementId() != null) target.put("id", spec.getElementId());
+                if (spec.getText() != null) target.put("text", spec.getText());
+                if (spec.getTextMatches() != null && !spec.getTextMatches().isEmpty()) {
+                    JSONArray arr = new JSONArray();
+                    for (String tm : spec.getTextMatches()) {
+                        if (tm != null && !tm.trim().isEmpty()) arr.put(tm.trim());
+                    }
+                    target.put("textMatches", arr);
+                }
+            }
+            if (fallbackText != null && !fallbackText.trim().isEmpty()) {
+                target.put("fallbackText", fallbackText.trim());
+            }
+        } catch (Exception ignored) {}
+
+        String jsonLiteral = JSONObject.quote(target.toString());
+        return "(function(){"
+                + "try{"
+                + "var spec=JSON.parse(" + jsonLiteral + ");"
+                + "var norm=function(v){return (v||'').replace(/\\s+/g,' ').trim();};"
+                + "var nodes=document.querySelectorAll('a,button,[role=button],[role=link],[role=menuitem],[role=tab],input[type=button],input[type=submit]');"
+                + "if(spec.id){var byId=document.getElementById(spec.id);if(byId){byId.click();return 'clicked_id';}}"
+                + "if(spec.selector&&spec.selector.indexOf('data-kkudok-ai-idx')>=0){var aiEl=document.querySelector(spec.selector);if(aiEl){aiEl.click();return 'clicked_sel';}}"
+                + "if(spec.fallbackText){var ft=norm(spec.fallbackText).toLowerCase();for(var i=0;i<nodes.length;i++){var t=norm(nodes[i].innerText||nodes[i].textContent||nodes[i].value).toLowerCase();if(t===ft){nodes[i].click();return 'clicked_exact';}}}"
+                + "var tms=spec.textMatches||[];for(var m=0;m<tms.length;m++){var ml=norm(tms[m]).toLowerCase();for(var j=0;j<nodes.length;j++){var tj=norm(nodes[j].innerText||nodes[j].textContent||nodes[j].value).toLowerCase();if(ml&&tj.indexOf(ml)>=0){nodes[j].click();return 'clicked_match';}}}"
+                + "if(spec.selector){var sel=document.querySelector(spec.selector);if(sel){sel.click();return 'clicked_sel';}}"
+                + "return 'not_found';"
+                + "}catch(e){return 'error';}"
+                + "})()";
     }
 
     private boolean samePresentation(String stepId, RectF rect) {

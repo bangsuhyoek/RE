@@ -19,12 +19,16 @@ import { serviceCatalog } from "../data/subscriptionData";
 import { getCancelGuide } from "../data/cancelGuides";
 import { getCancelPolicy } from "../data/cancelPolicies";
 import { getCancelTimingAdvice } from "../lib/cancelTiming";
+import { expectedChargeAfterCancel } from "../lib/cancelVerification";
 import {
   openCancelBrowser,
   stopFloatingGuide,
   addCancelFlowListener,
+  decideCancelTopCard,
   hasMoneyRelevantWarning,
   getCancelGuidanceCopy,
+  readCancelAiConsent,
+  setCancelAiConsent,
 } from "../lib/cancelBrowser";
 import { saveCancelProof } from "../lib/cancelProof";
 import { CANCEL_CHANNELS, getCancelRoutes, resolvePaymentChannel } from "../lib/cancelRoutes";
@@ -164,14 +168,20 @@ export function CancelModal({
 
   const [checked, setChecked] = useState(() => new Array(steps.length).fill(false));
   const [celebrating, setCelebrating] = useState(false);
+  const [flowStatus, setFlowStatus] = useState(null);
   const [autoDetectedSuccess, setAutoDetectedSuccess] = useState(false);
   const [autoProofPath, setAutoProofPath] = useState(null);
   const [returnedFromCancel, setReturnedFromCancel] = useState(false);
   const [userDismissedQuestion, setUserDismissedQuestion] = useState(false);
 
-  const [showBrowserModal, setShowBrowserModal] = useState(() => Boolean(autoOpen && !railPlan && subscription.cancelUrl && usesServicePage));
   const [cancelSessionActive, setCancelSessionActive] = useState(false);
   const [cancelReminderSet, setCancelReminderSet] = useState(false);
+  const [aiCancelConsent, setAiCancelConsentState] = useState(() => readCancelAiConsent());
+
+  const toggleAiCancelConsent = () => {
+    const next = setCancelAiConsent(!aiCancelConsent);
+    setAiCancelConsentState(next);
+  };
 
   const sessionRef = useRef(null);
   if (!sessionRef.current) {
@@ -204,6 +214,30 @@ export function CancelModal({
     [rawSub, channel, policy]
   );
 
+  const [showBrowserModal, setShowBrowserModal] = useState(() =>
+    Boolean(
+      autoOpen &&
+        !Capacitor.isNativePlatform() &&
+        !railPlan &&
+        !hasMoneyRelevantWarning(timingAdvice) &&
+        subscription.cancelUrl &&
+        usesServicePage
+    )
+  );
+
+  const topCardState = decideCancelTopCard({
+    celebrating,
+    hasReturnedFromCancel: returnedFromCancel,
+    flowStatus,
+    cancelSessionActive,
+    userDismissedQuestion,
+  });
+
+  const expectedNextWatchDate = useMemo(() => {
+    const next = expectedChargeAfterCancel(rawSub, cancelledAt ? new Date(cancelledAt) : new Date());
+    return next ? (next.getMonth() + 1) + "월 " + next.getDate() + "일" : null;
+  }, [rawSub, cancelledAt]);
+
   const handleScheduleCancelReminder = async () => {
     if (!timingAdvice.reminderAt) return;
     const routeLabel = routes.primary.label || rawSub.name || "해지";
@@ -231,6 +265,7 @@ export function CancelModal({
     setChecked([]);
     setCancelSessionActive(false);
     setReturnedFromCancel(false);
+    setFlowStatus(null);
   };
 
   const openStoreRoute = () => {
@@ -244,6 +279,7 @@ export function CancelModal({
   const handleFlowResult = (result) => {
     if (!result) return;
     if (result.status === "completed" || result.action === "COMPLETED") {
+      setFlowStatus("completed");
       const path = result.proofWebPath || result.proofPath;
       if (path) {
         setAutoProofPath(path);
@@ -261,6 +297,7 @@ export function CancelModal({
       setAutoDetectedSuccess(true);
       complete();
     } else if (result.status === "closed" || result.action === "CLOSED") {
+      setFlowStatus("closed");
       setReturnedFromCancel(true);
       setUserDismissedQuestion(false);
     }
@@ -334,6 +371,7 @@ export function CancelModal({
         serviceName: subscription.name,
         cancelUrl: subscription.cancelUrl,
         guideSteps: subscription.guideSteps,
+        aiConsent: aiCancelConsent,
       },
       handleFlowResult
     );
@@ -376,6 +414,7 @@ export function CancelModal({
 
   const revertCompletion = () => {
     setCelebrating(false);
+    setFlowStatus("closed");
     setAutoDetectedSuccess(false);
     setAutoProofPath(null);
     setReturnedFromCancel(true);
@@ -391,7 +430,7 @@ export function CancelModal({
     if (promotion?.link) window.open(promotion.link, "_blank", "noopener,noreferrer");
   };
 
-  if (celebrating) {
+  if (topCardState === "celebration") {
     return (
       <BottomSheet onClose={finish} label="해지 완료">
         <div className="flex flex-col items-center px-2 pb-5 pt-3 text-center">
@@ -416,7 +455,9 @@ export function CancelModal({
             1년이면 {formatWon(yearlySavings)}이에요.
           </p>
           <p className="mt-2 text-[13px] leading-relaxed text-[#8B95A1]">
-            구독 목록에서 빼고, 아낀 금액은 통계에 기록해 둘게요.
+            {expectedNextWatchDate
+              ? "다음 결제 예정일(" + expectedNextWatchDate + ") 이후 재결제가 없는지 꾸독이 자동으로 지켜볼게요."
+              : "구독 목록에서 빼고, 아낀 금액은 통계에 기록해 둘게요."}
           </p>
 
           {/* 자동 감지 증빙 썸네일 카드 */}
@@ -458,7 +499,7 @@ export function CancelModal({
           <div className="mt-4 w-full">
             <details className="group rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-3 text-left">
               <summary className="cursor-pointer text-center text-[12px] font-semibold text-[#6B7684] hover:text-[#333D4B] list-none flex items-center justify-center gap-1">
-                <span>해지가 어려웠다면 알려주기</span>
+                <span>{autoProofPath ? "해지가 어려웠다면 알려주기" : "해지 완료 화면 저장하기"}</span>
               </summary>
               <div className="mt-3 border-t border-[#E5E8EB] pt-3">
                 {!autoProofPath && <CancelProofCapture record={proofRecord} />}
@@ -502,22 +543,54 @@ export function CancelModal({
         autoOpened={autoOpen}
         onClose={() => {
           setShowBrowserModal(false);
+          setFlowStatus("closed");
           setCancelSessionActive(true);
           setReturnedFromCancel(true);
           setUserDismissedQuestion(false);
         }}
-        onComplete={complete}
+        onComplete={(res) => {
+          if (res?.status === "completed" || res?.action === "COMPLETED") {
+            handleFlowResult(res);
+          } else {
+            complete();
+          }
+        }}
       />
     );
   }
 
   const hasCancelUrl = Boolean(subscription.cancelUrl);
-  const guidanceCopy = getCancelGuidanceCopy({
-    serviceId: canonicalServiceId,
-    channel,
-    platform: currentPlatform,
-    targetName: subscription.name,
-  });
+  const isMoneyWarning = hasMoneyRelevantWarning(timingAdvice);
+  // Android 앱에서는 꾸독이 공식 해지 페이지를 열고 해지 버튼을 찾아 마지막 확인 직전까지 진행한다.
+  const usesCancelAgent = currentPlatform === "android" && usesServicePage && hasCancelUrl && !railPlan;
+  const guidanceCopy = usesCancelAgent
+    ? "로그인하면 꾸독이 해지 메뉴를 찾아 대신 넘겨요. 해지 버튼은 누르기 전에 한 번씩 물어볼게요."
+    : getCancelGuidanceCopy({
+        serviceId: canonicalServiceId,
+        channel,
+        platform: currentPlatform,
+        targetName: subscription.name,
+      });
+
+  const timingTone =
+    timingAdvice.kind === "keep_until" || timingAdvice.kind === "prorated_refund"
+      ? { box: "border-[#D6E4FF] bg-[#F2F8FF]", head: "text-[#1B64DA]", body: "text-[#357AE8]" }
+      : isMoneyWarning
+      ? { box: "border-[#FFE5B5] bg-[#FFF8E6]", head: "text-[#8A5A00]", body: "text-[#9E6A00]" }
+      : { box: "border-[#E5E8EB] bg-white", head: "text-[#333D4B]", body: "text-[#6B7684]" };
+
+  const reminderButton = timingAdvice.reminderAt ? (
+    <Button
+      size="compact"
+      fullWidth
+      variant="secondary"
+      onClick={handleScheduleCancelReminder}
+      disabled={cancelReminderSet}
+      prefixIcon={<BellRing size={14} />}
+    >
+      {cancelReminderSet ? "알림을 예약했어요" : (timingAdvice.reminderLabel || "결제일 전날 알림 받기")}
+    </Button>
+  ) : null;
 
   return (
     <BottomSheet onClose={onClose} label="구독 해지 가이드">
@@ -539,16 +612,18 @@ export function CancelModal({
         </div>
       </div>
 
-      {/* 2. 금전적 불이익(잔여일 소멸/위약금) 경고가 있을 때만 노출하는 1줄 힌트 */}
-      {hasMoneyRelevantWarning(timingAdvice) && (
-        <div className="mt-3 flex items-center gap-2 rounded-xl border border-[#FFE5B5] bg-[#FFF8E6] px-3.5 py-2.5 text-[12px] font-semibold text-[#8A5A00]">
-          <span className="shrink-0 text-[14px]">⚠️</span>
-          <span className="leading-snug">{timingAdvice.headline}</span>
+      {/* 2. 해지하면 바로 손해가 생길 때(잔여일 소멸·위약금)만 위에 경고를 띄운다 */}
+      {isMoneyWarning && (
+        <div className={"mt-3.5 rounded-2xl border p-3.5 text-left " + timingTone.box} data-testid="cancel-timing-banner">
+          <p className={"text-[13px] font-bold leading-snug " + timingTone.head}>{timingAdvice.headline}</p>
+          {timingAdvice.detail && (
+            <p className={"mt-1 text-[12px] leading-relaxed " + timingTone.body}>{timingAdvice.detail}</p>
+          )}
+          {reminderButton && <div className="mt-2.5">{reminderButton}</div>}
         </div>
       )}
-
       {/* 3. 복귀 시 최상단에 뜨는 원터치 확인 질문 카드 */}
-      {returnedFromCancel && !userDismissedQuestion && (
+      {topCardState === "completion_question" && (
         <div className="mt-3.5 rounded-2xl border-2 border-[#3182F6] bg-[#F2F8FF] p-4 text-left shadow-xs">
           <div className="flex items-center justify-between">
             <h3 className="text-[16px] font-extrabold text-[#191F28]">해지를 끝냈나요?</h3>
@@ -567,6 +642,7 @@ export function CancelModal({
               onClick={() => {
                 setUserDismissedQuestion(true);
                 setReturnedFromCancel(false);
+                setFlowStatus(null);
               }}
               className="w-28"
             >
@@ -672,13 +748,18 @@ export function CancelModal({
           <>
             <Button size="large" fullWidth onClick={complete}>{COMPLETE_LABEL}</Button>
             <Button size="large" fullWidth variant="secondary" onClick={goToCancel} prefixIcon={<ExternalLink size={16} />}>
-              해지 페이지 다시 열기
+              {usesCancelAgent ? "꾸독에게 다시 맡기기" : "해지 페이지 다시 열기"}
             </Button>
           </>
         ) : (
           <>
-            <Button size="large" fullWidth onClick={goToCancel} prefixIcon={<ExternalLink size={17} />}>
-              해지 페이지 열기
+            <Button
+              size="large"
+              fullWidth
+              onClick={goToCancel}
+              prefixIcon={usesCancelAgent ? null : <ExternalLink size={17} />}
+            >
+              {usesCancelAgent ? "꾸독에게 해지 맡기기" : "해지 페이지 열기"}
             </Button>
             <Button size="large" fullWidth variant="secondary" onClick={complete}>
               이미 해지했어요
@@ -687,7 +768,7 @@ export function CancelModal({
         )}
       </div>
 
-      {hasCancelUrl && isNative && usesServicePage && (
+      {hasCancelUrl && isNative && usesServicePage && !railPlan && (
         <button
           type="button"
           onClick={openInSystemBrowser}
@@ -695,6 +776,23 @@ export function CancelModal({
         >
           평소 쓰는 브라우저로 열기
         </button>
+      )}
+
+      {usesCancelAgent && (
+        <label className="mt-2.5 flex cursor-pointer items-start gap-2.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] px-3 py-2.5 text-left">
+          <input
+            type="checkbox"
+            checked={aiCancelConsent}
+            onChange={toggleAiCancelConsent}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-[#D1D6DB] accent-[#3182F6]"
+          />
+          <span className="text-[11.5px] leading-snug text-[#4E5968]">
+            <strong className="font-bold text-[#333D4B]">AI 해지 도우미 함께 쓰기 (선택)</strong>
+            <span className="mt-0.5 block text-[11px] text-[#8B95A1]">
+              다음 버튼을 못 찾았을 때만 개인정보를 지운 화면 버튼 이름을 Google Gemini로 보내 확인해요.
+            </span>
+          </span>
+        </label>
       )}
 
       {routes.secondary.map((route) => (
@@ -716,87 +814,36 @@ export function CancelModal({
 
       {/* 7. 접어둔 "해지 전에 알아두면 좋은 것" 섹션 */}
       <details className="mt-4 rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-3.5 text-left">
-        <summary className="cursor-pointer text-[13px] font-bold text-[#333D4B] flex items-center justify-between">
-          <span>해지 전에 알아두면 좋은 것</span>
-        </summary>
+        <summary className="cursor-pointer text-[13px] font-bold text-[#333D4B]">해지 전에 알아두면 좋은 것</summary>
         <div className="mt-3 space-y-3 border-t border-[#E5E8EB] pt-3">
           <DifficultyBadge serviceId={canonicalServiceId} />
 
-          {/* 상세 해지 타이밍 안내 */}
-          <div
-            className={
-              "rounded-2xl border p-3.5 " +
-              (timingAdvice.kind === "keep_until" || timingAdvice.kind === "prorated_refund"
-                ? "border-[#D6E4FF] bg-[#F2F8FF]"
-                : timingAdvice.kind === "immediate_loss" || timingAdvice.kind === "penalty"
-                ? "border-[#FFE5B5] bg-[#FFF8E6]"
-                : "border-[#E5E8EB] bg-white")
-            }
-          >
-            <div className="flex items-start gap-2.5">
-              <div className="min-w-0 flex-1">
-                <p
-                  className={
-                    "text-[13px] font-bold leading-snug " +
-                    (timingAdvice.kind === "keep_until" || timingAdvice.kind === "prorated_refund"
-                      ? "text-[#1B64DA]"
-                      : timingAdvice.kind === "immediate_loss" || timingAdvice.kind === "penalty"
-                      ? "text-[#8A5A00]"
-                      : "text-[#333D4B]")
-                  }
-                >
-                  {timingAdvice.headline}
+          {!isMoneyWarning && (
+            <div className={"rounded-2xl border p-3.5 " + timingTone.box}>
+              <p className={"text-[13px] font-bold leading-snug " + timingTone.head}>{timingAdvice.headline}</p>
+              {timingAdvice.detail && (
+                <p className={"mt-1 text-[12px] leading-relaxed " + timingTone.body}>{timingAdvice.detail}</p>
+              )}
+              {reminderButton && <div className="mt-3">{reminderButton}</div>}
+              {timingAdvice.checkedAt && (
+                <p className="mt-2 text-[11px] text-[#8B95A1]">
+                  {timingAdvice.checkedAt} 기준 서비스 안내이며 변경될 수 있어요
+                  {timingAdvice.sourceUrl && (
+                    <>
+                      {" · "}
+                      <button
+                        type="button"
+                        onClick={() => openExternal(timingAdvice.sourceUrl)}
+                        className="underline underline-offset-2 hover:text-[#4E5968]"
+                      >
+                        공식 안내
+                      </button>
+                    </>
+                  )}
                 </p>
-                {timingAdvice.detail && (
-                  <p
-                    className={
-                      "mt-1 text-[12px] leading-relaxed " +
-                      (timingAdvice.kind === "keep_until" || timingAdvice.kind === "prorated_refund"
-                        ? "text-[#357AE8]"
-                        : timingAdvice.kind === "immediate_loss" || timingAdvice.kind === "penalty"
-                        ? "text-[#9E6A00]"
-                        : "text-[#6B7684]")
-                    }
-                  >
-                    {timingAdvice.detail}
-                  </p>
-                )}
-              </div>
+              )}
             </div>
-
-            {timingAdvice.reminderAt && (
-              <div className="mt-3">
-                <Button
-                  size="medium"
-                  fullWidth
-                  variant="secondary"
-                  onClick={handleScheduleCancelReminder}
-                  disabled={cancelReminderSet}
-                  prefixIcon={<BellRing size={15} />}
-                >
-                  {cancelReminderSet ? "알림을 예약했어요" : (timingAdvice.reminderLabel || "결제일 전날 알림 받기")}
-                </Button>
-              </div>
-            )}
-
-            {timingAdvice.checkedAt && (
-              <p className="mt-2 text-[11px] text-[#8B95A1]">
-                {timingAdvice.checkedAt} 기준 서비스 안내이며 변경될 수 있어요
-                {timingAdvice.sourceUrl && (
-                  <>
-                    {" · "}
-                    <button
-                      type="button"
-                      onClick={() => openExternal(timingAdvice.sourceUrl)}
-                      className="underline underline-offset-2 hover:text-[#4E5968] cursor-pointer"
-                    >
-                      공식 안내
-                    </button>
-                  </>
-                )}
-              </p>
-            )}
-          </div>
+          )}
 
           <CancelAlternativesCard
             subscription={rawSub}
