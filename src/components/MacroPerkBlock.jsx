@@ -40,9 +40,17 @@ export function MacroPerkBlock({
   onAction,
   className = "",
 }) {
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onAction?.();
+    }
+  };
+
   return (
     <article
       onClick={onAction}
+      onKeyDown={handleKeyDown}
       className={`group flex w-full items-center justify-between gap-5 sm:gap-7 py-5 sm:py-6 px-2 sm:px-3.5 transition-colors hover:bg-[#F9FAFB] rounded-2xl cursor-pointer select-none ${className}`}
       role="button"
       tabIndex={0}

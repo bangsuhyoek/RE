@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import { API_BASE_URL, getApiEndpoint } from "../lib/apiBase";
-import { recognizeDirectly, isDirectGeminiAvailable } from "../lib/geminiOcr";
+import { supabase } from "../lib/supabase";
 import {
   calculateEqualShare,
   normalizePaymentMethod,
@@ -290,30 +290,34 @@ const optimizeImageFile = (file) =>
   });
 
 async function callRecognitionApi(payload) {
-  if (!API_BASE_URL) {
-    if (isDirectGeminiAvailable()) {
-      return recognizeDirectly(payload);
-    }
-
-    throw new Error(
-      "AI 영수증 인식을 위해 백엔드 서버 또는 Gemini 설정이 필요합니다."
-    );
-  }
-
   const controller = new AbortController();
   const timer = window.setTimeout(
     () => controller.abort(),
     35_000
   );
 
+  let session = null;
+  try {
+    const sessionRes = await supabase?.auth?.getSession?.();
+    session = sessionRes?.data?.session;
+  } catch {
+    session = null;
+  }
+  const token = session?.access_token;
+
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   try {
     const response = await fetch(
       getApiEndpoint("/api/ocr"),
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       }
@@ -324,10 +328,6 @@ async function callRecognitionApi(payload) {
     try {
       result = await response.json();
     } catch {
-      if (isDirectGeminiAvailable()) {
-        return recognizeDirectly(payload);
-      }
-
       throw new Error(
         "서버 응답을 처리하지 못했습니다."
       );
@@ -342,19 +342,6 @@ async function callRecognitionApi(payload) {
 
     return result;
   } catch (error) {
-    if (
-      isDirectGeminiAvailable() &&
-      (
-        error.name === "AbortError" ||
-        (
-          error instanceof TypeError &&
-          error.message?.includes("fetch")
-        )
-      )
-    ) {
-      return recognizeDirectly(payload);
-    }
-
     if (error.name === "AbortError") {
       throw new Error(
         "이미지 인식 시간이 초과되었습니다. 다시 시도해 주세요."
@@ -733,6 +720,18 @@ export function AddModal({
       : grossAmount !== null &&
         grossAmount > 0;
 
+  const validSharingAmount =
+    !sharingEnabled ||
+    (
+      personalAmount === "" ||
+      (
+        Number.isFinite(Number(personalAmount)) &&
+        Number(personalAmount) > 0 &&
+        grossAmount !== null &&
+        Number(personalAmount) <= grossAmount
+      )
+    );
+
   const validSchedule =
     form.billingCycle === "매년"
       ? Boolean(form.nextBillingDate)
@@ -743,6 +742,7 @@ export function AddModal({
   const canSave =
     validService &&
     validAmount &&
+    validSharingAmount &&
     validSchedule &&
     !scanning;
 
@@ -750,6 +750,7 @@ export function AddModal({
     warnings.length > 0 ||
     !validService ||
     !validAmount ||
+    !validSharingAmount ||
     !validSchedule;
 
   function updateForm(key, value) {
@@ -1044,6 +1045,17 @@ export function AddModal({
       );
       setIsEditing(true);
       return;
+    }
+
+    if (sharingEnabled) {
+      const numPersonal = personalAmount === "" ? undefined : Number(personalAmount);
+      if (numPersonal !== undefined && (!Number.isFinite(numPersonal) || numPersonal <= 0 || (grossAmount !== null && numPersonal > grossAmount))) {
+        setError(
+          "개인 부담금은 0원보다 크고 전체 금액 이하이어야 합니다."
+        );
+        setIsEditing(true);
+        return;
+      }
     }
 
     const sharing =

@@ -21,11 +21,15 @@ export const getNextChargeDate = (subscription, reference = new Date()) => {
   if (isYearly && subscription.nextBillingDate) {
     const explicit = startOfDay(new Date(subscription.nextBillingDate));
     if (explicit >= today) return explicit;
-    const nextYearDate = new Date(explicit);
-    while (nextYearDate < today) {
-      nextYearDate.setFullYear(nextYearDate.getFullYear() + 1);
+    const targetMonth = explicit.getMonth();
+    const targetDay = explicit.getDate();
+    let targetYear = explicit.getFullYear() + 1;
+    let candidate = dateForDueDay(targetYear, targetMonth, targetDay);
+    while (candidate < today) {
+      targetYear += 1;
+      candidate = dateForDueDay(targetYear, targetMonth, targetDay);
     }
-    return nextYearDate;
+    return candidate;
   }
 
   if (isYearly) {

@@ -86,7 +86,7 @@ export function mapDbToSubscription(row) {
     subscriptionId: row.subscription_id,
     monogram: row.monogram || matched?.monogram || (row.service_name ? row.service_name.slice(0, 1).toUpperCase() : ''),
     markTone: row.mark_tone || null,
-    alertD3: Boolean(row.alert_d3),
+    alertD3: row.alert_d3 !== false,
     alertD1: Boolean(row.alert_d1),
     renewalPending: Boolean(row.renewal_pending),
     createdAt: row.created_at,

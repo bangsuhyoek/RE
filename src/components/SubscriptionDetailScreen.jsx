@@ -19,6 +19,7 @@ import {
 } from "./ui";
 import { formatWon } from "../lib/dates";
 import { shouldAutoOpenServicePage } from "../lib/cancelRoutes";
+import { getRailCancelPlan } from "../lib/railCancel";
 import { addBillingToCalendar } from "../lib/calendarExport";
 import { buildSettlementRequest } from "../lib/settlement";
 import { shareText } from "../lib/shareText";
@@ -210,6 +211,21 @@ export function SubscriptionDetailScreen({
     memo: subscription?.memo || "",
   }));
 
+  useEffect(() => {
+    if (!subscription) return;
+    setDraft({
+      plan: subscription.plan || "기본 플랜",
+      amount: subscription.amount || 0,
+      billingCycle: subscription.billingCycle || "매월",
+      category: subscription.category || "엔터테인먼트",
+      dueDay: subscription.dueDay || 1,
+      paymentMethod: subscription.paymentMethod || "신한카드 ****4521",
+      memo: subscription.memo || "",
+    });
+    setEditing(false);
+    setEditError("");
+  }, [subscription?.subscriptionId, subscription?.id]);
+
   if (!subscription) {
     return (
       <main className="px-5 pb-12 pt-12 text-center">
@@ -241,7 +257,7 @@ export function SubscriptionDetailScreen({
   const annualAmount = subscription.billingCycle === "매년" ? subscription.amount : subscription.amount * 12;
 
   // 알림 시간 설정 파라미터 (스크롤 피커와 연동)
-  const alertEnabled = subscription.alertEnabled !== undefined ? Boolean(subscription.alertEnabled) : Boolean(subscription.alertD3 || subscription.alertD1 || true);
+  const alertEnabled = subscription.alertEnabled !== undefined ? Boolean(subscription.alertEnabled) : (subscription.alertD3 !== false || subscription.alertD1 !== false);
   const alertDDay = subscription.alertDDay !== undefined ? subscription.alertDDay : (subscription.alertD1 ? 1 : 3);
   const alertAmpm = subscription.alertAmpm || "오전";
   const alertHour = subscription.alertHour || "09";
@@ -457,8 +473,9 @@ export function SubscriptionDetailScreen({
             <button
               type="button"
               onClick={() => {
-                // Google Play·App Store·카드 자동납부로 결제한 구독은 서비스 웹사이트 대신 해지 안내를 먼저 보여준다.
-                const autoOpen = shouldAutoOpenServicePage(subscription);
+                // Google Play·App Store·카드 자동납부 및 2단계 결제 경로 차단(간편결제·통신사) 구독은 서비스 웹사이트 대신 해지 안내를 먼저 보여준다.
+                const hasRailPlan = Boolean(getRailCancelPlan({ subscription }));
+                const autoOpen = shouldAutoOpenServicePage(subscription) && !hasRailPlan;
                 if (autoOpen && subscription.cancelUrl && !Capacitor.isNativePlatform()) {
                   window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
                 }

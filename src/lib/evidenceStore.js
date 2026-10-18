@@ -21,6 +21,13 @@ export const evidenceItemKey = (item) => item.type + ":" + item.capturedAt + ":"
 
 export function mapCaseToRow(evidenceCase) {
   const createdAt = new Date(evidenceCase.createdAt || Date.now());
+  const expiresAt = new Date(createdAt);
+  const origMonth = expiresAt.getMonth();
+  expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+  // 윤년 2월 29일 생성 시 익년 3월 1일로 넘어가는 것을 방지하고 DB interval '1 year'(2월 28일)와 일치시킴
+  if (origMonth === 1 && expiresAt.getMonth() === 2) {
+    expiresAt.setDate(0);
+  }
   return {
     case_key: evidenceCase.id,
     kind: evidenceCase.kind,
@@ -30,7 +37,7 @@ export function mapCaseToRow(evidenceCase) {
     previous_amount_krw: evidenceCase.previousAmount == null ? null : Math.max(0, Math.round(Number(evidenceCase.previousAmount) || 0)),
     // 보관 기간은 기기에서 사건을 만든 날부터 1년이다. 늦게 올려도 기간이 늘어나지 않는다.
     created_at: createdAt.toISOString(),
-    expires_at: new Date(createdAt.getTime() + RETENTION_MS).toISOString(),
+    expires_at: expiresAt.toISOString(),
   };
 }
 
@@ -91,6 +98,7 @@ export async function uploadEvidenceCase(userId, evidenceCase) {
     const { data: row, error: findError } = await supabase
       .from("evidence_cases")
       .select("id")
+      .eq("user_id", userId)
       .eq("case_key", evidenceCase.id)
       .maybeSingle();
     if (findError) throw findError;
@@ -115,6 +123,7 @@ export async function fetchServerEvidence(userId) {
     const { data, error } = await supabase
       .from("evidence_cases")
       .select("case_key, kind, subscription_id, service_name, amount_krw, previous_amount_krw, created_at, expires_at, evidence_items(type, captured_at, detail, approval_key)")
+      .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) throw error;
@@ -173,3 +182,4 @@ export async function deleteAllEvidence(userId) {
   if (deleted) clearStoredValue(storageKeys.evidenceCases);
   return deleted;
 }
+

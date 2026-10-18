@@ -161,8 +161,18 @@ test("해지 기록 이후 같은 서비스 결제는 해지 후 결제로 보�
   const alert = assessDetectedPayment({ detected, subscriptions: subs, cancelHistory, now: NOW });
   assert.equal(alert.kind, "charged_after_cancel");
   assert.equal(alert.approval, null);
+  assert.equal(alert.subscriptionId, null);
+  assert.equal(alert.serviceId, "disney");
+  assert.equal(alert.cancelRecordSubscriptionId, null);
   assert.match(alert.refund.draft.ko, /해지했는데 이후 결제/);
   assert.match(alert.refund.draft.ko, /8821/);
+
+  // cancelRecord에 subscriptionId가 있는 경우 확인
+  const withSubId = [{ id: "disney-rec-1", subscriptionId: "disney-sub-99", serviceId: "disney", name: "디즈니+", amount: 9900, paymentMethod: "현대카드 8821", cancelledAt: new Date(2026, 8, 20).toISOString() }];
+  const alertWithSub = assessDetectedPayment({ detected, subscriptions: subs, cancelHistory: withSubId, now: NOW });
+  assert.equal(alertWithSub.cancelRecordSubscriptionId, "disney-sub-99");
+  assert.equal(alertWithSub.serviceId, "disney");
+
   // 해지보다 먼저 일어난 결제는 해지 후 결제가 아니다.
   const before = { ...detected, detectedAt: new Date(2026, 8, 1).toISOString() };
   assert.equal(assessDetectedPayment({ detected: before, subscriptions: subs, cancelHistory, now: NOW }), null);
@@ -380,4 +390,21 @@ test("spending 합산 일치: calculateMonthlyTotal과 HomeScreen의 계산 결�
   assert.equal(res.monthly, monthly);
   assert.equal(res.yearly, yearly);
   assert.equal(res.count, 2);
+});
+
+test("문자열 형태 금액(string amounts)이 포함되어도 숫자로 안전하게 합산된다", () => {
+  const testSubs = [
+    { subscriptionId: "s1", id: "netflix", name: "Netflix", amount: "17000", billingCycle: "매월", status: "active" },
+    { subscriptionId: "s2", id: "dropbox", name: "Dropbox", amount: "120000", billingCycle: "매년", status: "active" },
+    { subscriptionId: "s3", id: "empty", name: "Empty", amount: "", billingCycle: "매월", status: "active" },
+    { subscriptionId: "s4", id: "null", name: "Null", amount: null, billingCycle: "매월", status: "active" },
+  ];
+
+  const monthly = calculateMonthlyTotal(testSubs);
+  const yearly = calculateYearlyTotal(testSubs);
+
+  // 17000 + round(120000/12) + 0 + 0 = 27000
+  assert.equal(monthly, 27000);
+  // 17000*12 + 120000 + 0 + 0 = 324000
+  assert.equal(yearly, 324000);
 });

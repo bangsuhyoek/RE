@@ -2651,14 +2651,14 @@ export const serviceCatalog = [
     "monogram": "네",
     "category": "쇼핑",
     "plan": "월간 이용권",
-    "amount": 4000,
+    "amount": 4900,
     "brandColor": "#03C75A",
     "brandBg": "#EEF2FF",
     "brandText": "#03C75A",
     "availablePlans": [
       {
         "plan": "월간 이용권",
-        "amount": 4000
+        "amount": 4900
       },
       {
         "plan": "스탠다드",
@@ -2712,7 +2712,7 @@ export const serviceCatalog = [
     "plans": [
       {
         "name": "월간 이용권",
-        "amount": 4000,
+        "amount": 4900,
         "billingCycle": "매월",
         "quality": "HD"
       },

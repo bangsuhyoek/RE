@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { FilterX, RefreshCw, Search, SlidersHorizontal, PlusCircle } from "lucide-react";
 import { Button, IconButton, SubscriptionCard } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
+import { calculateMonthlyTotal } from "../lib/subscriptionAgent";
 
 export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCancel, onMute, onRefresh, onTogglePin }) {
   const [query, setQuery] = useState("");
@@ -20,7 +21,7 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
       });
   }, [query, sort, status, subscriptions]);
 
-  const total = filtered.reduce((sum, subscription) => sum + subscription.amount, 0);
+  const total = calculateMonthlyTotal(filtered);
   const reset = () => { setQuery(""); setStatus("all"); setSort("due"); };
 
   return (

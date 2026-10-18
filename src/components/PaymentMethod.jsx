@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronRight, X, ArrowLeft, Plus, Check } from "lucide-react";
 import {
   getPaymentMethodInfo,
@@ -148,10 +148,21 @@ export function PaymentMethodPickerModal({
     onClose();
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        resetAndClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4 animate-in fade-in duration-200">
+    <div onClick={resetAndClose} className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4 animate-in fade-in duration-200">
       <div
         className="w-full max-w-full sm:max-w-[440px] rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl transition-all max-h-[85vh] max-h-[85dvh] flex flex-col overflow-hidden pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))]"
         onClick={(e) => e.stopPropagation()}

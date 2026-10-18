@@ -1,7 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
-import { openCancelBrowser } from "../lib/cancelBrowser";
-import { getCharacterAsset } from "../lib/characterAsset";
+import { openCancelBrowser, isNativeGuideSupported, canShowManualComplete } from "../lib/cancelBrowser";
 import { getCommonCancelSteps } from "../data/cancelGuides";
 import { X, ExternalLink, ChevronLeft, ChevronRight, Minimize2 } from "lucide-react";
 
@@ -32,11 +31,9 @@ const NAVER_PLUS_HINTS = [
   {
     where: "최종 확인 > 해지하기",
     dialogue: () => "마지막 [해지하기]를 누르면 실제로 해지돼. 내용을 확인하고 직접 눌러줘.",
-    tip: "꾸독은 이 버튼을 대신 누르지 않아요.",
+    tip: "꾸독이 해지 화면까지 데려가요. 마지막 해지 버튼만 직접 눌러 주세요.",
   },
 ];
-
-const NAVER_CANCEL_CHARACTER = "/assets/kkudok/cancel_guide_character.png";
 
 const NAVER_STEP_SCREENS = {
   1: { screen: "마이 멤버십", action: "설정 ⚙", note: "오른쪽 위" },
@@ -76,41 +73,22 @@ export function CancelBrowserModal({
     subscription.id === "naver" ||
     subscription.name?.includes("네이버플러스");
 
-  // 단계는 cancelGuides.js가 만든 값(공식 확인 단계 또는 공통 안내)을 그대로 쓴다.
   const steps = subscription.guideSteps?.length > 0
     ? subscription.guideSteps
     : getCommonCancelSteps(subscription.name);
 
-  // 네이버플러스 말풍선은 cancelGuides.js의 5단계와 순서가 같을 때만 쓴다.
   const hints = isNaverPlus && steps.length === NAVER_PLUS_HINTS.length ? NAVER_PLUS_HINTS : null;
   const showHelpLink = !isNaverPlus && guide && !guide.verified && guide.helpUrl;
 
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [minimized, setMinimized] = useState(false);
-  const [customCharacterSrc, setCustomCharacterSrc] = useState(null);
   const scrollContainerRef = useRef(null);
-
-  useEffect(() => {
-    let active = true;
-    getCharacterAsset().then((asset) => {
-      if (active) setCustomCharacterSrc(asset?.hasCustom ? asset.src : null);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const currentStep = steps[activeStepIndex] || steps[0];
   const hint = hints ? hints[Math.min(activeStepIndex, hints.length - 1)] : null;
   const message = hint ? hint.dialogue(subscription.name) : currentStep.description;
   const isFinalStep = activeStepIndex === steps.length - 1;
-  const canComplete = !isNaverPlus;
-
-  const characterImg = customCharacterSrc || (isNaverPlus
-    ? NAVER_CANCEL_CHARACTER
-    : isFinalStep
-      ? "/assets/kkudok/character_done.png"
-      : "/assets/kkudok/character_guide.png");
+  const canComplete = canShowManualComplete({ serviceId: subscription.id, isNaverPlus });
 
   const displayUrl = (() => {
     try {
@@ -130,8 +108,9 @@ export function CancelBrowserModal({
         cancelUrl: subscription.cancelUrl,
         guideSteps: steps,
       });
-      if (result?.action === "COMPLETED") {
-        onComplete?.();
+      if (result?.action === "COMPLETED" || result?.status === "completed") {
+        onComplete?.(result);
+        return;
       }
       if (result?.action !== "FALLBACK_WEB") return;
     }
@@ -152,9 +131,8 @@ export function CancelBrowserModal({
           type="button"
           onClick={() => setMinimized(false)}
           aria-label="해지 안내 펼치기"
-          className="flex max-w-[240px] items-center gap-2.5 rounded-full border border-[#E5E8EB] bg-white py-1.5 pl-1.5 pr-4 text-left shadow-lg active:scale-[0.97] transition-transform"
+          className="flex max-w-[240px] items-center gap-2 rounded-full border border-[#E5E8EB] bg-white px-4 py-2 text-left shadow-lg active:scale-[0.97] transition-transform"
         >
-          <img src={characterImg} alt="" className="h-10 w-10 shrink-0 rounded-full bg-[#F2F4F6] object-contain" />
           <span className="min-w-0">
             <span className="block text-[11px] font-semibold text-[#8B95A1]">{activeStepIndex + 1}/{steps.length}단계</span>
             <span className="block truncate text-[13px] font-bold text-[#191F28]">{currentStep.title}</span>
@@ -171,6 +149,9 @@ export function CancelBrowserModal({
       </div>
     );
   }
+
+  const isAndroid = Capacitor.getPlatform() === "android";
+  const hasNativeRoute = isNativeGuideSupported(subscription.id);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white select-none animate-in fade-in duration-200">
@@ -201,28 +182,25 @@ export function CancelBrowserModal({
 
       <main className="flex-1 overflow-y-auto bg-[#F9FAFB] p-4">
         <div className="mx-auto flex min-h-full w-full max-w-sm flex-col justify-center gap-4 pb-4">
-          <div className="flex items-start gap-3">
-            <img src={characterImg} alt="꾸독이" className="h-20 w-20 shrink-0 object-contain" />
-            <div className="relative flex-1 rounded-2xl border border-[#E5E8EB] bg-white p-4">
-              <p className="text-[12px] font-semibold text-[#3182F6]">
-                {activeStepIndex + 1}/{steps.length}단계 · {currentStep.title}
+          <div className="w-full rounded-2xl border border-[#E5E8EB] bg-white p-4">
+            <p className="text-[12px] font-semibold text-[#3182F6]">
+              {activeStepIndex + 1}/{steps.length}단계 · {currentStep.title}
+            </p>
+            {hint?.where && (
+              <p className="mt-1 text-[12px] font-medium text-[#8B95A1]">위치: {hint.where}</p>
+            )}
+            <p className="mt-2 text-[14px] font-medium leading-relaxed text-[#333D4B]">{message}</p>
+            {hint?.tip && (
+              <p className="mt-3 border-t border-[#F2F4F6] pt-2.5 text-[12px] leading-relaxed text-[#8B95A1]">{hint.tip}</p>
+            )}
+            {showHelpLink && (
+              <p className="mt-3 border-t border-[#F2F4F6] pt-2.5 text-[12px] leading-relaxed text-[#8B95A1]">
+                아직 공식 안내로 확인하지 못한 서비스라 공통 안내를 보여드려요.{" "}
+                <a href={guide.helpUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#3182F6]">
+                  {guide.helpLabel} 보기
+                </a>
               </p>
-              {hint?.where && (
-                <p className="mt-1 text-[12px] font-medium text-[#8B95A1]">위치: {hint.where}</p>
-              )}
-              <p className="mt-2 text-[14px] font-medium leading-relaxed text-[#333D4B]">{message}</p>
-              {hint?.tip && (
-                <p className="mt-3 border-t border-[#F2F4F6] pt-2.5 text-[12px] leading-relaxed text-[#8B95A1]">{hint.tip}</p>
-              )}
-              {showHelpLink && (
-                <p className="mt-3 border-t border-[#F2F4F6] pt-2.5 text-[12px] leading-relaxed text-[#8B95A1]">
-                  아직 공식 안내로 확인하지 못한 서비스라 공통 안내를 보여드려요.{" "}
-                  <a href={guide.helpUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#3182F6]">
-                    {guide.helpLabel} 보기
-                  </a>
-                </p>
-              )}
-            </div>
+            )}
           </div>
 
           {isNaverPlus && <NaverPlusStepScreen stepNumber={currentStep.stepNumber} />}
@@ -248,7 +226,9 @@ export function CancelBrowserModal({
           </div>
 
           <p className="text-center text-[11px] leading-relaxed text-[#8B95A1]">
-            꾸독은 해지 버튼을 대신 누르지 않아요. 마지막 단계는 직접 확인하고 눌러주세요.
+            {isAndroid && hasNativeRoute
+              ? "꾸독이 해지 화면까지 데려가요. 마지막 해지 버튼만 직접 눌러 주세요."
+              : "꾸독은 비밀번호를 받거나 대신 해지하지 않아요. 마지막 단계는 직접 확인하고 눌러주세요."}
           </p>
         </div>
       </main>
@@ -302,5 +282,3 @@ export function CancelBrowserModal({
     </div>
   );
 }
-
-

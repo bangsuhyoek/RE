@@ -704,7 +704,8 @@ export function calculateMonthlyTotal(subscriptions = []) {
   return subscriptions
     .filter((sub) => sub.status !== "cancelled")
     .reduce((sum, sub) => {
-    const amt = sub.billingCycle === "매년" ? Math.round(sub.amount / 12) : sub.amount;
+    const rawAmt = Number(sub.amount || 0);
+    const amt = sub.billingCycle === "매년" ? Math.round(rawAmt / 12) : rawAmt;
     return sum + amt;
   }, 0);
 }
@@ -713,7 +714,8 @@ export function calculateYearlyTotal(subscriptions = []) {
   return subscriptions
     .filter((sub) => sub.status !== "cancelled")
     .reduce((sum, sub) => {
-    const amt = sub.billingCycle === "매년" ? sub.amount : sub.amount * 12;
+    const rawAmt = Number(sub.amount || 0);
+    const amt = sub.billingCycle === "매년" ? rawAmt : rawAmt * 12;
     return sum + amt;
   }, 0);
 }
@@ -970,6 +972,8 @@ export function assessDetectedPayment({ detected = {}, subscriptions = [], cance
     title: ALERT_COPY[kind].title,
     notice: ALERT_COPY[kind].notice,
     subscriptionId: subscription ? subscriptionKey(subscription) : null,
+    cancelRecordSubscriptionId: cancelRecord?.subscriptionId ?? null,
+    serviceId: cancelRecord?.serviceId ?? cancelRecord?.id ?? null,
     serviceName,
     amount,
     previousAmount,

@@ -839,12 +839,21 @@ export function SubscriptionCard({
   const isPinned = Boolean(subscription.isPinned || subscription.pinned);
   const displayAmount = getSubscriptionDisplayAmount(subscription);
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onOpen?.();
+    }
+  };
+
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onOpen}
+      onKeyDown={handleKeyDown}
       className={cx(
-        "flex w-full items-center justify-between text-left transition-colors cursor-pointer group/card",
+        "flex w-full items-center justify-between text-left transition-colors cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3182F6]",
         isGrouped
           ? "py-5 border-b border-gray-100/80 bg-transparent hover:bg-gray-50/40 active:bg-gray-100/50"
           : "card-press p-4 rounded-xl border border-gray-100/80 bg-white shadow-xs hover:border-gray-200 active:scale-[0.99]",
@@ -895,6 +904,9 @@ export function SubscriptionCard({
               e.stopPropagation();
               onTogglePin(subscription.subscriptionId || subscription.id);
             }}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+            }}
             className={cx(
               "p-1.5 rounded-full transition-all cursor-pointer",
               isPinned
@@ -908,7 +920,7 @@ export function SubscriptionCard({
           </button>
         )}
       </div>
-    </button>
+    </div>
   );
 }
 
