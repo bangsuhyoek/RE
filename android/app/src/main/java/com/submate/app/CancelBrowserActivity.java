@@ -112,6 +112,9 @@ public class CancelBrowserActivity extends AppCompatActivity {
     // 해지 관련 중간 버튼은 꾸독이 혼자 누르지 않고 사용자의 확인을 받는다. 확인 대기 중인 버튼 문구를 기억한다.
     private String userStepTapTarget = null;
     private boolean userRequestedRawWebView = false;
+    // 결제 허브(구글 플레이·네이버페이·유튜브 등) 화면의 글을 읽어 구독 목록을 만드는 모드. 해지 안내는 쓰지 않는다.
+    private boolean crawlMode = false;
+    private static final int MAX_CRAWL_TEXT_CHARS = 60000;
 
     private boolean isFinishingFlow = false;
     private Intent completedResultIntent = null;
@@ -145,7 +148,8 @@ public class CancelBrowserActivity extends AppCompatActivity {
         String stepsJson = getIntent().getStringExtra("guideStepsJson");
         String aiEndpoint = getIntent().getStringExtra("aiEndpoint");
         String aiAuthToken = getIntent().getStringExtra("aiAuthToken");
-        guideRoute = CancelRouteRegistry.resolveRoute(serviceId, serviceName, currentCancelUrl, stepsJson, aiEndpoint, aiAuthToken);
+        crawlMode = "crawl".equals(getIntent().getStringExtra("mode"));
+        guideRoute = crawlMode ? null : CancelRouteRegistry.resolveRoute(serviceId, serviceName, currentCancelUrl, stepsJson, aiEndpoint, aiAuthToken);
         automaticGuideEnabled = (guideRoute != null);
 
         TextView tvServiceName = findViewById(R.id.tvServiceName);
@@ -244,7 +248,12 @@ public class CancelBrowserActivity extends AppCompatActivity {
         btnClose.setOnClickListener(v -> closeWithResult("closed", null));
 
         if (btnComplete != null) {
-            btnComplete.setOnClickListener(v -> handleSuccessCompletion("manual", "user_completed_button"));
+            if (crawlMode) {
+                if (btnComplete instanceof TextView) ((TextView) btnComplete).setText("이 화면 불러오기");
+                btnComplete.setOnClickListener(v -> finishWithCrawledText());
+            } else {
+                btnComplete.setOnClickListener(v -> handleSuccessCompletion("manual", "user_completed_button"));
+            }
         }
 
         // 외부 브라우저(Chrome/삼성인터넷 등)로 열기 버튼
@@ -484,6 +493,11 @@ public class CancelBrowserActivity extends AppCompatActivity {
         // 웹뷰 환경 설정 (구글 OAuth 허용 및 팝업창 처리 포함)
         setupWebView(currentCancelUrl);
 
+        if (crawlMode) {
+            if (bottomGuideDock != null) bottomGuideDock.setVisibility(View.GONE);
+            showWebPage("로그인한 뒤 구독 목록이 보이면 오른쪽 위 [이 화면 불러오기]를 눌러 주세요. 화면 글은 휴대폰 안에서만 읽어요.", false);
+        }
+
         // 30일 지난 증빙 이미지 백그라운드 정리
         executor.execute(this::cleanOldProofs);
 
@@ -533,6 +547,35 @@ public class CancelBrowserActivity extends AppCompatActivity {
             if (isFinishing() || isDestroyed() || webView == null) return;
             finish();
         }, 1500L);
+    }
+
+    /** 결제 허브 화면에 보이는 글만 읽어 앱으로 돌려준다. 쿠키·비밀번호·입력칸 값은 읽지 않는다. */
+    private void finishWithCrawledText() {
+        if (isFinishingFlow || webView == null) return;
+        webView.evaluateJavascript("(function(){return document.body ? document.body.innerText : '';})()", value -> {
+            String pageText = "";
+            try {
+                if (value != null && !"null".equals(value)) {
+                    pageText = new JSONArray("[" + value + "]").getString(0);
+                }
+            } catch (Exception ignored) {
+            }
+            if (pageText.length() > MAX_CRAWL_TEXT_CHARS) {
+                pageText = pageText.substring(0, MAX_CRAWL_TEXT_CHARS);
+            }
+            if (pageText.trim().isEmpty()) {
+                Toast.makeText(this, "화면 글을 읽지 못했어요. 구독 목록이 다 뜬 뒤 다시 눌러 주세요.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            isFinishingFlow = true;
+            Intent data = new Intent();
+            data.putExtra("serviceId", serviceId);
+            data.putExtra("status", "crawled");
+            data.putExtra("crawledText", pageText);
+            data.putExtra("url", webView.getUrl());
+            setResult(RESULT_OK, data);
+            finish();
+        });
     }
 
     private void closeWithResult(String status, String proofPath) {
@@ -592,7 +635,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
     /** 실제 웹 화면을 보여주고 위쪽에 한 줄 안내를 띄운다. */
     private void showWebPage(String notice, boolean allowReturnToAgent) {
         if (agentCoverLayout != null) agentCoverLayout.setVisibility(View.GONE);
-        if (bottomGuideDock != null) bottomGuideDock.setVisibility(View.VISIBLE);
+        if (bottomGuideDock != null) bottomGuideDock.setVisibility(crawlMode ? View.GONE : View.VISIBLE);
         if (loginNoticeBanner != null) {
             loginNoticeBanner.setVisibility(View.VISIBLE);
             if (tvLoginNoticeText != null && notice != null) tvLoginNoticeText.setText(notice);
@@ -883,6 +926,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
     private void setupKeyboardListener() {
         final View rootView = findViewById(R.id.rootLayout);
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            if (crawlMode) return;
             Rect r = new Rect();
             rootView.getWindowVisibleDisplayFrame(r);
             int screenHeight = rootView.getRootView().getHeight();

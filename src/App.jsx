@@ -7,6 +7,7 @@ import { Bell } from "lucide-react";
 import { AuthLogin, AuthRegister } from "./components/AuthScreens";
 import { SplashScreen, LandingScreen } from "./components/LandingScreen";
 import { AddModal } from "./components/AddModal";
+import { SubscriptionDiscoveryModal } from "./components/SubscriptionDiscoveryModal";
 import { AccountModal } from "./components/AccountModal";
 import { TermsModal } from "./components/TermsModal";
 import { requestPaymentCapturePermission, simulatePaymentDetection } from "./lib/paymentCapture";
@@ -51,6 +52,7 @@ export default function App() {
   const [addInitialMode, setAddInitialMode] = useState("manual");
   const [quickAddData, setQuickAddData] = useState(null);
   const [sharedFile, setSharedFile] = useState(null);
+  const [discoveryOpen, setDiscoveryOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [termsTab, setTermsTab] = useState("terms");
@@ -648,6 +650,8 @@ export default function App() {
         setAccountOpen(false);
       } else if (notificationCenterOpen) {
         setNotificationCenterOpen(false);
+      } else if (discoveryOpen) {
+        setDiscoveryOpen(false);
       } else if (addOpen) {
         setAddOpen(false);
       } else if (cancelTarget) {
@@ -679,6 +683,7 @@ export default function App() {
     termsOpen,
     accountOpen,
     notificationCenterOpen,
+    discoveryOpen,
     addOpen,
     cancelTarget,
     agentOpen,
@@ -788,6 +793,38 @@ export default function App() {
     navigate("home");
   };
 
+  const handleAddSubscriptionBatch = useCallback((items = []) => {
+    if (!Array.isArray(items) || items.length === 0) return;
+    let addedCount = 0;
+    items.forEach((item) => {
+      const ok = handleAddSubscription(
+        {
+          id: item.serviceId || item.id || undefined,
+          serviceId: item.serviceId || item.id || "",
+          name: item.name,
+          category: item.category || "기타",
+          plan: item.plan || "기본 플랜",
+          amount: Number(item.amount) || 0,
+          dueDay: Number(item.dueDay) || new Date().getDate(),
+          billingCycle: item.billingCycle || "매월",
+          nextBillingDate: item.billingCycle === "매년" ? item.nextBillingDate || null : null,
+          paymentMethod: item.paymentMethod || "신용/체크카드",
+          isTrial: Boolean(item.isTrial),
+          sourceType: "sms",
+        },
+        null
+      );
+      if (ok !== false) addedCount += 1;
+    });
+    if (addedCount > 0) {
+      setOnboardingComplete(true);
+      if (screen.route === "onboarding") {
+        navigate("home");
+      }
+      notify(addedCount + "개의 숨은 구독을 한 번에 등록했어요!");
+    }
+  }, [handleAddSubscription, navigate, notify, screen.route, setOnboardingComplete]);
+
   const handlePromotion = useCallback((promotion) => {
     if (promotion?.link) {
       if (isNativePlatform()) {
@@ -820,7 +857,20 @@ export default function App() {
       />
     );
   } else if (screen.route === "onboarding") {
-    content = <OnboardingScreen catalog={serviceCatalog} selectedIds={selectedOnboarding} onToggle={(id) => setSelectedOnboarding((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id])} onFinish={handleOnboardingFinish} onSkip={handleOnboardingSkip} />;
+    content = (
+      <OnboardingScreen
+        catalog={serviceCatalog}
+        selectedIds={selectedOnboarding}
+        onToggle={(id) =>
+          setSelectedOnboarding((current) =>
+            current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+          )
+        }
+        onFinish={handleOnboardingFinish}
+        onSkip={handleOnboardingSkip}
+        onOpenDiscovery={() => setDiscoveryOpen(true)}
+      />
+    );
   } else if (screen.route === "home") {
     content = (
       <HomeScreen
@@ -835,6 +885,7 @@ export default function App() {
         onExplorePromotions={() => navigate("promotions")}
         onAdd={() => { setAddInitialMode("manual"); setAddOpen(true); }}
         onScan={() => { setAddInitialMode("ai"); setAddOpen(true); }}
+        onOpenDiscovery={() => setDiscoveryOpen(true)}
         onStartOnboarding={() => navigate("onboarding")}
         onToggleNotificationPermission={() =>
           handleTogglePermissionFromHome(
@@ -989,12 +1040,25 @@ export default function App() {
             setQuickAddData(null);
             setSharedFile(null);
           }}
+          onOpenDiscovery={() => {
+            setAddOpen(false);
+            setDiscoveryOpen(true);
+          }}
           onAdd={(data) => {
             const result = handleAddSubscription(data, notify);
             setQuickAddData(null);
             setSharedFile(null);
             return result;
           }}
+        />
+      )}
+      {discoveryOpen && (
+        <SubscriptionDiscoveryModal
+          catalog={serviceCatalog}
+          subscriptions={subscriptions}
+          onClose={() => setDiscoveryOpen(false)}
+          onAddBatch={handleAddSubscriptionBatch}
+          notify={notify}
         />
       )}
       {cancelSubscription && (

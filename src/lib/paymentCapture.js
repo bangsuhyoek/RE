@@ -9,6 +9,8 @@ export const PaymentCapture = registerPlugin("PaymentCapture", {
       console.log("[PaymentCapture Web Mock] Simulate payment:", options);
       return { detected: true, serviceName: options?.serviceName || "Netflix", amount: options?.amount || 17000 };
     },
+    scanInstalledApps: async () => ({ apps: [], count: 0, isSupported: false }),
+    scanActiveNotifications: async () => ({ items: [], count: 0, isSupported: false }),
   },
 });
 
@@ -43,5 +45,39 @@ export async function simulatePaymentDetection(payload = {}) {
   } catch (err) {
     console.warn("simulatePaymentDetection error:", err);
     return { detected: false };
+  }
+}
+
+export async function scanInstalledSubscriptionApps() {
+  if (!isNativePlatform()) {
+    return { apps: [], count: 0, isSupported: false };
+  }
+  try {
+    const res = await PaymentCapture.scanInstalledApps();
+    return {
+      apps: Array.isArray(res?.apps) ? res.apps : [],
+      count: Number(res?.count) || 0,
+      isSupported: true,
+    };
+  } catch (err) {
+    console.warn("scanInstalledSubscriptionApps error:", err);
+    return { apps: [], count: 0, isSupported: false };
+  }
+}
+
+export async function scanActivePaymentNotifications() {
+  if (!isNativePlatform()) {
+    return { items: [], count: 0, isSupported: false };
+  }
+  try {
+    const res = await PaymentCapture.scanActiveNotifications();
+    return {
+      items: Array.isArray(res?.items) ? res.items : [],
+      count: Number(res?.count) || 0,
+      isSupported: true,
+    };
+  } catch (err) {
+    console.warn("scanActivePaymentNotifications error:", err);
+    return { items: [], count: 0, isSupported: false };
   }
 }

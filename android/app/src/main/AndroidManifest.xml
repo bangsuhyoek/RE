@@ -10,6 +10,40 @@
         <package android:name="com.sktelecom.minit" />
         <package android:name="com.ktshow.cs" />
         <package android:name="com.lguplus.mobile.cs" />
+        <!-- 기기 내 설치된 구독형 앱 1초 스캔 대상 (QUERY_ALL_PACKAGES 권한 없이 안전 조회) -->
+        <package android:name="com.netflix.mediaclient" />
+        <package android:name="com.google.android.youtube" />
+        <package android:name="com.google.android.apps.youtube.music" />
+        <package android:name="net.cj.cjhv.gs.tving" />
+        <package android:name="com.disney.disneyplus" />
+        <package android:name="kr.co.captv.pooqV2" />
+        <package android:name="com.frograms.wplay" />
+        <package android:name="com.coupang.mobile" />
+        <package android:name="com.coupang.mobile.play" />
+        <package android:name="com.spotify.music" />
+        <package android:name="com.iloen.melon" />
+        <package android:name="com.ktmusic.geniemusic" />
+        <package android:name="skplanet.musicmate" />
+        <package android:name="kr.co.millie.millieshelf" />
+        <package android:name="com.initialcoms.ridi" />
+        <package android:name="com.influential.viall" />
+        <package android:name="com.openai.chatgpt" />
+        <package android:name="com.anthropic.claude" />
+        <package android:name="ai.perplexity.app.android" />
+        <package android:name="notion.id" />
+        <package android:name="com.canva.editor" />
+        <package android:name="com.duolingo" />
+        <package android:name="com.sampleapp" />
+        <package android:name="com.fineapp.yogiyo" />
+        <package android:name="com.Kurly.m2" />
+        <package android:name="com.microsoft.office.officehubrow" />
+        <package android:name="com.adobe.lrmobile" />
+        <package android:name="com.evernote" />
+        <package android:name="com.agilebits.onepassword" />
+        <package android:name="com.nordvpn.android" />
+        <package android:name="com.strava" />
+        <package android:name="com.linkedin.android" />
+        <package android:name="com.Snowcorp.Snow" />
     </queries>
 
     <permission

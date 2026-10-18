@@ -393,6 +393,29 @@ export async function openCancelBrowser(options = {}, onResult = null) {
   return { action: "FALLBACK_WEB" };
 }
 
+/**
+ * 결제 허브 화면을 인앱 브라우저로 열고, 사용자가 [이 화면 불러오기]를 누르면 화면 글을 받아 온다.
+ * Android 앱에서만 동작하며, 그 밖의 환경은 { status: "unsupported" }를 돌려준다.
+ * @param {{ hubId?: string, hubName?: string, url: string }} hub
+ * @returns {Promise<{ status: "crawled" | "closed" | "unsupported" | "error", text: string, url: string }>}
+ */
+export async function crawlSubscriptionHub({ hubId = "", hubName = "", url = "" } = {}) {
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== "android") {
+    return { status: "unsupported", text: "", url };
+  }
+  try {
+    const res = await NativeCancelBrowser.crawlHub({ hubId, hubName, url });
+    return {
+      status: res?.status === "crawled" ? "crawled" : "closed",
+      text: typeof res?.text === "string" ? res.text : "",
+      url: typeof res?.url === "string" ? res.url : url,
+    };
+  } catch (err) {
+    console.warn("crawlSubscriptionHub 실패:", err);
+    return { status: "error", text: "", url };
+  }
+}
+
 
 /**
  * 서비스 및 실행 환경에 따라 자동 해지 감지가 지원되는지 확인

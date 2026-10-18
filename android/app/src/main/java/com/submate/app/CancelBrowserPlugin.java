@@ -213,4 +213,35 @@ public class CancelBrowserPlugin extends Plugin {
         ret.put("autoTaps", autoTaps);
         call.resolve(ret);
     }
+
+    /**
+     * 결제 허브 화면을 인앱 브라우저로 열고, 사용자가 [이 화면 불러오기]를 누르면 화면 글을 돌려준다.
+     * 로그인은 사용자가 직접 하고, 꾸독은 보이는 글만 받는다.
+     */
+    @PluginMethod
+    public void crawlHub(PluginCall call) {
+        String url = call.getString("url", "");
+        if (url == null || !url.startsWith("https://")) {
+            call.reject("https 주소만 열 수 있어요.", "INVALID_URL");
+            return;
+        }
+        Intent intent = new Intent(getContext(), CancelBrowserActivity.class);
+        intent.putExtra("mode", "crawl");
+        intent.putExtra("serviceId", call.getString("hubId", ""));
+        intent.putExtra("serviceName", call.getString("hubName", "결제 허브"));
+        intent.putExtra("cancelUrl", url);
+        intent.putExtra("guideStepsJson", "[]");
+        startActivityForResult(call, intent, "handleCrawlHubResult");
+    }
+
+    @ActivityCallback
+    private void handleCrawlHubResult(PluginCall call, ActivityResult result) {
+        Intent data = result != null ? result.getData() : null;
+        String status = (data != null && data.hasExtra("status")) ? data.getStringExtra("status") : "closed";
+        JSObject ret = new JSObject();
+        ret.put("status", "crawled".equals(status) ? "crawled" : "closed");
+        ret.put("text", (data != null && data.hasExtra("crawledText")) ? data.getStringExtra("crawledText") : "");
+        ret.put("url", (data != null && data.hasExtra("url")) ? data.getStringExtra("url") : "");
+        call.resolve(ret);
+    }
 }

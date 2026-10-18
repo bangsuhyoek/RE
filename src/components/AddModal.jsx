@@ -6,6 +6,7 @@ import {
   ChevronRight,
   LoaderCircle,
   Pencil,
+  Sparkles,
   UploadCloud,
   X,
 } from "lucide-react";
@@ -612,6 +613,7 @@ export function AddModal({
   initialData = null,
   initialFile = null,
   onClose,
+  onOpenDiscovery,
   onAdd,
 }) {
   const fileInputRef = useRef(null);
@@ -1556,6 +1558,17 @@ export function AddModal({
             <p className="mt-2 text-center text-[11px] text-[#8B95A1]">
               JPG · PNG · WEBP / 최대 8MB
             </p>
+
+            {onOpenDiscovery && (
+              <button
+                type="button"
+                onClick={onOpenDiscovery}
+                className="mt-3 flex min-h-[50px] w-full items-center justify-center gap-2 rounded-2xl border border-[#153D2E]/25 bg-[#EAF2ED] px-4 text-[14px] font-bold text-[#153D2E] transition-all active:scale-[0.99]"
+              >
+                <Sparkles size={17} />
+                숨은 구독 한 번에 찾기 (설치앱·명세서·결제허브)
+              </button>
+            )}
 
             <div className="mt-7 border-t border-[#E7EAE8] pt-5">
               <div className="flex items-center justify-between gap-4">

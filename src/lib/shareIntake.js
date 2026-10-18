@@ -1,6 +1,7 @@
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { parseReceiptText } from "../../api/_lib/receiptParser.js";
 import { detectTrialText } from "./trialGuard.js";
+import { inferServiceByPriceFingerprint } from "./subscriptionDiscovery.js";
 
 // 다른 앱의 '공유'로 받은 결제 문자·영수증 캡처를 등록 흐름에 넘긴다. 사용자가 고른 내용만 받으므로 권한이 필요 없다.
 export const SystemIntents = registerPlugin("SystemIntents");
@@ -35,15 +36,20 @@ export function sharedTextToDetected(text, now = new Date()) {
   if (!parsed.ok) return null;
   const data = parsed.data || {};
   if (!data.name && !data.amount) return null;
+  // '구글플레이 14,900원'처럼 PG사/인앱결제로만 적혀 서비스명이 비어 있으면 가격 지문으로 역추적한다.
+  const fingerprint =
+    !data.serviceId && Number(data.amount) > 0
+      ? inferServiceByPriceFingerprint(Number(data.amount))
+      : null;
   // 무료체험 가입 문자면 체험이 끝나는 날을 결제일로 두고 체험 중으로 등록한다(무료체험 가드).
   const dueDay = trial.trialEndsOn ? trial.trialEndsOn.getDate() : Number(data.dueDay);
   return {
-    name: data.name || "",
+    name: data.name || fingerprint?.name || "",
     amount: Number(data.amount) || 0,
-    plan: data.plan || "",
+    plan: data.plan || fingerprint?.defaultPlan || "",
     paymentMethod: data.paymentMethod || "",
-    serviceId: data.serviceId || "",
-    category: "기타",
+    serviceId: data.serviceId || fingerprint?.id || "",
+    category: fingerprint?.category || "기타",
     dueDay: dueDay >= 1 && dueDay <= 31 ? dueDay : now.getDate(),
     billingCycle: data.billingCycle || "매월",
     sourceType: "sms",

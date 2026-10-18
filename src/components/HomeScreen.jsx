@@ -14,7 +14,7 @@ import { Button, SubscriptionCard, ServiceMark } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 import { calculateMonthlyTotal, calculateYearlyTotal } from "../lib/subscriptionAgent";
 
-function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile }) {
+function EmptyState({ onAdd, onScan, onOpenDiscovery, onLogout, onOpenAccount, profile }) {
   return (
     <section className="flex min-h-[calc(100dvh-9rem)] min-h-[calc(100vh-9rem)] flex-col items-center justify-center px-4 sm:px-5 text-center">
       <span className="grid h-16 w-16 place-items-center rounded-full bg-[#F2F4F6] text-[#6B7684] border border-[#E5E8EB]">
@@ -25,6 +25,11 @@ function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile }) {
       <div className="mt-8 w-full space-y-3">
         <Button size="large" fullWidth onClick={onAdd} prefixIcon={<ReceiptText size={18} />}>첫 구독 서비스 등록하기</Button>
         <Button size="large" fullWidth variant="secondary" onClick={onScan} prefixIcon={<ScanLine size={18} />}>AI 결제인식 (문자·영수증 스캔)</Button>
+        {onOpenDiscovery && (
+          <Button size="large" fullWidth variant="secondary" onClick={onOpenDiscovery} prefixIcon={<Sparkles size={18} />}>
+            숨은 구독 한 번에 찾기 (설치앱·명세서 스캔)
+          </Button>
+        )}
       </div>
       <div className="mt-8 flex items-center gap-2.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] px-4 py-3.5 text-left shadow-2xs">
         <Sparkles size={18} className="shrink-0 text-[#FF6F0F]" />
@@ -215,6 +220,7 @@ export function HomeScreen({
   onExplorePromotions,
   onAdd,
   onScan,
+  onOpenDiscovery,
   onToggleNotificationPermission,
   onOpenNotificationCenter,
   onOpenTerms,
@@ -263,6 +269,7 @@ export function HomeScreen({
         <EmptyState
           onAdd={onAdd}
           onScan={onScan || onAdd}
+          onOpenDiscovery={onOpenDiscovery}
           onLogout={onLogout}
           onOpenAccount={onOpenAccount}
           profile={profile}
@@ -453,15 +460,27 @@ export function HomeScreen({
           <h2 className="text-[16px] font-bold text-[#191F28] tracking-tight">
             구독 관리
           </h2>
-          {subscriptions.length > 5 && onShowAll && (
-            <button
-              type="button"
-              onClick={onShowAll}
-              className="text-[12px] font-medium text-gray-400 hover:text-black flex items-center transition-colors cursor-pointer"
-            >
-              전체보기 <ChevronRight size={13} />
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {onOpenDiscovery && (
+              <button
+                type="button"
+                onClick={onOpenDiscovery}
+                className="inline-flex items-center gap-1 rounded-lg bg-[#EAF2ED] px-2.5 py-1 text-[11.5px] font-bold text-[#153D2E] hover:bg-[#dce9e1] transition-colors cursor-pointer"
+              >
+                <Sparkles size={12} />
+                숨은 구독 찾기
+              </button>
+            )}
+            {subscriptions.length > 5 && onShowAll && (
+              <button
+                type="button"
+                onClick={onShowAll}
+                className="text-[12px] font-medium text-gray-400 hover:text-black flex items-center transition-colors cursor-pointer"
+              >
+                전체보기 <ChevronRight size={13} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 구독 리스트: 기존과 같은 단일 리스트 구성, 서비스 간 여백 py-5(20px) 넉넉한 확장 + 대형 로고 */}

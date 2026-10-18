@@ -4,11 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import java.util.List;
 
 @CapacitorPlugin(name = "PaymentCapture")
 public class PaymentCapturePlugin extends Plugin {
@@ -59,6 +61,57 @@ public class PaymentCapturePlugin extends Plugin {
             ret.put("detected", false);
             ret.put("reason", "결제 또는 구독 정보 미감지");
         }
+        call.resolve(ret);
+    }
+
+    /**
+     * 기기 내 설치되어 있는 구독형 앱을 스캔하여 반환한다 (QUERY_ALL_PACKAGES 권한 없이 <queries>로 안전 조회).
+     */
+    @PluginMethod
+    public void scanInstalledApps(PluginCall call) {
+        Context context = getContext();
+        List<PaymentPackageRegistry.SubscriptionAppSpec> installed =
+                PaymentPackageRegistry.getInstalledSubscriptionApps(context);
+        JSArray appsArray = new JSArray();
+        for (PaymentPackageRegistry.SubscriptionAppSpec spec : installed) {
+            JSObject item = new JSObject();
+            item.put("packageName", spec.packageName);
+            item.put("serviceId", spec.serviceId);
+            item.put("serviceName", spec.serviceName);
+            item.put("category", spec.category);
+            item.put("plan", spec.defaultPlan);
+            item.put("amount", spec.defaultAmount);
+            appsArray.put(item);
+        }
+        JSObject ret = new JSObject();
+        ret.put("apps", appsArray);
+        ret.put("count", installed.size());
+        call.resolve(ret);
+    }
+
+    /**
+     * 현재 상태바에 남아 있는 결제/영수증/무료체험 알림을 즉시 스캔하여 반환한다.
+     */
+    @PluginMethod
+    public void scanActiveNotifications(PluginCall call) {
+        List<PaymentParser.ParsedPayment> payments =
+                PaymentNotificationListener.scanActiveStatusBarNotifications();
+        JSArray itemsArray = new JSArray();
+        for (PaymentParser.ParsedPayment p : payments) {
+            JSObject item = new JSObject();
+            item.put("serviceId", p.serviceId);
+            item.put("serviceName", p.serviceName);
+            item.put("category", p.category);
+            item.put("plan", p.plan);
+            item.put("amount", p.amount);
+            item.put("paymentMethod", p.paymentMethod);
+            item.put("isTrial", p.isTrial);
+            item.put("sourceChannel", p.sourceChannel);
+            itemsArray.put(item);
+        }
+        JSObject ret = new JSObject();
+        ret.put("items", itemsArray);
+        ret.put("count", payments.size());
         call.resolve(ret);
     }
 }

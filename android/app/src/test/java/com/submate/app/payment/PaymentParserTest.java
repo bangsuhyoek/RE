@@ -2,6 +2,9 @@ package com.submate.app.payment;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PaymentParserTest {
 
@@ -107,5 +110,47 @@ public class PaymentParserTest {
         assertEquals("youtube", parsed.serviceId);
         assertEquals("YouTube Premium", parsed.serviceName);
         assertEquals(14900, parsed.amount);
+    }
+
+    @Test
+    public void testEmailPushNotificationInvoiceAccepted() {
+        PaymentParser.ParsedPayment parsed = PaymentParser.parse(
+                "com.google.android.gm",
+                "Your receipt from OpenAI",
+                "Invoice paid $20.00 ChatGPT Plus subscription"
+        );
+        assertNotNull("Gmail 푸시 알림의 OpenAI 영수증은 감지되어야 합니다.", parsed);
+        assertTrue(parsed.isSubscription);
+        assertEquals("chatgpt", parsed.serviceId);
+        assertEquals("email_notification", parsed.sourceChannel);
+        assertEquals(27000, parsed.amount);
+    }
+
+    @Test
+    public void testFreeTrialPlayStoreNotificationAccepted() {
+        PaymentParser.ParsedPayment parsed = PaymentParser.parse(
+                "com.android.vending",
+                "Google Play 정기 결제",
+                "듀오링고 무료 체험이 시작되었습니다. 체험 종료 후 월 14,000원 결제"
+        );
+        assertNotNull("구글 플레이 무료 체험 알림은 감지되어야 합니다.", parsed);
+        assertTrue(parsed.isSubscription);
+        assertTrue(parsed.isTrial);
+        assertEquals("duolingo-super", parsed.serviceId);
+        assertEquals("play_store", parsed.sourceChannel);
+    }
+
+    @Test
+    public void testPgMaskedMerchantPriceFingerprintWithInstalledApps() {
+        Set<String> installed = new HashSet<>(Arrays.asList("millie"));
+        PaymentParser.ParsedPayment parsed = PaymentParser.parse(
+                "com.shcard.smartpay",
+                "[신한카드] 정기결제 승인",
+                "구글플레이 9,900원 일시불 승인",
+                installed
+        );
+        assertNotNull("구글플레이 9,900원 + 밀리의서재 앱 설치 시 밀리의서재로 매칭되어야 합니다.", parsed);
+        assertEquals("millie", parsed.serviceId);
+        assertEquals(9900, parsed.amount);
     }
 }

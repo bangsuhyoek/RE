@@ -32,7 +32,7 @@ export const serviceCatalog = [
     "dueDay": 5,
     "paymentMethod": "KB국민카드 • 8831",
     "cancelUrl": "https://chatgpt.com/#settings/Subscription",
-    "lastUpdated": "2026-09-30T10:07:01.273Z",
+    "lastUpdated": "2026-10-18T16:39:02.240Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -892,7 +892,7 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신한카드 • 4412",
     "cancelUrl": "https://www.netflix.com/cancelplan",
-    "lastUpdated": "2026-09-30T10:06:59.499Z",
+    "lastUpdated": "2026-10-18T16:39:01.091Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -932,7 +932,7 @@ export const serviceCatalog = [
     "dueDay": 22,
     "paymentMethod": "카카오페이",
     "cancelUrl": "https://www.youtube.com/paid_memberships",
-    "lastUpdated": "2026-09-30T10:06:59.841Z",
+    "lastUpdated": "2026-10-18T16:39:01.419Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -982,7 +982,7 @@ export const serviceCatalog = [
     "dueDay": 10,
     "paymentMethod": "네이버페이",
     "cancelUrl": "https://www.tving.com/my/pass",
-    "lastUpdated": "2026-09-30T10:07:01.036Z",
+    "lastUpdated": "2026-10-18T16:39:02.089Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -1032,7 +1032,7 @@ export const serviceCatalog = [
     "dueDay": 18,
     "paymentMethod": "삼성카드 • 3701",
     "cancelUrl": "https://www.disneyplus.com/ko-kr/account",
-    "lastUpdated": "2026-09-30T10:07:00.432Z",
+    "lastUpdated": "2026-10-18T16:39:01.733Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -1492,7 +1492,7 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "토스페이",
     "cancelUrl": "https://www.spotify.com/kr-ko/account/overview/",
-    "lastUpdated": "2026-09-30T10:07:00.321Z",
+    "lastUpdated": "2026-10-18T16:39:01.660Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -2913,7 +2913,8 @@ export const serviceCatalog = [
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.coupang.com/np/membership/benefit",
     "lastUpdated": "2026-09-30T10:06:59.994Z",
-    "parseStatus": "CRAWL_FAILED"
+    "parseStatus": "CRAWL_FAILED",
+    "lastCheckedAt": "2026-10-18T16:39:01.492Z"
   },
   {
     "id": "nintendo-online",
@@ -3543,9 +3544,9 @@ export const promotionCatalog = [
     "monogram": "N",
     "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
     "benefitPeriod": "가입 후 첫 7일간",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "duolingo-14d-free",
@@ -3565,9 +3566,9 @@ export const promotionCatalog = [
     "monogram": "D",
     "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
     "benefitPeriod": "가입 후 첫 1주간",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "naverplus-netflix",
@@ -3589,8 +3590,8 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
     "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "naver-spotify-link",
@@ -3612,8 +3613,8 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
     "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "disney-bundle-37",
@@ -3636,8 +3637,8 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (통합 번들 요금제)",
     "benefitPeriod": "번들 요금제 유지 기간 상시",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "skt-universe-youtube",
@@ -3657,9 +3658,9 @@ export const promotionCatalog = [
     "monogram": "SKT",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "adobe-student-66",
@@ -3680,8 +3681,8 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "notion-student-free",
@@ -3701,9 +3702,9 @@ export const promotionCatalog = [
     "monogram": "N",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "figma-edu-free",
@@ -3723,8 +3724,8 @@ export const promotionCatalog = [
     "monogram": "F",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED"
   },
   {
@@ -3746,8 +3747,30 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "disney-annual-16",
+    "category": "학생/연간",
+    "kind": "연간 결제 16% 할인 (2개월 무료 효과)",
+    "title": "Disney+",
+    "subtitle": "연간 결제로 2개월 무료 효과",
+    "description": "스탠다드 요금제를 연 99,000원에 결제하여 월 결제 대비 16% 절약하세요.",
+    "saving": 19800,
+    "originalPrice": 118800,
+    "offerPrice": 99000,
+    "dday": 365,
+    "sourceServiceIds": [
+      "disney"
+    ],
+    "link": "https://www.disneyplus.com/ko-kr",
+    "monogram": "D",
+    "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
+    "benefitPeriod": "결제일로부터 1년 (12개월)",
+    "lastCheckedAt": "2026-10-18T16:39:04.674Z",
+    "lastVerifiedAt": "2026-10-18T16:39:04.674Z",
+    "verifiedStatus": "LIVE_CONFIRMED"
   },
   {
     "id": "wavve-annual-16",
@@ -3767,9 +3790,9 @@ export const promotionCatalog = [
     "monogram": "W",
     "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
     "benefitPeriod": "결제일로부터 1년 (12개월)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "nintendo-family-plan",
@@ -3789,9 +3812,9 @@ export const promotionCatalog = [
     "monogram": "N",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "adobe-new-user-25",
@@ -3812,8 +3835,8 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "youtube-lite-43",
@@ -3833,8 +3856,8 @@ export const promotionCatalog = [
     "monogram": "Y",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED"
   },
   {
@@ -3855,9 +3878,9 @@ export const promotionCatalog = [
     "monogram": "M",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "canva-promo",
@@ -3877,9 +3900,9 @@ export const promotionCatalog = [
     "monogram": "C",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "github-copilot-promo",
@@ -3899,9 +3922,9 @@ export const promotionCatalog = [
     "monogram": "G",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "slack-pro-promo",
@@ -3921,9 +3944,9 @@ export const promotionCatalog = [
     "monogram": "S",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ms365-promo",
@@ -3943,9 +3966,9 @@ export const promotionCatalog = [
     "monogram": "M",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "evernote-promo",
@@ -3965,9 +3988,9 @@ export const promotionCatalog = [
     "monogram": "E",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "1password-promo",
@@ -3987,9 +4010,9 @@ export const promotionCatalog = [
     "monogram": "1",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "youtube-promo",
@@ -4009,9 +4032,9 @@ export const promotionCatalog = [
     "monogram": "Y",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "appletv-promo",
@@ -4031,9 +4054,9 @@ export const promotionCatalog = [
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "spotify-promo",
@@ -4053,9 +4076,9 @@ export const promotionCatalog = [
     "monogram": "S",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "genie-promo",
@@ -4075,9 +4098,9 @@ export const promotionCatalog = [
     "monogram": "G",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "applemusic-promo",
@@ -4097,9 +4120,9 @@ export const promotionCatalog = [
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ytmusic-promo",
@@ -4119,9 +4142,9 @@ export const promotionCatalog = [
     "monogram": "Y",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "millie-promo",
@@ -4141,9 +4164,9 @@ export const promotionCatalog = [
     "monogram": "밀",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ridiselect-promo",
@@ -4163,9 +4186,9 @@ export const promotionCatalog = [
     "monogram": "리",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "welaaa-promo",
@@ -4185,9 +4208,9 @@ export const promotionCatalog = [
     "monogram": "윌",
     "benefitPeriod": "가입 후 첫 2주간",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "the-joongang-plus-promo",
@@ -4207,9 +4230,9 @@ export const promotionCatalog = [
     "monogram": "더",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "nyt-digital-promo",
@@ -4229,9 +4252,9 @@ export const promotionCatalog = [
     "monogram": "T",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "wsj-digital-promo",
@@ -4251,9 +4274,9 @@ export const promotionCatalog = [
     "monogram": "T",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ft-digital-promo",
@@ -4273,9 +4296,9 @@ export const promotionCatalog = [
     "monogram": "F",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "audible-promo",
@@ -4295,9 +4318,9 @@ export const promotionCatalog = [
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "scribd-promo",
@@ -4317,9 +4340,9 @@ export const promotionCatalog = [
     "monogram": "S",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "naverplus-promo",
@@ -4339,9 +4362,9 @@ export const promotionCatalog = [
     "monogram": "네",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "yogipass-promo",
@@ -4361,9 +4384,9 @@ export const promotionCatalog = [
     "monogram": "요",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ps-plus-promo",
@@ -4383,9 +4406,9 @@ export const promotionCatalog = [
     "monogram": "P",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "apple-arcade-promo",
@@ -4405,9 +4428,9 @@ export const promotionCatalog = [
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ea-play-promo",
@@ -4427,9 +4450,9 @@ export const promotionCatalog = [
     "monogram": "E",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "wow-subscription-promo",
@@ -4449,9 +4472,9 @@ export const promotionCatalog = [
     "monogram": "W",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   }
 ];
 
