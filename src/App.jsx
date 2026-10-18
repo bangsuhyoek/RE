@@ -31,6 +31,7 @@ import { markRecordCharged, recordKey } from "./lib/cancelVerification";
 import { shareText } from "./lib/shareText";
 import { formatWon } from "./lib/dates";
 import { useCareFeed } from "./hooks/useCareFeed";
+import { useAgentInsights } from "./hooks/useAgentInsights";
 import { CareSection } from "./components/CareSection";
 import { RotationSheet } from "./components/RotationSheet";
 import { useNavigation } from "./hooks/useNavigation";
@@ -56,6 +57,7 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [agentOpen, setAgentOpen] = useState(false);
   const [agentMessages, setAgentMessages] = useState([]);
+  const [agentInitialInsight, setAgentInitialInsight] = useState(null);
   const [livePromotions, setLivePromotions] = useState(() =>
     getInitialPromotions({ fallbackPromotions: promotionCatalog })
   );
@@ -326,6 +328,35 @@ export default function App() {
     });
   }, [setNotifications]);
   const care = useCareFeed({ subscriptions, catalog: serviceCatalog, onEvents: handleCareEvents });
+  const { topInsight: agentInsight, dismiss: dismissAgentInsight } = useAgentInsights(subscriptions);
+
+  const handleOpenAgentInsight = useCallback((insight) => {
+    setAgentInitialInsight(insight);
+    setAgentOpen(true);
+  }, []);
+
+  const handleAddSubscriptionFromAgent = useCallback((payload) => {
+    const dueDay = payload.billingDay || (payload.nextChargeDate ? Number(String(payload.nextChargeDate).split("-")[2]) : 1);
+    const nextBillingDate = payload.billingCycle === "매년" ? payload.nextChargeDate : null;
+    return handleAddSubscription({
+      ...payload,
+      dueDay,
+      nextBillingDate,
+    }, notify);
+  }, [handleAddSubscription, notify]);
+
+  const handleUpdateSubscriptionFromAgent = useCallback((id, changes) => {
+    const mapped = { ...changes }; if (changes.billingDay !== undefined) { mapped.dueDay = Number(changes.billingDay); } else if (changes.nextChargeDate) { const parsedDay = Number(String(changes.nextChargeDate).split("-")[2]); if (Number.isFinite(parsedDay) && parsedDay >= 1 && parsedDay <= 31) { mapped.dueDay = parsedDay; } } if (changes.nextChargeDate !== undefined) { mapped.nextBillingDate = changes.nextChargeDate; } if (changes.amount !== undefined) { mapped.amount = Number(changes.amount); } updateSubscription(id, mapped, notify);
+  }, [updateSubscription, notify]);
+
+  const handleSetAlertsFromAgent = useCallback((id, { alertD3, alertD1 }) => {
+    if (id === "all") {
+      subscriptions.filter((s) => s.status !== "cancelled").forEach((s) => updateSubscription(s.subscriptionId || s.id, { alertD3, alertD1 }));
+      notify("모든 구독의 사전 알림을 설정했어요.");
+    } else {
+      updateSubscription(id, { alertD3, alertD1 }, notify);
+    }
+  }, [subscriptions, updateSubscription, notify]);
 
   const openAgentWith = useCallback((response) => {
     if (!response) return;
@@ -794,6 +825,7 @@ export default function App() {
       <HomeScreen
         subscriptions={subscriptions}
         promotions={livePromotions}
+        unreadCount={unreadCount}
         profile={profile}
         notificationDenied={profile?.notificationsAllowed === false}
         onOpenSubscription={(id) => navigate("detail", id)}
@@ -818,6 +850,9 @@ export default function App() {
         onOpenAccount={() => setAccountOpen(true)}
         onTogglePin={(id) => togglePinSubscription(id, notify)}
         onOpenAgent={() => setAgentOpen(true)}
+        agentInsight={agentInsight}
+        onOpenAgentInsight={handleOpenAgentInsight}
+        onDismissInsight={dismissAgentInsight}
         careSlot={
           <CareSection
             items={care.items}
@@ -959,6 +994,13 @@ export default function App() {
           })}
           onToast={notify}
           onChannelChange={(id, channel) => updateSubscription(id, { paymentChannel: channel })}
+          subscriptions={subscriptions}
+          rotationPlan={care.rotation}
+          onOpenRotation={() => {
+            closeCancellation();
+            setRotationOpen(true);
+          }}
+          userId={profile?.user_id || null}
         />
       )}
       {agentOpen && !cancelSubscription && (
@@ -966,7 +1008,11 @@ export default function App() {
           subscriptions={subscriptions}
           messages={agentMessages}
           onMessagesChange={setAgentMessages}
-          onClose={() => setAgentOpen(false)}
+          onClose={() => { setAgentOpen(false); setAgentInitialInsight(null); }}
+          initialInsight={agentInitialInsight}
+          onAddSubscription={handleAddSubscriptionFromAgent}
+          onUpdateSubscription={handleUpdateSubscriptionFromAgent}
+          onSetAlerts={handleSetAlertsFromAgent}
           onStartCancel={(subscriptionId, options) => {
             setAgentOpen(false);
             startCancellation(subscriptionId, null, options);

@@ -8,6 +8,7 @@ import {
   Bell,
   BellOff,
   User,
+  X,
 } from "lucide-react";
 import { Button, SubscriptionCard, ServiceMark } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
@@ -161,6 +162,12 @@ function VisualPromoCarousel({ promotions, onOpenPromotion }) {
             style={{ minHeight: "108px" }}
             role="button"
             tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onOpenPromotion?.(s.promo);
+              }
+            }}
             aria-label={`${s.tag} - ${s.title}`}
           >
             <div className="flex-1 pr-2 min-w-0">
@@ -200,6 +207,7 @@ export function HomeScreen({
   subscriptions,
   promotions = [],
   profile,
+  unreadCount = 0,
   notificationDenied,
   onOpenSubscription,
   onShowAll,
@@ -214,6 +222,9 @@ export function HomeScreen({
   onOpenAccount,
   onOpenAgent,
   careSlot = null,
+  agentInsight = null,
+  onOpenAgentInsight,
+  onDismissInsight,
 }) {
   const [annual, setAnnual] = useState(false);
 
@@ -280,7 +291,9 @@ export function HomeScreen({
             aria-label="알림 센터 열기"
           >
             <Bell size={20} />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+            )}
           </button>
           {onOpenAccount && (
             <button
@@ -299,6 +312,12 @@ export function HomeScreen({
       <div className="pt-6 pb-4 flex items-end justify-between">
         <div
           onClick={() => setAnnual((v) => !v)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setAnnual((v) => !v);
+            }
+          }}
           className="cursor-pointer group"
           role="button"
           tabIndex={0}
@@ -329,6 +348,62 @@ export function HomeScreen({
           </div>
         </div>
       </div>
+
+      {/* 꾸독 에이전트 선제적 인사이트 카드 */}
+      {agentInsight && (
+        <div
+          className="mt-2.5 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/90 via-white to-indigo-50/60 p-4 shadow-sm transition-all"
+          role="region"
+          aria-label="꾸독 인사이트"
+        >
+          <div className="flex items-start justify-between gap-2.5">
+            <div className="flex items-center gap-2">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#3182F6] text-white shadow-2xs">
+                <Sparkles size={13} />
+              </span>
+              <span className="text-[12px] font-bold text-[#3182F6]">꾸독</span>
+              {agentInsight.priority === "high" && (
+                <span className="rounded-md bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-600">
+                  중요
+                </span>
+              )}
+            </div>
+            {onDismissInsight && (
+              <button
+                type="button"
+                onClick={() => onDismissInsight(agentInsight.id)}
+                className="grid h-6 w-6 place-items-center rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-colors"
+                aria-label="인사이트 닫기"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="mt-2 min-w-0">
+            <strong className="block text-[14px] font-bold text-[#191F28] leading-snug">
+              {agentInsight.title}
+            </strong>
+            <p className="mt-1 text-[13px] leading-relaxed text-[#4E5968]">
+              {agentInsight.message}
+            </p>
+          </div>
+
+          {onOpenAgentInsight && (
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => onOpenAgentInsight(agentInsight)}
+                className="flex items-center gap-1.5 rounded-xl bg-[#191F28] px-3.5 py-2 text-[12.5px] font-bold text-white shadow-xs transition-all active:scale-95 hover:bg-black"
+                aria-label="꾸독과 대화하기"
+              >
+                대화하기
+                <ChevronRight size={14} className="text-white/70" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 알림 권한 꺼짐 안내 (필요 시 노출) */}
       {onOpenAgent && (
