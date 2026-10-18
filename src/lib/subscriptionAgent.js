@@ -142,8 +142,8 @@ export const VERIFIED_REFUND_POLICIES = {
     summary: "대부분 환불되지 않지만 Canva가 요청을 하나씩 검토해요. 해지해도 현재 결제 기간이 끝날 때까지 프리미엄 기능을 쓸 수 있어요. App Store로 구독했다면 Apple에 요청해요.",
     sourceUrl: "https://www.canva.com/ko_kr/help/subscription-refunds/",
     sourceLabel: "Canva 구독 환불",
-    verifiedAt: "2026-10-02",
-    checkPhrases: ["하지만 모든 환불 요청을 검토합니다", "Apple에 직접 환불을 요청해야 합니다", "현재 청구 기간이 종료될 때까지 프리미엄 기능을 계속 사용할 수 있습니다"],
+    verifiedAt: "2026-10-19",
+    checkPhrases: ["다만 모든 환불 요청을 검토하며", "Apple에 직접 환불을 요청해야 합니다", "현재 청구 기간이 끝날 때까지 프리미엄 기능을 계속 이용할 수 있습니다"],
   },
   "ps-plus": {
     summary: "처음 구매하거나 갱신한 날부터 14일 안에 취소하면 전액 환불돼요. 14일이 지나면 쓰지 않은 기간만큼 일할 계산해 환불해요. 자동 갱신만 해지하면 만료일까지 쓸 수 있어요. PS Store 밖에서 산 이용권은 그 구매처에 문의해요.",
@@ -280,8 +280,8 @@ export const VERIFIED_REFUND_POLICIES = {
     summary: "Figma 구독 결제는 환불되지 않아요. Professional 플랜을 취소하면 현재 결제 기간이 끝날 때까지 기능을 쓰고, 그 뒤 무료 Starter로 바뀌어요.",
     sourceUrl: "https://help.figma.com/hc/en-us/articles/360046216313-Upgrade-or-downgrade-your-plan",
     sourceLabel: "Figma 플랜 변경·취소 안내",
-    verifiedAt: "2026-10-02",
-    checkPhrases: ["Payments for Figma subscriptions are non-refundable", "access to all Professional plan features until the end of the current billing period"],
+    verifiedAt: "2026-10-19",
+    checkPhrases: ["Payments for Figma subscriptions are non-refundable", "At the end of your billing period, Figma will downgrade your team to the free Starter plan"],
   },
 };
 

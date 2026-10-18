@@ -40,7 +40,8 @@ export const promotionSources = {
   "wavve-promo": { urls: ["https://www.wavve.com/voucher/index.html"], fetch: { device: "mobile" } },
   "wavve-annual-16": { urls: ["https://www.wavve.com/voucher/index.html"], fetch: { device: "mobile" } },
   "disney-bundle-37": { urls: ["https://www.disneyplus.com/ko-kr"] },
-  "disney-annual-16": { urls: ["https://www.disneyplus.com/ko-kr"] },
+  // 홈페이지에는 번들 할인만 나오고 연간 요금은 고객센터 요금 안내에만 있다. 스탠다드 연 99,000원(월 9,900원 × 12 대비 약 16%)을 확인한다.
+  "disney-annual-16": { urls: ["https://help.disneyplus.com/ko/article/disneyplus-ko-kr-price"], claim: { patterns: ["연\\s*99,?000\\s*원"] } },
   "tving-annual-44": { urls: ["https://www.tving.com/membership/tving"] },
   "tving-naver": { claim: { type: "manual", reason: "네이버 로그인 후에만 보이는 제휴 연동" } },
   "watcha-promo": { urls: ["https://watcha.com/"], claim: { type: "manual", reason: "왓챠 요금제 및 이용권 결제 페이지는 로그인 필수이며 공개 페이지에서는 연간 요금제를 안내하지 않음" } },

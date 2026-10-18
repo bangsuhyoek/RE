@@ -57,11 +57,18 @@ export class CatalogSyncer {
     }
 
     const serviceMap = new Map(existingServices.map((s) => [s.id, s]));
+    let keptExistingCount = 0;
     for (const item of verifiedItems) {
-      if (item && item.id) {
-        const existing = serviceMap.get(item.id) || {};
-        serviceMap.set(item.id, { ...existing, ...item });
+      if (!item || !item.id) continue;
+      const existing = serviceMap.get(item.id);
+      // 페이지를 읽지 못해 설정의 기본값으로 만든 항목은 이미 있는 가격과 확인 시각을 덮어쓰지 않는다.
+      // 실패했다는 기록(parseStatus)과 시도한 시각(lastCheckedAt)만 남긴다.
+      if (existing && item.parseStatus && item.parseStatus !== "PARSED_SUCCESS") {
+        serviceMap.set(item.id, { ...existing, parseStatus: item.parseStatus, lastCheckedAt: item.lastUpdated });
+        keptExistingCount += 1;
+        continue;
       }
+      serviceMap.set(item.id, { ...(existing || {}), ...item });
     }
     const finalServices = serviceMap.size > 0 ? Array.from(serviceMap.values()) : verifiedItems;
     const itemsJson = JSON.stringify(finalServices, null, 2);
@@ -85,6 +92,7 @@ export class CatalogSyncer {
     return {
       success: true,
       updatedCount: verifiedItems.length,
+      keptExistingCount,
       syncedAt: new Date().toISOString(),
     };
   }

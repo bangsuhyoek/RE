@@ -40,6 +40,7 @@ export async function runCrawlerPipeline({ catalogFilePath } = {}) {
     console.log(` └─ [ParserAgent] Extracting structured plan & pricing data...`);
     const parsedItem = parser.parse(crawlResult, target);
     console.log(`    └─ Primary Plan: ${parsedItem.plan} / Amount: ₩${parsedItem.amount.toLocaleString()}`);
+    const usedFallback = parsedItem.parseStatus !== "PARSED_SUCCESS";
 
     // 3. 공식 검증 단계 (Formal Verification & Self-Correction)
     console.log(` └─ [FormalVerifier] Running formal verification & integrity check...`);
@@ -48,7 +49,9 @@ export async function runCrawlerPipeline({ catalogFilePath } = {}) {
     if (verificationResult.isVerified) {
       verifiedCatalogItems.push(verificationResult.item);
       successCount++;
-      if (verificationResult.isCorrected) {
+      if (usedFallback) {
+        console.log(`    └─ ⚠️ 페이지를 읽지 못해(${parsedItem.parseStatus}) 카탈로그의 기존 값을 유지합니다`);
+      } else if (verificationResult.isCorrected) {
         correctedCount++;
         console.log(`    └─ Verified via Self-Correction Fallback ✅`);
       } else {
@@ -69,6 +72,7 @@ export async function runCrawlerPipeline({ catalogFilePath } = {}) {
   console.log(` - Self-Corrected Items: ${correctedCount}`);
   console.log(` - Catalog Sync Status: ${syncResult.success ? "SUCCESS" : "FAILED"}`);
   console.log(` - Synced Items: ${syncResult.updatedCount}`);
+  console.log(` - Kept Existing (crawl failed): ${syncResult.keptExistingCount ?? 0}`);
 
   return {
     targetsProcessed: CRAWLER_CONFIG.targets.length,

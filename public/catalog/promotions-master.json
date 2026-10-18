@@ -18,7 +18,7 @@
     "monogram": "C",
     "campaignPeriod": "상시 진행 (신규 가입 웰컴 트라이얼)",
     "benefitPeriod": "가입 후 첫 30일 (1개월간)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "nintendo-7d-free",
@@ -38,9 +38,9 @@
     "monogram": "N",
     "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
     "benefitPeriod": "가입 후 첫 7일간",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "speak-7d-free",
@@ -60,7 +60,7 @@
     "monogram": "S",
     "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
     "benefitPeriod": "가입 후 첫 7일간",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "duolingo-14d-free",
@@ -80,9 +80,9 @@
     "monogram": "D",
     "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
     "benefitPeriod": "가입 후 첫 1주간",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "naverplus-netflix",
@@ -104,8 +104,8 @@
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
     "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "naver-spotify-link",
@@ -127,8 +127,8 @@
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
     "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "disney-bundle-37",
@@ -151,8 +151,8 @@
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (통합 번들 요금제)",
     "benefitPeriod": "번들 요금제 유지 기간 상시",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "skt-universe-youtube",
@@ -172,9 +172,9 @@
     "monogram": "SKT",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "tving-naver",
@@ -195,7 +195,7 @@
     "monogram": "T",
     "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
     "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "adobe-student-66",
@@ -216,8 +216,8 @@
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "notion-student-free",
@@ -237,9 +237,9 @@
     "monogram": "N",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "figma-edu-free",
@@ -259,8 +259,8 @@
     "monogram": "F",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED"
   },
   {
@@ -282,8 +282,8 @@
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "disney-annual-16",
@@ -303,8 +303,9 @@
     "monogram": "D",
     "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
     "benefitPeriod": "결제일로부터 1년 (12개월)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastCheckedAt": "2026-10-18T16:39:04.674Z",
+    "lastVerifiedAt": "2026-10-18T16:39:04.674Z",
+    "verifiedStatus": "LIVE_CONFIRMED"
   },
   {
     "id": "tving-annual-44",
@@ -324,7 +325,7 @@
     "monogram": "T",
     "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
     "benefitPeriod": "결제일로부터 1년 (12개월)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "wavve-annual-16",
@@ -344,9 +345,9 @@
     "monogram": "W",
     "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
     "benefitPeriod": "결제일로부터 1년 (12개월)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "nintendo-family-plan",
@@ -366,9 +367,9 @@
     "monogram": "N",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "adobe-new-user-25",
@@ -389,8 +390,8 @@
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "youtube-lite-43",
@@ -410,8 +411,8 @@
     "monogram": "Y",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED"
   },
   {
@@ -432,7 +433,7 @@
     "monogram": "C",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "claude-pro-promo",
@@ -452,7 +453,7 @@
     "monogram": "C",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "perplexity-pro-promo",
@@ -472,7 +473,7 @@
     "monogram": "P",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "midjourney-promo",
@@ -492,9 +493,9 @@
     "monogram": "M",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "canva-promo",
@@ -514,9 +515,9 @@
     "monogram": "C",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "framer-promo",
@@ -536,9 +537,9 @@
     "monogram": "F",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z",
     "isFreeTier": true
   },
   {
@@ -559,7 +560,7 @@
     "monogram": "W",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "isFreeTier": true
   },
   {
@@ -580,9 +581,9 @@
     "monogram": "G",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "slack-pro-promo",
@@ -602,9 +603,9 @@
     "monogram": "S",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "zoom-pro-promo",
@@ -624,9 +625,9 @@
     "monogram": "Z",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z",
     "isFreeTier": true
   },
   {
@@ -647,9 +648,9 @@
     "monogram": "M",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "google-one-promo",
@@ -669,7 +670,7 @@
     "monogram": "G",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "evernote-promo",
@@ -689,9 +690,9 @@
     "monogram": "E",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "1password-promo",
@@ -711,9 +712,9 @@
     "monogram": "1",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "youtube-promo",
@@ -733,9 +734,9 @@
     "monogram": "Y",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "wavve-promo",
@@ -755,7 +756,7 @@
     "monogram": "W",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "watcha-promo",
@@ -775,7 +776,7 @@
     "monogram": "W",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "coupangplay-promo",
@@ -795,7 +796,7 @@
     "monogram": "C",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "appletv-promo",
@@ -815,9 +816,9 @@
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "primevideo-promo",
@@ -837,7 +838,7 @@
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "weverse-promo",
@@ -857,7 +858,7 @@
     "monogram": "W",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "dazn-promo",
@@ -877,7 +878,7 @@
     "monogram": "D",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "melon-promo",
@@ -897,7 +898,7 @@
     "monogram": "M",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "spotify-promo",
@@ -917,9 +918,9 @@
     "monogram": "S",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "genie-promo",
@@ -939,9 +940,9 @@
     "monogram": "G",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "flo-promo",
@@ -961,7 +962,7 @@
     "monogram": "F",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "applemusic-promo",
@@ -981,9 +982,9 @@
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ytmusic-promo",
@@ -1003,9 +1004,9 @@
     "monogram": "Y",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "podbbang-promo",
@@ -1025,7 +1026,7 @@
     "monogram": "팟",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "millie-promo",
@@ -1045,9 +1046,9 @@
     "monogram": "밀",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ridiselect-promo",
@@ -1067,9 +1068,9 @@
     "monogram": "리",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "welaaa-promo",
@@ -1089,9 +1090,9 @@
     "monogram": "윌",
     "benefitPeriod": "가입 후 첫 2주간",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "the-joongang-plus-promo",
@@ -1111,9 +1112,9 @@
     "monogram": "더",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "nyt-digital-promo",
@@ -1133,9 +1134,9 @@
     "monogram": "T",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "wsj-digital-promo",
@@ -1155,9 +1156,9 @@
     "monogram": "T",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ft-digital-promo",
@@ -1177,9 +1178,9 @@
     "monogram": "F",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "audible-promo",
@@ -1199,9 +1200,9 @@
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "scribd-promo",
@@ -1221,9 +1222,9 @@
     "monogram": "S",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "naverplus-promo",
@@ -1243,9 +1244,9 @@
     "monogram": "네",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "baemin-club-promo",
@@ -1265,7 +1266,7 @@
     "monogram": "배",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "yogipass-promo",
@@ -1285,9 +1286,9 @@
     "monogram": "요",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "coupang-promo",
@@ -1307,7 +1308,7 @@
     "monogram": "쿠",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ps-plus-promo",
@@ -1327,9 +1328,9 @@
     "monogram": "P",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "apple-arcade-promo",
@@ -1349,9 +1350,9 @@
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ea-play-promo",
@@ -1371,9 +1372,9 @@
     "monogram": "E",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "wow-subscription-promo",
@@ -1393,9 +1394,9 @@
     "monogram": "W",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "kakaotalk-emoticon-promo",
@@ -1415,7 +1416,7 @@
     "monogram": "카",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "naver-mybox-promo",
@@ -1435,9 +1436,9 @@
     "monogram": "네",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-16T05:51:48.430Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z",
     "isFreeTier": true
   },
   {
@@ -1458,6 +1459,6 @@
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-16T05:51:48.430Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z"
   }
 ]

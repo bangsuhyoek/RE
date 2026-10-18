@@ -84,3 +84,25 @@ test("Full Crawler Pipeline should execute and update a catalog file", async () 
   assert.ok(content.includes('"id": "netflix"'));
   fs.rmSync(tempDir, { recursive: true, force: true });
 });
+
+test("페이지를 읽지 못한 서비스는 카탈로그의 기존 가격과 확인 시각을 덮어쓰지 않는다", () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "submate-sync-"));
+  const filePath = path.join(tempDir, "subscriptionData.js");
+  const existing = [{ id: "coupang", name: "쿠팡 와우", amount: 7890, plan: "와우 멤버십", lastUpdated: "2026-09-30T10:07:00.000Z", parseStatus: "PARSED_SUCCESS" }];
+  fs.writeFileSync(filePath, "export const serviceCatalog = " + JSON.stringify(existing, null, 2) + ";\n\nexport const createMockSubscriptions = () => [];\n", "utf-8");
+
+  const parser = new ParserAgent();
+  const target = { id: "coupang", name: "쿠팡 와우", fallbackData: { plan: "와우 멤버십", amount: 4990, availablePlans: [{ plan: "와우 멤버십", amount: 4990 }] } };
+  const fallbackItem = parser.parse({ status: "FAILED", rawContent: null }, target);
+  const result = new CatalogSyncer(filePath).sync([fallbackItem]);
+
+  const content = fs.readFileSync(filePath, "utf-8");
+  const start = content.indexOf("[");
+  const synced = JSON.parse(content.slice(start, content.indexOf("export const createMockSubscriptions")).trim().replace(/;\s*$/, ""));
+  assert.equal(result.keptExistingCount, 1);
+  assert.equal(synced[0].amount, 7890);
+  assert.equal(synced[0].lastUpdated, "2026-09-30T10:07:00.000Z");
+  assert.equal(synced[0].parseStatus, "CRAWL_FAILED");
+  assert.ok(synced[0].lastCheckedAt);
+  fs.rmSync(tempDir, { recursive: true, force: true });
+});
