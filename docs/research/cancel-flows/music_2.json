@@ -1,0 +1,391 @@
+[
+  {
+    "id": "ytmusic",
+    "name": "YouTube Music",
+    "catalogCancelUrl": "https://www.youtube.com/paid_memberships",
+    "cancelUrlStatus": "redirect_303_to_google_login",
+    "officialHelpUrls": [
+      "https://support.google.com/youtube/answer/6308278?hl=ko"
+    ],
+    "cancelChannel": "web",
+    "loginMethods": [
+      "google"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "유료 멤버십 관리 (youtube.com/paid_memberships)",
+        "label": "멤버십 관리",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "멤버십 세부정보 패널",
+        "label": "비활성화",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "멤버십 일시중지 권유 팝업",
+        "label": "취소하려면 계속",
+        "kind": "retention"
+      },
+      {
+        "screen": "취소 사유 선택 팝업",
+        "label": "다음",
+        "kind": "survey"
+      },
+      {
+        "screen": "최종 취소 확인 팝업",
+        "label": "취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "멤버십 일시중지 제안 (최대 몇 개월간 일시중지하고 혜택 유지)",
+      "continueLabel": "취소하려면 계속",
+      "keepLabel": "일시중지"
+    },
+    "finalButtonLabel": "취소",
+    "successText": null,
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그 가이드에는 [그대로 취소]로 안내되어 있으나 최신 공식 고객센터 및 UI 기준 [취소하려면 계속] 버튼을 누른 뒤 취소 사유 설문을 거쳐 최종 [취소]를 클릭하는 다단계 절차로 진행됩니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.google.com/youtube/answer/6308278?hl=ko",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "인앱결제(Apple App Store 또는 Google Play 결제) 이용자는 각 스토어 정기 결제 관리 페이지에서 별도로 해지해야 합니다."
+  },
+  {
+    "id": "tidal",
+    "name": "TIDAL",
+    "catalogCancelUrl": "https://my.tidal.com/account/subscription",
+    "cancelUrlStatus": "redirect_308_to_https://account.tidal.com/subscription",
+    "officialHelpUrls": [
+      "https://support.tidal.com/hc/en-us/articles/201314601-Cancel-Tidal-Subscription-or-Trial"
+    ],
+    "cancelChannel": "web",
+    "loginMethods": [
+      "id_pw",
+      "apple",
+      "facebook",
+      "twitter"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Account Management (my.tidal.com / account.tidal.com)",
+        "label": "Subscription",
+        "kind": "nav"
+      },
+      {
+        "screen": "Subscription Details",
+        "label": "Cancel Subscription",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Confirmation screen",
+        "label": "Confirm cancellation",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": false,
+      "offerText": null,
+      "continueLabel": "Confirm cancellation",
+      "keepLabel": null
+    },
+    "finalButtonLabel": "Confirm cancellation",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.tidal.com/hc/en-us/articles/201314601-Cancel-Tidal-Subscription-or-Trial",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "TIDAL은 한국어 UI가 기본 제공되지 않아 영어 UI(Subscription -> Cancel Subscription -> Confirm cancellation)로 진행됩니다. my.tidal.com은 account.tidal.com으로 308 리다이렉트됩니다. Apple/Google 인앱결제 구독의 경우 해당 앱스토어에서 해지해야 합니다."
+  },
+  {
+    "id": "bubble-sm",
+    "name": "DearU Bubble",
+    "catalogCancelUrl": "https://play.google.com/store/account/subscriptions",
+    "cancelUrlStatus": "redirect_302_to_google_login",
+    "officialHelpUrls": [
+      "https://support.google.com/googleplay/answer/7018481?hl=ko",
+      "https://support.apple.com/ko-kr/118428"
+    ],
+    "cancelChannel": "store_only",
+    "loginMethods": [
+      "google"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Google Play 스토어 정기 결제 (play.google.com/store/account/subscriptions)",
+        "label": "관리",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "구독 상세 팝업/화면",
+        "label": "정기 결제 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 사유 선택 팝업",
+        "label": "계속",
+        "kind": "survey"
+      },
+      {
+        "screen": "최종 취소 확인 팝업",
+        "label": "정기 결제 취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": false,
+      "offerText": null,
+      "continueLabel": "계속",
+      "keepLabel": null
+    },
+    "finalButtonLabel": "정기 결제 취소",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.google.com/googleplay/answer/7018481?hl=ko",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://support.apple.com/ko-kr/118428",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "DearU bubble은 100% 인앱 결제 전용 모바일 팬덤 서비스로, 자체 웹 결제/해지 창구가 없습니다. Android 사용자는 Google Play 스토어에서, iOS 사용자는 Apple App Store 계정 설정의 [구독] 메뉴에서 해지해야 합니다."
+  },
+  {
+    "id": "fromm",
+    "name": "fromm",
+    "catalogCancelUrl": "https://play.google.com/store/account/subscriptions",
+    "cancelUrlStatus": "redirect_302_to_google_login",
+    "officialHelpUrls": [
+      "https://support.google.com/googleplay/answer/7018481?hl=ko",
+      "https://fromm.zendesk.com/hc/ko/articles/10099807152015"
+    ],
+    "cancelChannel": "store_only",
+    "loginMethods": [
+      "google"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Google Play 스토어 정기 결제 (play.google.com/store/account/subscriptions)",
+        "label": "관리",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "구독 상세 팝업/화면",
+        "label": "정기 결제 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 사유 선택 팝업",
+        "label": "계속",
+        "kind": "survey"
+      },
+      {
+        "screen": "최종 취소 확인 팝업",
+        "label": "정기 결제 취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": false,
+      "offerText": null,
+      "continueLabel": "계속",
+      "keepLabel": null
+    },
+    "finalButtonLabel": "정기 결제 취소",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.google.com/googleplay/answer/7018481?hl=ko",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://fromm.zendesk.com/hc/ko/articles/10099807152015",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "fromm(노머스 원더월) 역시 모바일 앱스토어 인앱결제(Google Play / Apple App Store) 기반 구독 서비스로 웹 전용 결제/해지 페이지가 없으며, Google Play 스토어 또는 Apple 계정 [구독]에서 정기 결제를 해지해야 합니다."
+  },
+  {
+    "id": "podbbang",
+    "name": "팟빵 오디오매거진",
+    "catalogCancelUrl": "https://www.podbbang.com/mypage/subscription",
+    "cancelUrlStatus": "redirect_302_to_login",
+    "officialHelpUrls": [
+      "https://www.podbbang.com/helps/faqs"
+    ],
+    "cancelChannel": "web",
+    "loginMethods": [
+      "id_pw",
+      "kakao"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "팟빵 마이페이지 (podbbang.com/mypage)",
+        "label": "구독 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 채널 목록 페이지 (podbbang.com/mypage/subscription)",
+        "label": "정기결제 해지",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 확인 모달",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": false,
+      "offerText": null,
+      "continueLabel": "해지하기",
+      "keepLabel": "취소"
+    },
+    "finalButtonLabel": "해지하기",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.podbbang.com/helps/faqs",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "웹(PC/모바일 웹)에서 직접 결제한 매거진/채널 구독은 [마이페이지] > [구독 관리]에서 즉시 해지 가능합니다. 모바일 앱 내 인앱 결제(구글 플레이/애플 앱스토어) 건은 해당 스토어의 구독 메뉴에서 해지해야 합니다."
+  },
+  {
+    "id": "welaaa",
+    "name": "윌라 오디오북",
+    "catalogCancelUrl": "https://www.welaaa.com/my/membership",
+    "cancelUrlStatus": "redirect_302_to_/auth/login?next=%2Fmy%2Fmembership",
+    "officialHelpUrls": [
+      "https://www.welaaa.com/support/faq"
+    ],
+    "cancelChannel": "web",
+    "loginMethods": [
+      "id_pw",
+      "kakao",
+      "naver",
+      "apple",
+      "google"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "마이페이지 > 멤버십 관리 (welaaa.com/my/membership)",
+        "label": "해지신청",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "혜택 포기 및 혜택 유지 안내 화면",
+        "label": "혜택 포기하기",
+        "kind": "retention"
+      },
+      {
+        "screen": "최종 해지 확인 화면",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "잔여 이용 기간 동안 무제한 듣기 혜택 안내 및 멤버십 유지 유도",
+      "continueLabel": "혜택 포기하기",
+      "keepLabel": "멤버십 유지하기"
+    },
+    "finalButtonLabel": "해지하기",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.welaaa.com/support/faq",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "웹(welaaa.com)에서 가입한 멤버십은 웹 마이페이지에서 해지 가능합니다. 구글 플레이 스토어나 애플 앱스토어 인앱결제로 가입한 멤버십의 경우 해당 마켓 계정의 정기결제/구독 관리에서 해지해야 합니다."
+  },
+  {
+    "id": "storytel",
+    "name": "Storytel",
+    "catalogCancelUrl": "https://www.storytel.com/kr/login",
+    "cancelUrlStatus": "ok",
+    "officialHelpUrls": [
+      "https://support.storytel.com/hc/ko/articles/360012213120"
+    ],
+    "cancelChannel": "web",
+    "loginMethods": [
+      "id_pw",
+      "apple",
+      "google",
+      "facebook"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "내 계정 (storytel.com 계정 관리)",
+        "label": "구독 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 관리 세부 화면",
+        "label": "구독 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 사유 선택 화면",
+        "label": "계속",
+        "kind": "survey"
+      },
+      {
+        "screen": "최종 취소 확인 화면",
+        "label": "구독 취소 확인",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": false,
+      "offerText": null,
+      "continueLabel": "계속",
+      "keepLabel": null
+    },
+    "finalButtonLabel": "구독 취소 확인",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.storytel.com/hc/ko/articles/360012213120",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "스토리텔 웹사이트에서 카드로 시작한 구독은 웹 브라우저의 [내 계정] > [구독 관리]에서 취소 가능합니다. 모바일 앱을 삭제해도 구독이 취소되지 않으며, Apple/Google 인앱결제로 가입한 경우 해당 스토어 계정 설정에서 취소해야 합니다."
+  }
+]

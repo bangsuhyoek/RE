@@ -151,7 +151,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://app.runwayml.com/settings/plans",
+    "cancelUrl": "https://app.runwayml.com/settings/billing",
     "lastUpdated": "2026-09-15T11:20:41.789Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -181,7 +181,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://v0.dev/chat/settings/billing",
+    "cancelUrl": "https://v0.app/chat/settings/billing",
     "lastUpdated": "2026-09-15T11:20:42.248Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -391,7 +391,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://www.cursor.com/settings",
+    "cancelUrl": "https://cursor.com/dashboard/billing",
     "lastUpdated": "2026-09-15T11:20:42.793Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -661,7 +661,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://support.apple.com/ko-kr/HT207594",
+    "cancelUrl": "https://support.apple.com/ko-kr/108318",
     "lastUpdated": "2026-09-15T11:20:42.317Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1241,7 +1241,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://tv.apple.com/settings",
+    "cancelUrl": "https://support.apple.com/ko-kr/118428",
     "lastUpdated": "2026-09-15T11:20:42.987Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1571,7 +1571,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://www.genie.co.kr/my/myTicket",
+    "cancelUrl": "https://pay.genie.co.kr/cancel/myProductCancel",
     "lastUpdated": "2026-09-15T11:20:43.168Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -1871,7 +1871,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://my.tidal.com/account/subscription",
+    "cancelUrl": "https://account.tidal.com/subscription",
     "lastUpdated": "2026-09-15T11:20:43.493Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -3315,7 +3315,6 @@ export const serviceCatalog = [
     "lastUpdated": "2026-09-15T11:20:44.826Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
-  // DB(subscription_services)에만 있던 4개 서비스. 해지 주소는 공식 고객센터·상품 안내로 확인했다(2026-10-04).
   {
     "id": "kakao-emoticon",
     "name": "카카오 이모티콘 플러스",

@@ -1,0 +1,745 @@
+[
+  {
+    "id": "millie",
+    "name": "밀리의 서재",
+    "catalogCancelUrl": "https://www.millie.co.kr/v3/mypage/subscription",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "구독 관리 이동",
+        "description": "밀리의 서재 로그인 후 하단 [관리] > [구독 관리]를 터치합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 해지 신청",
+        "description": "[결제/구독 관리] > [구독 해지 신청]을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "지금 바로 해지",
+        "description": "해지 방어 혜택 화면 맨 아래로 스크롤하여 [지금 바로 해지하기]를 누릅니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://www.millie.co.kr/v3/customer/faq/871"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "password",
+      "kakao",
+      "naver",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "메인/하단 네비게이션",
+        "label": "관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "관리 메뉴",
+        "label": "나의 정기구독 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 관리 상세",
+        "label": "자동결제 해지 신청",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 방어/혜택 안내",
+        "label": "지금 바로 해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": [
+        "구독 유지 시 혜택 및 잔여 기간 안내"
+      ],
+      "continueCancellingLabel": "지금 바로 해지하기"
+    },
+    "finalButtonLabel": "지금 바로 해지하기",
+    "successText": "다음 결제일부터 결제가 진행되지 않습니다",
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그 가이드는 [결제/구독 관리] > [구독 해지 신청]으로 안내되어 있으나, 공식 도움말/실제 경로는 [나의 정기구독] > [나의 정기구독 관리] > [자동결제 해지 신청]입니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.millie.co.kr/v3/customer/faq/871?type=category",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "인앱결제(애플/구글) 이용자는 각 앱스토어 정기결제 메뉴에서 해지 필요."
+  },
+  {
+    "id": "ridiselect",
+    "name": "리디셀렉트",
+    "catalogCancelUrl": "https://select.ridibooks.com/settings",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이리디 셀렉트 관리",
+        "description": "리디 로그인 후 [마이리디] > [리디셀렉트 관리]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "셀렉트 해지 신청",
+        "description": "구독 정보 카드 하단의 [셀렉트 해지 신청] 링크를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 예약/즉시 해지",
+        "description": "안내 화면 하단 [해지 예약하기] 또는 [즉시 해지]를 선택합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://ridihelp.ridibooks.com/support/solutions/articles/154000207870--%EC%85%80%EB%A0%89%ED%8A%B8-%EA%B5%AC%EB%8F%85-%EC%9B%94%EC%A0%95%EC%95%A1-%ED%95%B4%EC%A7%80-%EB%B0%A9%EB%B2%95",
+      "https://ridihelp.ridibooks.com/support/solutions/articles/154000207871--%EC%85%80%EB%A0%89%ED%8A%B8-%EA%B5%AC%EB%8F%85%EC%B7%A8%EC%86%8C-%EC%9B%94%EC%A0%95%EC%95%A1-%ED%99%98%EB%B6%88-%EB%B0%A9%EB%B2%95"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "password",
+      "kakao",
+      "naver",
+      "apple",
+      "google"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "셀렉트 홈/메뉴",
+        "label": "셀렉트 > 설정",
+        "kind": "nav"
+      },
+      {
+        "screen": "설정 화면",
+        "label": "구독 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 관리 페이지",
+        "label": "구독 해지 예약",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "구독 해지 예약",
+    "successText": "더 이상 결제가 이루어지지 않도록 해지 예약되었습니다",
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그 가이드에는 [마이리디] > [리디셀렉트 관리] > [셀렉트 해지 신청] > [해지 예약하기/즉시 해지]로 되어 있으나, 공식 도움말 최신 경로는 [셀렉트 > 설정] > [구독 관리] > [구독 해지 예약]입니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://ridihelp.ridibooks.com/support/solutions/articles/154000207870--%EC%85%80%EB%A0%89%ED%8A%B8-%EA%B5%AC%EB%8F%85-%EC%9B%94%EC%A0%95%EC%95%A1-%ED%95%B4%EC%A7%80-%EB%B0%A9%EB%B2%95",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "결제 후 7일 이내 다운로드/열람 이력이 없으면 동일 메뉴에서 결제 취소(환불) 가능."
+  },
+  {
+    "id": "longblack",
+    "name": "롱블랙",
+    "catalogCancelUrl": "https://www.longblack.co/settings",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 이동",
+        "description": "롱블랙 로그인 후 우측 상단 프로필 > [설정]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 관리 확인",
+        "description": "[멤버십 관리] 탭에서 현재 멤버십 결제 정보를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지",
+        "description": "[멤버십 해지하기]를 클릭하고 확인 버튼을 눌러 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 429,
+    "officialHelpUrls": [
+      "https://longblack.co/faq",
+      "https://longblack.co/cs"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "kakao",
+      "apple",
+      "password"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "롱블랙 홈",
+        "label": "마이페이지",
+        "kind": "nav"
+      },
+      {
+        "screen": "마이페이지 > 멤버십",
+        "label": "멤버십 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "다음달 결제 예정 / 멤버십 정보",
+        "label": "해지 예약",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 안내 확인 팝업",
+        "label": "확인",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "확인",
+    "successText": "해지 예약이 완료되었습니다",
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그 가이드는 프로필 > [설정] > [멤버십 관리] > [멤버십 해지하기]로 되어 있으나, 실제 서비스 및 공식 FAQ 경로는 [마이페이지] > 멤버십 섹션 내 [해지 예약] 버튼 클릭 후 안내 팝업 [확인]입니다.",
+    "confidence": "community_verified",
+    "sources": [
+      {
+        "url": "https://longblack.co/faq",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://blog.naver.com/ddwim1031/223442654293",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "롱블랙 웹사이트는 Vercel 보안 체크포인트(WAF/보호화면)가 적용되어 비인가 자동화 요청 시 429 응답이 반환될 수 있음. 당일 결제 후 미열람 건은 마이페이지에서 즉시 취소 가능."
+  },
+  {
+    "id": "the-joongang-plus",
+    "name": "더중앙플러스",
+    "catalogCancelUrl": "https://www.joongang.co.kr/plus",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "중앙플러스 관리",
+        "description": "중앙일보 로그인 후 [마이페이지] > [더중앙플러스]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "결제/해지 관리 선택",
+        "description": "이용 중인 멤버십 항목 우측 [결제/해지 관리]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 해지 완료",
+        "description": "하단 [멤버십 해지하기]를 클릭하여 정기결제를 취소합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://www.joongang.co.kr/atoz/47",
+      "https://www.joongang.co.kr/customercenter"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "password",
+      "kakao",
+      "naver",
+      "apple",
+      "google",
+      "facebook"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "중앙일보 / 더중앙플러스 상단",
+        "label": "마이페이지",
+        "kind": "nav"
+      },
+      {
+        "screen": "마이페이지 메뉴",
+        "label": "결제 내역",
+        "kind": "nav"
+      },
+      {
+        "screen": "결제 내역 > 이용권 정보 하단 (다음 결제일 우측)",
+        "label": "이용권 해지",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 확인 팝업/화면",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "이용권 해지",
+    "successText": "이용권 해지 예약이 완료되었습니다",
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그 가이드에는 [마이페이지] > [더중앙플러스] > [결제/해지 관리] > [멤버십 해지하기]로 되어 있으나, 공식 이용안내(AtoZ) 기준 실제 경로는 [마이페이지] > [결제 내역] > 보유 이용권의 [이용권 해지] 버튼입니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.joongang.co.kr/atoz/47",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "해지 후에도 다음 결제일 전까지는 이용권 해지 취소 버튼을 통해 해지 예약을 취소할 수 있음. 종이신문은 고객센터 전화(1588-3600)로만 해지 가능."
+  },
+  {
+    "id": "nyt-digital",
+    "name": "The New York Times",
+    "catalogCancelUrl": "https://www.nytimes.com/subscription/cancel",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "취소 페이지 이동",
+        "description": "NYT 해지 페이지(nytimes.com/subscription/cancel)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 상태 확인",
+        "description": "취소할 Digital Subscription을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "취소 절차 진행",
+        "description": "할인 제안을 지나 [Continue to Cancel]을 눌러 취소를 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 301,
+    "officialHelpUrls": [
+      "https://help.nytimes.com/360003499613-Cancel-Your-Subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_otp",
+      "password",
+      "google",
+      "apple",
+      "facebook"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Account",
+        "label": "Subscription Overview",
+        "kind": "nav"
+      },
+      {
+        "screen": "Manage Subscription",
+        "label": "Cancel your Subscription",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Retention / Offers",
+        "label": "Continue to Cancel",
+        "kind": "retention"
+      },
+      {
+        "screen": "Final Confirmation",
+        "label": "Cancel Subscription",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": [
+        "Discounted promotional renewal rate / special offer"
+      ],
+      "continueCancellingLabel": "Continue to Cancel"
+    },
+    "finalButtonLabel": "Cancel Subscription",
+    "successText": "Your subscription has been cancelled",
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그 가이드의 cancelUrl(nytimes.com/subscription/cancel)은 301로 리다이렉트되며, 공식 고객센터 안내 경로는 Account > [Subscription Overview] > Manage Subscription 섹션의 [Cancel your Subscription] 링크입니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.nytimes.com/360003499613-Cancel-Your-Subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "미국 외 특정 국가/계정 유형에 따라 웹 취소가 비활성화되고 전화(866-273-3612) 또는 실시간 채팅 상담원 연결(Chat with a Care Advocate)을 요구할 수 있음."
+  },
+  {
+    "id": "wsj-digital",
+    "name": "The Wall Street Journal",
+    "catalogCancelUrl": "https://customercenter.wsj.com/manage-subscription",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Customer Center 접속",
+        "description": "WSJ 고객센터(customercenter.wsj.com)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 선택",
+        "description": "[Manage Subscription] 메뉴 항목을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "[Cancel Subscription]을 누르고 확인 단계를 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://customercenter.wsj.com/help/article?topic=Policies&title=Cancellation%20&%20Refund%20Policy"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "password",
+      "google",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Customer Center (customercenter.wsj.com)",
+        "label": "My Account",
+        "kind": "nav"
+      },
+      {
+        "screen": "My Account Menu",
+        "label": "Manage Subscriptions",
+        "kind": "nav"
+      },
+      {
+        "screen": "Subscriptions Page > Cancel Section",
+        "label": "Cancel Subscription",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Confirmation / Retention Step",
+        "label": "Confirm",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Confirm",
+    "successText": "Your subscription has been cancelled",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://customercenter.wsj.com/help/article?topic=Policies&title=Cancellation%20&%20Refund%20Policy",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "미국/글로벌 디지털 구독은 Customer Center 웹에서 직접 취소 가능하나, 일부 계약 형태나 지역에 따라 고객센터 전화(1-800-JOURNAL) 유도가 발생할 수 있음."
+  },
+  {
+    "id": "ft-digital",
+    "name": "Financial Times",
+    "catalogCancelUrl": "https://www.ft.com/myaccount/subscription/overview",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "My Account 진입",
+        "description": "FT.com 우측 상단 [My Account] > [Settings]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 및 결제 확인",
+        "description": "[Subscription & Billing] 탭에서 이용 플랜을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 확정",
+        "description": "[Cancel Subscription]을 클릭하고 단계를 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 403,
+    "officialHelpUrls": [
+      "https://help.ft.com/faq/manage-your-subscription/how-do-i-cancel-my-subscription/",
+      "https://help.ft.com/faq/changing-your-subscription/what-are-my-cancellation-rights/"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "password",
+      "sso",
+      "google",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "FT.com Header",
+        "label": "My Account",
+        "kind": "nav"
+      },
+      {
+        "screen": "My Account Settings",
+        "label": "Subscription",
+        "kind": "nav"
+      },
+      {
+        "screen": "Subscription Management",
+        "label": "Cancel subscription",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Cancellation Confirmation",
+        "label": "Confirm cancellation",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Cancel subscription",
+    "successText": "All cancellations will be processed at the end of your current subscription term",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.ft.com/faq/manage-your-subscription/how-do-i-cancel-my-subscription/",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://help.ft.com/faq/changing-your-subscription/what-are-my-cancellation-rights/",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "FT.com 도메인은 봇 방어(WAF/Cloudflare)가 엄격하여 자동화 스크립트 접근 시 403 Forbidden을 반환함. 일반 브라우저에서는 My Account > Subscription 탭에서 웹으로 직접 취소 가능."
+  },
+  {
+    "id": "the-economist",
+    "name": "The Economist",
+    "catalogCancelUrl": "https://www.economist.com/manage/my-subscription",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Manage Subscription",
+        "description": "The Economist 계정(economist.com/manage/my-subscription)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 세부사항 확인",
+        "description": "이용 중인 Digital Access 플랜 정보를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "[Cancel Subscription] 링크를 누르고 취소 절차를 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 403,
+    "officialHelpUrls": [
+      "https://myaccount.economist.com/s/topic/0TOWT0000002Ygj4AE/cancel-subscription",
+      "https://myaccount.economist.com/s/article/How-do-I-cancel-my-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "password",
+      "google",
+      "apple",
+      "facebook"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Economist Header / My Account (myaccount.economist.com)",
+        "label": "My Account",
+        "kind": "nav"
+      },
+      {
+        "screen": "My Account > My Subscription",
+        "label": "Manage subscription",
+        "kind": "nav"
+      },
+      {
+        "screen": "Manage Subscription Details",
+        "label": "Cancel Subscription",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Retention / Final Confirmation",
+        "label": "Continue to cancel / Confirm",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": [
+        "Flexible or affordable promotional rate options"
+      ],
+      "continueCancellingLabel": "Cancel subscription"
+    },
+    "finalButtonLabel": "Cancel subscription",
+    "successText": "Your subscription has been cancelled",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://myaccount.economist.com/s/topic/0TOWT0000002Ygj4AE/cancel-subscription",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://www.economist.com/subscribe/b?country=US",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "웹 직접 취소(Manage subscription > Cancel Subscription)가 지원되나, 계정 상태에 따라 라이브 채팅 또는 전담 고객센터 유선 연락이 요구될 수 있음. 카탈로그의 cancelUrl은 Cloudflare 차단(403)됨."
+  },
+  {
+    "id": "audible",
+    "name": "Audible",
+    "catalogCancelUrl": "https://www.audible.com/account/overview",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Account Details 진입",
+        "description": "Audible 로그인 후 상단 [Hi, 이름!] > [Account Details]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 상세 확인",
+        "description": "[View membership details] 아래 [Cancel membership]을 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "취소 확정",
+        "description": "할인 혜택 유지 제안을 지나 [Continue canceling]을 눌러 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 302,
+    "officialHelpUrls": [
+      "https://help.audible.com/s/article/cancel-membership?language=en_US",
+      "https://help.audible.com/s/topic/0TO4z000000SoIzGAK/cancel?language=en_US"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "password",
+      "amazon_otp"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Audible Header",
+        "label": "Hi, [Name]! > Account details",
+        "kind": "nav"
+      },
+      {
+        "screen": "Account Details > Membership details",
+        "label": "Cancel membership",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Retention / Benefits Review",
+        "label": "Continue canceling",
+        "kind": "retention"
+      },
+      {
+        "screen": "Final Confirmation / Reason Survey",
+        "label": "Finish canceling",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": [
+        "Keep credits reminder, membership pause option, or discounted monthly plan"
+      ],
+      "continueCancellingLabel": "Continue canceling"
+    },
+    "finalButtonLabel": "Finish canceling",
+    "successText": "We are sorry to see you go. Your membership has been canceled",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.audible.com/s/article/cancel-membership?language=en_US",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://www.wikihow.com/Cancel-Audible-Membership",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "취소 시 보유 중인 미사용 크레딧(Credit)이 소멸되므로 해지 전 사용 권장. 아마존 계정(Amazon SSO)으로 로그인함. 모바일 브라우저에서도 데스크톱 모드 또는 계정 상세 페이지를 통해 웹 취소 가능."
+  },
+  {
+    "id": "scribd",
+    "name": "Scribd",
+    "catalogCancelUrl": "https://www.scribd.com/account-settings",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Account Settings 이동",
+        "description": "Scribd 우측 상단 프로필 > [Account Settings]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "결제 상세 확인",
+        "description": "[Membership & Payment Details] 섹션으로 스크롤합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "멤버십 종료",
+        "description": "[End My Membership] 링크를 누르고 취소 단계를 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 302,
+    "officialHelpUrls": [
+      "https://support.scribd.com/hc/en-us/articles/210134046-How-to-cancel-your-Scribd-subscription",
+      "https://support.scribd.com/hc/en-us/articles/46929149941396-How-to-cancel-your-Everand-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "password",
+      "google",
+      "apple",
+      "facebook"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Scribd Header / Profile",
+        "label": "Your account",
+        "kind": "nav"
+      },
+      {
+        "screen": "Your account > Your subscription",
+        "label": "Manage Subscription",
+        "kind": "nav"
+      },
+      {
+        "screen": "Subscription Management",
+        "label": "Cancel subscription",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Cancellation Confirmation Prompts",
+        "label": "Continue to cancel / Confirm Cancellation",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": [
+        "Pause subscription for 4 or 12 weeks"
+      ],
+      "continueCancellingLabel": "Cancel subscription"
+    },
+    "finalButtonLabel": "Confirm Cancellation",
+    "successText": "You've successfully canceled",
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그 가이드는 [Account Settings] > [Membership & Payment Details] > [End My Membership]으로 안내되어 있으나, 공식 도움말 최신 UI는 [Your account] > [Your subscription] > [Manage Subscription] > [Cancel subscription] 링크입니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.scribd.com/hc/en-us/articles/210134046-How-to-cancel-your-Scribd-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Scribd 구독 취소 시 Scribd와 Slideshare 이용이 함께 중단되며, Everand(오디오북/전자책) 구독은 별도 분리되어 각각 관리해야 함. 무료 체험(Free trial) 취소 시 즉시 접근 종료됨."
+  }
+]

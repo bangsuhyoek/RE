@@ -189,7 +189,7 @@
     "plan": "Standard Plan",
     "amount": 20000,
     "brandColor": "#000000",
-    "cancelUrl": "https://app.runwayml.com/settings/plans",
+    "cancelUrl": "https://app.runwayml.com/settings/billing",
     "aliases": [
       "런웨이",
       "영상ai",
@@ -235,7 +235,7 @@
     "plan": "Premium",
     "amount": 27000,
     "brandColor": "#000000",
-    "cancelUrl": "https://v0.dev/chat/settings/billing",
+    "cancelUrl": "https://v0.app/chat/settings/billing",
     "aliases": [
       "브이제로",
       "v0"
@@ -507,7 +507,7 @@
     "plan": "Pro Plan",
     "amount": 27000,
     "brandColor": "#000000",
-    "cancelUrl": "https://www.cursor.com/settings",
+    "cancelUrl": "https://cursor.com/dashboard/billing",
     "aliases": [
       "커서",
       "cursor",
@@ -553,7 +553,7 @@
     "plan": "Individual",
     "amount": 14000,
     "brandColor": "#181717",
-    "cancelUrl": "https://github.com/login?return_to=%2Fsettings%2Fbilling",
+    "cancelUrl": "https://github.com/settings/billing",
     "aliases": [
       "코파일럿",
       "깃허브코파일럿"
@@ -643,7 +643,7 @@
     "plan": "Starter",
     "amount": 12000,
     "brandColor": "#0F2B46",
-    "cancelUrl": "https://www.deepl.com/your-account",
+    "cancelUrl": "https://www.deepl.com/pro-account/subscription",
     "aliases": [
       "딥엘",
       "deepl"
@@ -916,7 +916,7 @@
     "plan": "50GB 플랜",
     "amount": 1100,
     "brandColor": "#0070C9",
-    "cancelUrl": "https://support.apple.com/ko-kr/HT207594",
+    "cancelUrl": "https://support.apple.com/ko-kr/108318",
     "aliases": [
       "아이클라우드",
       "icloud"

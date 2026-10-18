@@ -97,7 +97,7 @@
     "plan": "정기구독 플랜",
     "amount": 159000,
     "brandColor": "#2D3748",
-    "cancelUrl": "https://www.ringleplus.com/ko/student/landing/home",
+    "cancelUrl": "https://www.ringleplus.com/ko/student/mypage",
     "aliases": [
       "링글",
       "ringle"
@@ -187,7 +187,7 @@
     "plan": "AI 무제한패스",
     "amount": 29000,
     "brandColor": "#E02128",
-    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "cancelUrl": "https://www.santatoeic.com/mypage",
     "aliases": [
       "산타토익"
     ],
@@ -320,7 +320,7 @@
     "plan": "올인원 구독권",
     "amount": 39000,
     "brandColor": "#F44336",
-    "cancelUrl": "https://fastcampus.co.kr",
+    "cancelUrl": "https://fastcampus.co.kr/my/subscriptions",
     "aliases": [
       "패스트캠퍼스",
       "패캠"
@@ -365,7 +365,7 @@
     "plan": "인프런패스",
     "amount": 29000,
     "brandColor": "#1DC078",
-    "cancelUrl": "https://www.inflearn.com/my-courses",
+    "cancelUrl": "https://www.inflearn.com/my-page/orders",
     "aliases": [
       "인프런",
       "inflearn"

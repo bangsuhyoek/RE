@@ -324,7 +324,7 @@
     "plan": "베이직",
     "amount": 9900,
     "brandColor": "#816BFF",
-    "cancelUrl": "https://laftel.net/setting",
+    "cancelUrl": "https://laftel.net/mypage",
     "aliases": [
       "라프텔",
       "애니메이션"
@@ -369,7 +369,7 @@
     "plan": "Apple TV+",
     "amount": 6500,
     "brandColor": "#000000",
-    "cancelUrl": "https://tv.apple.com/settings",
+    "cancelUrl": "https://support.apple.com/ko-kr/118428",
     "aliases": [
       "애플티비",
       "애플tv"
@@ -594,7 +594,7 @@
     "plan": "MUBI 월정액",
     "amount": 12900,
     "brandColor": "#051A26",
-    "cancelUrl": "https://mubi.com/login",
+    "cancelUrl": "https://mubi.com/settings/subscription",
     "aliases": [
       "뮤비",
       "독립영화"
@@ -639,7 +639,7 @@
     "plan": "Monthly Pass",
     "amount": 25000,
     "brandColor": "#F8F8F8",
-    "cancelUrl": "https://www.dazn.com/ko-KR/account",
+    "cancelUrl": "https://my.dazn.com/myaccount/subscription",
     "aliases": [
       "다존",
       "dazn"

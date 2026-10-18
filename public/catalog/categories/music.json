@@ -6,7 +6,7 @@
     "plan": "스트리밍 클럽",
     "amount": 8900,
     "brandColor": "#00CD3C",
-    "cancelUrl": "https://member.melon.com",
+    "cancelUrl": "https://member.melon.com/pay/myservice/index.htm",
     "aliases": [
       "멜론",
       "melon"
@@ -96,7 +96,7 @@
     "plan": "스마트 음악감상",
     "amount": 8400,
     "brandColor": "#0093FF",
-    "cancelUrl": "https://www.genie.co.kr/my",
+    "cancelUrl": "https://pay.genie.co.kr/cancel/myProductCancel",
     "aliases": [
       "지니",
       "지니뮤직"
@@ -186,7 +186,7 @@
     "plan": "모바일 무제한",
     "amount": 7900,
     "brandColor": "#E60000",
-    "cancelUrl": "https://music.bugs.co.kr",
+    "cancelUrl": "https://secure.bugs.co.kr/my/ticket",
     "aliases": [
       "벅스",
       "bugs"
@@ -367,7 +367,7 @@
     "plan": "HiFi Plus",
     "amount": 14000,
     "brandColor": "#000000",
-    "cancelUrl": "https://my.tidal.com/account/subscription",
+    "cancelUrl": "https://account.tidal.com/subscription",
     "aliases": [
       "타이달",
       "tidal"
@@ -594,7 +594,7 @@
     "plan": "무제한 스트리밍",
     "amount": 11900,
     "brandColor": "#FF6633",
-    "cancelUrl": "https://www.storytel.com/kr/login",
+    "cancelUrl": "https://www.storytel.com/kr/ko/my-pages/subscription",
     "aliases": [
       "스토리텔",
       "storytel"

@@ -1,0 +1,963 @@
+[
+  {
+    "id": "nintendo-online",
+    "name": "Nintendo Switch Online",
+    "catalogCancelUrl": "https://ec.nintendo.com/my/membership",
+    "cancelUrlStatus": "200_ok",
+    "officialHelpUrls": [
+      "https://ec.nintendo.com/KR/ko/support/subscription",
+      "https://support.nintendo.com/kr/switch/nintendo_switch_online/06.html"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "google",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "숍 메뉴 (가입 상황)",
+        "label": "Nintendo Switch Online",
+        "kind": "nav"
+      },
+      {
+        "screen": "플랜 상세",
+        "label": "자동 연장 결제의 갱신 정지",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "갱신 정지 확인 팝업",
+        "label": "갱신 정지",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": false,
+      "offerText": null,
+      "continueLabel": null,
+      "stayLabel": null
+    },
+    "finalButtonLabel": "갱신 정지",
+    "successText": "자동 연장 결제의 갱신 정지가 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 가이드에는 [자동 연장 결제 갱신 중지]로 표기되어 있으나 공식 명칭은 [자동 연장 결제의 갱신 정지] 및 확인 팝업 [갱신 정지]임.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://ec.nintendo.com/KR/ko/support/subscription",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://support.nintendo.com/kr/switch/nintendo_switch_online/06.html",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "만료 최소 48시간 전에 갱신 정지해야 다음 결제가 방지됨. 웹 브라우저 모바일 환경에서 정상 동작."
+  },
+  {
+    "id": "ps-plus",
+    "name": "PlayStation Plus",
+    "catalogCancelUrl": "https://store.playstation.com/ko-kr/subscriptions",
+    "cancelUrlStatus": "301_redirect",
+    "officialHelpUrls": [
+      "https://www.playstation.com/ko-kr/support/subscriptions/cancel-playstation-plus/"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "passkey"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "정기 구독 관리",
+        "label": "PlayStation Plus",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 상세",
+        "label": "정기 구독 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 확인",
+        "label": "정기 구독 취소 확인",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "구독을 유지하고 월간 게임과 온라인 멀티플레이 혜택을 계속 즐기세요",
+      "continueLabel": "정기 구독 취소 계속",
+      "stayLabel": "정기 구독 유지"
+    },
+    "finalButtonLabel": "정기 구독 취소 확인",
+    "successText": "정기 구독이 취소되었습니다",
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그 링크는 /subscriptions로 접속 시 /pages/subscriptions/로 301 리디렉션되며, 버튼 라벨이 [자동 갱신 끄기]가 아닌 최신 소니 인터페이스 기준 [정기 구독 취소]임.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.playstation.com/ko-kr/support/subscriptions/cancel-playstation-plus/",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "과거 '자동 갱신 끄기'에서 '정기 구독 취소'로 공식 UI 용어가 통합 변경됨."
+  },
+  {
+    "id": "xbox-gamepass",
+    "name": "Xbox Game Pass Ultimate",
+    "catalogCancelUrl": "https://account.microsoft.com/services",
+    "cancelUrlStatus": "302_redirect_login",
+    "officialHelpUrls": [
+      "https://support.xbox.com/ko-KR/help/subscriptions-billing/manage-subscriptions/cancel-recurring-billing-or-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "phone",
+      "passkey",
+      "ms_authenticator"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "서비스 및 구독",
+        "label": "관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 관리",
+        "label": "구독 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "반복 청구 안내/혜택 포기",
+        "label": "반복 청구 끄기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "정기 결제를 해지하면 다음 결제일부터 게임 라이브러리 접근 권한이 상실됩니다",
+      "continueLabel": "반복 청구 끄기",
+      "stayLabel": "구독 유지"
+    },
+    "finalButtonLabel": "반복 청구 끄기",
+    "successText": "구독의 반복 청구가 해제되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 가이드와 실제 마이크로소프트 공식 플로우가 정확히 일치함.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.xbox.com/ko-KR/help/subscriptions-billing/manage-subscriptions/cancel-recurring-billing-or-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "마이크로소프트는 '즉시 취소 및 환불'과 '반복 청구 끄기' 두 가지 옵션을 제공하며, 통상적인 해지는 '반복 청구 끄기'로 처리됨."
+  },
+  {
+    "id": "apple-arcade",
+    "name": "Apple Arcade",
+    "catalogCancelUrl": "https://apps.apple.com/account/subscriptions",
+    "cancelUrlStatus": "302_redirect_appleid",
+    "officialHelpUrls": [
+      "https://support.apple.com/ko-kr/118428"
+    ],
+    "cancelChannel": "store_only",
+    "mobileWebOk": false,
+    "loginMethods": [
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "App Store 프로필 / 설정",
+        "label": "구독",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 목록",
+        "label": "Apple Arcade",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 수정",
+        "label": "구독 취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": false,
+      "offerText": null,
+      "continueLabel": null,
+      "stayLabel": null
+    },
+    "finalButtonLabel": "확인",
+    "successText": "구독이 취소되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "웹 브라우저 단독 해지가 불가능하며 iOS 기기 설정/App Store 또는 Mac/Windows iTunes 앱 등 스토어 전용 딥링크/앱 플로우임.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.apple.com/ko-kr/118428",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "안드로이드 웹뷰에서는 apps.apple.com/account/subscriptions 진입 시 account.apple.com으로 리디렉트되거나 iOS 네이티브 앱 스키마를 요구하여 웹 해지 불가능(store_only)."
+  },
+  {
+    "id": "google-play-pass",
+    "name": "Google Play Pass",
+    "catalogCancelUrl": "https://play.google.com/store/account/subscriptions",
+    "cancelUrlStatus": "302_redirect_login",
+    "officialHelpUrls": [
+      "https://support.google.com/googleplay/answer/7018481?hl=ko"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "google",
+      "id_pw",
+      "passkey"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "정기 결제 목록",
+        "label": "Google Play Pass",
+        "kind": "nav"
+      },
+      {
+        "screen": "정기 결제 관리",
+        "label": "구독 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 사유 선택",
+        "label": "계속",
+        "kind": "survey"
+      },
+      {
+        "screen": "최종 확인 팝업",
+        "label": "구독 취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "구독을 일시중지하시겠습니까?",
+      "continueLabel": "구독 취소",
+      "stayLabel": "구독 유지"
+    },
+    "finalButtonLabel": "구독 취소",
+    "successText": "정기 결제가 취소되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 가이드와 실제 구글 플레이 웹/앱 구독 취소 흐름이 일치함.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.google.com/googleplay/answer/7018481?hl=ko",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "구글 플레이 스토어 앱뿐 아니라 play.google.com 모바일 웹에서도 동일하게 계정 로그인 후 정기 결제 취소 가능."
+  },
+  {
+    "id": "ea-play",
+    "name": "EA Play",
+    "catalogCancelUrl": "https://www.ea.com/ea-play",
+    "cancelUrlStatus": "200_ok",
+    "officialHelpUrls": [
+      "https://help.ea.com/ko/help/ea-play/manage-your-ea-play-membership/"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "google",
+      "apple",
+      "playstation",
+      "xbox",
+      "steam"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "EA 계정 설정 (myaccount.ea.com)",
+        "label": "EA Play",
+        "kind": "nav"
+      },
+      {
+        "screen": "멤버십 정보",
+        "label": "멤버십 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "멤버십 관리 세부",
+        "label": "멤버십 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 확인 팝업",
+        "label": "취소 확인",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "멤버십을 취소하면 회원 전용 게임 및 10% 할인 혜택을 이용할 수 없습니다",
+      "continueLabel": "멤버십 취소 계속",
+      "stayLabel": "멤버십 유지"
+    },
+    "finalButtonLabel": "취소 확인",
+    "successText": "EA Play 멤버십이 취소되었습니다",
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그의 cancelUrl이 랜딩 소개 페이지(https://www.ea.com/ea-play)로 되어 있어 바로 계정 설정(https://myaccount.ea.com/cp-ui/subscription/index)으로 진입하지 못함.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.ea.com/ko/help/ea-play/manage-your-ea-play-membership/",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "PC/EA app 결제 건은 EA 포털에서 취소 가능하나, 콘솔(PS/Xbox) 및 Steam 가입 건은 해당 스토어 플랫폼에서 취소해야 함."
+  },
+  {
+    "id": "wow-subscription",
+    "name": "World of Warcraft 정액제",
+    "catalogCancelUrl": "https://account.battle.net/games",
+    "cancelUrlStatus": "200_ok",
+    "officialHelpUrls": [
+      "https://kr.battle.net/support/ko/article/12586"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "google",
+      "apple",
+      "nintendo",
+      "playstation",
+      "xbox",
+      "authenticator"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "게임 및 정기 결제",
+        "label": "World of Warcraft 계정",
+        "kind": "nav"
+      },
+      {
+        "screen": "와우 계정 상세",
+        "label": "관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "옵션 선택",
+        "label": "정기 결제 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 확인 페이지",
+        "label": "정기 결제 취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "정기 결제를 취소해도 남은 게임 시간 동안은 계속 플레이할 수 있습니다",
+      "continueLabel": "정기 결제 취소",
+      "stayLabel": "취소하지 않고 돌아가기"
+    },
+    "finalButtonLabel": "정기 결제 취소",
+    "successText": "정기 결제가 취소되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 가이드 스텝과 블리자드 공식 고객지원 가이드가 일치함.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://kr.battle.net/support/ko/article/12586",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Battle.net 모바일 웹 환경에서도 계정 관리 페이지가 완전하게 반응형 웹으로 지원됨."
+  },
+  {
+    "id": "kakaotalk-drive",
+    "name": "카카오톡 톡서랍 플러스",
+    "catalogCancelUrl": "https://my.kakao.com/product/DRIVE001",
+    "cancelUrlStatus": "200_ok",
+    "officialHelpUrls": [
+      "https://cs.kakao.com/helps?service=159&category=501"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "kakao",
+      "id_pw",
+      "qr"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "My구독 톡서랍 상품 페이지",
+        "label": "구독 정보",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 관리",
+        "label": "해지하기",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 유형 선택",
+        "label": "정기결제 해지",
+        "kind": "retention"
+      },
+      {
+        "screen": "최종 확인 팝업",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "보관된 데이터가 삭제될 수 있습니다. 정기결제 해지 시 이번 결제 주기까지 이용 가능합니다",
+      "continueLabel": "정기결제 해지",
+      "stayLabel": "유지하기"
+    },
+    "finalButtonLabel": "해지하기",
+    "successText": "해지 신청이 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 가이드와 실제 카카오 My구독 웹 플로우가 부합함.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://cs.kakao.com/helps?service=159&category=501",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "카카오톡 인앱 결제(인앱구매) 이용자의 경우 App Store 또는 Google Play에서 해지해야 하며, 웹 결제자는 my.kakao.com에서 모바일 웹 해지 가능."
+  },
+  {
+    "id": "kakaotalk-emoticon",
+    "name": "카카오톡 이모티콘 플러스",
+    "catalogCancelUrl": "https://my.kakao.com/product/EMOTICON001",
+    "cancelUrlStatus": "301_redirect",
+    "officialHelpUrls": [
+      "https://cs.kakao.com/helps?service=116&category=469"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "kakao",
+      "id_pw",
+      "qr"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "이모티콘샵 마이페이지 (e.kakao.com/my/product/001)",
+        "label": "이모티콘 플러스 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 상세",
+        "label": "해지하기",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 방식 선택",
+        "label": "정기결제 해지",
+        "kind": "retention"
+      },
+      {
+        "screen": "해지 확인 팝업",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "수많은 이모티콘을 무제한으로 사용하는 혜택이 종료됩니다",
+      "continueLabel": "정기결제 해지",
+      "stayLabel": "구독 유지하기"
+    },
+    "finalButtonLabel": "해지하기",
+    "successText": "해지 신청이 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 URL(https://my.kakao.com/product/EMOTICON001) 접속 시 https://e.kakao.com/my/product/001 로 301 리디렉션되나 웹 해지 흐름 자체는 정상 작동함.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://cs.kakao.com/helps?service=116&category=469",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "모바일 웹브라우저에서 e.kakao.com 접속 후 정상 해지 가능."
+  },
+  {
+    "id": "naver-mybox",
+    "name": "네이버 MYBOX",
+    "catalogCancelUrl": "https://mybox.naver.com/#/capacity",
+    "cancelUrlStatus": "302_redirect",
+    "officialHelpUrls": [
+      "https://help.naver.com/service/5632/category/bookmark?lang=ko"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "naver",
+      "id_pw"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "용량 관리 / 이용권 현황",
+        "label": "이용권 / 결제 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "이용권 목록",
+        "label": "이용권 해지",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 유형 선택",
+        "label": "정기결제 해지",
+        "kind": "retention"
+      },
+      {
+        "screen": "해지 완료 팝업",
+        "label": "확인",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "초과 용량 파일이 읽기 전용 상태가 되며 보관 기한 경과 시 삭제될 수 있습니다",
+      "continueLabel": "정기결제 해지",
+      "stayLabel": "이용권 유지하기"
+    },
+    "finalButtonLabel": "확인",
+    "successText": "이용권 해지가 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 URL의 해시 경로(#/capacity)가 모바일 접속 시 /main/web으로 리디렉트될 수 있어 메뉴 탐색 단계가 추가로 필요함.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.naver.com/service/5632/category/bookmark?lang=ko",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "네이버 MYBOX는 웹 및 모바일 웹에서 이용권 해지를 직접 지원함."
+  },
+  {
+    "id": "strava-sub",
+    "name": "Strava",
+    "catalogCancelUrl": "https://www.strava.com/subscribe",
+    "cancelUrlStatus": "200_ok",
+    "officialHelpUrls": [
+      "https://support.strava.com/hc/ko/articles/216917807-%EB%A9%A4%EB%B2%84%EC%8B%AD-%EC%B7%A8%EC%86%8C"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "google",
+      "apple",
+      "facebook",
+      "id_pw"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "설정 > 내 계정 (strava.com/settings/account)",
+        "label": "멤버십 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "멤버십 상세",
+        "label": "멤버십 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 사유 설문",
+        "label": "계속",
+        "kind": "survey"
+      },
+      {
+        "screen": "최종 취소 확인",
+        "label": "멤버십 취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "훈련 분석 및 세그먼트 순위표 접근이 제한됩니다",
+      "continueLabel": "멤버십 취소",
+      "stayLabel": "멤버십 유지"
+    },
+    "finalButtonLabel": "멤버십 취소",
+    "successText": "멤버십이 성공적으로 취소되었습니다",
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그의 cancelUrl(https://www.strava.com/subscribe)은 신규 구독 가입 페이지이며, 해지 관리 페이지는 https://www.strava.com/settings/account 임.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.strava.com/hc/ko/articles/216917807-%EB%A9%A4%EB%B2%84%EC%8B%AD-%EC%B7%A8%EC%86%8C",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "웹에서 직접 결제한 구독만 웹에서 해지 가능. 모바일 앱에서 결제한 구독은 Google Play 또는 App Store에서 해지해야 함."
+  },
+  {
+    "id": "burnfit-pro",
+    "name": "번핏 Pro",
+    "catalogCancelUrl": "https://play.google.com/store/account/subscriptions",
+    "cancelUrlStatus": "302_redirect_login",
+    "officialHelpUrls": [
+      "https://burnfit.io/faq",
+      "https://support.google.com/googleplay/answer/7018481?hl=ko"
+    ],
+    "cancelChannel": "store_only",
+    "mobileWebOk": false,
+    "loginMethods": [
+      "google",
+      "apple",
+      "kakao"
+    ],
+    "loginHasPasswordField": false,
+    "steps": [
+      {
+        "screen": "Google Play 스토어 정기 결제",
+        "label": "번핏 - 운동일지 Pro",
+        "kind": "nav"
+      },
+      {
+        "screen": "정기 결제 관리",
+        "label": "구독 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 사유 선택",
+        "label": "계속",
+        "kind": "survey"
+      },
+      {
+        "screen": "최종 팝업",
+        "label": "구독 취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": false,
+      "offerText": null,
+      "continueLabel": null,
+      "stayLabel": null
+    },
+    "finalButtonLabel": "구독 취소",
+    "successText": "정기 결제가 취소되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "번핏 Pro는 별도의 자체 웹 결제 시스템이 없으며 100% Google Play / App Store 인앱결제(store_only)로만 운영됨.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.google.com/googleplay/answer/7018481?hl=ko",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "자체 결제 웹사이트가 없어 Google Play 스토어의 구독 취소 흐름에 완전 종속됨."
+  },
+  {
+    "id": "naverplus",
+    "name": "네이버플러스 멤버십",
+    "catalogCancelUrl": "https://nid.naver.com/membership/my",
+    "cancelUrlStatus": "302_redirect_login",
+    "officialHelpUrls": [
+      "https://help.naver.com/service/23015/category/bookmark?lang=ko"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "naver",
+      "id_pw"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "네이버플러스 멤버십 MY",
+        "label": "네이버플러스 멤버십 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "멤버십 관리 상세",
+        "label": "네이버플러스 멤버십 해지하기",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "혜택 보류/유지 제안 (리텐션 1단계)",
+        "label": "정기결제 해지하기",
+        "kind": "retention"
+      },
+      {
+        "screen": "혜택 포기 확인 (리텐션 2단계)",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "지금 해지하시면 적립 혜택 및 디지털 콘텐츠 혜택이 중단됩니다",
+      "continueLabel": "정기결제 해지하기",
+      "stayLabel": "멤버십 유지하기"
+    },
+    "finalButtonLabel": "해지하기",
+    "successText": "네이버플러스 멤버십 해지가 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 가이드와 일치함. 2단계 리텐션 화면이 존재하여 '정기결제 해지하기' 후 추가로 '해지하기'를 눌러야 함.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.naver.com/service/23015/category/bookmark?lang=ko",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "국내 대표적인 다단계 리텐션 UX로, UniversalCancelRoute의 stage2/stage3/stage4 단어 매칭 테스트에 핵심적인 서비스."
+  },
+  {
+    "id": "baemin-club",
+    "name": "배민클럽",
+    "catalogCancelUrl": "https://baemin.me/club",
+    "cancelUrlStatus": "400_bad_request",
+    "officialHelpUrls": [
+      "https://www.baemin.com/notices"
+    ],
+    "cancelChannel": "app_only",
+    "mobileWebOk": false,
+    "loginMethods": [
+      "kakao",
+      "apple",
+      "naver",
+      "phone"
+    ],
+    "loginHasPasswordField": false,
+    "steps": [
+      {
+        "screen": "배달의민족 앱 > my배민",
+        "label": "배민클럽",
+        "kind": "nav"
+      },
+      {
+        "screen": "배민클럽 화면 우측 상단",
+        "label": "설정",
+        "kind": "nav"
+      },
+      {
+        "screen": "배민클럽 설정",
+        "label": "배민클럽 해지하기",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "혜택 포기 확인",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "무료배달 혜택과 중복할인 쿠폰을 더 이상 받을 수 없어요",
+      "continueLabel": "해지하기",
+      "stayLabel": "혜택 유지하기"
+    },
+    "finalButtonLabel": "해지하기",
+    "successText": "배민클럽 해지가 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 링크(https://baemin.me/club)는 모바일 브라우저 직접 호출 시 400 Bad Request 에러가 발생하며 앱 딥링크 전용임. 웹 해지 불가(app_only).",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.baemin.com/notices",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "배달의민족은 PC/모바일 웹 주문 및 멤버십 관리를 지원하지 않고 네이티브 모바일 앱에서만 지원함."
+  },
+  {
+    "id": "yogipass",
+    "name": "요기패스X",
+    "catalogCancelUrl": "https://www.yogiyo.co.kr/mobile/#/mypage/",
+    "cancelUrlStatus": "200_ok",
+    "officialHelpUrls": [
+      "https://www.yogiyo.co.kr"
+    ],
+    "cancelChannel": "app_only",
+    "mobileWebOk": false,
+    "loginMethods": [
+      "kakao",
+      "naver",
+      "apple",
+      "id_pw"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "마이요기요 탭",
+        "label": "요기패스X 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "요기패스X 관리 화면",
+        "label": "요기패스X 해지하기",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 사유 설문",
+        "label": "해지 신청",
+        "kind": "survey"
+      },
+      {
+        "screen": "혜택 포기 팝업",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "지금 해지하시면 무제한 무료배달 혜택이 사라져요",
+      "continueLabel": "해지하기",
+      "stayLabel": "혜택 유지하기"
+    },
+    "finalButtonLabel": "해지하기",
+    "successText": "요기패스X 해지 신청이 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 cancelUrl(https://www.yogiyo.co.kr/mobile/#/mypage/)은 레거시 웹 마이페이지이며, 요기패스X 멤버십 관리 기능은 모바일 네이티브 앱에서만 온전히 지원됨.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.yogiyo.co.kr",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "모바일 웹 버전에서는 요기패스X 상세 관리 및 해지 버튼이 비활성화되거나 앱 설치를 유도함."
+  },
+  {
+    "id": "kurly-pass",
+    "name": "컬리멤버스",
+    "catalogCancelUrl": "https://www.kurly.com/mypage/membership",
+    "cancelUrlStatus": "200_ok",
+    "officialHelpUrls": [
+      "https://www.kurly.com/help"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "kakao",
+      "naver",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "마이컬리 > 컬리멤버스",
+        "label": "컬리멤버스 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "멤버스 상세 하단",
+        "label": "멤버십 해지",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 혜택 소멸 안내 (리텐션)",
+        "label": "해지 신청하기",
+        "kind": "retention"
+      },
+      {
+        "screen": "최종 확인 팝업",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "매월 제공되는 적립금과 무료배송 쿠폰 혜택이 즉시 중단됩니다",
+      "continueLabel": "해지 신청하기",
+      "stayLabel": "유지하기"
+    },
+    "finalButtonLabel": "해지하기",
+    "successText": "컬리멤버스 해지가 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 가이드와 실제 웹/앱 해지 플로우가 일치함.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.kurly.com/help",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "컬리는 PC 및 모바일 웹(kurly.com) 모두 완벽한 반응형 웹 커머스를 제공하여 웹뷰 에이전트 자동화에 매우 적합함."
+  },
+  {
+    "id": "coupang",
+    "name": "쿠팡 와우 멤버십",
+    "catalogCancelUrl": "https://loyalty.coupang.com/loyalty/sign-up/home",
+    "cancelUrlStatus": "403_forbidden",
+    "officialHelpUrls": [
+      "https://mc.coupang.com/ssr/desktop/contact/faq"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "phone"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "마이쿠팡 > 와우 멤버십",
+        "label": "해지하기",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "1차 리텐션 (누적 혜택 안내)",
+        "label": "내가 누린 혜택 포기할게요",
+        "kind": "retention"
+      },
+      {
+        "screen": "2차 리텐션 (쿠팡플레이/이츠 혜택)",
+        "label": "해지 신청하기",
+        "kind": "retention"
+      },
+      {
+        "screen": "최종 해지 방식 선택",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "로켓배송 무료, 로켓프레시, 쿠팡플레이, 쿠팡이츠 할인 혜택이 모두 사라집니다",
+      "continueLabel": "내가 누린 혜택 포기할게요",
+      "stayLabel": "혜택 유지하기"
+    },
+    "finalButtonLabel": "해지하기",
+    "successText": "와우 멤버십 해지 신청이 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 cancelUrl(https://loyalty.coupang.com/loyalty/sign-up/home)은 서버 단에서 봇 차단(Akamai WAF 403 Forbidden)이 적용되어 일반 HTTP 클라이언트로는 403이 반환되나 모바일 웹 브라우저/웹뷰로는 접근 가능함. 다단계(2단계 이상) 악명 높은 리텐션 UX 보유.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://mc.coupang.com/ssr/desktop/contact/faq",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "국내에서 가장 강도 높은 다단계 리텐션 UI(내가 누린 혜택 포기할게요 -> 해지 신청하기 -> 해지하기)를 갖추고 있음."
+  }
+]

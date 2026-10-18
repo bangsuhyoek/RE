@@ -1,0 +1,831 @@
+[
+  {
+    "id": "netflix",
+    "name": "Netflix",
+    "catalogCancelUrl": "https://www.netflix.com/cancelplan",
+    "cancelUrlStatus": "redirect_302_to_login",
+    "officialHelpUrls": [
+      "https://help.netflix.com/ko/node/407"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "email_link",
+      "sms_code"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "계정 페이지 / cancelplan 직행",
+        "label": "멤버십 해지",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 확인 및 유지 안내 페이지",
+        "label": "해지 완료",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "저렴한 플랜으로 변경 안내 또는 시청 유지 권유",
+      "continueLabel": "해지 완료",
+      "keepLabel": "멤버십 유지"
+    },
+    "finalButtonLabel": "해지 완료",
+    "successText": "멤버십이 해지되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.netflix.com/ko/node/407",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "cancelplan URL로 직접 접근 시 로그인되어 있으면 바로 해지 확인 페이지로 연결됩니다."
+  },
+  {
+    "id": "youtube",
+    "name": "YouTube Premium",
+    "catalogCancelUrl": "https://www.youtube.com/paid_memberships",
+    "cancelUrlStatus": "redirect_302_to_mobile",
+    "officialHelpUrls": [
+      "https://support.google.com/youtube/answer/6308278?hl=ko"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "google"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "구매 항목 및 멤버십",
+        "label": "관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "멤버십 세부정보",
+        "label": "비활성화",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "일시중지 권유 팝업/화면",
+        "label": "그대로 취소",
+        "kind": "retention"
+      },
+      {
+        "screen": "취소 사유 설문",
+        "label": "다음",
+        "kind": "survey"
+      },
+      {
+        "screen": "최종 취소 확인",
+        "label": "취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "멤버십 일시중지(최대 6개월) 권유",
+      "continueLabel": "그대로 취소",
+      "keepLabel": "일시중지"
+    },
+    "finalButtonLabel": "취소",
+    "successText": "구독이 취소되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 가이드는 3단계에서 [그대로 취소]로 완료된다고 요약했으나 실제로는 사유 선택 후 최종 [취소] 버튼 확인이 있습니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.google.com/youtube/answer/6308278?hl=ko",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Google 계정 기반. 인앱결제(Apple/Google Play) 가입자는 해당 스토어에서만 취소 가능."
+  },
+  {
+    "id": "tving",
+    "name": "TVING",
+    "catalogCancelUrl": "https://www.tving.com/my/pass",
+    "cancelUrlStatus": "redirect_307",
+    "officialHelpUrls": [
+      "https://www.tving.com/help/faq"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "cjone",
+      "kakao",
+      "naver",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "MY 페이지",
+        "label": "이용권/구독 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "이용권 정보",
+        "label": "변경/해지",
+        "kind": "nav"
+      },
+      {
+        "screen": "해지 상세",
+        "label": "자동결제 해지 신청하기",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "혜택 유지 만류 팝업",
+        "label": "해지 신청하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "만료일까지 시청 가능한 혜택 강조 및 유지 권유",
+      "continueLabel": "해지 신청하기",
+      "keepLabel": "혜택 유지하기"
+    },
+    "finalButtonLabel": "해지 신청하기",
+    "successText": "자동결제 해지 신청이 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.tving.com/help/faq",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "네이버플러스 멤버십 연동 이용자는 네이버플러스 멤버십 페이지에서 해지/변경해야 함."
+  },
+  {
+    "id": "disney",
+    "name": "Disney+",
+    "catalogCancelUrl": "https://www.disneyplus.com/ko-kr/account",
+    "cancelUrlStatus": "redirect_302",
+    "officialHelpUrls": [
+      "https://help.disneyplus.com/ko/article/disneyplus-cancel-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_code",
+      "id_pw"
+    ],
+    "loginHasPasswordField": false,
+    "steps": [
+      {
+        "screen": "계정 화면",
+        "label": "구독 플랜",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 관리 화면",
+        "label": "멤버십 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 설문 / 유지 권유",
+        "label": "취소 계속 진행",
+        "kind": "retention"
+      },
+      {
+        "screen": "최종 확인",
+        "label": "Disney+ 취소 완료",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "시청 가능한 추천작 및 남은 기간 안내",
+      "continueLabel": "취소 계속 진행",
+      "keepLabel": "구독 유지"
+    },
+    "finalButtonLabel": "Disney+ 취소 완료",
+    "successText": "멤버십이 취소되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 가이드에서는 3단계에서 [멤버십 취소]를 누르고 취소 사유를 선택해 완료한다고 기재되었으나, 실제 마지막 버튼 라벨은 [Disney+ 취소 완료]입니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.disneyplus.com/ko/article/disneyplus-cancel-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "디즈니플러스는 주로 이메일 일회용 6자리 인증코드 로그인 방식을 사용합니다."
+  },
+  {
+    "id": "wavve",
+    "name": "Wavve",
+    "catalogCancelUrl": "https://www.wavve.com/my/pass",
+    "cancelUrlStatus": "ok_200",
+    "officialHelpUrls": [
+      "https://help.wavve.com/"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "kakao",
+      "naver",
+      "tworld",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "MY 페이지",
+        "label": "나의 이용권",
+        "kind": "nav"
+      },
+      {
+        "screen": "이용권 상세",
+        "label": "자동결제 해지",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "만류 화면 1단계",
+        "label": "해지 계속하기",
+        "kind": "retention"
+      },
+      {
+        "screen": "혜택 포기 확인 2단계",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "할인 혜택 유지 및 최신 콘텐츠 소개 만류",
+      "continueLabel": "해지 계속하기",
+      "keepLabel": "혜택 유지"
+    },
+    "finalButtonLabel": "해지하기",
+    "successText": "해지 예약이 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 3단계는 [해지 계속하기]를 눌러 끝낸다고 했으나 실제로는 이후 [해지하기] 최종 확인 단계가 존재합니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.wavve.com/",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "모바일 웹에서도 my/pass 페이지 접근 및 자동결제 해지 진행 가능."
+  },
+  {
+    "id": "watcha",
+    "name": "WATCHA",
+    "catalogCancelUrl": "https://watcha.com/settings",
+    "cancelUrlStatus": "redirect_302_to_login",
+    "officialHelpUrls": [
+      "https://help.watcha.com/hc/ko/articles/31326576396825-TV%EC%97%90%EC%84%9C-%EA%B5%AC%EB%8F%85-%EC%A4%91%EC%9D%B8%EB%8D%B0-%ED%95%B4%EC%A7%80%ED%95%98%EA%B3%A0-%EC%8B%B6%EC%96%B4%EC%9A%94"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "kakao",
+      "google",
+      "apple",
+      "twitter"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "프로필 / 나의 왓챠",
+        "label": "구독 정보",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독권 변경 및 해지",
+        "label": "구독을 해지하고 싶어요",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "만류 및 안내 팝업",
+        "label": "해지할게요",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "남은 이용기간 및 혜택 만료 안내",
+      "continueLabel": "해지할게요",
+      "keepLabel": "유지하기"
+    },
+    "finalButtonLabel": "해지할게요",
+    "successText": "해지되었습니다",
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그 가이드는 3단계에서 [이용권 해지하기]를 누른다고 되어 있으나, 공식 도움말상의 실제 UI 라벨은 [구독을 해지하고 싶어요] 후 [해지할게요]입니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.watcha.com/hc/ko/articles/31326576396825-TV%EC%97%90%EC%84%9C-%EA%B5%AC%EB%8F%85-%EC%A4%91%EC%9D%B8%EB%8D%B0-%ED%95%B4%EC%A7%80%ED%95%98%EA%B3%A0-%EC%8B%B6%EC%96%B4%EC%9A%94",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "기본 프로필(마스터 프로필)에서만 해지 메뉴가 노출됩니다."
+  },
+  {
+    "id": "coupangplay",
+    "name": "Coupang Play",
+    "catalogCancelUrl": "https://loyalty.coupang.com/loyalty/sign-up/home",
+    "cancelUrlStatus": "ok_200",
+    "officialHelpUrls": [
+      "https://mc.coupang.com/ssr/desktop/order/cs/faq"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "phone_auth"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "와우 멤버십 페이지",
+        "label": "해지하기",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "혜택 만류 1단계",
+        "label": "내가 누린 혜택 포기할게요",
+        "kind": "retention"
+      },
+      {
+        "screen": "혜택 만류 2단계",
+        "label": "해지 계속하기",
+        "kind": "retention"
+      },
+      {
+        "screen": "최종 해지 확인",
+        "label": "해지 신청하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "쿠팡 무료배송/반품 및 쿠팡플레이 무료시청 혜택 누적 금액 노출하며 강한 만류",
+      "continueLabel": "내가 누린 혜택 포기할게요",
+      "keepLabel": "혜택 유지하기"
+    },
+    "finalButtonLabel": "해지 신청하기",
+    "successText": "와우 멤버십 해지가 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://mc.coupang.com/ssr/desktop/order/cs/faq",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "쿠팡플레이는 독립 구독이 아닌 '와우 멤버십' 종속 서비스이므로 쿠팡 와우 멤버십 관리 페이지에서 해지합니다."
+  },
+  {
+    "id": "laftel",
+    "name": "Laftel",
+    "catalogCancelUrl": "https://laftel.net/setting",
+    "cancelUrlStatus": "ok_200",
+    "officialHelpUrls": [
+      "https://help.laftel.net/hc/ko/articles/6011133529231-라프텔-멤버십-해지"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "kakao",
+      "google",
+      "apple",
+      "naver"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "내 멤버십 관리",
+        "label": "결제 예정",
+        "kind": "nav"
+      },
+      {
+        "screen": "멤버십 상세",
+        "label": "멤버십 해지하기",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 확인 팝업/화면",
+        "label": "멤버십 해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "남은 이용 기간 및 등급 초기화 주의 안내",
+      "continueLabel": "멤버십 해지하기",
+      "keepLabel": "유지하기"
+    },
+    "finalButtonLabel": "멤버십 해지하기",
+    "successText": "멤버십 해지가 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.laftel.net/hc/ko/articles/6011133529231-라프텔-멤버십-해지",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "웹에서는 메뉴 > 라프텔 멤버십 > 내 멤버십 관리 > 멤버십 해지하기 순서로 진행됩니다."
+  },
+  {
+    "id": "appletv",
+    "name": "Apple TV+",
+    "catalogCancelUrl": "https://tv.apple.com/settings",
+    "cancelUrlStatus": "redirect_301_to_home",
+    "officialHelpUrls": [
+      "https://support.apple.com/ko-kr/118428"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "tv.apple.com 우측 상단 계정",
+        "label": "설정",
+        "kind": "nav"
+      },
+      {
+        "screen": "설정 > 구독",
+        "label": "관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 세부 정보",
+        "label": "구독 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "확인 팝업",
+        "label": "확인",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": false,
+      "offerText": null,
+      "continueLabel": "구독 취소",
+      "keepLabel": "취소"
+    },
+    "finalButtonLabel": "확인",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "catalogCancelUrl(https://tv.apple.com/settings)이 루트 홈(https://tv.apple.com/)으로 301 리디렉션되므로 설정 페이지 직접 링크가 깨져 있습니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.apple.com/ko-kr/118428",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Apple ID 2단계 인증이 요구될 수 있습니다."
+  },
+  {
+    "id": "primevideo",
+    "name": "Amazon Prime Video",
+    "catalogCancelUrl": "https://www.primevideo.com/settings/your-account/",
+    "cancelUrlStatus": "redirect_302_to_login",
+    "officialHelpUrls": [
+      "https://www.primevideo.com/help/node/GGB6CTBBX4Y8P9Y8"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "phone_or_email"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "계정 및 설정",
+        "label": "내 계정",
+        "kind": "nav"
+      },
+      {
+        "screen": "Prime Video 멤버십",
+        "label": "멤버십 종료",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 확인 / 만류",
+        "label": "내 멤버십 종료",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "종료일자 및 시청 불가 안내",
+      "continueLabel": "내 멤버십 종료",
+      "keepLabel": "멤버십 유지"
+    },
+    "finalButtonLabel": "내 멤버십 종료",
+    "successText": "멤버십이 취소되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "카탈로그 3단계 라벨은 [멤버십 종료]로만 기재되었으나 최종 버튼은 영문/국문 번역에 따라 [내 멤버십 종료] 또는 [확인] 형태로 표시됩니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.primevideo.com/help/node/GGB6CTBBX4Y8P9Y8",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Amazon 계정 기반으로 2단계 인증 또는 패스워드 입력 필요."
+  },
+  {
+    "id": "spotvnow",
+    "name": "SPOTV NOW",
+    "catalogCancelUrl": "https://www.spotvnow.co.kr/my/pass",
+    "cancelUrlStatus": "ok_200",
+    "officialHelpUrls": [
+      "https://www.spotvnow.co.kr/help/faq"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "id_pw",
+      "kakao",
+      "naver",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "MY 페이지",
+        "label": "이용권/결제 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "이용권 내역",
+        "label": "자동결제 해지",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 팝업",
+        "label": "해지하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "다음 결제 예정일 및 남은 기간 이용 안내",
+      "continueLabel": "해지하기",
+      "keepLabel": "취소"
+    },
+    "finalButtonLabel": "해지하기",
+    "successText": "자동결제가 해지되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.spotvnow.co.kr/help/faq",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "앱스토어/구글플레이 인앱결제 건은 해당 스토어에서만 해지 가능."
+  },
+  {
+    "id": "weverse",
+    "name": "Weverse Digital Membership",
+    "catalogCancelUrl": "https://weverse.io/more/my",
+    "cancelUrlStatus": "ok_200",
+    "officialHelpUrls": [
+      "https://weverse.io/notice/membership"
+    ],
+    "cancelChannel": "app_only",
+    "mobileWebOk": false,
+    "loginMethods": [
+      "email_pw",
+      "google",
+      "apple",
+      "twitter"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "위버스 앱 더보기",
+        "label": "멤버십",
+        "kind": "nav"
+      },
+      {
+        "screen": "아티스트 멤버십 상세",
+        "label": "정기결제 해지",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 확인 팝업",
+        "label": "해지",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": false,
+      "offerText": null,
+      "continueLabel": "해지",
+      "keepLabel": "취소"
+    },
+    "finalButtonLabel": "해지",
+    "successText": "정기결제가 해지되었습니다",
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "카탈로그 cancelUrl(weverse.io/more/my)은 웹 주소이나 디지털 멤버십 관리 및 정기결제 해지는 위버스 모바일 앱(또는 인앱결제 스토어)에서만 온전히 지원됩니다. 웹에서는 멤버십 가입 내역만 조회되는 경우가 많습니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://weverse.io/notice/membership",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "아티스트 공식 멤버십은 1년 단위 선결제 상품이 많고, 디지털 멤버십(월 정기구독)은 인앱결제 스토어 연동이 기본입니다."
+  },
+  {
+    "id": "crunchyroll",
+    "name": "Crunchyroll",
+    "catalogCancelUrl": "https://www.crunchyroll.com/account/membership",
+    "cancelUrlStatus": "forbidden_403_cf_block",
+    "officialHelpUrls": [
+      "https://help.crunchyroll.com/hc/en-us/articles/18485293444628-How-do-I-cancel-my-membership"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_pw",
+      "google",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Account Settings",
+        "label": "Membership Plan",
+        "kind": "nav"
+      },
+      {
+        "screen": "Membership Info",
+        "label": "Cancel Membership",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Retention Offer / Survey",
+        "label": "Cancel Anyway",
+        "kind": "retention"
+      },
+      {
+        "screen": "Final Confirm",
+        "label": "Cancel Subscription",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "할인 혜택(Discount offer) 또는 무료 연장 제안",
+      "continueLabel": "Cancel Anyway",
+      "keepLabel": "Keep Membership"
+    },
+    "finalButtonLabel": "Cancel Subscription",
+    "successText": "Your subscription has been canceled",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "catalogCancelUrl(https://www.crunchyroll.com/account/membership)은 Cloudflare 봇 감지로 인해 단순 GET 요청 시 403 Forbidden이 반환됩니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.crunchyroll.com/hc/en-us/articles/18485293444628-How-do-I-cancel-my-membership",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "한국어 전용 UI가 미지원되거나 영문 UI가 기본 노출될 수 있음."
+  },
+  {
+    "id": "mubi",
+    "name": "MUBI",
+    "catalogCancelUrl": "https://mubi.com/login",
+    "cancelUrlStatus": "redirect_302_to_locale_login",
+    "officialHelpUrls": [
+      "https://help.mubi.com/en_US/managing-my-account/how-can-i-cancel-my-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_pw",
+      "google",
+      "apple",
+      "facebook"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Settings",
+        "label": "Subscription",
+        "kind": "nav"
+      },
+      {
+        "screen": "Subscription details",
+        "label": "Cancel Subscription",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Retention screen",
+        "label": "Continue to Cancel",
+        "kind": "retention"
+      },
+      {
+        "screen": "Final confirm popup",
+        "label": "Cancel Subscription",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "3개월 할인 요금제 제안(Special offer)",
+      "continueLabel": "Continue to Cancel",
+      "keepLabel": "Keep Subscription"
+    },
+    "finalButtonLabel": "Cancel Subscription",
+    "successText": "Your subscription has been cancelled",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "catalogCancelUrl이 해지 페이지가 아니라 로그인 페이지(https://mubi.com/login)로 등록되어 있습니다. 실제 설정 경로는 https://mubi.com/settings 입니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.mubi.com/en_US/managing-my-account/how-can-i-cancel-my-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "강한 할인 프로모션 만류(Retention)가 나타남."
+  },
+  {
+    "id": "dazn",
+    "name": "DAZN",
+    "catalogCancelUrl": "https://www.dazn.com/ko-KR/account",
+    "cancelUrlStatus": "ok_200",
+    "officialHelpUrls": [
+      "https://www.dazn.com/ko-KR/help/articles/how-to-cancel-your-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_pw",
+      "apple",
+      "google"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "내 계정 (My Account)",
+        "label": "구독",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 세부사항",
+        "label": "구독 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "만류 / 일시중지 제안",
+        "label": "취소 계속하기",
+        "kind": "retention"
+      },
+      {
+        "screen": "최종 확인",
+        "label": "구독 취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "hasOffer": true,
+      "offerText": "시즌 오프 기간 구독 일시중지(Pause) 제안",
+      "continueLabel": "취소 계속하기",
+      "keepLabel": "구독 유지"
+    },
+    "finalButtonLabel": "구독 취소",
+    "successText": "구독 취소가 완료되었습니다",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "DAZN은 국가 및 가입 방식에 따라 30일 사전 고지 기간 규정이 적용될 수 있으며 라이브 채팅 유도가 발생할 수 있습니다.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.dazn.com/ko-KR/help/articles/how-to-cancel-your-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "해외 스포츠 시즌에 맞춘 일시중지(Pause) 만류가 주요 특징."
+  }
+]
