@@ -267,6 +267,7 @@ export default function App() {
     setProfile,
     subscriptions,
     setSubscriptions,
+    savedAmount,
     setOnboardingComplete,
     selectedOnboarding,
     setSelectedOnboarding,
@@ -867,12 +868,24 @@ export default function App() {
     content = (
       <SubscriptionListScreen
         subscriptions={subscriptions}
+        cancelHistory={care.cancelHistory}
+        savedAmount={savedAmount}
         onOpen={(id) => navigate("detail", id)}
         onAdd={() => { setAddInitialMode("manual"); setAddOpen(true); }}
         onStartCancel={startCancellation}
         onMute={(id) => muteSubscription(id, notify)}
         onRefresh={() => notify("최신 구독 목록을 확인했어요.")}
         onTogglePin={(id) => togglePinSubscription(id, notify)}
+        onAnswerCancel={(record, answer) => {
+          const key = recordKey(record);
+          if (answer === "no_charge") {
+            care.answerCancel(key, "no_charge");
+            notify(record.name + " 해지가 확인됐어요. 매달 " + formatWon(record.amount) + "을 아껴요.");
+          } else if (answer === "charged") {
+            openChargedAfterCancel(care.answerCancel(key, "charged"));
+          }
+        }}
+        onToast={notify}
       />
     );
   } else if (screen.route === "calendar") {
@@ -901,6 +914,7 @@ export default function App() {
         promotion={livePromotions.find((p) => p.sourceServiceIds?.includes(selectedSubscription?.id))}
         onTriggerNotification={(sub) => handleTriggerTestNotification(sub, notify)}
         highlightCancel={highlightCancelId === selectedSubscription?.subscriptionId}
+        userId={profile?.user_id || null}
       />
     );
   } else {

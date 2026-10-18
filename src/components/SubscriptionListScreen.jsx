@@ -1,15 +1,29 @@
 import { useMemo, useState } from "react";
-import { FilterX, RefreshCw, Search, SlidersHorizontal, PlusCircle } from "lucide-react";
+import { FilterX, RefreshCw, Search, SlidersHorizontal, PlusCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button, IconButton, SubscriptionCard } from "./ui";
+import { CancelHistorySection } from "./CancelHistorySection";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 import { calculateMonthlyTotal } from "../lib/subscriptionAgent";
 
-export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCancel, onMute, onRefresh, onTogglePin }) {
+export function SubscriptionListScreen({
+  subscriptions,
+  cancelHistory = [],
+  savedAmount = 0,
+  onOpen,
+  onAdd,
+  onStartCancel,
+  onMute,
+  onRefresh,
+  onTogglePin,
+  onAnswerCancel,
+  onToast,
+}) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [sort, setSort] = useState("due");
 
   const filtered = useMemo(() => {
+    if (status === "cancelled") return [];
     const normalized = query.trim().toLowerCase();
     return subscriptions
       .filter((subscription) => status === "all" || (status === "trial" ? subscription.status === "trial" : subscription.status === "active"))
@@ -53,12 +67,45 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
         </label>
       </div>
 
-      <div className="mt-6 flex items-end justify-between">
-        <span className="text-[13px] text-[#6B7684]"><strong className="font-bold text-[#191F28]">{filtered.length}개</strong> 구독</span>
-        <span className="text-[14px] font-bold text-[#191F28]">월 {formatWon(total)}</span>
-      </div>
+      {status !== "cancelled" && cancelHistory.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setStatus("cancelled")}
+          className="mt-3 flex w-full items-center justify-between rounded-xl bg-[#F9FAFB] px-3.5 py-3 text-left transition-colors hover:bg-[#F2F4F6]"
+        >
+          <span className="text-[13px] font-semibold text-[#333D4B]">해지한 구독 {cancelHistory.length}개</span>
+          <span className="flex items-center gap-0.5 text-[13px] font-semibold text-[#6B7684]">
+            매달 {formatWon(savedAmount || cancelHistory.reduce((s, r) => s + (Number(r.amount) || 0), 0))} 아끼는 중
+            <ChevronRight size={15} className="text-[#B0B8C1]" />
+          </span>
+        </button>
+      )}
 
-      {subscriptions.length === 0 ? (
+      {status === "cancelled" ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setStatus("all")}
+            className="mt-5 -ml-1 flex items-center gap-0.5 text-[15px] font-bold text-[#191F28]"
+          >
+            <ChevronLeft size={20} className="text-[#6B7684]" />
+            해지한 구독
+          </button>
+          <CancelHistorySection
+            cancelHistory={cancelHistory}
+            savedAmount={savedAmount}
+            onAnswerCancel={onAnswerCancel}
+            onToast={onToast}
+          />
+        </>
+      ) : (
+        <>
+          <div className="mt-6 flex items-end justify-between">
+            <span className="text-[13px] text-[#6B7684]"><strong className="font-bold text-[#191F28]">{filtered.length}개</strong> 구독</span>
+            <span className="text-[14px] font-bold text-[#191F28]">월 {formatWon(total)}</span>
+          </div>
+
+          {subscriptions.length === 0 ? (
         <section className="mt-16 flex flex-col items-center text-center px-4">
           <div className="grid h-16 w-16 place-items-center rounded-3xl bg-[#F2F4F6] text-[#191F28] border border-[#E5E8EB]">
             <PlusCircle size={32} className="text-[#3182F6]" />
@@ -93,6 +140,8 @@ export function SubscriptionListScreen({ subscriptions, onOpen, onAdd, onStartCa
           <p className="mt-2 text-[13px] text-[#6B7684]">필터를 초기화하거나 다른 검색어를 입력해 보세요.</p>
           <Button variant="secondary" size="compact" className="mt-5" onClick={reset}>필터 초기화</Button>
         </section>
+          )}
+        </>
       )}
     </main>
   );

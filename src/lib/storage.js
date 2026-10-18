@@ -66,7 +66,15 @@ export const appendCancelRecord = (subscription, cancelledAt = new Date()) => {
     expectedChargeOn: expectedChargeAfterCancel(subscription, cancelledAt)?.toISOString() || null,
     verification: expectedChargeAfterCancel(subscription, cancelledAt) ? "watching" : null,
   };
-  writeStoredValue(storageKeys.cancelHistory, [record, ...readCancelHistory()].slice(0, MAX_CANCEL_HISTORY));
+  const svcKey = record.serviceId || record.id;
+  const subKey = record.subscriptionId;
+  const existing = readCancelHistory().filter((item) => {
+    if (item.verification !== "watching") return true;
+    if (subKey && item.subscriptionId === subKey) return false;
+    if (svcKey && (item.serviceId === svcKey || item.id === svcKey)) return false;
+    return true;
+  });
+  writeStoredValue(storageKeys.cancelHistory, [record, ...existing].slice(0, MAX_CANCEL_HISTORY));
 };
 
 export const writeCancelHistory = (list) => {

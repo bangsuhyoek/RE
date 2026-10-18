@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 import {
   ChevronLeft,
@@ -17,8 +17,16 @@ import {
   ToggleSwitch,
   PaymentMethodTriggerField,
 } from "./ui";
+import { DifficultySurvey } from "./DifficultySurvey";
+import { CancelProofCapture } from "./CancelProofCapture";
+import { serviceCatalog } from "../data/subscriptionData";
+import { getCancelPolicy } from "../data/cancelPolicies";
+import { getCancelTimingAdvice } from "../lib/cancelTiming";
+import { createCancelSession } from "../lib/cancelDifficulty";
+import { hasMoneyRelevantWarning } from "../lib/cancelBrowser";
+import { expectedChargeAfterCancel } from "../lib/cancelVerification";
 import { formatWon } from "../lib/dates";
-import { shouldAutoOpenServicePage } from "../lib/cancelRoutes";
+import { resolvePaymentChannel, shouldAutoOpenServicePage } from "../lib/cancelRoutes";
 import { getRailCancelPlan } from "../lib/railCancel";
 import { addBillingToCalendar } from "../lib/calendarExport";
 import { buildSettlementRequest } from "../lib/settlement";
@@ -196,6 +204,7 @@ export function SubscriptionDetailScreen({
   onDelete,
   promotion,
   highlightCancel,
+  userId = null,
 }) {
   const [editing, setEditing] = useState(false);
   const [celebrateSheetOpen, setCelebrateSheetOpen] = useState(false);
@@ -255,6 +264,35 @@ export function SubscriptionDetailScreen({
   const monogram = subscription.monogram || subscription.name?.slice(0, 1) || "S";
   const monthlyAmount = subscription.billingCycle === "매년" ? Math.round(subscription.amount / 12) : subscription.amount;
   const annualAmount = subscription.billingCycle === "매년" ? subscription.amount : subscription.amount * 12;
+
+  const canonicalServiceId = useMemo(() => {
+    const targetName = (subscription.name || "").toLowerCase().replace(/\s+/g, "");
+    const targetId = (subscription.serviceId || subscription.id || "").toLowerCase();
+    const matched = serviceCatalog.find((s) => {
+      const sId = (s.id || "").toLowerCase();
+      const sName = (s.name || "").toLowerCase().replace(/\s+/g, "");
+      return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);
+    });
+    return matched?.id || subscription.serviceId || subscription.id;
+  }, [subscription]);
+
+  const policy = useMemo(() => getCancelPolicy(canonicalServiceId), [canonicalServiceId]);
+  const paymentChannel = useMemo(() => resolvePaymentChannel(subscription), [subscription]);
+  const timingAdvice = useMemo(
+    () => getCancelTimingAdvice({ subscription: { ...subscription, paymentChannel }, policy }),
+    [subscription, paymentChannel, policy]
+  );
+  const isMoneyWarning = hasMoneyRelevantWarning(timingAdvice);
+  const railPlan = useMemo(() => getRailCancelPlan({ subscription, channel: paymentChannel }), [subscription, paymentChannel]);
+  const expectedNextWatchDate = useMemo(() => {
+    const next = expectedChargeAfterCancel(subscription, new Date());
+    return next ? (next.getMonth() + 1) + "월 " + next.getDate() + "일" : null;
+  }, [subscription]);
+
+  const detailCancelSessionRef = useRef(null);
+  if (!detailCancelSessionRef.current || detailCancelSessionRef.current.serviceId !== canonicalServiceId) {
+    detailCancelSessionRef.current = createCancelSession({ serviceId: canonicalServiceId, stepsTotal: 1 });
+  }
 
   // 알림 시간 설정 파라미터 (스크롤 피커와 연동)
   const alertEnabled = subscription.alertEnabled !== undefined ? Boolean(subscription.alertEnabled) : (subscription.alertD3 !== false || subscription.alertD1 !== false);
@@ -473,10 +511,11 @@ export function SubscriptionDetailScreen({
             <button
               type="button"
               onClick={() => {
-                // Google Play·App Store·카드 자동납부 및 2단계 결제 경로 차단(간편결제·통신사) 구독은 서비스 웹사이트 대신 해지 안내를 먼저 보여준다.
-                const hasRailPlan = Boolean(getRailCancelPlan({ subscription }));
-                const autoOpen = shouldAutoOpenServicePage(subscription) && !hasRailPlan;
-                if (autoOpen && subscription.cancelUrl && !Capacitor.isNativePlatform()) {
+                // Google Play·App Store·카드 자동납부·2단계 결제 경로 차단 및 금전적 불이익 경고 구독은 해지 안내를 먼저 보여준다.
+                const hasRailPlan = Boolean(railPlan);
+                const isNative = Capacitor.isNativePlatform();
+                const autoOpen = !isNative && shouldAutoOpenServicePage(subscription) && !hasRailPlan && !isMoneyWarning;
+                if (autoOpen && subscription.cancelUrl) {
                   window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
                 }
                 onStartCancel(subscription.subscriptionId, promotion, { autoOpen });
@@ -612,8 +651,36 @@ export function SubscriptionDetailScreen({
               </span>
             </div>
             <p className="mt-3 text-[13px] text-gray-500 leading-relaxed max-w-[280px]">
-              공식 웹사이트에서 해지를 마치셨다면 목록에서 제거하여 지출 현황을 최신화하세요.
+              {expectedNextWatchDate
+                ? `다음 결제 예정일(${expectedNextWatchDate}) 이후 재결제가 없는지 꾸독이 자동으로 지켜볼게요.`
+                : "공식 웹사이트에서 해지를 마치셨다면 목록에서 제거하여 지출 현황을 최신화하세요."}
             </p>
+
+            <details className="mt-4 w-full rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-3 text-left">
+              <summary className="cursor-pointer list-none text-center text-[12px] font-semibold text-[#6B7684] hover:text-[#333D4B]">
+                해지 완료 화면 저장하기
+              </summary>
+              <div className="mt-3 border-t border-[#E5E8EB] pt-3">
+                <CancelProofCapture
+                  record={{
+                    serviceId: canonicalServiceId,
+                    recordId: subscription.subscriptionId || subscription.id,
+                    subscriptionId: subscription.subscriptionId || subscription.id,
+                    serviceName: subscription.name,
+                    amount: subscription.amount,
+                    cancelledAt: new Date().toISOString(),
+                  }}
+                />
+                {userId && (
+                  <DifficultySurvey
+                    serviceId={canonicalServiceId}
+                    session={detailCancelSessionRef.current}
+                    userId={userId}
+                  />
+                )}
+              </div>
+            </details>
+
             <div className="mt-6 w-full space-y-2.5">
               <button
                 type="button"

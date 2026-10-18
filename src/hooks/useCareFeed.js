@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { buildCareItems } from "../lib/careFeed";
+import { activeCancelRecords, buildCareItems } from "../lib/careFeed";
 import { answerCancelCheck, reviewCancelVerifications } from "../lib/cancelVerification";
 import { answerUsage as recordUsageAnswer } from "../lib/usageCheck";
 import { checkPaymentCapturePermission } from "../lib/paymentCapture";
@@ -53,6 +53,19 @@ export function useCareFeed({ subscriptions = [], catalog = [], onEvents } = {})
     [subscriptions, cancelHistory, usageAnswers, acks, rotation, catalog, now]
   );
 
+  const visibleCancelHistory = useMemo(() => {
+    const active = activeCancelRecords(cancelHistory, subscriptions);
+    const seenWatching = new Set();
+    return active.filter((record) => {
+      if (record.verification !== "watching") return true;
+      const key = record.serviceId || record.id || record.subscriptionId || record.name;
+      if (!key) return true;
+      if (seenWatching.has(key)) return false;
+      seenWatching.add(key);
+      return true;
+    });
+  }, [cancelHistory, subscriptions]);
+
   const ack = useCallback((key) => {
     setAcks((current) => {
       const next = { ...current, [key]: new Date().toISOString() };
@@ -88,5 +101,5 @@ export function useCareFeed({ subscriptions = [], catalog = [], onEvents } = {})
 
   const refreshHistory = useCallback(() => setCancelHistory(readCancelHistory()), []);
 
-  return { items, rotation, ack, answerUsage, answerCancel, saveRotation, clearRotation, refreshHistory };
+  return { items, cancelHistory: visibleCancelHistory, rotation, ack, answerUsage, answerCancel, saveRotation, clearRotation, refreshHistory };
 }
