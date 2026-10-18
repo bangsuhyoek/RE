@@ -1,9 +1,11 @@
 import ocrHandler from "../api/ocr.js";
 import agentHandler from "../api/agent.js";
+import chatHandler from "../api/chat.js";
 
 const LOCAL_API_ROUTES = {
   "/api/ocr": ocrHandler,
   "/api/agent": agentHandler,
+  "/api/chat": chatHandler,
 };
 
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
@@ -45,6 +47,14 @@ const createResponseAdapter = (response) => ({
     if (!response.headersSent) response.setHeader("Content-Type", "application/json; charset=utf-8");
     response.end(JSON.stringify(payload));
   },
+  write(chunk) {
+    const ok = response.write(chunk);
+    if (typeof response.flush === "function") response.flush();
+    return ok;
+  },
+  flushHeaders() {
+    if (typeof response.flushHeaders === "function") response.flushHeaders();
+  },
   end(data = "") {
     response.end(data);
     return this;
@@ -59,8 +69,37 @@ export const createLocalOcrMiddleware = () => async (request, response, next) =>
     return;
   }
 
+  if (process.env.SUBMATE_DEV_CHAT_BYPASS === "1") {
+    if (!process.env.SUPABASE_URL && !process.env.VITE_SUPABASE_URL) {
+      process.env.SUPABASE_URL = "http://127.0.0.1:54321";
+    }
+    if (!process.env.SUPABASE_ANON_KEY && !process.env.VITE_SUPABASE_ANON_KEY) {
+      process.env.SUPABASE_ANON_KEY = "dev-anon-key";
+    }
+    if (!globalThis.__submateAuthBypassInstalled) {
+      globalThis.__submateAuthBypassInstalled = true;
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = async function (url, options) {
+        const urlStr = typeof url === "string" ? url : url?.url || "";
+        if (urlStr.includes("/auth/v1/user")) {
+          return new Response(JSON.stringify({ id: "dev-chat-e2e-user" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return originalFetch.apply(this, arguments);
+      };
+    }
+    if (requestUrl.pathname === "/api/chat") {
+      if (!request.headers.authorization && !request.headers.Authorization) {
+        request.headers.authorization = "Bearer dev-chat-bypass-token";
+      }
+    }
+  }
+
   try {
     request.body = await readJsonBody(request);
+    request.__isLocalDev = true;
     await routeHandler(request, createResponseAdapter(response));
   } catch (error) {
     if (response.writableEnded) return;

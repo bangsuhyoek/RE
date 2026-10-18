@@ -1,4 +1,5 @@
 import { parseReceiptText } from "./_lib/receiptParser.js";
+import { verifySupabaseAuth } from "./_lib/auth.js";
 
 export const config = {
   api: {
@@ -189,6 +190,36 @@ export default async function handler(request, response) {
     return send(response, 405, { ok: false, code: "METHOD_NOT_ALLOWED", message: "POST 요청만 지원합니다." });
   }
 
+  // 1. Supabase 인증 확인 (토큰 로깅 금지) - 로컬 개발 미들웨어(dev-only)는 미인증 허용
+  if (!request.__isLocalDev) {
+    let userId;
+    try {
+      const authHeader = request.headers?.authorization || request.headers?.Authorization;
+      userId = await verifySupabaseAuth(authHeader);
+    } catch (err) {
+      if (err.code === "AGENT_AUTH_NOT_CONFIGURED") {
+        return send(response, 503, {
+          ok: false,
+          code: "AGENT_AUTH_NOT_CONFIGURED",
+          message: "인증 서버 환경변수가 설정되지 않았습니다.",
+        });
+      }
+      return send(response, 401, {
+        ok: false,
+        code: "AUTH_REQUIRED",
+        message: "인증이 필요합니다.",
+      });
+    }
+
+    if (!userId) {
+      return send(response, 401, {
+        ok: false,
+        code: "AUTH_REQUIRED",
+        message: "인증이 필요합니다.",
+      });
+    }
+  }
+
   let body;
   try {
     body = readBody(request);
@@ -241,13 +272,14 @@ export default async function handler(request, response) {
     const parsed = parseReceiptText(rawText);
     return send(response, parsed.ok ? 200 : 422, parsed);
   } catch (error) {
+    console.error("OCR provider error:", error);
     const timedOut = error?.name === "AbortError";
     return send(response, timedOut ? 504 : 502, {
       ok: false,
       code: timedOut ? "OCR_TIMEOUT" : "OCR_PROVIDER_ERROR",
       message: timedOut
         ? "이미지 인식 시간이 초과되었습니다. 다시 시도해 주세요."
-        : (error?.message || "이미지 인식 서비스에 연결하지 못했습니다."),
+        : (error?.isHighDemand ? error.message : "이미지 인식 서비스에 연결하지 못했어요. 잠시 후 다시 시도해 주세요."),
     });
   }
 }

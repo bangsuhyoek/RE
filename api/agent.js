@@ -1,11 +1,11 @@
 import { buildInterpretationPrompt, normalizeInterpretation } from "./_lib/agentInterpretation.js";
+import { verifySupabaseAuth } from "./_lib/auth.js";
 
 const MAX_TEXT_LENGTH = 300;
 const MAX_SERVICES = 60;
 const TOTAL_BUDGET_MS = 12_000;
 const MODEL_TIMEOUT_MS = 5_000;
 const MIN_REMAINING_BUDGET_MS = 1_000;
-const AUTH_TIMEOUT_MS = 3_000;
 
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10분
 const RATE_LIMIT_MAX_REQUESTS = 20;
@@ -62,54 +62,6 @@ const send = (response, status, payload) => {
 const readBody = (request) => {
   if (typeof request.body === "string") return JSON.parse(request.body);
   return request.body || {};
-};
-
-const verifySupabaseAuth = async (authHeader) => {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !anonKey) {
-    const err = new Error("Supabase auth not configured");
-    err.code = "AGENT_AUTH_NOT_CONFIGURED";
-    throw err;
-  }
-
-  if (!authHeader || typeof authHeader !== "string") {
-    return null;
-  }
-
-  const match = authHeader.match(/^Bearer\s+(.+)$/i);
-  if (!match) return null;
-  const token = match[1].trim();
-  if (!token) return null;
-
-  const authController = new AbortController();
-  const timer = setTimeout(() => authController.abort(), AUTH_TIMEOUT_MS);
-  try {
-    const endpoint = supabaseUrl.replace(/\/+$/, "") + "/auth/v1/user";
-    const res = await fetch(endpoint, {
-      method: "GET",
-      headers: {
-        apikey: anonKey,
-        Authorization: `Bearer ${token}`,
-      },
-      signal: authController.signal,
-    });
-
-    if (!res.ok) {
-      return null;
-    }
-
-    const userData = await res.json().catch(() => null);
-    if (!userData?.id) {
-      return null;
-    }
-    return userData.id;
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
 };
 
 const callGemini = async ({ prompt, apiKey }) => {
@@ -255,6 +207,7 @@ export default async function handler(request, response) {
     const raw = await callGemini({ prompt: buildInterpretationPrompt(text, services), apiKey });
     return send(response, 200, { ok: true, ...normalizeInterpretation(raw, services) });
   } catch (error) {
+    console.error("Agent provider error:", error);
     const timedOut = error?.name === "AbortError";
     return send(response, timedOut ? 504 : 502, {
       ok: false,

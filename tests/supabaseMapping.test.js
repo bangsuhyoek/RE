@@ -103,4 +103,10 @@ test("mapDbToSubscription은 DB 레코드를 클라이언트 객체로 정확히
   assert.equal(clientObj.planId, "youtube-plan-individual");
   assert.equal(clientObj.paymentChannel, null);
   assert.equal(mapDbToSubscription({ ...row, payment_channel: "google_play" }).paymentChannel, "google_play");
+
+  // alertD3 기본값 및 불리언 파싱 검증 (null/undefined/생략 시 true 기본값, false일 때만 false)
+  assert.equal(mapDbToSubscription({ ...row, alert_d3: null }).alertD3, true);
+  assert.equal(mapDbToSubscription({ ...row, alert_d3: undefined }).alertD3, true);
+  assert.equal(mapDbToSubscription({ ...row, alert_d3: true }).alertD3, true);
+  assert.equal(mapDbToSubscription({ ...row, alert_d3: false }).alertD3, false);
 });
