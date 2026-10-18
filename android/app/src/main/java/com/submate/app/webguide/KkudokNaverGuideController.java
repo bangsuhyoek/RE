@@ -454,7 +454,9 @@ public final class KkudokNaverGuideController {
         if (evaluation.getGuideState() == GuideState.HIDDEN) {
             showManualFallback(evaluation.getInstructionText());
             if (listener != null) {
-                listener.onManualFallbackRequired("hidden");
+                String instr = evaluation.getInstructionText();
+                String reason = (instr != null && instr.contains("🌐 브라우저")) ? "blocked" : "hidden";
+                listener.onManualFallbackRequired(reason);
             }
             return;
         }

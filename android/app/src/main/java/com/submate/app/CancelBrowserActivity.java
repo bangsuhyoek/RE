@@ -436,6 +436,10 @@ public class CancelBrowserActivity extends AppCompatActivity {
 
                 @Override
                 public void onManualFallbackRequired(String reason) {
+                    if ("blocked".equals(reason)) {
+                        showWebPage("보안 확인이나 차단 화면이에요. 오른쪽 위 [🌐 브라우저]를 눌러 평소 쓰는 브라우저에서 이어서 해지해 주세요.", false);
+                        return;
+                    }
                     // 버튼을 찾지 못한 화면은 사용자가 직접 볼 수 있게 열되, 다음 화면에서 버튼을 찾으면 다시 진행 카드로 복귀할 수 있게 둔다.
                     if (userRequestedRawWebView) return;
                     showWebPage("꾸독이 다음 버튼을 찾지 못했어요. 화면을 보면서 직접 진행해 주세요.", true);
@@ -766,6 +770,17 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 super.onReceivedError(view, request, error);
                 if (request.isForMainFrame() && pbLoading != null) {
                     pbLoading.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request, android.webkit.WebResourceResponse errorResponse) {
+                super.onReceivedHttpError(view, request, errorResponse);
+                if (request != null && request.isForMainFrame() && errorResponse != null) {
+                    int code = errorResponse.getStatusCode();
+                    if (code == 403 || code == 429) {
+                        showWebPage("접근이 제한된 화면(HTTP " + code + ")이에요. 오른쪽 위 [🌐 브라우저]를 눌러 평소 쓰는 브라우저에서 이어서 해지해 주세요.", false);
+                    }
                 }
             }
         });

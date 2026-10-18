@@ -383,6 +383,12 @@ public final class UniversalCancelRoute implements CancelGuideRoute {
                     ));
                     return;
                 }
+                if ("BLOCKED".equals(state)) {
+                    callback.onEvaluated(RouteEvaluation.hidden(
+                            "보안 확인이나 접근 제한 화면이에요. 오른쪽 위 [🌐 브라우저]를 눌러 평소 쓰는 브라우저에서 이어서 해지해 주세요."
+                    ));
+                    return;
+                }
                 if (!"FOUND".equals(state)) {
                     if (aiClient != null && aiClient.isEnabled() && flowState != null) {
                         if (flowState.isAiInFlight()) {
@@ -809,6 +815,10 @@ public final class UniversalCancelRoute implements CancelGuideRoute {
                 + "var norm=function(v){return (v||'').replace(/\\s+/g,' ').trim();};"
                 + "var pwInputs=document.querySelectorAll('input[type=\"password\"]');"
                 + "for(var p=0;p<pwInputs.length;p++){var pr=pwInputs[p].getBoundingClientRect();var ps=window.getComputedStyle(pwInputs[p]);if(pr&&pr.width>10&&pr.height>10&&ps.display!=='none'&&ps.visibility!=='hidden'){return JSON.stringify({state:'LOGIN'});}}"
+                + "var cfEl=document.querySelector('#challenge-running,#challenge-form,#cf-wrapper,.cf-error-details,iframe[src*=\"challenges.cloudflare.com\"]');"
+                + "var ttl=norm(document.title||'').toLowerCase();"
+                + "var btxt=norm(document.body?(document.body.innerText||''):'').slice(0,500).toLowerCase();"
+                + "if(cfEl||ttl.indexOf('just a moment')>=0||ttl.indexOf('attention required')>=0||btxt.indexOf('verify you are human')>=0||btxt.indexOf('403 forbidden')>=0||btxt.indexOf('disallowed_useragent')>=0){return JSON.stringify({state:'BLOCKED'});}"
                 + "var hints=" + safeHints + ";"
                 + "var rejectWords=['혜택 유지','계속 이용','멤버십 유지','구독 유지','유지하기','일시중지하기','해지 안 함','취소 안 함','돌아가기','창 닫기','keep membership','keep subscription','stay','never mind'];"
                 + "var stage4Words=['해지 완료','해지 확정','최종 해지','멤버십 해지 완료','정기결제 해지 완료','구독 해지 완료','해지 신청 완료','해지할게요','혜택 포기하고 해지','즉시 해지','해지 예약','해지예약','구독 해지 예약','중도해지','중도 해지','멤버십 종료','내 멤버십 종료','반복 청구 끄기','갱신 정지','취소 확인','해지 확인','구독 취소 확인','정기 구독 취소 확인','플랜 취소 확정','구독 취소 완료','disney+ 취소 완료','end membership','finish canceling','finish cancellation','confirm cancellation','complete cancellation','yes, cancel','downgrade to starter'];"

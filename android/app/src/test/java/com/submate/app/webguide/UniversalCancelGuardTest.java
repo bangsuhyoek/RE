@@ -228,6 +228,8 @@ public class UniversalCancelGuardTest {
         assertTrue(script.contains("'멤버십 취소'"));
         assertTrue(script.contains("'반복 청구 끄기'"));
         assertTrue(script.contains("'billing'"));
+        assertTrue(script.contains("state:'BLOCKED'"));
+        assertTrue(script.contains("challenges.cloudflare.com"));
 
         GuardResult xboxFinal = UniversalCancelRoute.applyCancelEntryGuard(
                 new FlowState(), 2, "https://account.microsoft.com/services", "반복 청구 끄기", 4);
