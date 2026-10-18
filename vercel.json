@@ -1,5 +1,8 @@
 {
   "functions": {
+    "api/cancel-next-step.js": {
+      "maxDuration": 10
+    },
     "api/chat.js": {
       "maxDuration": 30
     }
