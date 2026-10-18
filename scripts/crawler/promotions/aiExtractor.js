@@ -122,6 +122,8 @@ export async function extractOfferWithAi(
     fetchImpl = globalThis.fetch,
     now = Date.now(),
     timeoutMs = 10000,
+    maxRetries = 1,
+    sleep = (ms) => new Promise((r) => setTimeout(r, ms)),
   } = {}
 ) {
   if (!apiKey || typeof fetchImpl !== "function") {
@@ -136,38 +138,58 @@ export async function extractOfferWithAi(
   let lastError = null;
 
   for (const model of GEMINI_MODELS) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-      const res = await fetchImpl(endpoint, {
-        method: "POST",
-        signal: controller.signal,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0,
-            responseMimeType: "application/json",
-          },
-        }),
-      });
-      if (!res.ok) {
-        lastError = `HTTP_${res.status}`;
-        continue;
+    let modelSuccess = false;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      if (attempt > 0) {
+        const delay = attempt === 1 ? 1000 : 3000;
+        await sleep(delay);
       }
-      const data = await res.json();
-      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!rawText) {
-        lastError = "EMPTY_MODEL_OUTPUT";
-        continue;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const res = await fetchImpl(endpoint, {
+          method: "POST",
+          signal: controller.signal,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0,
+              responseMimeType: "application/json",
+            },
+          }),
+        });
+        if (!res.ok) {
+          lastError = `HTTP_${res.status}`;
+          const isRetryableStatus = res.status === 429 || (res.status >= 500 && res.status < 600);
+          if (isRetryableStatus && attempt < maxRetries) {
+            continue;
+          }
+          break;
+        }
+        const data = await res.json();
+        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) {
+          lastError = "EMPTY_MODEL_OUTPUT";
+          break;
+        }
+        parsed = parseJsonResponse(rawText);
+        modelSuccess = true;
+        break;
+      } catch (err) {
+        const isAbort = err?.name === "AbortError";
+        lastError = isAbort ? "AI_TIMEOUT" : String(err?.message ?? err);
+        if (!isAbort && attempt < maxRetries) {
+          continue;
+        }
+        break;
+      } finally {
+        clearTimeout(timer);
       }
-      parsed = parseJsonResponse(rawText);
+    }
+    if (modelSuccess && parsed) {
       break;
-    } catch (err) {
-      lastError = err?.name === "AbortError" ? "AI_TIMEOUT" : String(err?.message ?? err);
-    } finally {
-      clearTimeout(timer);
     }
   }
 

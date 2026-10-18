@@ -448,10 +448,15 @@ export async function createPageFetcher({
           };
           lastResult = outcome;
           if (isTransientOutcome(outcome) && attempt < maxRetries) {
+            const isThrottledOrDown = outcome.status === 429 || outcome.status === 503;
+            if (isThrottledOrDown && attempt >= 1) {
+              return outcome;
+            }
             const delay = calculateRetryDelay({
               retryAfter: outcome.retryAfter,
               attempt,
               jitter: true,
+              ...(isThrottledOrDown ? { maxDelayMs: 30000 } : {}),
             });
             await sleep(delay);
             continue;

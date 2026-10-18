@@ -22,7 +22,6 @@ export const promotionSources = {
   // 음악
   "spotify-3m-free": { urls: ["https://www.spotify.com/kr-ko/premium/"] },
   "spotify-promo": { urls: ["https://www.spotify.com/kr-ko/premium/"] },
-  "genie-110won": { urls: ["https://pay.genie.co.kr/buy/recommend"] },
   "genie-promo": { urls: ["https://pay.genie.co.kr/buy/recommend"] },
   "melon-2m-discount": { urls: ["https://www.melon.com/buy/pamphlet/all.htm"], claim: { patterns: ["2\\s*개월", "할인|특가"] } },
   "melon-promo": { urls: ["https://www.melon.com/buy/pamphlet/all.htm", "https://www.melon.com/buy/pamphlet/discount.htm"], claim: { type: "manual", reason: "멜론 스트리밍클럽 2개월 특가 할인은 비구독자 대상 개인화 혜택으로 로그인 후에만 노출" } },
@@ -35,7 +34,6 @@ export const promotionSources = {
   },
 
   // 영상
-  "youtube-1m-free": { urls: ["https://www.youtube.com/premium"] },
   "youtube-lite-43": { urls: ["https://www.youtube.com/premium"], claim: { patterns: ["Lite", "43\\s*%"] } },
   "youtube-promo": { urls: ["https://www.youtube.com/premium"], claim: { text: "1개월 0원 무료 체험" } },
   "wavve-100-payback": { urls: ["https://www.wavve.com/voucher/index.html"] },
@@ -48,7 +46,6 @@ export const promotionSources = {
   "watcha-promo": { urls: ["https://watcha.com/"], claim: { type: "manual", reason: "왓챠 요금제 및 이용권 결제 페이지는 로그인 필수이며 공개 페이지에서는 연간 요금제를 안내하지 않음" } },
   // "와우회원이 아니어도 무료", "쿠팡 회원이라면 누구나 무료" 같이 와우 전용 혜택이 아님을 말하는 문장은 근거에서 제외
   "coupangplay-promo": { urls: ["https://www.coupangplay.com/"], claim: { patterns: ["와우", "무료|추가 비용 없이", "^(?![\\s\\S]*(?:아니어도|뿐만\\s*아니라|누구나))"] } },
-  "appletv-7d-free": { urls: [APPLE_TV] },
   "appletv-promo": { urls: [APPLE_TV] },
   "primevideo-promo": { urls: ["https://www.primevideo.com/"], claim: { type: "manual", reason: "아마존 프라임 비디오 무료체험(7일) 기간 표기는 공개 웹에서 미제공되며 계정 가입 단계에서만 노출" } },
   "dazn-promo": { urls: ["https://www.dazn.com/ko-KR/welcome"] },
@@ -56,7 +53,6 @@ export const promotionSources = {
   "weverse-promo": { claim: { type: "manual", reason: "아티스트별 멤버십이라 공통 혜택 페이지 없음" } },
 
   // 도서/오디오
-  "millie-1plus1": { urls: ["https://www.millie.co.kr/"], claim: { patterns: ["1\\s*\\+\\s*1|둘째\\s*달|2\\s*개월"] } },
   "millie-promo": { urls: ["https://www.millie.co.kr/"], claim: { patterns: ["1\\s*\\+\\s*1|둘째\\s*달|2\\s*개월"] } },
   "welaaa-first-month": { urls: ["https://www.welaaa.com/membership"] },
   "welaaa-promo": { urls: ["https://www.welaaa.com/membership"] },
@@ -88,7 +84,6 @@ export const promotionSources = {
   "figma-edu-free": { urls: ["https://www.figma.com/education/"], claim: { patterns: [PLAN_FREE("Professional|프로페셔널")], keywords: EDU } },
   "figma-promo": { urls: ["https://www.figma.com/education/"], claim: { patterns: [PLAN_FREE("Professional|프로페셔널")], keywords: EDU } },
   "canva-promo": { urls: ["https://www.canva.com/education/"], claim: { keywords: EDU } },
-  "github-student-pack": { urls: ["https://education.github.com/pack"], claim: { patterns: ["Copilot"], keywords: EDU } },
   "github-copilot-promo": { urls: ["https://education.github.com/pack"], claim: { patterns: ["Copilot"], keywords: EDU } },
   "jetbrains-student-free": { urls: ["https://www.jetbrains.com/community/education/"], claim: { keywords: EDU } },
   // 카탈로그는 "IDE 16종"이라고 안내하므로 페이지에 16이 있어야 확인 (현재 페이지는 "10 JetBrains IDEs")
