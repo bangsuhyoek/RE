@@ -57,6 +57,25 @@ export async function runCrawlerPipeline({ catalogFilePath } = {}) {
       } else {
         console.log(`    └─ Verified Successfully ✅`);
       }
+    } else {
+      console.warn(`    └─ ❌ 검증 실패(${parsedItem.id}): ${verificationResult.errors.join(", ")}`);
+      // 실패 항목은 unverified 상태로 전달하여 기존 값과 lastUpdated를 보존하도록 동기화 대상에 포함
+      verifiedCatalogItems.push({
+        ...parsedItem,
+        parseStatus: "UNVERIFIED",
+        status: "unverified",
+      });
+    }
+  }
+
+  // 실패 항목 목록 출력
+  const failedItems = verifiedCatalogItems.filter(
+    (item) => item.parseStatus && item.parseStatus !== "PARSED_SUCCESS"
+  );
+  if (failedItems.length > 0) {
+    console.warn(`\n⚠️ 수집/검증 실패 항목 목록 (${failedItems.length}개):`);
+    for (const f of failedItems) {
+      console.warn(` - [${f.id}] ${f.name} (사유: ${f.parseStatus})`);
     }
   }
 

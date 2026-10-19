@@ -22,7 +22,7 @@ export class CatalogSyncer {
    * @param {Array<Object>} verifiedItems - 검증된 카탈로그 항목 배열
    * @returns {Object} { success: boolean, updatedCount: number }
    */
-  sync(verifiedItems) {
+  sync(verifiedItems, { merge = true } = {}) {
     if (!Array.isArray(verifiedItems) || verifiedItems.length === 0) {
       return { success: false, updatedCount: 0, reason: "No verified items provided" };
     }
@@ -53,24 +53,43 @@ export class CatalogSyncer {
           .trim()
           .replace(/;\s*$/, "");
         existingServices = JSON.parse(rawJson);
-      } catch (_) {}
+      } catch (err) {
+        process.exitCode = 1;
+        throw new Error(`Failed to parse existing serviceCatalog JSON in ${this.filePath}: ${err.message}`);
+      }
     }
 
-    const serviceMap = new Map(existingServices.map((s) => [s.id, s]));
+    const serviceMap = merge ? new Map(existingServices.map((s) => [s.id, s])) : new Map();
     let keptExistingCount = 0;
     for (const item of verifiedItems) {
       if (!item || !item.id) continue;
-      const existing = serviceMap.get(item.id);
-      // 페이지를 읽지 못해 설정의 기본값으로 만든 항목은 이미 있는 가격과 확인 시각을 덮어쓰지 않는다.
-      // 실패했다는 기록(parseStatus)과 시도한 시각(lastCheckedAt)만 남긴다.
+      const existing = merge ? serviceMap.get(item.id) : null;
+      // 페이지를 읽지 못하거나 검증 실패로 안전한 파싱이 되지 않은 항목은
+      // 이미 있는 가격과 확인 시각(lastUpdated)을 덮어쓰지 않고 unverified 상태로 유지한다.
       if (existing && item.parseStatus && item.parseStatus !== "PARSED_SUCCESS") {
-        serviceMap.set(item.id, { ...existing, parseStatus: item.parseStatus, lastCheckedAt: item.lastUpdated });
+        serviceMap.set(item.id, {
+          ...existing,
+          parseStatus: item.parseStatus,
+          status: "unverified",
+          lastCheckedAt: item.lastUpdated || new Date().toISOString(),
+        });
         keptExistingCount += 1;
         continue;
       }
       serviceMap.set(item.id, { ...(existing || {}), ...item });
     }
     const finalServices = serviceMap.size > 0 ? Array.from(serviceMap.values()) : verifiedItems;
+
+    // 카탈로그 항목 수가 기존 항목 수보다 20% 넘게 줄어들면(shrink) 덮어쓰지 않고 중단
+    if (existingServices.length > 0) {
+      const minAllowedCount = Math.floor(existingServices.length * 0.8);
+      if (finalServices.length < minAllowedCount) {
+        process.exitCode = 1;
+        throw new Error(
+          `[CatalogSyncer Guard] Catalog count shrunk by more than 20%: previous ${existingServices.length}, next ${finalServices.length} (minimum allowed: ${minAllowedCount}). Aborting sync.`
+        );
+      }
+    }
     const itemsJson = JSON.stringify(finalServices, null, 2);
 
     let newCatalogSection = `export const serviceCatalog = ${itemsJson};\n\n`;

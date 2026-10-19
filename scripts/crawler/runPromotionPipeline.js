@@ -430,6 +430,9 @@ export async function runPromotionPipeline(options = {}) {
     }));
     report.applied = { kept: applied.kept, reviewCount: applied.reviewCount, removed: applied.removed, dbSync };
     console.log(formatDbSyncSummary(dbSync));
+    if ((dbSync.errors && dbSync.errors.length > 0) || (dbSync.skipped && dbSync.reason !== "SUPABASE_NOT_CONFIGURED")) {
+      process.exitCode = 1;
+    }
   } else if (args.syncDb) {
     const dbSync = await syncPromotionsToSupabase(readMasterCatalog(), { updatedAt: checkedAt }).catch((err) => ({
       skipped: true,
