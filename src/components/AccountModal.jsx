@@ -210,7 +210,7 @@ export function AccountModal({
           <div className="flex items-center gap-2">
             <strong className="text-[16px] font-bold text-[#191F28] truncate">{currentNickname}</strong>
             <span className="rounded-md bg-[#EEF2F6] px-1.5 py-0.5 text-[10px] font-semibold text-[#4E5968]">
-              {isGoogle ? "Google" : "꾸독"}
+              {isGoogle ? "Google" : "게스트"}
             </span>
           </div>
           <p className="mt-0.5 text-[12px] text-[#8B95A1] flex items-center gap-1 truncate">
@@ -220,9 +220,10 @@ export function AccountModal({
                 <span className="truncate">{profile?.email || "Google 계정 연동됨"}</span>
               </>
             ) : (
-              <span>꾸독 정식 회원</span>
+              <span>체험 게스트 모드</span>
             )}
           </p>
+
         </div>
       </div>
 

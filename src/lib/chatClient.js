@@ -4,7 +4,15 @@ import { getNextChargeDate, toLocalDateKey } from "./dates.js";
 import { getPaymentMethodInfo } from "./paymentMethod.js";
 import { unusedStreak } from "./usageCheck.js";
 
+import {
+  readUserConsent,
+  setUserConsent,
+  revokeUserConsent,
+  migrateLegacyConsentIfNeeded,
+} from "./consentStore.js";
+
 export const CHAT_CONSENT_KEY = "submate.chatConsent.v1";
+
 export const CHAT_HISTORY_PREFIX = "submate:chat-history";
 export const MAX_PERSISTED_MESSAGES = 30;
 
@@ -156,27 +164,20 @@ export function clearChatHistory(userId = null) {
 }
 
 /**
- * Consent helpers for AI data sharing.
+ * Consent helpers for AI data sharing (per-user with guest fallback).
  */
-export function readChatConsent() {
-  try {
-    return getClientStorage().getItem(CHAT_CONSENT_KEY) === "granted";
-  } catch {
-    return false;
-  }
+export function readChatConsent(userId = null, storage = null) {
+  return readUserConsent(userId, "chat", storage);
 }
 
-export function grantChatConsent() {
-  try {
-    getClientStorage().setItem(CHAT_CONSENT_KEY, "granted");
-  } catch {}
+export function grantChatConsent(userId = null, storage = null) {
+  setUserConsent(userId, "chat", true, {}, storage);
 }
 
-export function revokeChatConsent() {
-  try {
-    getClientStorage().removeItem(CHAT_CONSENT_KEY);
-  } catch {}
+export function revokeChatConsent(userId = null, storage = null) {
+  revokeUserConsent(userId, "chat", storage);
 }
+
 
 /**
  * Creates an incremental SSE parser for event-stream payloads.
