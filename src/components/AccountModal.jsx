@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { LogOut, Check, X, AlertCircle, FileText } from "lucide-react";
+import { LogOut, Check, X, AlertCircle, FileText, Download, Trash2, AlertTriangle } from "lucide-react";
 import { BottomSheet, Button } from "./ui";
 import { readEvidenceCases } from "../lib/storage";
 import { deleteAllEvidence, grantEvidenceConsent, readEvidenceConsent, revokeEvidenceConsent } from "../lib/evidenceStore";
 import { grantDifficultyConsent, readDifficultyConsent, revokeDifficultyConsent } from "../lib/cancelDifficulty";
+import { supabase } from "../lib/supabase";
+import { requestAccountDeletion, clearDeviceData } from "../lib/accountClient";
+import { exportUserData } from "../lib/dataExport";
 
 /** 결제 경고 증빙의 계정 보관 동의와 삭제 */
 function EvidenceSettings({ userId, onToast }) {
@@ -313,14 +316,25 @@ export function AccountModal({
 
       <DifficultySettings userId={userId} onToast={onToast} />
 
+      {/* 데이터 내보내기 (JSON 백업) */}
+      <DataExportSection userId={userId} profile={profile} onToast={onToast} />
+
+      {/* 회원 탈퇴 (데이터 영구 파기 및 로컬 정리) */}
+      <AccountDeletionSection
+        userId={userId}
+        onToast={onToast}
+        onClose={onClose}
+        onLogout={onLogout}
+      />
+
       {/* 로그아웃 블록 */}
       <div className="mt-6 pt-2">
         <Button
           variant="secondary"
           className="w-full flex items-center justify-center gap-2 text-[#E11D48] hover:bg-red-50 hover:border-red-200 border-[#E5E8EB] py-3 text-[14px]"
           onClick={() => {
-            handleAccountClose();
-            onLogout();
+            onClose?.();
+            onLogout?.();
           }}
         >
           <LogOut size={16} />
@@ -328,5 +342,180 @@ export function AccountModal({
         </Button>
       </div>
     </BottomSheet>
+  );
+}
+
+/** 데이터 내보내기 구역 (JSON 내보내기, 게스트/회원 모두 지원) */
+function DataExportSection({ userId, profile, onToast }) {
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const res = await exportUserData({ userId, profile });
+      if (res?.ok) {
+        onToast?.("데이터를 JSON 파일로 내보냈어요.");
+      } else {
+        onToast?.("데이터 내보내기에 실패했어요. 다시 시도해 주세요.");
+      }
+    } catch {
+      onToast?.("데이터 내보내기에 실패했어요. 다시 시도해 주세요.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs" data-testid="account-export-section">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 pr-2">
+          <strong className="flex items-center gap-1.5 text-[13px] font-bold text-[#191F28]">
+            <Download size={14} /> 데이터 내보내기
+          </strong>
+          <span className="mt-0.5 block text-[11px] leading-relaxed text-[#8B95A1]">
+            구독 목록, 해지 기록, 증빙 요약 및 동의 내역을 JSON 파일로 백업해요.
+          </span>
+        </div>
+        <Button
+          size="compact"
+          variant="secondary"
+          disabled={exporting}
+          onClick={handleExport}
+          className="shrink-0 text-[12px] font-semibold"
+          data-testid="account-export-button"
+        >
+          {exporting ? "생성 중..." : "내보내기"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/** 회원 탈퇴 구역 (지워지는 항목 설명, '탈퇴' 확인 입력, 진행/실패 표시, 로컬 정리 후 로그아웃) */
+function AccountDeletionSection({ userId, onToast, onClose, onLogout }) {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmInput, setConfirmInput] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const isConfirmed = confirmInput.trim() === "탈퇴";
+
+  const handleDelete = async () => {
+    if (!isConfirmed || deleting) return;
+    setDeleting(true);
+    setErrorMsg("");
+
+    try {
+      if (userId) {
+        // 로그인 회원인 경우 서버 계정 및 원격 데이터 삭제
+        const sessionRes = await supabase?.auth?.getSession?.();
+        const token = sessionRes?.data?.session?.access_token;
+        if (!token) {
+          throw new Error("인증 세션이 만료되었습니다. 다시 로그인 후 시도해 주세요.");
+        }
+        await requestAccountDeletion({ token, confirmation: "탈퇴" });
+      }
+
+      // 기기 로컬 데이터 영구 삭제
+      clearDeviceData();
+
+      onToast?.("회원 탈퇴 및 모든 데이터 삭제가 완료되었어요.");
+      onClose?.();
+      onLogout?.();
+    } catch (err) {
+      console.error("탈퇴 처리 실패:", err?.code || "FAILED");
+      setErrorMsg(err.message || "탈퇴 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 rounded-2xl border border-red-100 bg-red-50/40 p-4 shadow-2xs" data-testid="account-deletion-section">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <strong className="flex items-center gap-1.5 text-[13px] font-bold text-[#F04452]">
+            <Trash2 size={14} /> {userId ? "회원 탈퇴" : "로컬 데이터 초기화 및 탈퇴"}
+          </strong>
+          <span className="mt-0.5 block text-[11px] leading-relaxed text-[#8B95A1]">
+            계정과 연동된 모든 구독·증빙·승인 데이터가 즉시 영구 삭제됩니다.
+          </span>
+        </div>
+        {!showConfirm && (
+          <button
+            type="button"
+            onClick={() => setShowConfirm(true)}
+            className="shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-bold text-[#F04452] hover:bg-red-100/60 transition-colors"
+          >
+            탈퇴하기
+          </button>
+        )}
+      </div>
+
+      {showConfirm && (
+        <div className="mt-3 border-t border-red-100 pt-3">
+          <div className="rounded-xl bg-white p-3 border border-red-100 text-[11px] text-[#4E5968] leading-relaxed">
+            <p className="font-bold text-[#F04452] flex items-center gap-1 mb-1">
+              <AlertTriangle size={13} /> 삭제되는 항목 안내
+            </p>
+            <ul className="list-disc pl-4 space-y-0.5 text-[#6B7684]">
+              <li>등록된 모든 활성 및 과거 구독 목록</li>
+              <li>결제 증빙 및 영수증 자동 인식 내역</li>
+              <li>AI 에이전트 승인 요청 및 자동 허용(위임) 기록</li>
+              <li>기기에 보관된 캐시 및 환경 설정</li>
+            </ul>
+            <p className="mt-2 text-[10px] text-[#8B95A1]">
+              * 탈퇴 후에는 모든 데이터가 영구 파기되며 절대 복구할 수 없습니다.
+            </p>
+          </div>
+
+          <div className="mt-3">
+            <label className="block text-[11px] font-medium text-[#4E5968] mb-1">
+              계속하려면 <strong className="text-[#F04452]">'탈퇴'</strong>를 입력해 주세요.
+            </label>
+            <input
+              type="text"
+              value={confirmInput}
+              onChange={(e) => setConfirmInput(e.target.value)}
+              placeholder="탈퇴"
+              disabled={deleting}
+              className="w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-[#F04452] placeholder:text-[#A1A1AA]"
+              data-testid="account-delete-input"
+            />
+          </div>
+
+          {errorMsg && (
+            <p className="mt-2 flex items-center gap-1 text-[11px] font-medium text-[#F04452]">
+              <AlertCircle size={13} />
+              {errorMsg}
+            </p>
+          )}
+
+          <div className="mt-3 flex gap-2">
+            <Button
+              size="compact"
+              variant="secondary"
+              disabled={deleting}
+              onClick={() => {
+                setShowConfirm(false);
+                setConfirmInput("");
+                setErrorMsg("");
+              }}
+              className="flex-1 text-[12px]"
+            >
+              취소
+            </Button>
+            <Button
+              size="compact"
+              disabled={!isConfirmed || deleting}
+              onClick={handleDelete}
+              className="flex-1 !bg-[#F04452] text-white text-[12px] disabled:opacity-40"
+              data-testid="account-delete-button"
+            >
+              {deleting ? "탈퇴 처리 중..." : "영구 탈퇴"}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
