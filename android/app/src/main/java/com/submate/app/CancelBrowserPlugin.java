@@ -1,13 +1,7 @@
 package com.submate.app;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.Uri;
-import android.os.Build;
-import android.provider.Settings;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -19,113 +13,30 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "CancelBrowser")
 public class CancelBrowserPlugin extends Plugin {
 
-    public static final String PERMISSION_CANCEL_COMPLETE = "com.submate.app.permission.RECEIVE_CANCEL_COMPLETE";
-
-    private BroadcastReceiver completeReceiver;
-
     @PluginMethod
     public void checkOverlayPermission(PluginCall call) {
         JSObject ret = new JSObject();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ret.put("hasPermission", Settings.canDrawOverlays(getContext()));
-        } else {
-            ret.put("hasPermission", true);
-        }
+        ret.put("hasPermission", false);
         call.resolve(ret);
     }
 
     @PluginMethod
     public void requestOverlayPermission(PluginCall call) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(getContext())) {
-            Intent intent = new Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:" + getContext().getPackageName())
-            );
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            getContext().startActivity(intent);
-        }
         JSObject ret = new JSObject();
-        ret.put("status", "REQUESTED");
+        ret.put("status", "UNSUPPORTED");
         call.resolve(ret);
     }
 
     @PluginMethod
     public void startFloatingGuide(PluginCall call) {
-        String serviceId = call.getString("serviceId", "");
-        String serviceName = call.getString("serviceName", "");
-        String cancelUrl = call.getString("cancelUrl", "");
-        String guideStepsJson = call.getArray("guideSteps") != null
-                ? call.getArray("guideSteps").toString()
-                : "[]";
-
-        Context ctx = getContext();
-
-        Intent serviceIntent = new Intent(ctx, OverlayGuideService.class);
-        serviceIntent.putExtra("serviceId", serviceId);
-        serviceIntent.putExtra("serviceName", serviceName);
-        serviceIntent.putExtra("guideStepsJson", guideStepsJson);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ctx.startForegroundService(serviceIntent);
-        } else {
-            ctx.startService(serviceIntent);
-        }
-
-        if (cancelUrl != null && !cancelUrl.trim().isEmpty()) {
-            try {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(cancelUrl));
-                browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                ctx.startActivity(browserIntent);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        registerCompleteListener();
-
-        JSObject ret = new JSObject();
-        ret.put("status", "STARTED");
-        call.resolve(ret);
+        call.reject("플로팅 가이드 기능은 더 이상 지원되지 않습니다. 인앱 해지 브라우저를 이용해 주세요.", "UNSUPPORTED");
     }
 
     @PluginMethod
     public void stopFloatingGuide(PluginCall call) {
-        Intent serviceIntent = new Intent(getContext(), OverlayGuideService.class);
-        serviceIntent.setAction(OverlayGuideService.ACTION_STOP);
-        getContext().startService(serviceIntent);
-
         JSObject ret = new JSObject();
         ret.put("status", "STOPPED");
         call.resolve(ret);
-    }
-
-    private void registerCompleteListener() {
-        if (completeReceiver != null) return;
-        completeReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                JSObject data = new JSObject();
-                String service = intent.getStringExtra("serviceName");
-                data.put("serviceName", service != null ? service : "");
-                notifyListeners("onCancelCompleted", data);
-            }
-        };
-        IntentFilter filter = new IntentFilter(OverlayGuideService.ACTION_COMPLETE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            getContext().registerReceiver(completeReceiver, filter, PERMISSION_CANCEL_COMPLETE, null, Context.RECEIVER_NOT_EXPORTED);
-        } else {
-            getContext().registerReceiver(completeReceiver, filter, PERMISSION_CANCEL_COMPLETE, null);
-        }
-    }
-
-    @Override
-    protected void handleOnDestroy() {
-        if (completeReceiver != null) {
-            try {
-                getContext().unregisterReceiver(completeReceiver);
-            } catch (Exception ignored) {}
-            completeReceiver = null;
-        }
-        super.handleOnDestroy();
     }
 
     @PluginMethod

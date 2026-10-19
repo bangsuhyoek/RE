@@ -861,6 +861,8 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 popupDialog.setContentView(newWebView);
                 popupDialog.setOnDismissListener(d -> {
                     if (naverGuideController != null) naverGuideController.onPopupClosed();
+                    newWebView.stopLoading();
+                    newWebView.destroy();
                 });
                 popupDialog.show();
 
@@ -868,7 +870,6 @@ public class CancelBrowserActivity extends AppCompatActivity {
                     @Override
                     public void onCloseWindow(WebView window) {
                         popupDialog.dismiss();
-                        if (naverGuideController != null) naverGuideController.onPopupClosed();
                     }
                 });
 
@@ -996,23 +997,34 @@ public class CancelBrowserActivity extends AppCompatActivity {
             }
 
             holder.ivStepThumb.setImageBitmap(null);
+            holder.ivStepThumb.setTag(item.imageUrl);
             if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
+                final String targetUrl = item.imageUrl;
                 executor.execute(() -> {
+                    HttpURLConnection conn = null;
+                    InputStream input = null;
                     try {
-                        URL url = new URL(item.imageUrl);
-                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        URL url = new URL(targetUrl);
+                        conn = (HttpURLConnection) url.openConnection();
                         conn.setConnectTimeout(5000);
                         conn.setReadTimeout(5000);
                         conn.setDoInput(true);
                         conn.connect();
-                        InputStream input = conn.getInputStream();
+                        input = conn.getInputStream();
                         Bitmap bmp = BitmapFactory.decodeStream(input);
                         mainHandler.post(() -> {
-                            if (bmp != null) {
+                            if (targetUrl.equals(holder.ivStepThumb.getTag())) {
                                 holder.ivStepThumb.setImageBitmap(bmp);
                             }
                         });
                     } catch (Exception ignored) {
+                    } finally {
+                        if (input != null) {
+                            try { input.close(); } catch (Exception ignored) {}
+                        }
+                        if (conn != null) {
+                            try { conn.disconnect(); } catch (Exception ignored) {}
+                        }
                     }
                 });
             }

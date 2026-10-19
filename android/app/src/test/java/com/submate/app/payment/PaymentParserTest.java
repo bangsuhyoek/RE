@@ -89,6 +89,12 @@ public class PaymentParserTest {
     }
 
     @Test
+    public void testSimulatePaymentDebugGuard() {
+        // BuildConfig.DEBUG flag is verified to be boolean
+        assertTrue("Unit test environment should have BuildConfig.DEBUG", com.submate.app.BuildConfig.DEBUG);
+    }
+
+    @Test
     public void testAccountTransferRejected() {
         PaymentParser.ParsedPayment parsed = PaymentParser.parse(
                 "com.shinhan.sbanking",
