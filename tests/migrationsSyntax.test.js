@@ -64,3 +64,52 @@ test("Supabase SQL migrations syntax and dollar-quoting guards", () => {
     );
   }
 });
+
+test("SubMate 20261019 stream migrations contract checks", () => {
+  const migrationsDir = path.join(__dirname, "..", "supabase", "migrations");
+
+  // 1. Subscriptions constraints and indexes migration
+  const subFile = path.join(migrationsDir, "20261019100000_fix_subscriptions_constraints_and_indexes.sql");
+  assert.ok(fs.existsSync(subFile), "20261019100000 migration must exist");
+  const subSql = fs.readFileSync(subFile, "utf8");
+  assert.ok(subSql.includes("amount_krw >= 0"), "Subscriptions must allow amount_krw >= 0");
+  assert.ok(subSql.includes("is_pinned boolean not null default false"), "Subscriptions must have is_pinned boolean not null default false");
+  assert.ok(subSql.includes("subscriptions_set_updated_at"), "Subscriptions must guarantee updated_at UPDATE trigger");
+  assert.ok(subSql.includes("drop index if exists public.subscriptions_user_service_plan_active_uidx"), "Overly restrictive unique index must be dropped");
+
+  // 2. Benefits verified_status unification migration
+  const benFile = path.join(migrationsDir, "20261019101000_unify_benefit_verified_status.sql");
+  assert.ok(fs.existsSync(benFile), "20261019101000 migration must exist");
+  const benSql = fs.readFileSync(benFile, "utf8");
+  assert.ok(benSql.includes("set verified_status = 'confirmed'"), "Must migrate active status to confirmed");
+  assert.ok(benSql.includes("check (verified_status in ('confirmed', 'unverified', 'expired'))"), "Must enforce confirmed|unverified|expired check");
+  assert.ok(benSql.includes("drop function if exists public.get_user_personalized_benefits(uuid)"), "Must drop unused get_user_personalized_benefits function");
+
+  // 3. Evidence cases server-enforced timestamp triggers
+  const eviFile = path.join(migrationsDir, "20261019102000_enforce_evidence_timestamps.sql");
+  assert.ok(fs.existsSync(eviFile), "20261019102000 migration must exist");
+  const eviSql = fs.readFileSync(eviFile, "utf8");
+  assert.ok(eviSql.includes("set_evidence_case_timestamps"), "Must define set_evidence_case_timestamps trigger function");
+  assert.ok(eviSql.includes("new.created_at := now();"), "Must force created_at to now()");
+  assert.ok(eviSql.includes("new.expires_at := now() + interval '1 year';"), "Must force expires_at to 1 year from now()");
+
+  // 4. Cancel difficulty reports k-anonymity (5+ distinct users)
+  const cdFile = path.join(migrationsDir, "20261019103000_k_anonymous_cancel_difficulty.sql");
+  assert.ok(fs.existsSync(cdFile), "20261019103000 migration must exist");
+  const cdSql = fs.readFileSync(cdFile, "utf8");
+  assert.ok(cdSql.includes("user_hash text"), "Must add user_hash column");
+  assert.ok(cdSql.includes("new.user_hash :="), "Must calculate user_hash in trigger");
+  assert.ok(cdSql.includes("having pg_catalog.count(distinct r.user_hash) >= 5") || cdSql.includes("having count(distinct r.user_hash) >= 5"), "Must require >= 5 distinct reporters");
+
+  // 5. Local config and pgTAP test suite
+  const configPath = path.join(__dirname, "..", "supabase", "config.toml");
+  assert.ok(fs.existsSync(configPath), "supabase/config.toml must exist");
+
+  const pgTapPath = path.join(__dirname, "..", "supabase", "tests", "rls_user_isolation.test.sql");
+  assert.ok(fs.existsSync(pgTapPath), "supabase/tests/rls_user_isolation.test.sql must exist");
+  const pgTapSql = fs.readFileSync(pgTapPath, "utf8");
+  for (const table of ["subscriptions", "receipt_recognitions", "evidence_cases", "evidence_items", "approval_requests", "agent_mandates", "agent_chat_usage"]) {
+    assert.ok(pgTapSql.includes(table), `pgTAP suite must test table ${table}`);
+  }
+});
+
