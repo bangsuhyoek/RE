@@ -1,28 +1,38 @@
 import { Component } from "react";
 
-// 화면을 그리다 예외가 나면 흰 화면 대신 복구 화면을 보여준다. 다시 시도·홈으로 모두 앱을 새로 불러온다
-// (지연 로딩 묶음을 못 받은 경우에도 새로 받아오게 하려는 것). 구독 데이터는 기기 저장소에 남아 있다.
+// 지연 로딩 묶음을 받지 못한 오류는 다시 그려도 같은 실패가 반복되므로 페이지를 새로 불러와야 한다.
+const CHUNK_LOAD_ERROR_PATTERN = /dynamically imported module|Importing a module script failed|Failed to fetch/i;
+
+// 화면을 그리다 예외가 나면 흰 화면 대신 복구 화면(다시 시도·홈으로)을 보여준다.
 export class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, chunkLoadFailed: false };
   }
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error) {
+    return { hasError: true, chunkLoadFailed: CHUNK_LOAD_ERROR_PATTERN.test(String(error?.message || error)) };
   }
 
   componentDidCatch(error, info) {
     console.error("화면 렌더링 오류", error, info?.componentStack);
   }
 
+  recover = () => {
+    if (this.state.chunkLoadFailed) {
+      window.location.reload();
+      return;
+    }
+    this.setState({ hasError: false, chunkLoadFailed: false });
+  };
+
   handleRetry = () => {
-    window.location.reload();
+    this.recover();
   };
 
   handleGoHome = () => {
     window.location.hash = "#/home";
-    window.location.reload();
+    this.recover();
   };
 
   render() {
@@ -35,7 +45,7 @@ export class ErrorBoundary extends Component {
           </div>
           <h1 className="mt-4 text-[19px] font-extrabold tracking-tight text-[#111315]">화면을 불러오지 못했어요</h1>
           <p className="mt-2 text-[13.5px] leading-relaxed text-[#6B7684]">
-            일시적인 문제일 수 있어요. 등록한 구독 정보는 그대로 남아 있어요.
+            일시적인 문제일 수 있어요. 다시 시도하거나 홈으로 이동해 주세요.
           </p>
           <div className="mt-6 grid gap-2">
             <button
