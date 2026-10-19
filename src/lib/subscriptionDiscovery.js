@@ -190,6 +190,9 @@ function normalizeName(value = "") {
 /**
  * 숨은 구독 찾기에서 고른 항목을 구독 레코드로 만든다. 기존 목록과 이번 묶음 안에서 같은 구독(이름+요금제,
  * 또는 해지되지 않은 같은 서비스)은 한 번만 넣고, 항목마다 고유 ID 를 붙인다.
+ * 같은 serviceId 는 요금제가 달라도 제외한다. 결제 내역에서 찾은 요금제 이름은 추정이라(금액·기본 플랜으로 채움)
+ * 이미 쓰는 서비스를 요금제 이름만 다르게 한 번 더 등록하는 것을 막기 위해서다. 같은 서비스를 두 요금제로
+ * 쓰는 드문 경우는 일반 추가 화면에서 직접 등록한다.
  */
 export function buildDiscoveredSubscriptions(items = [], existingSubscriptions = [], { catalog = [], now = new Date(), createId = createSubscriptionId } = {}) {
   const accepted = [];

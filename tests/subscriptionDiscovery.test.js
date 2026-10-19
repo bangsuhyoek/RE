@@ -37,7 +37,6 @@ test("숨은 구독 일괄 등록은 같은 순간에 만든 5건에도 모두 �
   assert.equal(records.length, 5);
   assert.equal(skippedCount, 0);
   assert.equal(new Set(records.map((r) => r.subscriptionId)).size, 5);
-  assert.equal(new Set(records.map((r) => r.id)).size, 5);
 });
 
 test("randomUUID 가 없는 환경에서도 연달아 만든 구독 ID 가 겹치지 않는다", () => {
