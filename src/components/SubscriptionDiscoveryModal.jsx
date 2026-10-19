@@ -31,6 +31,84 @@ const SAMPLE_STATEMENT_TEXT = [
   "2026.10.16 [신한카드] GS25역삼점 4,500원 일시불 (일반 결제는 자동 제외됨)",
 ].join("\n");
 
+const CYCLE_OPTIONS = [
+  { value: "매월", label: "월간" },
+  { value: "매년", label: "연간" },
+];
+
+// 발견한 구독 한 건. 위쪽을 누르면 선택이 바뀌고, 아래에서 결제 주기(월간·연간)를 직접 고칠 수 있다.
+function DiscoveryItemCard({ item, checked, billingCycle, cycleEdited, onToggle, onCycleChange, badges, detail }) {
+  const needsCheck = item.cycleConfirmed === false && !cycleEdited;
+  return (
+    <div
+      className={
+        "rounded-2xl border transition-all " +
+        (checked ? "border-[#153D2E] bg-[#F4F7F5]" : "border-[#E7EAE8] bg-white")
+      }
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-pressed={checked}
+        className="flex w-full items-center justify-between p-3.5 pb-2 text-left"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <ServiceMark
+            serviceId={item.serviceId}
+            name={item.name}
+            className="h-10 w-10 shrink-0 rounded-xl"
+          />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <strong className="text-[14px] font-bold text-[#111315]">
+                {item.name}
+              </strong>
+              {badges}
+            </div>
+            <p className="mt-0.5 text-[12px] text-[#6B7684]">{detail}</p>
+          </div>
+        </div>
+        <span
+          className={
+            "grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-all " +
+            (checked
+              ? "border-[#153D2E] bg-[#153D2E] text-white"
+              : "border-[#DDE2DF] bg-white")
+          }
+        >
+          {checked && <Check size={13} strokeWidth={3} />}
+        </span>
+      </button>
+      <div className="flex items-center justify-between gap-2 px-3.5 pb-3 pl-[66px]">
+        <span className={"text-[11.5px] font-semibold " + (needsCheck ? "text-amber-700" : "text-[#6B7684]")}>
+          {needsCheck ? "결제 주기를 확인해 주세요" : "결제 주기"}
+        </span>
+        <div
+          role="radiogroup"
+          aria-label={item.name + " 결제 주기"}
+          className="inline-flex rounded-lg border border-[#E7EAE8] bg-white p-0.5"
+        >
+          {CYCLE_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={billingCycle === option.value}
+              onClick={() => onCycleChange(option.value)}
+              className={
+                "rounded-md px-2.5 py-1 text-[11.5px] font-bold transition-colors " +
+                (billingCycle === option.value ? "bg-[#153D2E] text-white" : "text-[#6B7684] hover:text-[#111315]")
+              }
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SubscriptionDiscoveryModal({
   catalog = [],
   subscriptions = [],
@@ -45,11 +123,18 @@ export function SubscriptionDiscoveryModal({
   const [statementText, setStatementText] = useState("");
   const [statementItems, setStatementItems] = useState([]);
   const [selectedKeys, setSelectedKeys] = useState(new Set());
+  const [cycleOverrides, setCycleOverrides] = useState({});
   const [crawlingHubId, setCrawlingHubId] = useState("");
   const textFileInputRef = useRef(null);
 
   const getItemKey = (item) =>
     (item.serviceId || item.name || "sub") + "_" + String(item.amount || 0);
+
+  const getCycle = (item) => cycleOverrides[getItemKey(item)] || item.billingCycle || "매월";
+  const setCycle = (item, cycle) =>
+    setCycleOverrides((prev) => ({ ...prev, [getItemKey(item)]: cycle }));
+  const describeAmount = (item) =>
+    (getCycle(item) === "매년" ? "연 " : "월 ") + formatWon(item.amount) + " · " + getCycle(item) + " " + String(item.dueDay) + "일";
 
   // 기기 스캔 실행 (설치된 구독 앱 + 활성 알림)
   const runDeviceScan = async (useDemoIfWeb = false) => {
@@ -157,7 +242,9 @@ export function SubscriptionDiscoveryModal({
   };
 
   const activeList = activeTab === "device" ? deviceItems : activeTab === "statement" ? statementItems : [];
-  const selectedItems = activeList.filter((item) => selectedKeys.has(getItemKey(item)));
+  const selectedItems = activeList
+    .filter((item) => selectedKeys.has(getItemKey(item)))
+    .map((item) => ({ ...item, billingCycle: getCycle(item) }));
 
   const handleBatchAdd = () => {
     if (selectedItems.length === 0) return;
@@ -328,55 +415,29 @@ export function SubscriptionDiscoveryModal({
                 <div className="mt-3 space-y-2.5">
                   {deviceItems.map((item) => {
                     const key = getItemKey(item);
-                    const checked = selectedKeys.has(key);
                     return (
-                      <button
+                      <DiscoveryItemCard
                         key={key}
-                        type="button"
-                        onClick={() => toggleKey(key)}
-                        className={
-                          "flex w-full items-center justify-between rounded-2xl border p-3.5 text-left transition-all " +
-                          (checked
-                            ? "border-[#153D2E] bg-[#F4F7F5]"
-                            : "border-[#E7EAE8] bg-white")
-                        }
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <ServiceMark
-                            serviceId={item.serviceId}
-                            name={item.name}
-                            className="h-10 w-10 shrink-0 rounded-xl"
-                          />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <strong className="text-[14px] font-bold text-[#111315]">
-                                {item.name}
-                              </strong>
-                              <span className="rounded-md bg-[#EAF2ED] px-1.5 py-0.5 text-[10px] font-bold text-[#153D2E]">
-                                {item.sourceBadge}
+                        item={item}
+                        checked={selectedKeys.has(key)}
+                        billingCycle={getCycle(item)}
+                        cycleEdited={Boolean(cycleOverrides[key])}
+                        onToggle={() => toggleKey(key)}
+                        onCycleChange={(cycle) => setCycle(item, cycle)}
+                        detail={item.plan + " · " + describeAmount(item)}
+                        badges={
+                          <>
+                            <span className="rounded-md bg-[#EAF2ED] px-1.5 py-0.5 text-[10px] font-bold text-[#153D2E]">
+                              {item.sourceBadge}
+                            </span>
+                            {item.alreadyRegistered && (
+                              <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500">
+                                이미 등록됨
                               </span>
-                              {item.alreadyRegistered && (
-                                <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500">
-                                  이미 등록됨
-                                </span>
-                              )}
-                            </div>
-                            <p className="mt-0.5 text-[12px] text-[#6B7684]">
-                              {item.plan} · 월 {formatWon(item.amount)} · 매월 {item.dueDay}일
-                            </p>
-                          </div>
-                        </div>
-                        <span
-                          className={
-                            "grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-all " +
-                            (checked
-                              ? "border-[#153D2E] bg-[#153D2E] text-white"
-                              : "border-[#DDE2DF] bg-white")
-                          }
-                        >
-                          {checked && <Check size={13} strokeWidth={3} />}
-                        </span>
-                      </button>
+                            )}
+                          </>
+                        }
+                      />
                     );
                   })}
                 </div>
@@ -455,55 +516,29 @@ export function SubscriptionDiscoveryModal({
                   </p>
                   {statementItems.map((item) => {
                     const key = getItemKey(item);
-                    const checked = selectedKeys.has(key);
                     return (
-                      <button
+                      <DiscoveryItemCard
                         key={key}
-                        type="button"
-                        onClick={() => toggleKey(key)}
-                        className={
-                          "flex w-full items-center justify-between rounded-2xl border p-3.5 text-left transition-all " +
-                          (checked
-                            ? "border-[#153D2E] bg-[#F4F7F5]"
-                            : "border-[#E7EAE8] bg-white")
-                        }
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <ServiceMark
-                            serviceId={item.serviceId}
-                            name={item.name}
-                            className="h-10 w-10 shrink-0 rounded-xl"
-                          />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <strong className="text-[14px] font-bold text-[#111315]">
-                                {item.name}
-                              </strong>
-                              <span className="rounded-md bg-[#EAF2ED] px-1.5 py-0.5 text-[10px] font-bold text-[#153D2E]">
-                                {item.reason}
+                        item={item}
+                        checked={selectedKeys.has(key)}
+                        billingCycle={getCycle(item)}
+                        cycleEdited={Boolean(cycleOverrides[key])}
+                        onToggle={() => toggleKey(key)}
+                        onCycleChange={(cycle) => setCycle(item, cycle)}
+                        detail={item.plan + " · " + describeAmount(item) + " · " + item.paymentMethod}
+                        badges={
+                          <>
+                            <span className="rounded-md bg-[#EAF2ED] px-1.5 py-0.5 text-[10px] font-bold text-[#153D2E]">
+                              {item.reason}
+                            </span>
+                            {item.isTrial && (
+                              <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-900">
+                                무료체험
                               </span>
-                              {item.isTrial && (
-                                <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-900">
-                                  무료체험
-                                </span>
-                              )}
-                            </div>
-                            <p className="mt-0.5 text-[12px] text-[#6B7684]">
-                              {item.plan} · {formatWon(item.amount)} ({item.billingCycle}) · {item.dueDay}일 · {item.paymentMethod}
-                            </p>
-                          </div>
-                        </div>
-                        <span
-                          className={
-                            "grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-all " +
-                            (checked
-                              ? "border-[#153D2E] bg-[#153D2E] text-white"
-                              : "border-[#DDE2DF] bg-white")
-                          }
-                        >
-                          {checked && <Check size={13} strokeWidth={3} />}
-                        </span>
-                      </button>
+                            )}
+                          </>
+                        }
+                      />
                     );
                   })}
                 </div>

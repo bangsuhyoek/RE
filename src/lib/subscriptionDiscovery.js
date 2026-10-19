@@ -1,6 +1,7 @@
 import { parseReceiptText, collectAmounts, parseDayFromValue, detectPaymentMethod } from "../../api/_lib/receiptParser.js";
 import { detectTrialText } from "./trialGuard.js";
 import { scanInstalledSubscriptionApps, scanActivePaymentNotifications } from "./paymentCapture.js";
+import { isDuplicateSubscription } from "./subscriptionAdd.js";
 
 /**
  * 한국 주요 구독 요금제 가격 지문(Price Fingerprint) 및 별칭 사전.
@@ -11,13 +12,13 @@ export const DISCOVERY_SERVICE_SPECS = [
   { id: "netflix", name: "Netflix", category: "OTT", aliases: ["netflix", "넷플릭스", "넷플"], amounts: [5500, 13500, 17000], strictAmount: false, defaultPlan: "스탠다드", defaultAmount: 13500 },
   { id: "youtube", name: "YouTube Premium", category: "OTT", aliases: ["youtube premium", "youtube", "유튜브프리미엄", "유튜브", "구글유튜브", "google*youtube"], amounts: [8690, 10450, 14900], strictAmount: false, defaultPlan: "개인 멤버십", defaultAmount: 14900 },
   { id: "tving", name: "티빙", category: "OTT", aliases: ["tving", "티빙", "cjenm"], amounts: [5500, 9500, 13500, 17000], strictAmount: false, defaultPlan: "스탠다드", defaultAmount: 13500 },
-  { id: "disney", name: "Disney+", category: "OTT", aliases: ["disney+", "disneyplus", "디즈니+", "디즈니플러스"], amounts: [9900, 13900, 99000, 139000], strictAmount: false, defaultPlan: "스탠다드", defaultAmount: 9900 },
+  { id: "disney", name: "Disney+", category: "OTT", aliases: ["disney+", "disneyplus", "디즈니+", "디즈니플러스"], amounts: [9900, 13900, 99000, 139000], annualAmounts: [99000, 139000], strictAmount: false, defaultPlan: "스탠다드", defaultAmount: 9900 },
   { id: "wavve", name: "Wavve", category: "OTT", aliases: ["wavve", "웨이브", "콘텐츠웨이브"], amounts: [7900, 10900, 13900], strictAmount: false, defaultPlan: "스탠다드", defaultAmount: 10900 },
   { id: "watcha", name: "왓챠", category: "OTT", aliases: ["watcha", "왓챠"], amounts: [7900, 12900], strictAmount: false, defaultPlan: "베이직", defaultAmount: 7900 },
   { id: "laftel", name: "라프텔", category: "OTT", aliases: ["laftel", "라프텔"], amounts: [9900, 14900], strictAmount: false, defaultPlan: "베이직", defaultAmount: 9900 },
   { id: "appletv", name: "Apple TV+", category: "OTT", aliases: ["apple tv+", "appletv", "애플tv"], amounts: [6500], strictAmount: false, defaultPlan: "월간", defaultAmount: 6500 },
   { id: "coupang", name: "쿠팡 와우", category: "쇼핑", aliases: ["쿠팡와우", "와우멤버십", "coupang wow", "쿠팡(와우)", "쿠팡"], amounts: [4990, 7890], strictAmount: true, defaultPlan: "와우 멤버십", defaultAmount: 7890 },
-  { id: "naver", name: "네이버플러스 멤버십", category: "쇼핑", aliases: ["네이버플러스", "네이버멤버십", "naver plus", "네이버파이낸셜"], amounts: [4900, 46800], strictAmount: true, defaultPlan: "월간", defaultAmount: 4900 },
+  { id: "naver", name: "네이버플러스 멤버십", category: "쇼핑", aliases: ["네이버플러스", "네이버멤버십", "naver plus", "네이버파이낸셜"], amounts: [4900, 46800], annualAmounts: [46800], strictAmount: true, defaultPlan: "월간", defaultAmount: 4900 },
   { id: "baemin-club", name: "배민클럽", category: "쇼핑", aliases: ["배민클럽", "우아한형제들", "배달의민족"], amounts: [1990, 3990], strictAmount: true, defaultPlan: "월간", defaultAmount: 3990 },
   { id: "yogipass", name: "요기패스X", category: "쇼핑", aliases: ["요기패스", "요기패스x", "위대한상상"], amounts: [2900, 4900], strictAmount: true, defaultPlan: "월간", defaultAmount: 2900 },
   { id: "kurly-members", name: "컬리멤버스", category: "쇼핑", aliases: ["컬리멤버스", "마켓컬리", "컬리"], amounts: [1900], strictAmount: true, defaultPlan: "월간", defaultAmount: 1900 },
@@ -27,7 +28,7 @@ export const DISCOVERY_SERVICE_SPECS = [
   { id: "flo", name: "FLO", category: "음악", aliases: ["flo", "플로", "드림어스컴퍼니"], amounts: [7900, 8000, 10900], strictAmount: false, defaultPlan: "무제한 듣기", defaultAmount: 8000 },
   { id: "ytmusic", name: "YouTube Music", category: "음악", aliases: ["youtube music", "유튜브뮤직"], amounts: [8690, 11990], strictAmount: false, defaultPlan: "개인", defaultAmount: 11990 },
   { id: "applemusic", name: "Apple Music", category: "음악", aliases: ["apple music", "애플뮤직"], amounts: [8900, 13500], strictAmount: false, defaultPlan: "개인", defaultAmount: 8900 },
-  { id: "millie", name: "밀리의 서재", category: "도서/웹툰", aliases: ["millie", "밀리의서재", "밀리의 서재"], amounts: [9900, 99000], strictAmount: false, defaultPlan: "전자책 정기구독", defaultAmount: 9900 },
+  { id: "millie", name: "밀리의 서재", category: "도서/웹툰", aliases: ["millie", "밀리의서재", "밀리의 서재"], amounts: [9900, 99000], annualAmounts: [99000], strictAmount: false, defaultPlan: "전자책 정기구독", defaultAmount: 9900 },
   { id: "ridiselect", name: "리디셀렉트", category: "도서/웹툰", aliases: ["ridiselect", "리디셀렉트", "리디북스"], amounts: [4900], strictAmount: true, defaultPlan: "월 정기구독", defaultAmount: 4900 },
   { id: "welaaa", name: "윌라 오디오북", category: "도서/웹툰", aliases: ["welaaa", "윌라"], amounts: [9900, 12500], strictAmount: false, defaultPlan: "멤버십", defaultAmount: 12500 },
   { id: "chatgpt", name: "ChatGPT Plus", category: "소프트웨어", aliases: ["chatgpt", "openai", "챗지피티", "챗gpt"], amounts: [27000, 29000], strictAmount: false, defaultPlan: "ChatGPT Plus", defaultAmount: 29000 },
@@ -38,8 +39,8 @@ export const DISCOVERY_SERVICE_SPECS = [
   { id: "figma", name: "Figma Professional", category: "SaaS", aliases: ["figma", "피그마"], amounts: [16200, 20250, 21000], strictAmount: false, defaultPlan: "Professional", defaultAmount: 21000 },
   { id: "canva", name: "Canva Pro", category: "SaaS", aliases: ["canva", "캔바"], amounts: [14000, 14900], strictAmount: false, defaultPlan: "Canva Pro", defaultAmount: 14000 },
   { id: "adobe", name: "Adobe Creative Cloud", category: "SaaS", aliases: ["adobe", "어도비"], amounts: [13200, 26400, 35200, 61600], strictAmount: false, defaultPlan: "포토그래피 플랜", defaultAmount: 13200 },
-  { id: "ms365", name: "Microsoft 365", category: "SaaS", aliases: ["microsoft 365", "office 365", "마이크로소프트365"], amounts: [8900, 11900, 89000], strictAmount: false, defaultPlan: "Personal", defaultAmount: 8900 },
-  { id: "duolingo-super", name: "Duolingo Super", category: "교육", aliases: ["duolingo", "듀오링고"], amounts: [12900, 14000, 89000], strictAmount: false, defaultPlan: "Super", defaultAmount: 14000 },
+  { id: "ms365", name: "Microsoft 365", category: "SaaS", aliases: ["microsoft 365", "office 365", "마이크로소프트365"], amounts: [8900, 11900, 89000], annualAmounts: [89000], strictAmount: false, defaultPlan: "Personal", defaultAmount: 8900 },
+  { id: "duolingo-super", name: "Duolingo Super", category: "교육", aliases: ["duolingo", "듀오링고"], amounts: [12900, 14000, 89000], annualAmounts: [89000], strictAmount: false, defaultPlan: "Super", defaultAmount: 14000 },
   { id: "skt-universe", name: "T 우주패스", category: "기타", aliases: ["우주패스", "t우주"], amounts: [4900, 9900], strictAmount: false, defaultPlan: "우주패스 all", defaultAmount: 9900 },
   { id: "lgu-yudok", name: "U+ 유독", category: "기타", aliases: ["유독", "u+유독"], amounts: [4900, 9900, 13900], strictAmount: false, defaultPlan: "유독 픽", defaultAmount: 9900 },
 ];
@@ -104,6 +105,7 @@ const OFFLINE_SUFFIX_PATTERN = /(헤어|미용실|치과|식당|마트|로지스
 const HUB_NEGATIVE_PATTERN = /(취소됨|만료됨|해지됨|해지\s*예정|만료\s*예정|결제\s*취소|승인\s*취소|환불\s*완료)/;
 const HUB_RECURRING_PATTERN = /(\/\s*(월|년|month|year)|매월|매년|다음\s*결제|결제\s*예정|정기|갱신|구독|멤버십|renews|monthly|yearly)/i;
 const ANNUAL_HINT_PATTERN = /(\/\s*년|\/\s*year|연간|매년|yearly|annual)/i;
+const MONTHLY_HINT_PATTERN = /(\/\s*월|\/\s*month|월간|매월|monthly)/i;
 const WON_PREFIX_PATTERN = /(?:₩|￦|krw)\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,7})/i;
 
 function cleanToken(value = "") {
@@ -149,6 +151,110 @@ function buildExistingIds(existingSubscriptions = []) {
       .map((s) => cleanToken(s.serviceId || s.id || s.name))
       .filter(Boolean)
   );
+}
+
+/**
+ * 결제 주기를 글 속 표시(/년·연간, /월·매월)와 요금제 가격(카탈로그 plans, 서비스별 연간 가격)으로 판정한다.
+ * 근거가 없으면 월간으로 두고 cycleConfirmed=false 로 알려 사용자가 모달에서 직접 고르게 한다.
+ */
+export function inferBillingCycle({ amount, text = "", spec = null, catalogItem = null } = {}) {
+  const source = String(text || "");
+  if (ANNUAL_HINT_PATTERN.test(source)) return { billingCycle: "매년", cycleConfirmed: true };
+  if (MONTHLY_HINT_PATTERN.test(source)) return { billingCycle: "매월", cycleConfirmed: true };
+
+  const value = Number(amount) || 0;
+  if (value > 0) {
+    const plan = (catalogItem?.plans || []).find((p) => Number(p.amount) === value && p.billingCycle);
+    if (plan) return { billingCycle: plan.billingCycle === "매년" ? "매년" : "매월", cycleConfirmed: true };
+    if (spec?.annualAmounts?.includes(value)) return { billingCycle: "매년", cycleConfirmed: true };
+    if (spec?.amounts?.includes(value)) return { billingCycle: "매월", cycleConfirmed: true };
+  }
+  return { billingCycle: "매월", cycleConfirmed: false };
+}
+
+let fallbackIdCounter = 0;
+
+// 같은 밀리초에 여러 건을 만들어도 겹치지 않는 구독 ID. randomUUID 가 없는 오래된 웹뷰는 시간·순번·난수를 섞는다.
+export function createSubscriptionId() {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  fallbackIdCounter += 1;
+  return Date.now().toString(36) + "-" + fallbackIdCounter.toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+}
+
+function normalizeName(value = "") {
+  return String(value || "").toLowerCase().replace(/\s+/g, "");
+}
+
+/**
+ * 숨은 구독 찾기에서 고른 항목을 구독 레코드로 만든다. 기존 목록과 이번 묶음 안에서 같은 구독(이름+요금제,
+ * 또는 해지되지 않은 같은 서비스)은 한 번만 넣고, 항목마다 고유 ID 를 붙인다.
+ */
+export function buildDiscoveredSubscriptions(items = [], existingSubscriptions = [], { catalog = [], now = new Date(), createId = createSubscriptionId } = {}) {
+  const accepted = [];
+  const activeServiceIds = new Set(
+    (existingSubscriptions || [])
+      .filter((s) => s.status !== "cancelled")
+      .map((s) => s.serviceId || s.id)
+      .filter(Boolean)
+  );
+  let skippedCount = 0;
+
+  for (const item of items || []) {
+    const name = String(item?.name || "").trim();
+    if (!name) {
+      skippedCount += 1;
+      continue;
+    }
+    const serviceKey = item.serviceId || item.id || "";
+    const queryName = normalizeName(name);
+    const matched = (catalog || []).find((service) => {
+      if (serviceKey && service.id === serviceKey) return true;
+      if (normalizeName(service.name) === queryName) return true;
+      return (service.aliases || []).some((alias) => normalizeName(alias) === queryName);
+    });
+    const serviceId = matched?.id || serviceKey;
+    const plan = item.plan || "기본 플랜";
+    const candidate = { name, plan };
+    if (
+      (serviceId && activeServiceIds.has(serviceId)) ||
+      isDuplicateSubscription(existingSubscriptions || [], candidate) ||
+      isDuplicateSubscription(accepted, candidate)
+    ) {
+      skippedCount += 1;
+      continue;
+    }
+
+    const billingCycle = item.billingCycle === "매년" ? "매년" : "매월";
+    const uid = createId();
+    const record = {
+      serviceId,
+      name,
+      category: item.category || matched?.category || "기타",
+      plan,
+      amount: Number(item.amount) || 0,
+      dueDay: Number(item.dueDay) || now.getDate(),
+      billingCycle,
+      nextBillingDate: billingCycle === "매년" ? item.nextBillingDate || item.annualNextBillingDate || null : null,
+      paymentMethod: item.paymentMethod || "신용/체크카드",
+      isTrial: Boolean(item.isTrial),
+      sourceType: "sms",
+      id: matched?.id || "custom-" + uid,
+      monogram: matched?.monogram || name.slice(0, 1).toUpperCase(),
+      cancelUrl: matched?.cancelUrl || "https://google.com",
+      subscriptionId: "manual-" + uid,
+      createdAt: now.toISOString(),
+      status: item.isTrial ? "trial" : "active",
+      alertD3: true,
+      alertD1: false,
+      renewalPending: false,
+    };
+    accepted.push(record);
+    if (serviceId) activeServiceIds.add(serviceId);
+  }
+
+  return { records: accepted, skippedCount };
 }
 
 /**
@@ -308,7 +414,8 @@ export function scanStatementText(rawText, { catalog = [], existingSubscriptions
         "기본 플랜";
       const key = spec.id;
       const prev = detectedMap.get(key);
-      const billingCycle = ANNUAL_HINT_PATTERN.test(chunk) || finalAmount >= 45000 ? "매년" : "매월";
+      const { billingCycle, cycleConfirmed } = inferBillingCycle({ amount: finalAmount, text: chunk, spec, catalogItem });
+      const annualNextBillingDate = nextAnnualBillingDate(chunk, now);
       detectedMap.set(key, {
         serviceId: spec.id,
         name: catalogItem?.name || spec.name,
@@ -317,7 +424,9 @@ export function scanStatementText(rawText, { catalog = [], existingSubscriptions
         amount: finalAmount,
         dueDay: day,
         billingCycle,
-        nextBillingDate: billingCycle === "매년" ? nextAnnualBillingDate(chunk, now) : null,
+        cycleConfirmed,
+        nextBillingDate: billingCycle === "매년" ? annualNextBillingDate : null,
+        annualNextBillingDate,
         paymentMethod,
         isTrial: Boolean(trialInfo.isTrial),
         occurrences: (prev?.occurrences || 0) + 1,
@@ -354,6 +463,7 @@ export function scanStatementText(rawText, { catalog = [], existingSubscriptions
         amount: entry.amount,
         dueDay: entry.dueDay,
         billingCycle: "매월",
+        cycleConfirmed: false,
         paymentMethod: entry.paymentMethod,
         isTrial: false,
         occurrences: entry.count,
@@ -498,7 +608,6 @@ export function scanHubPageText(rawText, { catalog = [], existingSubscriptions =
 
     const dateSource = [line, after].join(" ");
     const dueDay = parseDayFromValue(dateSource) || parseDayFromValue(context) || now.getDate();
-    const billingCycle = ANNUAL_HINT_PATTERN.test(context) ? "매년" : "매월";
     const trial = detectTrialText(context, now);
 
     let spec = matchKnownSpec(line) || matchKnownSpec(nameLines.join(" "));
@@ -507,8 +616,9 @@ export function scanHubPageText(rawText, { catalog = [], existingSubscriptions =
     }
 
     let item;
+    let catalogItem = null;
     if (spec) {
-      const catalogItem = catalog.find((c) => c.id === spec.id);
+      catalogItem = catalog.find((c) => c.id === spec.id) || null;
       item = {
         serviceId: spec.id,
         name: catalogItem?.name || spec.name,
@@ -524,12 +634,16 @@ export function scanHubPageText(rawText, { catalog = [], existingSubscriptions =
 
     const key = item.serviceId || cleanToken(item.name);
     if (found.has(key)) return;
+    const { billingCycle, cycleConfirmed } = inferBillingCycle({ amount, text: context, spec, catalogItem });
+    const annualNextBillingDate = nextAnnualBillingDate(dateSource, now);
     found.set(key, {
       ...item,
       amount,
       dueDay: trial.trialEndsOn ? trial.trialEndsOn.getDate() : dueDay,
       billingCycle,
-      nextBillingDate: billingCycle === "매년" ? nextAnnualBillingDate(dateSource, now) : null,
+      cycleConfirmed,
+      nextBillingDate: billingCycle === "매년" ? annualNextBillingDate : null,
+      annualNextBillingDate,
       paymentMethod: detectPaymentMethod(context, [context]).paymentMethod || "신용/체크카드",
       isTrial: Boolean(trial.isTrial),
       occurrences: 1,

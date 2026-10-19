@@ -40,6 +40,7 @@ import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
 import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubscription } from "./lib/supabase";
 import { getInitialPromotions, loadLivePromotions } from "./lib/promotionsSync";
+import { buildDiscoveredSubscriptions } from "./lib/subscriptionDiscovery";
 
 // 결제 사전 알림 중 갱신 승인 카드로 이어지는 종류
 const RENEWAL_NOTIFICATION_TYPES = new Set(["billing_d3", "billing_d1", "trial_d1"]);
@@ -795,35 +796,25 @@ export default function App() {
 
   const handleAddSubscriptionBatch = useCallback((items = []) => {
     if (!Array.isArray(items) || items.length === 0) return;
-    let addedCount = 0;
-    items.forEach((item) => {
-      const ok = handleAddSubscription(
-        {
-          id: item.serviceId || item.id || undefined,
-          serviceId: item.serviceId || item.id || "",
-          name: item.name,
-          category: item.category || "기타",
-          plan: item.plan || "기본 플랜",
-          amount: Number(item.amount) || 0,
-          dueDay: Number(item.dueDay) || new Date().getDate(),
-          billingCycle: item.billingCycle || "매월",
-          nextBillingDate: item.billingCycle === "매년" ? item.nextBillingDate || null : null,
-          paymentMethod: item.paymentMethod || "신용/체크카드",
-          isTrial: Boolean(item.isTrial),
-          sourceType: "sms",
-        },
-        null
-      );
-      if (ok !== false) addedCount += 1;
-    });
-    if (addedCount > 0) {
-      setOnboardingComplete(true);
-      if (screen.route === "onboarding") {
-        navigate("home");
-      }
-      notify(addedCount + "개의 숨은 구독을 한 번에 등록했어요!");
+    // 묶음 전체를 한 번에 만들고 한 번에 반영한다. 기존 목록·묶음 안의 중복은 빼고 항목마다 고유 ID 를 붙인다.
+    const { records, skippedCount } = buildDiscoveredSubscriptions(items, subscriptions, { catalog: serviceCatalog });
+    if (records.length === 0) {
+      notify("선택한 구독은 이미 등록되어 있어요.");
+      return;
     }
-  }, [handleAddSubscription, navigate, notify, screen.route, setOnboardingComplete]);
+    setSubscriptions((current) => [...records, ...current]);
+    if (profile?.user_id) {
+      records.forEach((record) => upsertDbSubscription(profile.user_id, record).catch(console.error));
+    }
+    setOnboardingComplete(true);
+    if (screen.route === "onboarding") {
+      navigate("home");
+    }
+    notify(
+      records.length + "개의 숨은 구독을 한 번에 등록했어요!" +
+      (skippedCount > 0 ? " (이미 있는 " + skippedCount + "개는 제외)" : "")
+    );
+  }, [navigate, notify, profile?.user_id, screen.route, setOnboardingComplete, setSubscriptions, subscriptions]);
 
   const handlePromotion = useCallback((promotion) => {
     if (promotion?.link) {
