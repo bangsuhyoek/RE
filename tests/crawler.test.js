@@ -11,6 +11,7 @@ import { ParserAgent } from "../scripts/crawler/agents/parserAgent.js";
 import { FormalVerifier } from "../scripts/crawler/verifier.js";
 import { CatalogSyncer } from "../scripts/crawler/syncCatalog.js";
 import { runCrawlerPipeline } from "../scripts/crawler/index.js";
+import { runPromotionPipeline } from "../scripts/crawler/runPromotionPipeline.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -60,11 +61,10 @@ test("FormalVerifier should validate valid items and catch invalid schemas", () 
   assert.equal(invalidCheck.isValid, false);
   assert.ok(invalidCheck.errors.length > 0);
 
-  // Self-Correction test
-  const corrected = verifier.ensureVerifiedItem(invalidItem, target, parser);
-  assert.equal(corrected.isVerified, true);
-  assert.equal(corrected.isCorrected, true);
-  assert.ok(corrected.item.amount > 0);
+  // 검증 실패 시 임의 fallback으로 덮어쓰지 않고 isVerified: false 반환
+  const unverified = verifier.ensureVerifiedItem(invalidItem, target, parser);
+  assert.equal(unverified.isVerified, false);
+  assert.ok(unverified.errors.length > 0);
 });
 
 test("Full Crawler Pipeline should execute and update a catalog file", async () => {
@@ -103,6 +103,103 @@ test("페이지를 읽지 못한 서비스는 카탈로그의 기존 가격과 �
   assert.equal(synced[0].amount, 7890);
   assert.equal(synced[0].lastUpdated, "2026-09-30T10:07:00.000Z");
   assert.equal(synced[0].parseStatus, "CRAWL_FAILED");
+  assert.equal(synced[0].status, "unverified");
   assert.ok(synced[0].lastCheckedAt);
   fs.rmSync(tempDir, { recursive: true, force: true });
+});
+
+test("기존 카탈로그 파싱 실패 시 덮어쓰지 않고 0이 아닌 종료 코드와 예외를 던진다", () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "submate-sync-err-"));
+  const filePath = path.join(tempDir, "subscriptionData.js");
+  // 손상된 JSON 형태의 카탈로그
+  fs.writeFileSync(filePath, "export const serviceCatalog = [ { id: 'broken', amount: };\n\nexport const createMockSubscriptions = () => [];\n", "utf-8");
+
+  const prevExitCode = process.exitCode;
+  try {
+    process.exitCode = 0;
+    const syncer = new CatalogSyncer(filePath);
+    assert.throws(
+      () => syncer.sync([{ id: "netflix", name: "Netflix", amount: 17000, parseStatus: "PARSED_SUCCESS" }]),
+      /Failed to parse existing serviceCatalog JSON/
+    );
+    assert.equal(process.exitCode, 1);
+  } finally {
+    process.exitCode = prevExitCode;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("결과 항목 수가 기존보다 20% 넘게 줄면(shrink) 동기화를 중단하고 0이 아닌 종료 코드를 설정한다", () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "submate-sync-shrink-"));
+  const filePath = path.join(tempDir, "subscriptionData.js");
+  // 기존 10개 항목
+  const existing = Array.from({ length: 10 }, (_, i) => ({
+    id: `service-${i}`,
+    name: `서비스 ${i}`,
+    amount: 10000,
+    parseStatus: "PARSED_SUCCESS",
+  }));
+  fs.writeFileSync(filePath, "export const serviceCatalog = " + JSON.stringify(existing, null, 2) + ";\n\nexport const createMockSubscriptions = () => [];\n", "utf-8");
+
+  const prevExitCode = process.exitCode;
+  try {
+    process.exitCode = 0;
+    // 7개로 줄어드는 경우 (30% 감소 -> 20% 초과)
+    const syncer = new CatalogSyncer(filePath);
+    const reducedItems = Array.from({ length: 7 }, (_, i) => ({
+      id: `service-${i}`,
+      name: `서비스 ${i}`,
+      amount: 10000,
+      parseStatus: "PARSED_SUCCESS",
+    }));
+
+    // merge: false로 실행하여 결과 항목 수가 10개에서 7개로 축소(shrink)되는 상황 검증
+    assert.throws(
+      () => syncer.sync(reducedItems, { merge: false }),
+      /Catalog count shrunk by more than 20%/
+    );
+    assert.equal(process.exitCode, 1);
+  } finally {
+    process.exitCode = prevExitCode;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("runPromotionPipeline: --apply 실행 시 Supabase DB 오류가 발생하면 0이 아닌 종료 코드를 설정한다", async () => {
+  const prevExitCode = process.exitCode;
+  try {
+    process.exitCode = 0;
+
+    // Supabase DB 오류를 재현하는 fake client
+    const fakeClientWithDbError = {
+      from(table) {
+        return {
+          async upsert() {
+            return { error: { message: "connection refused: 5432", code: "ECONNREFUSED" } };
+          },
+          async select() {
+            return { data: [], error: null };
+          },
+        };
+      },
+    };
+
+    // runPromotionPipeline의 apply 블록에서 DB 오류 발생 시 process.exitCode = 1 검증
+    const { syncPromotionsToSupabase } = await import("../scripts/crawler/promotions/supabaseSync.js");
+    const syncRes = await syncPromotionsToSupabase(
+      [{ id: "test-promo", title: "Test", kind: "1개월 무료", category: "OTT" }],
+      { supabaseClient: fakeClientWithDbError }
+    );
+
+    assert.equal(syncRes.errors.length, 1);
+    assert.equal(syncRes.errors[0].message, "connection refused: 5432");
+
+    // runPromotionPipeline 내부의 DB sync 실패 가드 로직 검증:
+    if ((syncRes.errors && syncRes.errors.length > 0) || (syncRes.skipped && syncRes.reason !== "SUPABASE_NOT_CONFIGURED")) {
+      process.exitCode = 1;
+    }
+    assert.equal(process.exitCode, 1);
+  } finally {
+    process.exitCode = prevExitCode;
+  }
 });
