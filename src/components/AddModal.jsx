@@ -1161,6 +1161,9 @@ export function AddModal({
 
     if (added !== false) {
       onClose();
+    } else {
+      setError("구독 저장에 실패했습니다. 입력 정보를 확인해 주세요.");
+      setIsEditing(true);
     }
   }
 

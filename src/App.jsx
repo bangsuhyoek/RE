@@ -777,18 +777,25 @@ export default function App() {
       ? customItems
       : serviceCatalog.filter((service) => selectedOnboarding.includes(service.id));
     const created = itemsToCreate.map((item, idx) => createSubscription(item, idx));
-    setSubscriptions(created);
+    setSubscriptions((current) => {
+      const currentList = Array.isArray(current) ? current : [];
+      const existingIds = new Set(currentList.map((s) => s.subscriptionId || s.id));
+      const newlyAdded = created.filter((s) => !existingIds.has(s.subscriptionId || s.id));
+      return [...currentList, ...newlyAdded];
+    });
     if (profile?.user_id) {
       created.forEach((sub) => upsertDbSubscription(profile.user_id, sub));
     }
     setOnboardingComplete(true);
-    setNotifications(generateSubscriptionAlerts(created));
+    setNotifications((current) => [
+      ...generateSubscriptionAlerts(created),
+      ...(Array.isArray(current) ? current : []),
+    ]);
     navigate("home");
     notify(`${created.length}개 구독을 추가했어요.`);
   };
 
   const handleOnboardingSkip = () => {
-    setSubscriptions([]);
     setOnboardingComplete(true);
     navigate("home");
   };
