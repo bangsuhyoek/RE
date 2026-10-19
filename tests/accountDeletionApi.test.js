@@ -6,6 +6,7 @@ import {
   deleteUserData,
   deleteAuthUser,
   deleteAccount,
+  sha256Hex,
 } from "../api/_lib/accountDeletion.js";
 
 function createMockRes() {
@@ -250,6 +251,45 @@ test("부분 실패 시 auth 사용자 미삭제: 테이블 삭제 실패 시 au
   // auth 사용자 삭제가 호출되지 않았음을 단언
   const authCalled = fakeAdmin.callLog.some((c) => c.type === "auth_delete_user");
   assert.equal(authCalled, false, "테이블 삭제 실패 시 auth 사용자가 삭제되어서는 안 됨");
+});
+
+test("cancel_difficulty_reports: user_id 대신 sha256(userId)인 owner_hash 컬럼으로 삭제하며 실패 시 전체 탈퇴가 실패한다", async () => {
+  const fakeAdminSuccess = createFakeSupabaseAdmin();
+  const userId = "test-user-hash-check";
+  const expectedHash = sha256Hex(userId);
+
+  await deleteAccount({
+    supabaseAdmin: fakeAdminSuccess,
+    userId,
+    confirmation: "탈퇴",
+  });
+
+  const reportDeletion = fakeAdminSuccess.callLog.find(
+    (c) => c.type === "table_delete" && c.table === "cancel_difficulty_reports"
+  );
+  assert.ok(reportDeletion, "cancel_difficulty_reports 삭제 호출이 있어야 함");
+  assert.equal(reportDeletion.col, "owner_hash", "user_id가 아닌 owner_hash 컬럼을 사용해야 함");
+  assert.equal(reportDeletion.val, expectedHash, "owner_hash 값은 sha256Hex(userId)와 일치해야 함");
+
+  // 실패 시 swallow 되지 않고 전체 탈퇴가 중단되며 auth 사용자가 삭제되지 않는지 검증
+  const fakeAdminFail = createFakeSupabaseAdmin({ failOnTable: "cancel_difficulty_reports" });
+  await assert.rejects(
+    async () => {
+      await deleteAccount({
+        supabaseAdmin: fakeAdminFail,
+        userId,
+        confirmation: "탈퇴",
+      });
+    },
+    (err) => {
+      assert.equal(err.code, "TABLE_DELETION_FAILED");
+      assert.equal(err.table, "cancel_difficulty_reports");
+      return true;
+    }
+  );
+
+  const authCalled = fakeAdminFail.callLog.some((c) => c.type === "auth_delete_user");
+  assert.equal(authCalled, false, "cancel_difficulty_reports 삭제 실패 시 auth 사용자가 삭제되어서는 안 됨");
 });
 
 test("멱등 재시도: 이미 삭제된 auth 사용자(404 Not Found)에 대해 재시도해도 성공으로 처리한다", async () => {

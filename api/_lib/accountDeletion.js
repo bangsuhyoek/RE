@@ -1,3 +1,12 @@
+import crypto from "node:crypto";
+
+/**
+ * SHA-256 16진수 문자열 해시 생성
+ */
+export function sha256Hex(value) {
+  return crypto.createHash("sha256").update(String(value)).digest("hex");
+}
+
 /**
  * 확정된 사용자 데이터 테이블 목록 (외래키 종속성 순서대로 삭제)
  * 자식 테이블 -> 부모 테이블 순서
@@ -19,8 +28,8 @@ export const OPTIONAL_USER_TABLES = [
   "cancellation_history",
   "notifications",
   "profiles",
-  "cancel_difficulty_reports",
 ];
+
 
 const isMissingRelationOrColumn = (error) => {
   if (!error) return false;
@@ -116,7 +125,21 @@ export async function deleteUserData(supabaseAdmin, userId) {
     }
   }
 
-  // 3. 보조/옵셔널 테이블 행 삭제 (존재하지 않으면 건너뜀)
+  // 3. 해지 난이도 제보 삭제 (raw user_id 대신 sha256(userId) 기반 owner_hash로 본인 제보 식별 삭제)
+  const ownerHash = sha256Hex(userId);
+  const { error: cancelReportsError } = await supabaseAdmin
+    .from("cancel_difficulty_reports")
+    .delete()
+    .eq("owner_hash", ownerHash);
+
+  if (cancelReportsError) {
+    const err = new Error("Failed to delete user records from table: cancel_difficulty_reports");
+    err.code = "TABLE_DELETION_FAILED";
+    err.table = "cancel_difficulty_reports";
+    throw err;
+  }
+
+  // 4. 보조/옵셔널 테이블 행 삭제 (존재하지 않으면 건너뜀)
   for (const table of OPTIONAL_USER_TABLES) {
     try {
       const { error } = await supabaseAdmin
@@ -139,6 +162,7 @@ export async function deleteUserData(supabaseAdmin, userId) {
 
   return { ok: true };
 }
+
 
 /**
  * Supabase Auth 사용자 삭제 (Service Role Key 필요, 멱등성 보장)
