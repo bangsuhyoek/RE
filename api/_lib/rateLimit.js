@@ -243,6 +243,9 @@ export const consumeEndpointQuota = async ({ userId, bearerToken, endpoint = "ch
 /**
  * Consumes user quota and global Gemini quota before calling models.
  * Fails closed (allowed: false, failClosed: true, retryAfterSeconds: 60) on RPC failure.
+ * The per-user quota is checked first so a user who is already over their own limit never
+ * burns the project-wide daily counter. The global counter can only be spent in the rare
+ * case where the project cap itself is reached.
  */
 export const consumeRateLimit = async ({ userId, bearerToken, endpoint = "chat", checkGlobal = true }) => {
   // 1. Consume endpoint user quota

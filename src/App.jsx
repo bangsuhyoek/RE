@@ -16,6 +16,7 @@ import {
   removeDemoSubscriptions,
   storageKeys,
   readStoredValue,
+  clearStoredValue,
   readCancelHistory,
   writeCancelHistory,
 } from "./lib/storage";
@@ -761,6 +762,10 @@ export default function App() {
     // 동의 정리 및 해지 브라우저 WebView 세션(쿠키, 웹 저장소) 삭제
     clearConsentOnSignOut();
     clearCancelBrowserSession().catch(() => {});
+    // 로그아웃한 사용자의 남은 동기화 메타데이터(삭제 대기열·재시도 큐)를 지운다.
+    // 다음 계정이 로그인했을 때 이전 사용자의 삭제가 새 계정 데이터에 적용되지 않게 한다.
+    clearStoredValue(storageKeys.syncTombstones);
+    clearStoredValue(storageKeys.syncRetryQueue);
 
     if (isSupabaseConfigured && profile?.user_id) {
       await signOut();

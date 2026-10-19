@@ -6,7 +6,9 @@ import reactHooks from "eslint-plugin-react-hooks";
 // 기존 코드에 많이 쌓인 정리성 규칙은 warn 으로 둔다.
 export default [
   {
-    ignores: ["dist/**", "android/**", "node_modules/**", "public/**", "outputs/**", "output/**", "coverage/**"],
+    ignores: ["dist/**", "android/**", "node_modules/**", "public/**", "outputs/**", "output/**", "coverage/**",
+      // 저장소에 없는 로컬 디버그 스크립트(.gitignore 대상). 내용이 잘려 있어 파싱 오류가 난다.
+      "append_promo.cjs", "check.mjs"],
   },
   js.configs.recommended,
   {
