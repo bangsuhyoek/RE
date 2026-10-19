@@ -1,5 +1,4 @@
 import { serviceCatalog } from "../data/subscriptionData.js";
-import { getCancelGuide } from "../data/cancelGuides.js";
 import { PAYMENT_CHANNEL_IDS } from "./paymentChannels.js";
 import { Browser } from "@capacitor/browser";
 import { isNativePlatform } from "./platform.js";
@@ -80,7 +79,6 @@ export function mapDbToSubscription(row) {
     dueDay: row.due_day,
     paymentMethod: row.payment_method || '',
     cancelUrl: row.cancel_url || matched?.cancelUrl || '',
-    guideSteps: getCancelGuide(matched?.id || row.service_id).steps,
     status: row.status || 'active',
     sourceType: row.source_type || 'manual',
     subscriptionId: row.subscription_id,
@@ -89,7 +87,10 @@ export function mapDbToSubscription(row) {
     alertD3: row.alert_d3 !== false,
     alertD1: Boolean(row.alert_d1),
     renewalPending: Boolean(row.renewal_pending),
+    isPinned: Boolean(row.is_pinned),
+    pinned: Boolean(row.is_pinned),
     createdAt: row.created_at,
+    updatedAt: row.updated_at || row.created_at || null,
     nextBillingDate: row.next_billing_date || null,
     renewalReviewedFor: row.renewal_reviewed_for || null,
     isTrial: row.status === 'trial',
@@ -126,6 +127,7 @@ export function mapSubscriptionToDb(sub, userId) {
     renewal_pending: Boolean(sub.renewalPending),
     monogram: sub.monogram || '',
     mark_tone: sub.markTone || null,
+    is_pinned: Boolean(sub.isPinned || sub.pinned),
     next_billing_date: sub.nextBillingDate || null,
     renewal_reviewed_for: sub.renewalReviewedFor || null,
     payment_channel: PAYMENT_CHANNEL_IDS.includes(sub.paymentChannel) ? sub.paymentChannel : null,
