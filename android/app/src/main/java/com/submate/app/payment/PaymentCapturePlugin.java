@@ -114,4 +114,17 @@ public class PaymentCapturePlugin extends Plugin {
         ret.put("count", payments.size());
         call.resolve(ret);
     }
+
+    /**
+     * quick-add 일회용 nonce를 검증하고 소비한다.
+     */
+    @PluginMethod
+    public void consumeQuickAddNonce(PluginCall call) {
+        String nonce = call.getString("nonce", "");
+        boolean valid = PaymentNotificationHelper.verifyAndConsumeNonce(getContext(), nonce);
+        JSObject ret = new JSObject();
+        ret.put("valid", valid);
+        call.resolve(ret);
+    }
 }
+
