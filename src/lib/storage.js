@@ -2,8 +2,12 @@ import { expectedChargeAfterCancel } from "./cancelVerification.js";
 
 const KEY_PREFIX = "submate-mvp";
 
+export const STORAGE_SCHEMA_VERSION = 2;
+
 export const storageKeys = {
+  version: `${KEY_PREFIX}:schema-version`,
   subscriptions: `${KEY_PREFIX}:subscriptions`,
+  ownerUserId: `${KEY_PREFIX}:owner-user-id`,
   profile: `${KEY_PREFIX}:profile`,
   users: `${KEY_PREFIX}:users`,
   onboardingComplete: `${KEY_PREFIX}:onboarding-complete`,
@@ -17,6 +21,8 @@ export const storageKeys = {
   usageAnswers: `${KEY_PREFIX}:usage-answers`,
   careAcks: `${KEY_PREFIX}:care-acks`,
   rotationPlan: `${KEY_PREFIX}:rotation-plan`,
+  syncTombstones: `${KEY_PREFIX}:sync-tombstones`,
+  syncRetryQueue: `${KEY_PREFIX}:sync-retry-queue`,
 };
 
 export const readStoredValue = (key, fallback) => {
@@ -29,7 +35,36 @@ export const readStoredValue = (key, fallback) => {
 };
 
 export const writeStoredValue = (key, value) => {
-  window.localStorage.setItem(key, JSON.stringify(value));
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return false;
+    window.localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (err) {
+    const isQuotaExceeded =
+      err &&
+      (err.name === "QuotaExceededError" ||
+        err.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
+        err.code === 22 ||
+        err.code === 1014);
+
+    if (isQuotaExceeded) {
+      if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+        try {
+          window.dispatchEvent(
+            new CustomEvent("submate-storage-quota-exceeded", {
+              detail: { key, error: err },
+            })
+          );
+        } catch {
+          // ignore
+        }
+      }
+      console.warn(`[storage] 저장 공간이 부족합니다. (key: ${key})`);
+    } else {
+      console.warn(`[storage] 저장 실패 (key: ${key}):`, err);
+    }
+    return false;
+  }
 };
 
 export const clearStoredValue = (key) => {
