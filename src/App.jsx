@@ -22,7 +22,14 @@ import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from
 import { NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
 import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
-import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue, readCancelHistory, writeCancelHistory } from "./lib/storage";
+import {
+  migrateLocalUsersToGuest,
+  removeDemoSubscriptions,
+  storageKeys,
+  readStoredValue,
+  readCancelHistory,
+  writeCancelHistory,
+} from "./lib/storage";
 import { persistEvidenceCase } from "./lib/evidenceStore";
 import { generateSubscriptionAlerts } from "./lib/notifications";
 import { CANCEL_REMINDER_TYPE, scheduleSubscriptionNotifications } from "./lib/notifications";
@@ -40,6 +47,10 @@ import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
 import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubscription } from "./lib/supabase";
 import { getInitialPromotions, loadLivePromotions } from "./lib/promotionsSync";
+import { parseDeepLink, verifyAndConsumeNonce } from "./lib/deepLinks";
+import { clearConsentOnSignOut } from "./lib/consentStore";
+import { clearCancelBrowserSession } from "./lib/cancelBrowser";
+
 
 // 결제 사전 알림 중 갱신 승인 카드로 이어지는 종류
 const RENEWAL_NOTIFICATION_TYPES = new Set(["billing_d3", "billing_d1", "trial_d1"]);
@@ -78,6 +89,10 @@ export default function App() {
   });
 
   useEffect(() => {
+    migrateLocalUsersToGuest();
+  }, []);
+
+  useEffect(() => {
     let active = true;
     loadLivePromotions({
       fallbackPromotions: promotionCatalog,
@@ -114,61 +129,45 @@ export default function App() {
   } = useNavigation();
 
 
-  // Deep link listener (실시간 결제 감지 알림 탭 시 수신)
+  // Deep link listener (PKCE OAuth 및 실시간 결제 감지 알림 탭 시 수신)
   useEffect(() => {
-    const handleUrl = (event) => {
+    const handleUrl = async (event) => {
       const rawUrl = event?.url;
       if (!rawUrl) return;
       try {
-        const parsed = new URL(rawUrl);
-        if (rawUrl.includes("auth/callback") || rawUrl.includes("access_token=") || rawUrl.includes("code=")) {
+        const parsedLink = parseDeepLink(rawUrl);
+
+        // 1. Native OAuth Callback: submate://auth/callback?code=xxx 인 경우만 처리
+        if (parsedLink.type === "auth_callback") {
           Browser.close().catch(() => {});
-          if (rawUrl.includes("code=")) {
-            const code = parsed.searchParams.get("code");
-            if (code && supabase) {
-              supabase.auth.exchangeCodeForSession(code).catch(console.error);
-            }
-          } else if (rawUrl.includes("#")) {
-            const hash = rawUrl.substring(rawUrl.indexOf("#") + 1);
-            const params = new URLSearchParams(hash);
-            const accessToken = params.get("access_token");
-            const refreshToken = params.get("refresh_token");
-            if (accessToken && refreshToken && supabase) {
-              supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).catch(console.error);
-            }
+          if (parsedLink.code && supabase) {
+            await supabase.auth.exchangeCodeForSession(parsedLink.code).catch(console.error);
           }
           return;
         }
 
-        if (parsed.protocol === "submate:" && (parsed.hostname === "quick-add" || parsed.pathname.includes("quick-add"))) {
-          const params = parsed.searchParams;
-          const detectedAt = Number(params.get("detectedAt")) || Date.now();
-          const detectedDate = new Date(detectedAt);
-          const dueDayFromLink = Number(params.get("dueDay"));
-          const detectedDueDay =
-            dueDayFromLink >= 1 && dueDayFromLink <= 31
-              ? dueDayFromLink
-              : detectedDate.getDate();
-
-          const detected = {
-            name: params.get("name") || "",
-            amount: Number(params.get("amount")) || 0,
-            plan: params.get("plan") || "",
-            paymentMethod: params.get("method") || "",
-            category: params.get("category") || "기타",
-            serviceId: params.get("serviceId") || "",
-            dueDay: detectedDueDay,
-            billingCycle: "매월",
-            sourceType: "sms",
-            autoDetected: true,
-            detectedAt: detectedDate.toISOString(),
-          };
-          detectedPaymentHandlerRef.current?.(detected);
+        // 2. Quick-Add Deep Link: submate://quick-add?nonce=...
+        if (parsedLink.type === "quick_add") {
+          const { nonce, quickAdd } = parsedLink;
+          if (!nonce) {
+            console.warn("Ignored quick-add deep link without nonce:", rawUrl);
+            return;
+          }
+          const isValid = await verifyAndConsumeNonce(nonce);
+          if (!isValid) {
+            console.warn("Ignored quick-add deep link with invalid or expired nonce:", rawUrl);
+            return;
+          }
+          detectedPaymentHandlerRef.current?.(quickAdd);
+          return;
         }
+
+        // 그 외 외부 링크는 거부 및 무시
       } catch (err) {
         console.warn("Failed to parse deep link URL:", rawUrl, err);
       }
     };
+
 
     let sub;
     if (CapApp && typeof CapApp.addListener === "function") {
@@ -237,31 +236,35 @@ export default function App() {
     }
   };
 
-  const handleTestPaymentDetection = async () => {
-    if (isNativePlatform()) {
-      await simulatePaymentDetection({
-        package: "com.shcard.smartpay",
-        title: "[신한카드] 결제승인",
-        body: "넷플릭스 17,000원(일시불) 정상승인",
-      });
-      notify("⚡ 넷플릭스 17,000원 결제 알림이 발송되었습니다!");
-    } else {
-      detectedPaymentHandlerRef.current?.({
-        name: "Netflix",
-        amount: 17000,
-        plan: "프리미엄",
-        paymentMethod: "신한카드",
-        category: "OTT",
-        serviceId: "netflix",
-        dueDay: new Date().getDate(),
-        billingCycle: "매월",
-        sourceType: "sms",
-        autoDetected: true,
-        detectedAt: new Date().toISOString(),
-      });
-      notify("⚡ 넷플릭스 17,000원 결제가 감지되었습니다! (체험 시뮬레이션)");
-    }
-  };
+  // 결제 시뮬레이션 버튼 핸들러 (DEV 환경에서만 동작)
+  const handleTestPaymentDetection = import.meta.env.DEV
+    ? async () => {
+        if (isNativePlatform()) {
+          await simulatePaymentDetection({
+            package: "com.shcard.smartpay",
+            title: "[신한카드] 결제승인",
+            body: "넷플릭스 17,000원(일시불) 정상승인",
+          });
+          notify("⚡ 넷플릭스 17,000원 결제 알림이 발송되었습니다!");
+        } else {
+          detectedPaymentHandlerRef.current?.({
+            name: "Netflix",
+            amount: 17000,
+            plan: "프리미엄",
+            paymentMethod: "신한카드",
+            category: "OTT",
+            serviceId: "netflix",
+            dueDay: new Date().getDate(),
+            billingCycle: "매월",
+            sourceType: "sms",
+            autoDetected: true,
+            detectedAt: new Date().toISOString(),
+          });
+          notify("⚡ 넷플릭스 17,000원 결제가 감지되었습니다! (체험 시뮬레이션)");
+        }
+      }
+    : undefined;
+
 
   // Subscriptions domain state
   const {
@@ -719,23 +722,9 @@ export default function App() {
     completeLogin(provider, defaultName);
   };
 
-  const handleIdLogin = ({ accountId, password }) => {
-    const user = findUser(accountId);
-    if (!user) {
-      return { error: "존재하지 않는 아이디입니다." };
-    }
-    if (user.password !== password) {
-      return { error: "비밀번호가 일치하지 않습니다." };
-    }
-    completeLogin("꾸독", user.nickname || accountId);
-    notify(`${user.nickname || accountId}님, 환영합니다!`);
-    return { success: true };
-  };
-
-  const handleRegisterComplete = ({ accountId, password, nickname }) => {
-    saveUser({ accountId, password, nickname });
-    completeLogin("꾸독", nickname);
-    notify(`${nickname}님, 회원가입이 완료되었어요!`);
+  const handleGuestLogin = () => {
+    setProfile({ nickname: "체험 사용자", provider: "Guest", guest: true, notificationsAllowed: true });
+    navigate("home");
   };
 
   const handleLogout = async () => {
@@ -746,6 +735,10 @@ export default function App() {
         sessionStorage.removeItem("submate_google_login_notified_user");
       } catch (e) {}
     }
+    // 동의 정리 및 해지 브라우저 WebView 세션(쿠키, 웹 저장소) 삭제
+    clearConsentOnSignOut();
+    clearCancelBrowserSession().catch(() => {});
+
     if (isSupabaseConfigured && profile?.user_id) {
       await signOut();
       notify("로그아웃되었습니다.");
@@ -756,6 +749,8 @@ export default function App() {
       notify("로그아웃되었습니다.");
     }
   };
+
+
 
   const handleUpdateNickname = (newNickname) => {
     setProfile((prev) => ({
@@ -848,15 +843,8 @@ export default function App() {
         onLogin={() => navigate("login")}
       />
     );
-  } else if (screen.route === "register") {
-    content = (
-      <AuthRegister
-        onBack={() => navigate("login")}
-        onComplete={handleRegisterComplete}
-        existingUsers={getStoredUsers()}
-      />
-    );
   } else if (screen.route === "onboarding") {
+
     content = (
       <OnboardingScreen
         catalog={serviceCatalog}
@@ -972,11 +960,11 @@ export default function App() {
     content = (
       <AuthLogin
         onSocial={handleSocialLogin}
-        onLogin={handleIdLogin}
-        onRegister={() => navigate("register")}
+        onGuest={handleGuestLogin}
       />
     );
   }
+
 
   return (
     <div className="app-shell" data-screen={screen.route} data-hash={typeof window !== "undefined" ? window.location.hash : ""}>

@@ -244,4 +244,30 @@ public class CancelBrowserPlugin extends Plugin {
         ret.put("url", (data != null && data.hasExtra("url")) ? data.getStringExtra("url") : "");
         call.resolve(ret);
     }
+
+    /**
+     * 로그아웃 시 해지 브라우저 WebView 세션(쿠키 및 웹 저장소)을 완전히 삭제한다.
+     */
+    @PluginMethod
+    public void clearSession(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            try {
+                android.webkit.CookieManager cookieManager = android.webkit.CookieManager.getInstance();
+                cookieManager.removeAllCookies(null);
+                cookieManager.flush();
+
+                android.webkit.WebStorage.getInstance().deleteAllData();
+
+                JSObject ret = new JSObject();
+                ret.put("success", true);
+                call.resolve(ret);
+            } catch (Exception e) {
+                JSObject ret = new JSObject();
+                ret.put("success", false);
+                ret.put("error", e.getMessage());
+                call.resolve(ret);
+            }
+        });
+    }
 }
+
