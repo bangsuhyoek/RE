@@ -15,7 +15,6 @@ export default [
       ecmaVersion: "latest",
       sourceType: "module",
       parserOptions: { ecmaFeatures: { jsx: true } },
-      globals: { ...globals.node },
     },
     rules: {
       "no-unused-vars": "warn",
@@ -28,10 +27,12 @@ export default [
     },
   },
   {
+    files: ["api/**", "scripts/**", "tests/**", "vite/**", "*.config.js"],
+    languageOptions: { globals: { ...globals.node } },
+  },
+  {
     files: ["src/**/*.{js,jsx}"],
-    languageOptions: {
-      globals: { ...globals.browser },
-    },
+    languageOptions: { globals: { ...globals.browser } },
     plugins: { "react-hooks": reactHooks },
     rules: {
       "react-hooks/rules-of-hooks": "error",
@@ -48,13 +49,16 @@ export default [
     files: ["tests/**/*.js"],
     languageOptions: { globals: { window: "writable" } },
   },
+  // 알려진 기존 버그(담당 스트림 수정 예정). 다른 스트림이 고치는 중인 소스와 충돌하지 않도록
+  // 소스 주석 대신 파일·규칙 하나로만 좁혀 둔다. 고친 뒤 이 두 블록을 지운다.
   {
-    // 알려진 기존 버그: 담당 스트림이 고친 뒤 이 블록을 지운다.
-    // SubscriptionDetailScreen.jsx:268-292 조기 return 뒤 훅 호출, AccountModal.jsx:322 정의되지 않은 handleAccountClose.
-    files: ["src/components/SubscriptionDetailScreen.jsx", "src/components/AccountModal.jsx"],
-    rules: {
-      "react-hooks/rules-of-hooks": "warn",
-      "no-undef": "warn",
-    },
+    // SubscriptionDetailScreen.jsx:238 조기 return 뒤 :268-292 훅 호출
+    files: ["src/components/SubscriptionDetailScreen.jsx"],
+    rules: { "react-hooks/rules-of-hooks": "warn" },
+  },
+  {
+    // AccountModal.jsx:322 정의되지 않은 handleAccountClose 호출
+    files: ["src/components/AccountModal.jsx"],
+    rules: { "no-undef": "warn" },
   },
 ];

@@ -18,6 +18,12 @@ test("앱에 노출되는 혜택은 공식 페이지에서 확인된(LIVE_CONFIR
   for (const catalog of [promotionCatalog, jsonCatalog]) {
     assert.equal(new Set(catalog.map((p) => p.id)).size, catalog.length, "혜택 ID는 고유해야 합니다.");
   }
+  // 수집 스크립트가 두 파일을 함께 갱신하고 앱은 내장 목록을 예비로 쓰므로 ID 집합이 같아야 한다.
+  assert.deepEqual(
+    [...new Set(promotionCatalog.map((p) => p.id))].sort(),
+    [...new Set(jsonCatalog.map((p) => p.id))].sort(),
+    "앱 내장 혜택 목록과 promotions.json의 ID 집합이 같아야 합니다."
+  );
   for (const promo of [...promotionCatalog, ...jsonCatalog]) {
     assert.equal(promo.verifiedStatus, "LIVE_CONFIRMED", promo.id);
   }
