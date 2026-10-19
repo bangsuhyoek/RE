@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LogOut, Check, X, AlertCircle, FileText, Download, Trash2, AlertTriangle } from "lucide-react";
 import { BottomSheet, Button } from "./ui";
 import { readEvidenceCases } from "../lib/storage";
@@ -7,6 +7,96 @@ import { grantDifficultyConsent, readDifficultyConsent, revokeDifficultyConsent 
 import { supabase } from "../lib/supabase";
 import { requestAccountDeletion, clearDeviceData } from "../lib/accountClient";
 import { exportUserData } from "../lib/dataExport";
+import {
+  getCaptureSourceSettings,
+  setCaptureSourceSettings,
+  readCaptureSourceSettingsLocal,
+} from "../lib/paymentCapture";
+
+/**
+ * 결제 알림 수집 출처 설정.
+ * 문자·메신저·이메일 앱은 사용자가 직접 켤 때만 수집하며, 기본값은 모두 꺼짐이다.
+ */
+function CaptureSourceSettings({ onToast }) {
+  const [settings, setSettings] = useState(() => readCaptureSourceSettingsLocal());
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getCaptureSourceSettings()
+      .then((next) => {
+        if (active) setSettings(next);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const toggle = async (key) => {
+    if (busy) return;
+    setBusy(true);
+    const next = { ...settings, [key]: !settings[key] };
+    const result = await setCaptureSourceSettings(next);
+    setBusy(false);
+    if (!result?.success) {
+      onToast?.("수집 출처 설정을 저장하지 못했어요. 다시 시도해 주세요.");
+      return;
+    }
+    setSettings(next);
+    onToast?.(
+      next[key]
+        ? "이 앱의 알림에서 결제 내역을 찾아볼게요. 알림 원문은 기기 밖으로 나가지 않아요."
+        : "이 앱의 알림은 더 이상 읽지 않아요."
+    );
+  };
+
+  const rows = [
+    { key: "messaging", label: "문자(SMS) 앱", hint: "카드 승인 문자를 결제로 인식" },
+    { key: "messenger", label: "메신저(카카오톡)", hint: "알림톡 결제 안내를 결제로 인식" },
+    { key: "email", label: "이메일 앱", hint: "영수증·인보이스 메일 알림을 결제로 인식" },
+  ];
+
+  return (
+    <div className="mt-5 rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs" data-testid="account-capture-source-settings">
+      <div className="flex items-center gap-2">
+        <span className="text-[13px] font-bold text-[#191F28]">알림 수집 범위</span>
+        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">선택</span>
+      </div>
+      <p className="mt-1 text-[11px] leading-relaxed text-[#8B95A1]">
+        카드사·은행·간편결제·앱스토어 알림은 기본으로 확인해요. 아래 앱들은 직접 켤 때만 알림에서
+        결제 내역을 찾고, 원문은 저장하거나 전송하지 않아요.
+      </p>
+      <ul className="mt-3 space-y-2">
+        {rows.map((row) => (
+          <li key={row.key} className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <span className="block text-[12px] font-semibold text-[#191F28]">{row.label}</span>
+              <span className="block text-[10.5px] text-[#8B95A1]">{row.hint}</span>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={Boolean(settings[row.key])}
+              aria-label={`${row.label} 알림 수집`}
+              disabled={busy}
+              onClick={() => toggle(row.key)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                settings[row.key] ? "bg-emerald-600" : "bg-[#E5E8EB]"
+              } ${busy ? "opacity-60" : ""}`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
+                  settings[row.key] ? "left-[22px]" : "left-0.5"
+                }`}
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 /** 결제 경고 증빙의 계정 보관 동의와 삭제 */
 function EvidenceSettings({ userId, onToast }) {
@@ -314,6 +404,8 @@ export function AccountModal({
       </div>
 
       <EvidenceSettings userId={userId} onToast={onToast} />
+
+      <CaptureSourceSettings onToast={onToast} />
 
       <DifficultySettings userId={userId} onToast={onToast} />
 

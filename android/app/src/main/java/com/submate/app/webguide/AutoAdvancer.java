@@ -53,6 +53,9 @@ public class AutoAdvancer {
     }
 
     // Hard block keywords: ALWAYS refused, converted to manual
+    // 돈이 나가는 동작(결제·구매·업그레이드·구독 시작/재개)은 해지 이동 중에도 절대 자동 탭하지 않는다.
+    // 맨 명사("결제", "구매", "pay")는 "결제 관리", "자동결제 해지", "Payment & billing" 같은
+    // 정상 해지 이동 문구까지 막으므로, 동작을 뜻하는 표현만 넣는다.
     public static final List<String> HARD_BLOCK_KEYWORDS = Collections.unmodifiableList(Arrays.asList(
             "확정",
             "완료",
@@ -60,10 +63,60 @@ public class AutoAdvancer {
             "환불",
             "결제 취소",
             "결제취소",
+            "결제하기",
+            "결제 진행",
+            "결제 계속",
+            "지금 결제",
+            "바로 결제",
+            "구매하기",
+            "구매 진행",
+            "지금 구매",
+            "업그레이드",
+            "구독하기",
+            "다시 시작",
+            "재구독",
+            "플랜 변경",
+            "결제 수단 변경",
+            "카드 변경",
+            "pay now",
+            "buy now",
+            "purchase now",
+            "upgrade",
+            "subscribe now",
+            "resume subscription",
+            "restart subscription",
+            "start membership",
             "finish",
             "confirm",
             "delete",
             "complete"
+    ));
+
+    // 해지 이동에 해당하는 버튼 글. AI 가 고른 단계는 이 목록에 맞아야 자동 탭 후보가 된다.
+    public static final List<String> CANCEL_NAVIGATION_ALLOWLIST = Collections.unmodifiableList(Arrays.asList(
+            "해지",
+            "해지하기",
+            "구독 해지",
+            "멤버십 해지",
+            "구독 관리",
+            "멤버십 관리",
+            "정기결제 관리",
+            "결제 관리",
+            "계정",
+            "계정 설정",
+            "설정",
+            "구독",
+            "멤버십",
+            "요금제",
+            "플랜",
+            "cancel",
+            "manage",
+            "membership",
+            "subscription",
+            "billing",
+            "account",
+            "settings",
+            "plan"
     ));
 
     // Soft keywords: allowed ONLY if step.isAutoTapAllowed() == true
@@ -181,6 +234,28 @@ public class AutoAdvancer {
         return true;
     }
 
+    public static boolean containsCancelNavigationKeyword(String text) {
+        if (text == null || text.trim().isEmpty()) return false;
+        String normalized = text.replaceAll("\\s+", " ").trim().toLowerCase(Locale.ROOT);
+        for (String kw : CANCEL_NAVIGATION_ALLOWLIST) {
+            if (normalized.contains(kw.toLowerCase(Locale.ROOT))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 자동 탭 최종 판정: 차단어에 걸리지 않고, 해지 이동 표현에 맞을 때만 허용한다.
+     * AI 가 해지 단계로 골랐더라도 버튼 글이 결제·구매 쪽이면 강조만 하고 누르지 않는다.
+     */
+    public static boolean isAutoTapCandidate(String text, boolean autoTapAllowed) {
+        if (!isKeywordAllowed(text, autoTapAllowed)) {
+            return false;
+        }
+        return containsCancelNavigationKeyword(text);
+    }
+
     public static String makePairKey(String stepId, String url) {
         String sId = stepId != null ? stepId : "";
         String u = url != null ? url : "";
@@ -214,9 +289,9 @@ public class AutoAdvancer {
         if (!policy.isAllowedForInjection(currentUrl)) return false;
         if (route != null && route.isLoginUrl(currentUrl)) return false;
 
-        // Keyword validation: hard-block vs soft-keyword with autoTapAllowed
-        boolean textAllowed = isKeywordAllowed(resolution.getMatchedText(), step.isAutoTapAllowed());
-        boolean descAllowed = isKeywordAllowed(resolution.getElementDescriptor(), step.isAutoTapAllowed());
+        // Keyword validation: hard-block vs soft-keyword with autoTapAllowed, and cancel-navigation allowlist
+        boolean textAllowed = isAutoTapCandidate(resolution.getMatchedText(), step.isAutoTapAllowed());
+        boolean descAllowed = isAutoTapCandidate(resolution.getElementDescriptor(), step.isAutoTapAllowed());
         if (!textAllowed || !descAllowed) {
             return false;
         }
@@ -438,10 +513,14 @@ public class AutoAdvancer {
                 + "var target=matches[0];"
                 + "if(target.closest('[role=dialog],[role=alertdialog],[aria-modal=true],dialog'))return 'blocked';"
                 + "var checkText=(norm(target.innerText||target.textContent)+' '+norm(target.getAttribute('aria-label'))+' '+norm(target.value)).toLowerCase();"
-                + "var hardKeywords=['확정','완료','탈퇴','환불','결제 취소','결제취소','finish','confirm','delete','complete'];"
+                + "var hardKeywords=['확정','완료','탈퇴','환불','결제 취소','결제취소','결제하기','결제 진행','결제 계속','지금 결제','바로 결제','구매하기','구매 진행','지금 구매','업그레이드','구독하기','다시 시작','재구독','플랜 변경','결제 수단 변경','카드 변경','pay now','buy now','purchase now','upgrade','subscribe now','resume subscription','restart subscription','start membership','finish','confirm','delete','complete'];"
                 + "for(var h=0;h<hardKeywords.length;h++){if(checkText.indexOf(hardKeywords[h])>=0)return 'blocked';}"
                 + "var softKeywords=['해지','취소','cancel','비활성화','deactivate'];"
                 + "for(var sk=0;sk<softKeywords.length;sk++){if(checkText.indexOf(softKeywords[sk])>=0){if(!autoTapAllowed)return 'blocked';}}"
+                + "var cancelNav=['해지','해지하기','구독 해지','멤버십 해지','구독 관리','멤버십 관리','정기결제 관리','결제 관리','계정','설정','구독','멤버십','요금제','플랜','cancel','manage','membership','subscription','billing','account','settings','plan'];"
+                + "var navOk=false;"
+                + "for(var nv=0;nv<cancelNav.length;nv++){if(checkText.indexOf(cancelNav[nv])>=0){navOk=true;break;}}"
+                + "if(!navOk)return 'blocked';"
                 + "target.click();"
                 + "return 'clicked';"
                 + "}catch(e){return 'not_found';}"

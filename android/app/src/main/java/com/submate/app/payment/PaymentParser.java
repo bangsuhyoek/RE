@@ -85,12 +85,17 @@ public class PaymentParser {
         KNOWN_SERVICES.add(new KnownService("apple", "Apple One", "기타", true, new Integer[]{14900, 20900, 3300, 4400, 8900}, "apple.com/bill", "애플"));
     }
 
+    public static final int USD_KRW_EXCHANGE_RATE = 1350;
+
     public static class ParsedPayment {
         public String serviceId = "";
         public String serviceName = "";
         public String category = "기타";
         public String plan = "";
-        public int amount = 0;
+        public int amount = 0;              // 원화 금액 (외화인 경우 고정 환율 환산값)
+        public String currency = "KRW";      // 원통화 (KRW, USD 등)
+        public double originalAmount = 0.0;  // 원금액
+        public boolean isEstimated = false; // 외화 환산 추정 여부 플래그
         public String paymentMethod = "카드";
         public boolean isSubscription = false;
         public boolean isTrial = false;
@@ -130,21 +135,31 @@ public class PaymentParser {
 
         boolean isTrial = TRIAL_KEYWORD.matcher(combined).find();
 
-        // 2. 금액 파싱
+        // 2. 금액 파싱 (원통화 및 원금액 보존, 원화 환산은 상수 + isEstimated)
         Matcher amountMatcher = AMOUNT_PATTERN.matcher(combined);
         int amount = 0;
+        String currency = "KRW";
+        double originalAmount = 0.0;
+        boolean isEstimated = false;
+
         while (amountMatcher.find()) {
             String krw = amountMatcher.group(1);
             String usd = amountMatcher.group(2);
             if (krw != null) {
                 try {
                     amount = Integer.parseInt(krw.replace(",", ""));
+                    currency = "KRW";
+                    originalAmount = amount;
+                    isEstimated = false;
                     break;
                 } catch (NumberFormatException ignored) {}
             } else if (usd != null) {
                 try {
                     double dollars = Double.parseDouble(usd);
-                    amount = (int) Math.round(dollars * 1350);
+                    currency = "USD";
+                    originalAmount = dollars;
+                    amount = (int) Math.round(dollars * USD_KRW_EXCHANGE_RATE);
+                    isEstimated = true;
                     break;
                 } catch (NumberFormatException ignored) {}
             }
@@ -213,13 +228,29 @@ public class PaymentParser {
             }
         }
 
+        boolean isEmailChannel = packageName != null && (
+                packageName.contains("gm") ||
+                packageName.contains("mail") ||
+                packageName.contains("outlook") ||
+                PaymentPackageRegistry.EMAIL_PACKAGES.contains(packageName)
+        );
+
+        // 이메일 앱 알림인 경우, 알려진 서비스명(bestMatch)이나 명시적인 서비스 신호 없이는
+        // 단순 invoice/receipt/구독 단어 + 금액만으로 구독 판정하지 않는다.
+        if (isEmailChannel && bestMatch == null) {
+            return null;
+        }
+
         ParsedPayment result = new ParsedPayment();
         result.amount = (amount == 0 && isTrial && bestMatch != null && !bestMatch.allowedAmounts.isEmpty())
                 ? Collections.min(bestMatch.allowedAmounts)
                 : amount;
+        result.currency = currency;
+        result.originalAmount = originalAmount;
+        result.isEstimated = isEstimated;
         result.isTrial = isTrial;
         result.rawText = combined;
-        if (packageName != null && (packageName.contains("gm") || packageName.contains("mail") || packageName.contains("outlook"))) {
+        if (isEmailChannel) {
             result.sourceChannel = "email_notification";
         } else if ("com.android.vending".equals(packageName)) {
             result.sourceChannel = "play_store";
@@ -296,16 +327,17 @@ public class PaymentParser {
 
     private static String detectPaymentMethod(String packageName, String text) {
         String pkg = packageName != null ? packageName : "";
-        if (pkg.contains("shcard") || text.contains("신한")) return "신한카드";
-        if (pkg.contains("kbcard") || pkg.contains("kbstar") || text.contains("KB") || text.contains("국민")) return "KB국민카드";
-        if (pkg.contains("hyundaicard") || text.contains("현대")) return "현대카드";
-        if (pkg.contains("samsungcard") || text.contains("삼성카드")) return "삼성카드";
-        if (pkg.contains("wooricard") || text.contains("우리")) return "우리카드";
-        if (pkg.contains("lotte") || text.contains("롯데")) return "롯데카드";
-        if (pkg.contains("hana") || text.contains("하나")) return "하나카드";
-        if (pkg.contains("nh.smart") || text.contains("농협")) return "NH농협카드";
+        if (pkg.contains("shcard") || text.contains("신한카드") || text.contains("신한SOL") || text.contains("신한체크") || text.contains("신한")) return "신한카드";
+        if (pkg.contains("kbcard") || pkg.contains("kbstar") || text.contains("KB국민카드") || text.contains("KB Pay") || text.contains("국민카드") || text.contains("KB체크")) return "KB국민카드";
+        if (pkg.contains("hyundaicard") || text.contains("현대카드") || text.contains("현대체크")) return "현대카드";
+        if (pkg.contains("samsungcard") || text.contains("삼성카드") || text.contains("삼성체크")) return "삼성카드";
+        if (pkg.contains("wooricard") || text.contains("우리카드") || text.contains("우리WON") || text.contains("우리체크")) return "우리카드";
+        if (pkg.contains("lotte") || text.contains("롯데카드") || text.contains("디지로카") || text.contains("롯데체크")) return "롯데카드";
+        if (pkg.contains("hanamembers") || pkg.contains("hana") || text.contains("하나카드") || text.contains("하나Pay") || text.contains("하나체크")) return "하나카드";
+        if (pkg.contains("nh.smart.card") || pkg.contains("nh.smart") || text.contains("NH농협카드") || text.contains("농협카드") || text.contains("NH체크") || text.contains("농협체크")) return "NH농협카드";
+        if (pkg.contains("bccard") || text.contains("비씨카드") || text.contains("페이북")) return "BC카드";
         if (pkg.contains("kakaopay") || text.contains("카카오페이")) return "카카오페이";
-        if (pkg.contains("toss") || text.contains("토스")) return "토스페이";
+        if (pkg.contains("toss") || text.contains("토스페이")) return "토스페이";
         if (pkg.contains("nhn") || text.contains("네이버페이")) return "네이버페이";
         if (pkg.contains("spay") || text.contains("삼성월렛") || text.contains("삼성페이")) return "삼성월렛";
         return "신용/체크카드";

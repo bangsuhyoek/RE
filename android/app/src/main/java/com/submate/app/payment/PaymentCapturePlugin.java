@@ -109,6 +109,9 @@ public class PaymentCapturePlugin extends Plugin {
             item.put("category", p.category);
             item.put("plan", p.plan);
             item.put("amount", p.amount);
+            item.put("currency", p.currency);
+            item.put("originalAmount", p.originalAmount);
+            item.put("isEstimated", p.isEstimated);
             item.put("paymentMethod", p.paymentMethod);
             item.put("isTrial", p.isTrial);
             item.put("sourceChannel", p.sourceChannel);
@@ -129,6 +132,37 @@ public class PaymentCapturePlugin extends Plugin {
         boolean valid = PaymentNotificationHelper.verifyAndConsumeNonce(getContext(), nonce);
         JSObject ret = new JSObject();
         ret.put("valid", valid);
+        call.resolve(ret);
+    }
+
+    /**
+     * 결제 알림 수집 출처(문자, 메신저, 이메일) 설정 조회
+     */
+    @PluginMethod
+    public void getCaptureSourceSettings(PluginCall call) {
+        PaymentPackageRegistry.CaptureSourceSettings settings =
+                PaymentPackageRegistry.getCaptureSourceSettings(getContext());
+        JSObject ret = new JSObject();
+        ret.put("messaging", settings.captureMessaging);
+        ret.put("messenger", settings.captureMessenger);
+        ret.put("email", settings.captureEmail);
+        call.resolve(ret);
+    }
+
+    /**
+     * 결제 알림 수집 출처(문자, 메신저, 이메일) 설정 저장
+     */
+    @PluginMethod
+    public void setCaptureSourceSettings(PluginCall call) {
+        boolean messaging = call.getBoolean("messaging", false);
+        boolean messenger = call.getBoolean("messenger", false);
+        boolean email = call.getBoolean("email", false);
+        PaymentPackageRegistry.setCaptureSourceSettings(getContext(), messaging, messenger, email);
+        JSObject ret = new JSObject();
+        ret.put("success", true);
+        ret.put("messaging", messaging);
+        ret.put("messenger", messenger);
+        ret.put("email", email);
         call.resolve(ret);
     }
 }
