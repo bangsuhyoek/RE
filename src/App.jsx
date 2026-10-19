@@ -1,25 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { Bell } from "lucide-react";
+import { Bell, LoaderCircle } from "lucide-react";
 import { AuthLogin, AuthRegister } from "./components/AuthScreens";
 import { SplashScreen, LandingScreen } from "./components/LandingScreen";
-import { AddModal } from "./components/AddModal";
-import { SubscriptionDiscoveryModal } from "./components/SubscriptionDiscoveryModal";
-import { AccountModal } from "./components/AccountModal";
-import { TermsModal } from "./components/TermsModal";
 import { requestPaymentCapturePermission, simulatePaymentDetection } from "./lib/paymentCapture";
 import { isNativePlatform } from "./lib/platform";
-import { CancelModal } from "./components/CancelModal";
-import { AgentSheet } from "./components/AgentSheet";
 import { HomeScreen } from "./components/HomeScreen";
-import { OnboardingScreen } from "./components/OnboardingScreen";
-import { PromotionScreen } from "./components/PromotionScreen";
-import { RenewalSheet } from "./components/RenewalSheet";
-import { CalendarScreen, SubscriptionDetailScreen, SubscriptionListScreen } from "./components/SubscriptionScreens";
-import { NotificationCenterModal } from "./components/NotificationComponents";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
 import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
 import { removeDemoSubscriptions, getStoredUsers, saveUser, findUser, storageKeys, readStoredValue, readCancelHistory, writeCancelHistory } from "./lib/storage";
@@ -34,12 +23,47 @@ import { formatWon } from "./lib/dates";
 import { useCareFeed } from "./hooks/useCareFeed";
 import { useAgentInsights } from "./hooks/useAgentInsights";
 import { CareSection } from "./components/CareSection";
-import { RotationSheet } from "./components/RotationSheet";
 import { useNavigation } from "./hooks/useNavigation";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
 import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubscription } from "./lib/supabase";
 import { getInitialPromotions, loadLivePromotions } from "./lib/promotionsSync";
+import { buildDiscoveredSubscriptions } from "./lib/subscriptionDiscovery";
+
+// 첫 화면(랜딩·홈)에 필요 없는 화면과 시트는 열 때 불러와 첫 로딩 묶음을 줄인다.
+const lazyNamed = (load, name) => lazy(() => load().then((module) => ({ default: module[name] })));
+const AddModal = lazyNamed(() => import("./components/AddModal"), "AddModal");
+const SubscriptionDiscoveryModal = lazyNamed(() => import("./components/SubscriptionDiscoveryModal"), "SubscriptionDiscoveryModal");
+const AccountModal = lazyNamed(() => import("./components/AccountModal"), "AccountModal");
+const TermsModal = lazyNamed(() => import("./components/TermsModal"), "TermsModal");
+const CancelModal = lazyNamed(() => import("./components/CancelModal"), "CancelModal");
+const AgentSheet = lazyNamed(() => import("./components/AgentSheet"), "AgentSheet");
+const OnboardingScreen = lazyNamed(() => import("./components/OnboardingScreen"), "OnboardingScreen");
+const PromotionScreen = lazyNamed(() => import("./components/PromotionScreen"), "PromotionScreen");
+const RenewalSheet = lazyNamed(() => import("./components/RenewalSheet"), "RenewalSheet");
+const RotationSheet = lazyNamed(() => import("./components/RotationSheet"), "RotationSheet");
+const NotificationCenterModal = lazyNamed(() => import("./components/NotificationComponents"), "NotificationCenterModal");
+const CalendarScreen = lazyNamed(() => import("./components/CalendarScreen"), "CalendarScreen");
+const SubscriptionDetailScreen = lazyNamed(() => import("./components/SubscriptionDetailScreen"), "SubscriptionDetailScreen");
+const SubscriptionListScreen = lazyNamed(() => import("./components/SubscriptionListScreen"), "SubscriptionListScreen");
+
+function ScreenFallback() {
+  return (
+    <div className="grid min-h-[60vh] place-items-center" role="status" aria-label="화면을 불러오는 중">
+      <LoaderCircle size={26} className="animate-spin text-[#153D2E]" />
+    </div>
+  );
+}
+
+function SheetFallback() {
+  return (
+    <div className="sheet-backdrop fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" role="status" aria-label="불러오는 중">
+      <div className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto grid h-44 w-full max-w-full place-items-center rounded-t-[24px] border-t border-[#F2F4F6] bg-white shadow-[0_-8px_32px_rgba(0,0,0,0.12)] sm:max-w-[440px]">
+        <LoaderCircle size={26} className="animate-spin text-[#153D2E]" />
+      </div>
+    </div>
+  );
+}
 
 // 결제 사전 알림 중 갱신 승인 카드로 이어지는 종류
 const RENEWAL_NOTIFICATION_TYPES = new Set(["billing_d3", "billing_d1", "trial_d1"]);
@@ -795,35 +819,25 @@ export default function App() {
 
   const handleAddSubscriptionBatch = useCallback((items = []) => {
     if (!Array.isArray(items) || items.length === 0) return;
-    let addedCount = 0;
-    items.forEach((item) => {
-      const ok = handleAddSubscription(
-        {
-          id: item.serviceId || item.id || undefined,
-          serviceId: item.serviceId || item.id || "",
-          name: item.name,
-          category: item.category || "기타",
-          plan: item.plan || "기본 플랜",
-          amount: Number(item.amount) || 0,
-          dueDay: Number(item.dueDay) || new Date().getDate(),
-          billingCycle: item.billingCycle || "매월",
-          nextBillingDate: item.billingCycle === "매년" ? item.nextBillingDate || null : null,
-          paymentMethod: item.paymentMethod || "신용/체크카드",
-          isTrial: Boolean(item.isTrial),
-          sourceType: "sms",
-        },
-        null
-      );
-      if (ok !== false) addedCount += 1;
-    });
-    if (addedCount > 0) {
-      setOnboardingComplete(true);
-      if (screen.route === "onboarding") {
-        navigate("home");
-      }
-      notify(addedCount + "개의 숨은 구독을 한 번에 등록했어요!");
+    // 묶음 전체를 한 번에 만들고 한 번에 반영한다. 기존 목록·묶음 안의 중복은 빼고 항목마다 고유 ID 를 붙인다.
+    const { records, skippedCount } = buildDiscoveredSubscriptions(items, subscriptions, { catalog: serviceCatalog });
+    if (records.length === 0) {
+      notify("선택한 구독은 이미 등록되어 있어요.");
+      return;
     }
-  }, [handleAddSubscription, navigate, notify, screen.route, setOnboardingComplete]);
+    setSubscriptions((current) => [...records, ...current]);
+    if (profile?.user_id) {
+      records.forEach((record) => upsertDbSubscription(profile.user_id, record).catch(console.error));
+    }
+    setOnboardingComplete(true);
+    if (screen.route === "onboarding") {
+      navigate("home");
+    }
+    notify(
+      records.length + "개의 숨은 구독을 한 번에 등록했어요!" +
+      (skippedCount > 0 ? " (이미 있는 " + skippedCount + "개는 제외)" : "")
+    );
+  }, [navigate, notify, profile?.user_id, screen.route, setOnboardingComplete, setSubscriptions, subscriptions]);
 
   const handlePromotion = useCallback((promotion) => {
     if (promotion?.link) {
@@ -1015,7 +1029,7 @@ export default function App() {
           }
         />
       )}
-      {content}
+      <Suspense fallback={<ScreenFallback />}>{content}</Suspense>
       {hasAppChrome && screen.route !== "detail" && (
         <BottomNavigation
           route={screen.route}
@@ -1028,6 +1042,7 @@ export default function App() {
           onOpenAccount={() => setAccountOpen(true)}
         />
       )}
+      <Suspense fallback={<SheetFallback />}>
       {addOpen && (
         <AddModal
           catalog={serviceCatalog}
@@ -1165,6 +1180,7 @@ export default function App() {
           onLogout={handleLogout}
         />
       )}
+      </Suspense>
       <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );

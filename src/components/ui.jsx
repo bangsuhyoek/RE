@@ -1060,11 +1060,66 @@ export function Toast({ toast, onClose, duration = 2500 }) {
   );
 }
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function BottomSheet({ children, onClose, label }) {
+  const dialogRef = useRef(null);
+
+  // 열리면 포커스를 시트 안으로 옮기고, 닫히면 시트를 열기 전 위치로 돌려준다.
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    const previouslyFocused = document.activeElement;
+    if (dialog && !dialog.contains(document.activeElement)) {
+      dialog.focus({ preventScroll: true });
+    }
+    return () => {
+      if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) {
+        previouslyFocused.focus({ preventScroll: true });
+      }
+    };
+  }, []);
+
+  // Esc 로 닫고, Tab 은 시트 안에서만 돈다. 시트 안에 다른 창(role="dialog", 예: 결제수단 선택 창)이 열려 있거나
+  // 키가 그 창에서 왔으면 그 창이 처리하도록 손대지 않는다.
+  const handleKeyDown = (event) => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (event.target.closest?.('[role="dialog"]') !== dialog || dialog.querySelector('[role="dialog"]')) return;
+    if (event.key === "Escape") {
+      event.stopPropagation();
+      onClose?.();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    event.stopPropagation();
+    const focusable = Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+      (element) => element.getClientRects().length > 0
+    );
+    if (focusable.length === 0) {
+      event.preventDefault();
+      dialog.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || active === dialog || !dialog.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (active === last || !dialog.contains(active))) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
   return (
     <div className="sheet-backdrop fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={onClose}>
       <div
-        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-full sm:max-w-[440px] max-h-[90vh] max-h-[90dvh] flex flex-col rounded-t-[24px] border-t border-[#F2F4F6] bg-white px-4 sm:px-5 pb-[max(1.75rem,calc(env(safe-area-inset-bottom,0px)+1rem))] pt-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
+        ref={dialogRef}
+        tabIndex={-1}
+        onKeyDown={handleKeyDown}
+        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-full sm:max-w-[440px] max-h-[90vh] max-h-[90dvh] flex flex-col rounded-t-[24px] border-t border-[#F2F4F6] bg-white px-4 sm:px-5 pb-[max(1.75rem,calc(env(safe-area-inset-bottom,0px)+1rem))] pt-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)] outline-none"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"

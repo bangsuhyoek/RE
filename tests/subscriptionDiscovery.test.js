@@ -1,12 +1,86 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildDiscoveredSubscriptions,
+  createSubscriptionId,
   inferServiceByPriceFingerprint,
   scanHubPageText,
   scanStatementText,
   SUBSCRIPTION_HUBS,
 } from "../src/lib/subscriptionDiscovery.js";
 import { sharedTextToDetected } from "../src/lib/shareIntake.js";
+
+test("월 14만 원 Claude 결제는 금액이 커도 월간으로 분류하고, 주기 근거가 없음을 표시한다", () => {
+  const { items } = scanStatementText("2026.10.10 [신한카드] Claude 140,000원 일시불 승인", { now: new Date(2026, 9, 19) });
+  assert.equal(items.length, 1);
+  assert.equal(items[0].serviceId, "claude-pro");
+  assert.equal(items[0].billingCycle, "매월");
+  assert.equal(items[0].nextBillingDate, null);
+  assert.equal(items[0].cycleConfirmed, false);
+});
+
+test("주기 표시가 없어도 서비스의 연간 요금제 가격과 같으면 연간으로, 월간 요금제 가격이면 월간으로 판정한다", () => {
+  const { items } = scanStatementText(
+    ["2026.03.02 신한카드 승인 디즈니플러스 99,000원", "2026.10.05 신한카드 승인 넷플릭스 17,000원"].join("\n"),
+    { now: new Date(2026, 9, 19) }
+  );
+  const byId = Object.fromEntries(items.map((item) => [item.serviceId, item]));
+  assert.equal(byId.disney.billingCycle, "매년");
+  assert.equal(byId.disney.nextBillingDate, "2027-03-02");
+  assert.equal(byId.netflix.billingCycle, "매월");
+  assert.equal(byId.netflix.cycleConfirmed, true);
+});
+
+test("숨은 구독 일괄 등록은 같은 순간에 만든 5건에도 모두 다른 ID 를 붙인다", () => {
+  const items = ["넷플릭스", "티빙", "왓챠", "멜론", "마이폼 노트"].map((name, index) => ({ name, plan: "기본 플랜", amount: 1000 + index }));
+  const { records, skippedCount } = buildDiscoveredSubscriptions(items, [], { now: new Date(2026, 9, 19) });
+  assert.equal(records.length, 5);
+  assert.equal(skippedCount, 0);
+  assert.equal(new Set(records.map((r) => r.subscriptionId)).size, 5);
+});
+
+test("randomUUID 가 없는 환경에서도 연달아 만든 구독 ID 가 겹치지 않는다", () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "crypto");
+  Object.defineProperty(globalThis, "crypto", { value: {}, configurable: true });
+  try {
+    const ids = Array.from({ length: 50 }, () => createSubscriptionId());
+    assert.equal(new Set(ids).size, 50);
+  } finally {
+    Object.defineProperty(globalThis, "crypto", original);
+  }
+});
+
+test("일괄 등록은 이미 있는 구독과 묶음 안에서 반복된 구독을 한 번만 넣는다", () => {
+  const catalog = [
+    { id: "netflix", name: "Netflix", category: "OTT", monogram: "N", cancelUrl: "https://netflix.com" },
+    { id: "youtube", name: "YouTube Premium", category: "OTT", monogram: "Y", cancelUrl: "https://youtube.com" },
+  ];
+  const existing = [{ subscriptionId: "a", id: "netflix", serviceId: "netflix", name: "Netflix", plan: "스탠다드", status: "active" }];
+  const items = [
+    { serviceId: "netflix", name: "Netflix", plan: "프리미엄", amount: 17000 },
+    { serviceId: "youtube", name: "YouTube Premium", plan: "개인 멤버십", amount: 14900 },
+    { serviceId: "youtube", name: "YouTube Premium", plan: "개인 멤버십", amount: 14900 },
+    { serviceId: "", name: "마이폼 노트", plan: "기본 플랜", amount: 3300 },
+    { serviceId: "", name: "마이폼 노트", plan: "기본 플랜", amount: 3300 },
+  ];
+  const { records, skippedCount } = buildDiscoveredSubscriptions(items, existing, { catalog, now: new Date(2026, 9, 19) });
+  assert.deepEqual(records.map((r) => r.name), ["YouTube Premium", "마이폼 노트"]);
+  assert.equal(skippedCount, 3);
+  assert.equal(records[0].id, "youtube");
+  assert.equal(records[0].cancelUrl, "https://youtube.com");
+  assert.match(records[1].id, /^custom-/);
+  assert.match(records[1].subscriptionId, /^manual-/);
+});
+
+test("모달에서 연간으로 바꾼 항목은 결제 내역 날짜로 다음 결제일을 채운다", () => {
+  const { records } = buildDiscoveredSubscriptions(
+    [{ serviceId: "claude-pro", name: "Claude Pro", plan: "Max", amount: 140000, billingCycle: "매년", nextBillingDate: null, annualNextBillingDate: "2027-10-10" }],
+    [],
+    { now: new Date(2026, 9, 19) }
+  );
+  assert.equal(records[0].billingCycle, "매년");
+  assert.equal(records[0].nextBillingDate, "2027-10-10");
+});
 
 test("PG사/인앱결제 마스킹('구글플레이 14,900원')을 가격 지문으로 YouTube Premium에 매칭한다", () => {
   const spec = inferServiceByPriceFingerprint(14900);
