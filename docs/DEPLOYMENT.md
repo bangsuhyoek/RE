@@ -38,7 +38,7 @@ Vercel 대시보드 [Settings > Environment Variables]에 아래 변수들을 �
 | `GEMINI_API_KEY` | Google AI Studio에서 발급받은 Gemini API 키 (**유료 등급** 프로젝트) |
 | `SUPABASE_URL` | Supabase 프로젝트 URL (예: `https://xyzcompany.supabase.co`) |
 | `SUPABASE_ANON_KEY` | Supabase 공개 anon API 키 |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 서비스 롤 비밀 키 (*통합 후 확인 필요: 회원 탈퇴 관리자 작업용) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 서비스 롤 비밀 키 (회원 탈퇴 `POST /api/account-delete` 관리자 작업용) |
 | `DISCORD_WEBHOOK_URL` | (선택) 크롤러 파이프라인 검수 알림용 디스코드 웹훅 |
 | `GOOGLE_APPLICATION_CREDENTIALS` | (선택) Google Cloud Vision OCR 예비 연동용 서비스 계정 JSON |
 

@@ -14,13 +14,15 @@ SubMate는 최소 권한의 원칙(Principle of Least Privilege)을 준수하며
 
 | 권한 항목 | 구분 | 수집 및 이용 목적 | 미허용 시 이용 제한 여부 |
 | :--- | :---: | :--- | :--- |
+| **인터넷 (INTERNET)** | **필수** | Supabase 클라우드 동기화 및 서버리스 API 통신 | 서비스 이용 불가 (네트워크 연결 필수) |
 | **알림 (POST_NOTIFICATIONS)**<br>*(Android 13+)* | **선택** | 구독 결제 예정일(D-3, D-1, 당일) 사전 단말기 로컬 푸시 알림 발송 (FCM 원격 푸시 미사용) | 구독 결제 알림 수신 불가 (앱 내 수동 확인만 가능) |
 | **알림 접근 권한 (NotificationListener)**<br>*(BIND_NOTIFICATION_LISTENER_SERVICE)* | **선택** | 웹/앱 결제 시 카드사/은행/간편결제 앱 푸시를 감지하여 구독 정보 자동 입력 (온디바이스 로컬 파싱, 서버 미전송) | 자동 등록 알림 미제공 (수동 등록은 정상 가능) |
 | **카메라 (CAMERA)** | **선택** | AI 인식을 위해 결제 영수증 실물 직접 촬영 | 직접 촬영 영수증 인식 불가 (사진 보관함 선택 또는 텍스트 입력 가능) |
 | **사진 선택 (Photo Picker)** | **선택** | 결제 영수증 사진 또는 결제 완료 캡처 이미지 첨부 | 영수증 사진 인식 불가 (문자 복사 붙여넣기는 가능)<br>*(Android Photo Picker 적용으로 별도 저장소 접근 권한 불필요)* |
 | **생체인증 (USE_BIOMETRIC)**<br>*(라이브러리 자동 결합)* | **선택** | 승인 카드에서 "이 금액 이하면 항상 허용" 범위를 설정할 때 지문·얼굴 또는 단말기 잠금으로 본인 확인 | "항상 허용" 범위 생성 불가 ("이번만 허용", "거절하고 해지"는 정상 이용 가능)<br>*(※ AndroidManifest.xml에 직접 선언하지 않고 androidx.biometric 라이브러리를 통해 안전하게 OS 인증 대화상자 호출)* |
 
-*※ SubMate는 외부 브라우저 위에 강제로 그리는 오버레이 권한(`SYSTEM_ALERT_WINDOW`)과 특수 목적 포그라운드 서비스(`FOREGROUND_SERVICE_SPECIAL_USE`)를 요구하지 않으며, 앱 내 전용 해지 브라우저(`CancelBrowserActivity`) 안에서 안전하게 단계별 가이드를 제공합니다.*
+*※ 정확한 알람(`SCHEDULE_EXACT_ALARM`)은 매니페스트에서 명시적으로 제거(`tools:node="remove"`)하여 불필요한 시스템 권한 요청 화면을 방지하고 배터리 소모를 최소화하는 표준 로컬 알람을 사용합니다.*  
+*※ SubMate는 외부 브라우저 위에 강제로 그리는 시스템 오버레이(`SYSTEM_ALERT_WINDOW`), 특수 목적 포그라운드 서비스(`FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE`), 플로팅 버블 UI를 완전히 제거하였습니다. 모든 구독 해지 안내는 앱 내 전용 해지 브라우저(`CancelBrowserActivity`) 웹뷰 안에서만 안전하게 단계별 가이드로 제공됩니다.*
 
 ---
 
