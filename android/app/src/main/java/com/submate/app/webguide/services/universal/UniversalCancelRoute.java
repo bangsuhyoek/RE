@@ -52,7 +52,7 @@ public final class UniversalCancelRoute implements CancelGuideRoute {
             "coursera.org", "xbox.com", "playstation.com", "nintendo.com", "ea.com",
             "nordaccount.com", "nordvpn.com", "1password.com", "grammarly.com", "deepl.com",
             "zoom.us", "slack.com", "strava.com", "burnfit.io", "payinfo.or.kr",
-            "linkedin.com", "x.com", "twitter.com", "medium.com", "substack.com",
+            "linkedin.com",
             "nytimes.com", "economist.com", "wsj.com", "ft.com", "joongang.co.kr",
             "longblack.co", "scribd.com", "everand.com", "storytel.com", "audible.com",
             "mubi.com", "crunchyroll.com", "dazn.com", "weverse.io", "dearu.com",
@@ -120,6 +120,16 @@ public final class UniversalCancelRoute implements CancelGuideRoute {
     private static final List<String> TERMINAL_WORDS = Arrays.asList(
             "해지", "취소", "종료", "탈퇴", "해제", "포기", "예약",
             "cancel", "end", "terminate", "downgrade", "unsubscribe"
+    );
+
+    // 결제·구매·업그레이드·구독 시작/재개는 해지 흐름에서 절대 자동 탭하지 않는다.
+    // "결제 관리", "자동결제 해지" 같은 정상 해지 이동을 막지 않도록 동작 표현만 넣는다.
+    private static final List<String> PAYMENT_ACTION_WORDS = Arrays.asList(
+            "결제하기", "결제 진행", "결제 계속", "지금 결제", "바로 결제",
+            "구매하기", "구매 진행", "지금 구매", "업그레이드", "구독하기", "다시 시작",
+            "재구독", "플랜 변경", "결제 수단 변경", "카드 변경",
+            "pay now", "buy now", "purchase now", "upgrade", "subscribe now",
+            "resume subscription", "restart subscription", "start membership"
     );
 
     public static final class FlowState {
@@ -466,6 +476,13 @@ public final class UniversalCancelRoute implements CancelGuideRoute {
         int safeTotalSteps = totalSteps > 0 ? totalSteps : 4;
         String normText = normalizeText(matchedText);
         String lowerText = normText.toLowerCase(Locale.ROOT);
+
+        // 돈이 나가는 동작은 해지 흐름의 어느 단계에서도 자동 탭 후보로 만들지 않는다.
+        for (String w : PAYMENT_ACTION_WORDS) {
+            if (lowerText.contains(w)) {
+                return new GuardResult(true, false, Math.max(1, Math.min(stage, safeTotalSteps)), PageState.CANCELLATION_ENTRY, false);
+            }
+        }
 
         for (String w : STAGE_4_WORDS) {
             if (lowerText.contains(w.toLowerCase(Locale.ROOT))) {

@@ -153,4 +153,104 @@ public class PaymentParserTest {
         assertEquals("millie", parsed.serviceId);
         assertEquals(9900, parsed.amount);
     }
+
+    @Test
+    public void testEmailNotificationWithoutKnownServiceIsRejected() {
+        // 이메일 알림은 알려진 서비스 신호 없이 invoice/receipt + 금액만으로 구독 판정하지 않는다.
+        PaymentParser.ParsedPayment parsed = PaymentParser.parse(
+                "com.google.android.gm",
+                "영수증 안내",
+                "구독 결제가 완료되었습니다. 9,900원이 청구되었습니다."
+        );
+        assertNull("알 수 없는 서비스의 이메일 영수증은 구독으로 등록되지 않아야 합니다.", parsed);
+    }
+
+    @Test
+    public void testUsdPaymentKeepsOriginalAmountAndMarksEstimated() {
+        PaymentParser.ParsedPayment parsed = PaymentParser.parse(
+                "com.android.vending",
+                "Netflix",
+                "Netflix 월 구독 $15.49 결제"
+        );
+        assertNotNull(parsed);
+        assertEquals("USD", parsed.currency);
+        assertEquals(15.49, parsed.originalAmount, 0.001);
+        assertEquals(Math.round(15.49 * PaymentParser.USD_KRW_EXCHANGE_RATE), parsed.amount);
+        assertTrue("외화 환산 금액은 추정치로 표시되어야 합니다.", parsed.isEstimated);
+    }
+
+    @Test
+    public void testCardIssuerDetectionUsesSpecificNames() {
+        PaymentParser.ParsedPayment parsed = PaymentParser.parse(
+                "com.shcard.smartpay",
+                "신한카드 승인",
+                "신한카드 승인 17,000원 넷플릭스"
+        );
+        assertNotNull(parsed);
+        assertEquals("신한카드", parsed.paymentMethod);
+    }
+
+    @Test
+    public void testGenericWordDoesNotPickCardIssuer() {
+        PaymentParser.ParsedPayment parsed = PaymentParser.parse(
+                "com.shcard.smartpay",
+                "결제 알림",
+                "우리 동네 정육식당 12,000원 결제"
+        );
+        if (parsed != null) {
+            assertNotEquals("일반 단어 '우리'만으로 우리카드로 판별하면 안 됩니다.", "우리카드", parsed.paymentMethod);
+        }
+    }
+
+    @Test
+    public void testKeywordBasedPackageIsNoLongerTarget() {
+        assertFalse("패키지명에 pay 가 들어간 미등록 앱은 수집 대상이 아니어야 합니다.",
+                PaymentPackageRegistry.isTargetPackage("com.example.randompayapp"));
+        assertTrue("명시된 카드사 패키지는 기본 수집 대상입니다.",
+                PaymentPackageRegistry.isTargetPackage("com.shcard.smartpay"));
+    }
+
+    @Test
+    public void testMessagingAndEmailPackagesRequireExplicitOptIn() {
+        assertFalse("카카오톡은 기본 수집 대상이 아니어야 합니다.",
+                PaymentPackageRegistry.isTargetPackage("com.kakao.talk"));
+        assertFalse("Gmail 은 기본 수집 대상이 아니어야 합니다.",
+                PaymentPackageRegistry.isTargetPackage("com.google.android.gm"));
+    }
+
+    @Test
+    public void testDedupHashIsStableAcrossCalls() {
+        String a = PaymentNotificationListener.computeDedupHash("netflix", "Netflix", 17000, "KRW");
+        String b = PaymentNotificationListener.computeDedupHash("netflix", "Netflix", 17000, "KRW");
+        String c = PaymentNotificationListener.computeDedupHash("netflix", "Netflix", 18000, "KRW");
+        assertEquals("같은 결제는 같은 중복 판정 해시를 가져야 합니다.", a, b);
+        assertNotEquals("금액이 다르면 다른 해시여야 합니다.", a, c);
+    }
+
+    @Test
+    public void testPaymentButtonsAreNeverAutoTapCandidates() {
+        String[] moneyActions = {
+                "결제하기", "지금 결제", "구매하기", "업그레이드", "구독하기", "다시 시작", "재구독",
+                "플랜 변경", "Pay now", "Buy now", "Purchase now", "Upgrade plan", "Subscribe now", "Start membership"
+        };
+        for (String text : moneyActions) {
+            assertFalse("돈이 나가는 버튼은 자동 탭 후보가 아니어야 합니다: " + text,
+                    com.submate.app.webguide.AutoAdvancer.isAutoTapCandidate(text, true));
+        }
+    }
+
+    @Test
+    public void testCancelNavigationButtonsAreAutoTapCandidates() {
+        String[] navActions = { "구독 관리", "멤버십 해지", "계정 설정", "정기결제 관리", "자동결제 해지 신청하기", "Manage membership" };
+        for (String text : navActions) {
+            assertTrue("해지 이동 버튼은 자동 탭 후보가 될 수 있어야 합니다: " + text,
+                    com.submate.app.webguide.AutoAdvancer.isAutoTapCandidate(text, true));
+        }
+    }
+
+    @Test
+    public void testUnrelatedButtonIsNotAutoTapCandidate() {
+        assertFalse("해지 이동도 결제도 아닌 버튼은 자동 탭하지 않습니다.",
+                com.submate.app.webguide.AutoAdvancer.isAutoTapCandidate("프로필 사진 바꾸기", true));
+    }
 }

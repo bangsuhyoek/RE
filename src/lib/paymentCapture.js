@@ -11,6 +11,13 @@ export const PaymentCapture = registerPlugin("PaymentCapture", {
     },
     scanInstalledApps: async () => ({ apps: [], count: 0, isSupported: false }),
     scanActiveNotifications: async () => ({ items: [], count: 0, isSupported: false }),
+    getCaptureSourceSettings: async () => ({ messaging: false, messenger: false, email: false }),
+    setCaptureSourceSettings: async (settings) => ({
+      success: true,
+      messaging: Boolean(settings?.messaging),
+      messenger: Boolean(settings?.messenger),
+      email: Boolean(settings?.email),
+    }),
   },
 });
 
@@ -81,3 +88,79 @@ export async function scanActivePaymentNotifications() {
     return { items: [], count: 0, isSupported: false };
   }
 }
+
+export const CAPTURE_SETTINGS_STORAGE_KEY = "submate.paymentCaptureSettings.v1";
+
+export function readCaptureSourceSettingsLocal() {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return { messaging: false, messenger: false, email: false };
+  }
+  try {
+    const raw = window.localStorage.getItem(CAPTURE_SETTINGS_STORAGE_KEY);
+    if (!raw) return { messaging: false, messenger: false, email: false };
+    const parsed = JSON.parse(raw);
+    return {
+      messaging: Boolean(parsed?.messaging),
+      messenger: Boolean(parsed?.messenger),
+      email: Boolean(parsed?.email),
+    };
+  } catch {
+    return { messaging: false, messenger: false, email: false };
+  }
+}
+
+export function writeCaptureSourceSettingsLocal(settings) {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    const val = {
+      messaging: Boolean(settings?.messaging),
+      messenger: Boolean(settings?.messenger),
+      email: Boolean(settings?.email),
+    };
+    window.localStorage.setItem(CAPTURE_SETTINGS_STORAGE_KEY, JSON.stringify(val));
+  } catch {}
+}
+
+export async function getCaptureSourceSettings() {
+  if (!isNativePlatform()) {
+    return readCaptureSourceSettingsLocal();
+  }
+  try {
+    const res = await PaymentCapture.getCaptureSourceSettings();
+    const settings = {
+      messaging: Boolean(res?.messaging),
+      messenger: Boolean(res?.messenger),
+      email: Boolean(res?.email),
+    };
+    writeCaptureSourceSettingsLocal(settings);
+    return settings;
+  } catch (err) {
+    console.warn("getCaptureSourceSettings error:", err);
+    return readCaptureSourceSettingsLocal();
+  }
+}
+
+export async function setCaptureSourceSettings(settings = {}) {
+  const payload = {
+    messaging: Boolean(settings.messaging),
+    messenger: Boolean(settings.messenger),
+    email: Boolean(settings.email),
+  };
+  writeCaptureSourceSettingsLocal(payload);
+  if (!isNativePlatform()) {
+    return { success: true, ...payload };
+  }
+  try {
+    const res = await PaymentCapture.setCaptureSourceSettings(payload);
+    return {
+      success: Boolean(res?.success),
+      messaging: Boolean(res?.messaging),
+      messenger: Boolean(res?.messenger),
+      email: Boolean(res?.email),
+    };
+  } catch (err) {
+    console.warn("setCaptureSourceSettings error:", err);
+    return { success: false, ...payload };
+  }
+}
+
