@@ -1,5 +1,6 @@
 import { verifySupabaseAuth } from "./_lib/auth.js";
 import { consumeRateLimit } from "./_lib/rateLimit.js";
+import { fetchGeminiStream, getCandidateModels } from "./_lib/gemini.js";
 import { CHAT_TOOL_DECLARATIONS, TOOL_LABELS, executeTool } from "./_lib/chatTools.js";
 
 const MAX_BODY_BYTES = 200 * 1024; // 200KB limit
@@ -8,6 +9,7 @@ const MAX_MESSAGE_CHARS = 1000;
 const MAX_SUBSCRIPTIONS = 100;
 const OVERALL_TIMEOUT_MS = 25_000;
 const MAX_TOOL_ROUNDS = 4;
+const MAX_MODEL_ATTEMPTS = 3;
 
 const sendJsonError = (response, status, error, code) => {
   if (typeof response.status === "function") {
@@ -80,8 +82,23 @@ export default async function handler(request, response) {
     return sendJsonError(response, 400, "메시지 목록이 비어있습니다.", "BAD_REQUEST");
   }
 
+  for (const m of messages) {
+    if (!m || typeof m !== "object") {
+      return sendJsonError(response, 400, "유효하지 않은 메시지 형식입니다.", "BAD_REQUEST");
+    }
+    if (typeof m.content !== "string") {
+      return sendJsonError(response, 400, "메시지 내용은 문자열이어야 합니다.", "BAD_REQUEST");
+    }
+    if (m.role !== "user" && m.role !== "assistant") {
+      return sendJsonError(response, 400, "메시지 역할이 올바르지 않습니다.", "BAD_REQUEST");
+    }
+    if (m.content.length > 2000) {
+      return sendJsonError(response, 400, "개별 메시지 길이가 제한(2,000자)을 초과했습니다.", "BAD_REQUEST");
+    }
+  }
+
   const lastMsg = messages[messages.length - 1];
-  if (!lastMsg || lastMsg.role !== "user" || typeof lastMsg.content !== "string" || !lastMsg.content.trim()) {
+  if (!lastMsg || lastMsg.role !== "user" || !lastMsg.content.trim()) {
     return sendJsonError(response, 400, "마지막 메시지는 사용자의 텍스트 메시지여야 합니다.", "BAD_REQUEST");
   }
 
@@ -89,17 +106,42 @@ export default async function handler(request, response) {
     return sendJsonError(response, 400, "유효한 구독 스냅샷이 필요합니다.", "BAD_REQUEST");
   }
 
+  if (snapshot.today !== undefined) {
+    if (typeof snapshot.today !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(snapshot.today)) {
+      return sendJsonError(response, 400, "오늘 날짜 형식(YYYY-MM-DD)이 올바르지 않습니다.", "BAD_REQUEST");
+    }
+  }
+
   if (snapshot.subscriptions.length > MAX_SUBSCRIPTIONS) {
     return sendJsonError(response, 400, `구독 개수가 제한(${MAX_SUBSCRIPTIONS}개)을 초과했습니다.`, "BAD_REQUEST");
   }
 
-  // 4. Rate Limiting
+  if (context?.insightText !== undefined) {
+    if (typeof context.insightText !== "string" || context.insightText.length > 200) {
+      return sendJsonError(response, 400, "인사이트 텍스트는 200자 이하의 문자열이어야 합니다.", "BAD_REQUEST");
+    }
+  }
+
+  // 4. Rate Limiting: user quota + project-wide global Gemini quota (fail-closed)
   const rateLimitResult = await consumeRateLimit({
     userId,
     bearerToken: authHeader,
+    endpoint: "chat",
+    checkGlobal: true,
   });
 
+  if (rateLimitResult.failClosed) {
+    response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+    return sendJsonError(
+      response,
+      503,
+      "일시적으로 사용량 확인이 불가능합니다. 잠시 후 다시 시도해주세요.",
+      "RATE_LIMIT_UNAVAILABLE"
+    );
+  }
+
   if (!rateLimitResult.allowed) {
+    response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
     return sendJsonError(
       response,
       429,
@@ -111,7 +153,7 @@ export default async function handler(request, response) {
   // Prepare messages: keep last <= 12, truncate each to 1000 chars
   const slicedMessages = messages.slice(-MAX_MESSAGES).map((m) => ({
     role: m.role === "assistant" ? "model" : "user",
-    content: typeof m.content === "string" ? m.content.slice(0, MAX_MESSAGE_CHARS) : "",
+    content: m.content.slice(0, MAX_MESSAGE_CHARS),
   }));
 
   // Setup SSE stream headers
@@ -193,10 +235,10 @@ export default async function handler(request, response) {
       parts: [{ text: m.content }],
     }));
 
-    const primaryModel = process.env.GEMINI_CHAT_MODEL || process.env.GEMINI_MODEL || "gemini-3.8-flash";
+    const primaryModel = process.env.GEMINI_CHAT_MODEL || process.env.GEMINI_MODEL || "gemini-3.5-flash";
     const candidateModels = Array.from(
-      new Set([primaryModel, "gemini-3.5-flash-lite", "gemini-flash-latest", "gemini-3.5-flash"])
-    );
+      new Set([primaryModel, ...getCandidateModels("chat")])
+    ).slice(0, MAX_MODEL_ATTEMPTS);
 
     let currentModelIndex = 0;
     let toolRound = 0;
@@ -205,43 +247,27 @@ export default async function handler(request, response) {
       toolRound += 1;
 
       const activeModel = candidateModels[currentModelIndex];
-      const geminiApiBase = (process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com").replace(/\/+$/, "");
-      const sseUrl = `${geminiApiBase}/v1beta/models/${encodeURIComponent(activeModel)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(geminiKey)}`;
-
       let streamRes;
       try {
-        streamRes = await fetch(sseUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents,
-            systemInstruction,
-            tools: toolsConfig,
-            generationConfig: {
-              temperature: 0.2,
-            },
-          }),
+        streamRes = await fetchGeminiStream({
+          model: activeModel,
+          contents,
+          systemInstruction,
+          tools: toolsConfig,
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 2048,
+          },
+          apiKey: geminiKey,
           signal: overallController.signal,
         });
       } catch (err) {
         if (!hasStreamedAnyOutput && currentModelIndex < candidateModels.length - 1) {
-          console.warn(`Model ${activeModel} fetch failed, falling back:`, err?.message);
           currentModelIndex += 1;
           toolRound -= 1;
           continue;
         }
         throw err;
-      }
-
-      if (!streamRes.ok) {
-        const errorText = await streamRes.text().catch(() => "");
-        console.error(`Gemini provider error (${streamRes.status}): ${errorText}`);
-        if (!hasStreamedAnyOutput && (streamRes.status === 404 || streamRes.status === 429 || streamRes.status >= 500) && currentModelIndex < candidateModels.length - 1) {
-          currentModelIndex += 1;
-          toolRound -= 1;
-          continue;
-        }
-        throw new Error(`Provider responded with status ${streamRes.status}`);
       }
 
       // Read SSE stream from Gemini
@@ -347,7 +373,6 @@ export default async function handler(request, response) {
 
     sendSseEvent(response, "done", {});
   } catch (err) {
-    console.error("Chat handler error:", err);
     sendSseEvent(response, "error", {
       code: "CHAT_ERROR",
       message: "답변을 생성하는 중에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
@@ -357,3 +382,4 @@ export default async function handler(request, response) {
     response.end();
   }
 }
+

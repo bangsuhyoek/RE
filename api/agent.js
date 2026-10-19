@@ -1,52 +1,15 @@
 import { buildInterpretationPrompt, normalizeInterpretation } from "./_lib/agentInterpretation.js";
 import { verifySupabaseAuth } from "./_lib/auth.js";
+import { consumeRateLimit, _resetInMemoryRateLimits } from "./_lib/rateLimit.js";
+import { callGemini, getCandidateModels } from "./_lib/gemini.js";
 
 const MAX_TEXT_LENGTH = 300;
 const MAX_SERVICES = 60;
 const TOTAL_BUDGET_MS = 12_000;
 const MODEL_TIMEOUT_MS = 5_000;
-const MIN_REMAINING_BUDGET_MS = 1_000;
-
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10분
-const RATE_LIMIT_MAX_REQUESTS = 20;
-
-// 인스턴스 메모리 기반 속도 제한 (per-instance only)
-// 멀티 인스턴스/서버리스 환경에서는 인스턴스 단위 최선의 방어(best-effort)로 동작합니다.
-const rateLimitMap = new Map();
 
 export const _resetRateLimits = () => {
-  rateLimitMap.clear();
-};
-
-const pruneRateLimitMap = (now) => {
-  if (rateLimitMap.size < 500) return;
-  for (const [key, record] of rateLimitMap.entries()) {
-    if (!record.resetAt || record.resetAt <= now) {
-      rateLimitMap.delete(key);
-    }
-  }
-};
-
-const checkRateLimit = (userId) => {
-  const now = Date.now();
-  pruneRateLimitMap(now);
-
-  const existing = rateLimitMap.get(userId);
-  if (!existing || existing.resetAt <= now) {
-    rateLimitMap.set(userId, {
-      count: 1,
-      resetAt: now + RATE_LIMIT_WINDOW_MS,
-    });
-    return { allowed: true };
-  }
-
-  if (existing.count >= RATE_LIMIT_MAX_REQUESTS) {
-    const retryAfter = Math.max(1, Math.ceil((existing.resetAt - now) / 1000));
-    return { allowed: false, retryAfter };
-  }
-
-  existing.count += 1;
-  return { allowed: true };
+  _resetInMemoryRateLimits();
 };
 
 const send = (response, status, payload) => {
@@ -62,74 +25,6 @@ const send = (response, status, payload) => {
 const readBody = (request) => {
   if (typeof request.body === "string") return JSON.parse(request.body);
   return request.body || {};
-};
-
-const callGemini = async ({ prompt, apiKey }) => {
-  const overallController = new AbortController();
-  const overallTimer = setTimeout(() => overallController.abort(), TOTAL_BUDGET_MS);
-  const startTime = Date.now();
-
-  const models = Array.from(new Set([
-    process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
-    "gemini-3.5-flash-lite",
-    "gemini-3.5-flash",
-    "gemini-flash-latest",
-  ]));
-
-  let lastError = null;
-  try {
-    for (const model of models) {
-      const elapsed = Date.now() - startTime;
-      const remainingTotal = TOTAL_BUDGET_MS - elapsed;
-      if (remainingTotal < MIN_REMAINING_BUDGET_MS) {
-        break;
-      }
-
-      const modelTimeout = Math.min(MODEL_TIMEOUT_MS, remainingTotal);
-      const modelController = new AbortController();
-      const onOverallAbort = () => modelController.abort();
-      overallController.signal.addEventListener("abort", onOverallAbort, { once: true });
-      const modelTimer = setTimeout(() => modelController.abort(), modelTimeout);
-
-      try {
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(apiKey);
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0, responseMimeType: "application/json" },
-          }),
-          signal: modelController.signal,
-        });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok || payload.error) {
-          const error = new Error(payload.error?.message || "Gemini 호출 실패 (" + response.status + ")");
-          error.status = response.status;
-          throw error;
-        }
-        return payload.candidates?.[0]?.content?.parts?.find((part) => part.text)?.text || "";
-      } catch (error) {
-        lastError = error;
-        if (overallController.signal.aborted || error.status === 401 || error.status === 403) {
-          throw error;
-        }
-      } finally {
-        clearTimeout(modelTimer);
-        overallController.signal.removeEventListener("abort", onOverallAbort);
-      }
-    }
-
-    if (overallController.signal.aborted) {
-      const timeoutErr = new Error("AI 해석 총 예산 시간 초과");
-      timeoutErr.name = "AbortError";
-      throw timeoutErr;
-    }
-
-    throw lastError || new Error("Gemini 호출에 실패했습니다.");
-  } finally {
-    clearTimeout(overallTimer);
-  }
 };
 
 export default async function handler(request, response) {
@@ -149,8 +44,8 @@ export default async function handler(request, response) {
 
   // 1. Supabase 인증 확인 (토큰 로깅 금지)
   let userId;
+  const authHeader = request.headers?.authorization || request.headers?.Authorization;
   try {
-    const authHeader = request.headers?.authorization || request.headers?.Authorization;
     userId = await verifySupabaseAuth(authHeader);
   } catch (err) {
     if (err.code === "AGENT_AUTH_NOT_CONFIGURED") {
@@ -175,17 +70,6 @@ export default async function handler(request, response) {
     });
   }
 
-  // 2. 인스턴스 인메모리 속도 제한 (유저당 10분 20회)
-  const rateLimit = checkRateLimit(userId);
-  if (!rateLimit.allowed) {
-    response.setHeader("Retry-After", String(rateLimit.retryAfter));
-    return send(response, 429, {
-      ok: false,
-      code: "RATE_LIMITED",
-      message: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
-    });
-  }
-
   let body;
   try {
     body = readBody(request);
@@ -203,11 +87,55 @@ export default async function handler(request, response) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return send(response, 503, { ok: false, code: "AGENT_NOT_CONFIGURED", message: "AI 해석 환경변수가 설정되지 않았습니다." });
 
+  // 2. DB 기반 원자적 할당량 및 전역 호출 상한 확인 (fail-closed)
+  const rateLimitResult = await consumeRateLimit({
+    userId,
+    bearerToken: authHeader,
+    endpoint: "agent",
+    checkGlobal: true,
+  });
+
+  if (rateLimitResult.failClosed) {
+    response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+    return send(response, 503, {
+      ok: false,
+      code: "RATE_LIMIT_UNAVAILABLE",
+      message: "일시적으로 사용량 확인이 불가능합니다. 잠시 후 다시 시도해 주세요.",
+    });
+  }
+
+  if (!rateLimitResult.allowed) {
+    response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+    return send(response, 429, {
+      ok: false,
+      code: "RATE_LIMITED",
+      message: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+    });
+  }
+
+  // 3. Gemini 공통 모듈 호출
   try {
-    const raw = await callGemini({ prompt: buildInterpretationPrompt(text, services), apiKey });
+    const candidateModels = Array.from(new Set([
+      process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
+      ...getCandidateModels("agent"),
+    ]));
+
+    const raw = await callGemini({
+      contents: [{ parts: [{ text: buildInterpretationPrompt(text, services) }] }],
+      generationConfig: {
+        temperature: 0,
+        responseMimeType: "application/json",
+        maxOutputTokens: 256,
+      },
+      candidateModels,
+      apiKey,
+      overallTimeoutMs: TOTAL_BUDGET_MS,
+      attemptTimeoutMs: MODEL_TIMEOUT_MS,
+      maxAttempts: 3,
+    });
+
     return send(response, 200, { ok: true, ...normalizeInterpretation(raw, services) });
   } catch (error) {
-    console.error("Agent provider error:", error);
     const timedOut = error?.name === "AbortError";
     return send(response, timedOut ? 504 : 502, {
       ok: false,
@@ -216,3 +144,4 @@ export default async function handler(request, response) {
     });
   }
 }
+
