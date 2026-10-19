@@ -1080,8 +1080,12 @@ export function BottomSheet({ children, onClose, label }) {
     };
   }, []);
 
-  // Esc 로 닫고, Tab 은 시트 안에서만 돈다. 시트 안에 다른 시트가 있으면 가장 안쪽 시트만 반응한다.
+  // Esc 로 닫고, Tab 은 시트 안에서만 돈다. 시트 안에 다른 창(role="dialog", 예: 결제수단 선택 창)이 열려 있거나
+  // 키가 그 창에서 왔으면 그 창이 처리하도록 손대지 않는다.
   const handleKeyDown = (event) => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (event.target.closest?.('[role="dialog"]') !== dialog || dialog.querySelector('[role="dialog"]')) return;
     if (event.key === "Escape") {
       event.stopPropagation();
       onClose?.();
@@ -1089,8 +1093,6 @@ export function BottomSheet({ children, onClose, label }) {
     }
     if (event.key !== "Tab") return;
     event.stopPropagation();
-    const dialog = dialogRef.current;
-    if (!dialog) return;
     const focusable = Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
       (element) => element.getClientRects().length > 0
     );
