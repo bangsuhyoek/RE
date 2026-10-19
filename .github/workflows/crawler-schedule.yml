@@ -1,0 +1,82 @@
+name: Scheduled Crawler & Promotion Pipeline
+
+on:
+  schedule:
+    # 주 1회 실행: 매주 월요일 03:00 UTC (12:00 KST)
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Run promotion pipeline with --apply to update app catalog and sync DB'
+        required: false
+        default: false
+        type: boolean
+      force_prune:
+        description: 'Allow dropping more than 50% of live promotions if needed'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  crawl-and-verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Crawler Pipeline
+        run: pnpm crawl
+
+      - name: Run Promotion Pipeline
+        run: |
+          if [ "${{ github.event_name == 'workflow_dispatch' && inputs.apply == true }}" = "true" ]; then
+            EXTRA_FLAGS="--apply"
+            if [ "${{ inputs.force_prune == true }}" = "true" ]; then
+              EXTRA_FLAGS="$EXTRA_FLAGS --force-prune"
+            fi
+            pnpm crawl:promotions -- $EXTRA_FLAGS
+          else
+            pnpm crawl:promotions
+          fi
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || vars.VITE_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Run Refund Policy Check
+        run: pnpm crawl:refunds
+
+      - name: Run Verification Tests
+        run: pnpm test
+
+      - name: Create Pull Request on Data Changes
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(data): 정기 크롤러 파이프라인 수집 데이터 동기화'
+          title: 'chore(data): 정기 크롤러 파이프라인 수집 데이터 동기화'
+          body: |
+            정기 크롤러 스케줄러(crawler-schedule.yml) 실행 결과 수집된 최신 데이터 변경 사항입니다.
+            - 변경 파일: `src/data/subscriptionData.js`, `public/catalog/**`
+            - 트리거: `${{ github.event_name }}`
+          branch: 'data-update/crawler-scheduled'
+          delete-branch: true
