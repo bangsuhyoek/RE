@@ -82,7 +82,7 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
     }
 
     // D-3 Alert
-    if (days === 3 && sub.alertD3) {
+    if (days === 3 && sub.alertD3 !== false) {
       alerts.push({
         id: `alert-${sub.subscriptionId}-d3`,
         subscriptionId: sub.subscriptionId,

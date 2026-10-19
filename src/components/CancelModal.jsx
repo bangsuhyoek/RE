@@ -14,6 +14,7 @@ import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { BottomSheet, Button, ServiceMark } from "./ui";
 import { formatWon } from "../lib/dates";
+import { toMonthlyAmount, toAnnualAmount } from "../lib/subscriptionMath";
 import { CancelBrowserModal } from "./CancelBrowserModal";
 import { serviceCatalog } from "../data/subscriptionData";
 import { getCancelGuide } from "../data/cancelGuides";
@@ -148,8 +149,8 @@ export function CancelModal({
   const isStoreRoute = routes.primary.kind === "google_play" || routes.primary.kind === "app_store";
 
   const isYearly = subscription.billingCycle === "매년";
-  const monthlySavings = isYearly ? Math.round(subscription.amount / 12) : subscription.amount;
-  const yearlySavings = isYearly ? subscription.amount : subscription.amount * 12;
+  const monthlySavings = toMonthlyAmount(subscription);
+  const yearlySavings = toAnnualAmount(subscription);
 
   const steps = usesServicePage
     ? subscription.guideSteps.map((s) => ({ title: s.title, description: s.description }))

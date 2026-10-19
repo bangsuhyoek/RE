@@ -1,17 +1,13 @@
 import { getCancelAlternatives } from "../data/cancelAlternatives.js";
 import { getRotationCandidates } from "./rotationPlanner.js";
+import { toMonthlyAmount } from "./subscriptionMath.js";
 
 /**
  * 구독 객체로부터 월 환산 금액(KRW)을 계산한다.
  * billingCycle이 '매년'인 경우 12로 나눈 반올림 금액을 사용한다.
  */
 export function getSubscriptionMonthlyAmount(subscription) {
-  if (!subscription) return 0;
-  const rawAmt = Number(subscription.amount || 0);
-  if (subscription.billingCycle === "매년") {
-    return Math.round(rawAmt / 12);
-  }
-  return rawAmt;
+  return toMonthlyAmount(subscription);
 }
 
 /**

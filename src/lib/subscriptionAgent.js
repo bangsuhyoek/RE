@@ -700,25 +700,8 @@ function buildUpcomingResponse({ subscriptions, now }) {
   };
 }
 
-export function calculateMonthlyTotal(subscriptions = []) {
-  return subscriptions
-    .filter((sub) => sub.status !== "cancelled")
-    .reduce((sum, sub) => {
-    const rawAmt = Number(sub.amount || 0);
-    const amt = sub.billingCycle === "매년" ? Math.round(rawAmt / 12) : rawAmt;
-    return sum + amt;
-  }, 0);
-}
-
-export function calculateYearlyTotal(subscriptions = []) {
-  return subscriptions
-    .filter((sub) => sub.status !== "cancelled")
-    .reduce((sum, sub) => {
-    const rawAmt = Number(sub.amount || 0);
-    const amt = sub.billingCycle === "매년" ? rawAmt : rawAmt * 12;
-    return sum + amt;
-  }, 0);
-}
+import { toMonthlyAmount, toAnnualAmount, calculateMonthlyTotal, calculateYearlyTotal } from "./subscriptionMath.js";
+export { calculateMonthlyTotal, calculateYearlyTotal };
 
 function buildSpendingResponse({ subscriptions = [] }) {
   const monthly = calculateMonthlyTotal(subscriptions);
@@ -737,12 +720,12 @@ function buildSpendingResponse({ subscriptions = [] }) {
 function buildTopCostResponse({ subscriptions = [] }) {
   const active = subscriptions.filter((s) => s.status !== "cancelled");
   const sorted = [...active].sort((a, b) => {
-    const amtA = a.billingCycle === "매년" ? Math.round(a.amount / 12) : a.amount;
-    const amtB = b.billingCycle === "매년" ? Math.round(b.amount / 12) : b.amount;
+    const amtA = toMonthlyAmount(a);
+    const amtB = toMonthlyAmount(b);
     return amtB - amtA;
   });
   const top3 = sorted.slice(0, 3).map((sub) => {
-    const monthlyEquivalent = sub.billingCycle === "매년" ? Math.round(sub.amount / 12) : sub.amount;
+    const monthlyEquivalent = toMonthlyAmount(sub);
     return {
       subscriptionId: subscriptionKey(sub),
       name: sub.name,

@@ -1,3 +1,17 @@
+export const parseLocalDate = (dateStr) => {
+  if (!dateStr || typeof dateStr !== "string") return null;
+  const match = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (!match) {
+    const fallback = new Date(dateStr);
+    return Number.isNaN(fallback.getTime()) ? null : fallback;
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  const parsed = new Date(year, month, day);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 const startOfDay = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
 export const formatWon = (amount) => `₩${Number(amount || 0).toLocaleString("ko-KR")}`;
@@ -19,11 +33,12 @@ export const getNextChargeDate = (subscription, reference = new Date()) => {
   const isYearly = subscription?.billingCycle === "매년";
 
   if (isYearly && subscription.nextBillingDate) {
-    const explicit = startOfDay(new Date(subscription.nextBillingDate));
-    if (explicit >= today) return explicit;
-    const targetMonth = explicit.getMonth();
-    const targetDay = explicit.getDate();
-    let targetYear = explicit.getFullYear() + 1;
+    const explicitParsed = parseLocalDate(subscription.nextBillingDate);
+    const explicit = explicitParsed ? startOfDay(explicitParsed) : null;
+    if (explicit && explicit >= today) return explicit;
+    const targetMonth = explicit ? explicit.getMonth() : today.getMonth();
+    const targetDay = explicit ? explicit.getDate() : (subscription.dueDay || 1);
+    let targetYear = (explicit ? explicit.getFullYear() : today.getFullYear()) + 1;
     let candidate = dateForDueDay(targetYear, targetMonth, targetDay);
     while (candidate < today) {
       targetYear += 1;
@@ -33,7 +48,8 @@ export const getNextChargeDate = (subscription, reference = new Date()) => {
   }
 
   if (isYearly) {
-    const baseMonth = subscription.createdAt ? new Date(subscription.createdAt).getMonth() : today.getMonth();
+    const createdParsed = subscription.createdAt ? parseLocalDate(subscription.createdAt) : null;
+    const baseMonth = createdParsed ? createdParsed.getMonth() : today.getMonth();
     let candidate = dateForDueDay(today.getFullYear(), baseMonth, subscription.dueDay);
     if (candidate < today) {
       candidate = dateForDueDay(today.getFullYear() + 1, baseMonth, subscription.dueDay);
@@ -53,9 +69,53 @@ export const daysUntilCharge = (subscription, reference = new Date()) => {
 };
 
 export const isPastDueThisCycle = (subscription, reference = new Date()) => {
+  if (!subscription) return false;
   const today = startOfDay(reference);
-  const thisMonth = dateForDueDay(today.getFullYear(), today.getMonth(), subscription.dueDay);
-  return thisMonth < today;
+
+  // 등록일이 있고 오늘과 같은 날(또는 생성일 이후 결제일 이전 주기 등) 확인
+  // 이번 결제일 이후 등록한 구독은 그 주기 제외:
+  // subscription.createdAt 기준이 오늘 결제일(thisCycleDue) 이후라면 이번 주기 갱신 확인 제외
+  const createdDate = subscription.createdAt ? parseLocalDate(subscription.createdAt) : null;
+  const isYearly = subscription.billingCycle === "매년";
+
+  if (isYearly) {
+    let thisYearDue = null;
+    if (subscription.nextBillingDate) {
+      const explicit = parseLocalDate(subscription.nextBillingDate);
+      if (explicit) {
+        thisYearDue = dateForDueDay(today.getFullYear(), explicit.getMonth(), explicit.getDate());
+      }
+    }
+    if (!thisYearDue) {
+      const baseMonth = createdDate ? createdDate.getMonth() : today.getMonth();
+      thisYearDue = dateForDueDay(today.getFullYear(), baseMonth, subscription.dueDay || 1);
+    }
+
+    // 연간 구독은 올해 결제일이 지났을 때만 (thisYearDue < today)
+    if (thisYearDue >= today) {
+      return false;
+    }
+
+    // 이번 결제일 이후 등록한 구독은 그 주기 제외
+    if (createdDate && startOfDay(createdDate) >= thisYearDue) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // 월간 구독
+  const thisMonthDue = dateForDueDay(today.getFullYear(), today.getMonth(), subscription.dueDay || 1);
+  if (thisMonthDue >= today) {
+    return false;
+  }
+
+  // 이번 결제일 이후 등록한 구독은 그 주기 제외
+  if (createdDate && startOfDay(createdDate) >= thisMonthDue) {
+    return false;
+  }
+
+  return true;
 };
 
 export const formatBillingDate = (subscription, reference = new Date()) => {

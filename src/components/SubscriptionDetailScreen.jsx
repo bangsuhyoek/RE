@@ -26,6 +26,7 @@ import { createCancelSession } from "../lib/cancelDifficulty";
 import { hasMoneyRelevantWarning } from "../lib/cancelBrowser";
 import { expectedChargeAfterCancel } from "../lib/cancelVerification";
 import { formatWon } from "../lib/dates";
+import { toMonthlyAmount, toAnnualAmount } from "../lib/subscriptionMath";
 import { resolvePaymentChannel, shouldAutoOpenServicePage } from "../lib/cancelRoutes";
 import { getRailCancelPlan } from "../lib/railCancel";
 import { addBillingToCalendar } from "../lib/calendarExport";
@@ -262,8 +263,8 @@ export function SubscriptionDetailScreen({
   };
 
   const monogram = subscription.monogram || subscription.name?.slice(0, 1) || "S";
-  const monthlyAmount = subscription.billingCycle === "매년" ? Math.round(subscription.amount / 12) : subscription.amount;
-  const annualAmount = subscription.billingCycle === "매년" ? subscription.amount : subscription.amount * 12;
+  const monthlyAmount = toMonthlyAmount(subscription);
+  const annualAmount = toAnnualAmount(subscription);
 
   const canonicalServiceId = useMemo(() => {
     const targetName = (subscription.name || "").toLowerCase().replace(/\s+/g, "");

@@ -1,4 +1,5 @@
 import { daysUntilCharge, formatWon, getNextChargeDate, toLocalDateKey } from "./dates.js";
+import { toMonthlyAmount } from "./subscriptionMath.js";
 import { isTrialSubscription } from "./trialGuard.js";
 import { unusedStreak } from "./usageCheck.js";
 
@@ -290,8 +291,7 @@ export function generateAgentInsights(subscriptions = [], options = {}) {
     if (groupSubs.length < 2) return;
     const names = groupSubs.map(getSubName).join(", ");
     const combinedAmount = groupSubs.reduce((sum, s) => {
-      const amt = getSubAmount(s);
-      return sum + (s.billingCycle === "매년" ? Math.round(amt / 12) : amt);
+      return sum + toMonthlyAmount(s);
     }, 0);
     const amountStr = formatWon(combinedAmount);
 

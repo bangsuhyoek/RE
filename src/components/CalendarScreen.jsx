@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { IconButton, ServiceMark } from "./ui";
-import { formatKoreanMonth, formatWon, getCalendarDays, getLastDate } from "../lib/dates";
+import { formatKoreanMonth, formatWon, getCalendarDays, getLastDate, parseLocalDate } from "../lib/dates";
 
 export function CalendarScreen({ subscriptions, onOpen }) {
   const [date, setDate] = useState(() => new Date());
@@ -17,13 +17,13 @@ export function CalendarScreen({ subscriptions, onOpen }) {
     const map = new Map();
     for (const sub of subscriptions) {
       if (sub.billingCycle === "매년") {
-        const chargeMonth = sub.nextBillingDate
-          ? new Date(sub.nextBillingDate).getMonth()
-          : sub.createdAt
-          ? new Date(sub.createdAt).getMonth()
-          : null;
-        if (chargeMonth !== null && chargeMonth !== month) {
-          continue;
+        const parsedNext = sub.nextBillingDate ? parseLocalDate(sub.nextBillingDate) : null;
+        const parsedCreated = sub.createdAt ? parseLocalDate(sub.createdAt) : null;
+        const chargeDate = parsedNext || parsedCreated || null;
+        if (chargeDate !== null) {
+          if (chargeDate.getFullYear() !== year || chargeDate.getMonth() !== month) {
+            continue;
+          }
         }
       }
       const day = Math.min(sub.dueDay, lastDay);
@@ -32,7 +32,7 @@ export function CalendarScreen({ subscriptions, onOpen }) {
       map.set(day, list);
     }
     return map;
-  }, [lastDay, subscriptions, month]);
+  }, [lastDay, subscriptions, month, year]);
 
   const selectedDues = duesByDay.get(clampedDay) || [];
   const selectedTotal = selectedDues.reduce((sum, item) => sum + item.amount, 0);
