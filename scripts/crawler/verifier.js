@@ -91,30 +91,16 @@ export class FormalVerifier {
       return { item, isVerified: true, isCorrected: false, errors: [] };
     }
 
-    // [자체 오류 인지 및 재시도(Self-Correction)]
+    // [자체 오류 인지] 검증 실패 시 임의 기본값으로 자가 치유(덮어쓰기)하지 않고 실패 상태 유지
     console.warn(
       `[FormalVerifier Warning] Validation failed for target '${target.id}':`,
       check.errors
     );
-    console.warn(`[FormalVerifier] Triggering Fallback Extraction strategy for '${target.id}'...`);
-
-    // 파서 에이전트에 자가 치유(Fallback Extraction) 명령
-    const correctedItem = parserAgent.buildCatalogItemFromFallback(
-      target,
-      `VERIFICATION_FAILED_RETRY: ${check.errors.join("; ")}`
-    );
-
-    const recheck = this.verifyItem(correctedItem);
-    if (!recheck.isValid) {
-      throw new Error(
-        `[FormalVerifier Fatal] Secondary fallback verification failed for '${target.id}': ${recheck.errors.join(", ")}`
-      );
-    }
 
     return {
-      item: correctedItem,
-      isVerified: true,
-      isCorrected: true,
+      item,
+      isVerified: false,
+      isCorrected: false,
       errors: check.errors,
     };
   }
