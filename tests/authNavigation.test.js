@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readHash } from "../src/hooks/useNavigation.js";
-import { readStoredValue, storageKeys, saveUser, findUser, getStoredUsers } from "../src/lib/storage.js";
+import { readStoredValue, storageKeys, migrateLocalUsersToGuest } from "../src/lib/storage.js";
 import { createMockSubscriptions } from "../src/data/subscriptionData.js";
+
 
 test("URL 해시가 없거나 비어있을 때 readHash는 빈 문자열 라우트를 반환한다", () => {
   global.window = { location: { hash: "" } };
@@ -128,7 +129,7 @@ test("게스트(둘러보기) 사용자는 저장되어 있더라도 기본 화�
   assert.equal(defaultRoute, "login");
 });
 
-test("회원가입 계정 저장 및 아이디/비밀번호 로그인 인증 검증", () => {
+test("기기 내 아이디/비밀번호 로그인 제거: 비밀번호 필드 삭제 및 기존 데이터 게스트로 보존", () => {
   const mockStorage = new Map();
   global.window = {
     localStorage: {
@@ -138,31 +139,36 @@ test("회원가입 계정 저장 및 아이디/비밀번호 로그인 인증 검
     },
   };
 
-  // 신규 회원 가입
-  saveUser({
-    accountId: "submateuser",
-    password: "Password123!",
-    nickname: "섭메이트",
-  });
+  // 기존에 저장되어 있던 로컬 유저 및 프로필 시뮬레이션
+  mockStorage.set(
+    storageKeys.users,
+    JSON.stringify([
+      { accountId: "olduser", password: "plainPassword123!", nickname: "기존유저" },
+    ])
+  );
+  mockStorage.set(
+    storageKeys.profile,
+    JSON.stringify({
+      nickname: "기존유저",
+      provider: "꾸독",
+      guest: false,
+    })
+  );
 
-  const users = getStoredUsers();
+  // 마이그레이션 실행
+  migrateLocalUsersToGuest();
+
+  // 1. 유저 정보에서 password 필드가 완전히 제거되었는지 확인
+  const users = readStoredValue(storageKeys.users, []);
   assert.equal(users.length, 1);
-  assert.equal(users[0].accountId, "submateuser");
-  assert.equal(users[0].nickname, "섭메이트");
+  assert.equal(users[0].accountId, "olduser");
+  assert.equal(users[0].password, undefined);
 
-  // 아이디 찾기 검증
-  const user = findUser("submateuser");
-  assert.notEqual(user, null);
-  assert.equal(user.password, "Password123!");
-
-  // 대소문자 무관 아이디 찾기 검증
-  const userUpper = findUser("SUBMATEUSER");
-  assert.notEqual(userUpper, null);
-
-  // 비밀번호 불일치 검증
-  assert.notEqual(user.password, "WrongPassword!");
-
-  // 존재하지 않는 아이디 검증
-  const notFound = findUser("ghostuser");
-  assert.equal(notFound, null);
+  // 2. 프로필이 게스트 데이터로 안전하게 보존되었는지 확인 (손실 방지)
+  const profile = readStoredValue(storageKeys.profile, null);
+  assert.notEqual(profile, null);
+  assert.equal(profile.guest, true);
+  assert.equal(profile.provider, "Guest");
+  assert.equal(profile.nickname, "기존유저");
 });
+

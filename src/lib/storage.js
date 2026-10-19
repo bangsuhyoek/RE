@@ -95,46 +95,38 @@ export const saveEvidenceCase = (evidenceCase) => {
   writeStoredValue(storageKeys.evidenceCases, Object.fromEntries(trimmed.map((item) => [item.id, item])));
 };
 
-export const DEFAULT_USERS = [
-  {
-    accountId: "testuser",
-    password: "test1234!",
-    nickname: "테스트유저",
-    createdAt: "2026-09-16T00:00:00.000Z",
-  },
-  {
-    accountId: "test",
-    password: "test1234!",
-    nickname: "테스트",
-    createdAt: "2026-09-16T00:00:00.000Z",
-  },
-  {
-    accountId: "submate",
-    password: "test1234!",
-    nickname: "섭메이트",
-    createdAt: "2026-09-16T00:00:00.000Z",
-  },
-];
-
-export const getStoredUsers = () => {
-  return readStoredValue(storageKeys.users, []);
-};
-
-export const saveUser = (user) => {
-  const users = getStoredUsers();
-  const existsIndex = users.findIndex((u) => u.accountId?.toLowerCase() === user.accountId?.toLowerCase());
-  if (existsIndex >= 0) {
-    users[existsIndex] = { ...users[existsIndex], ...user, updatedAt: new Date().toISOString() };
-  } else {
-    users.push({ ...user, createdAt: new Date().toISOString() });
+/**
+ * 로컬 계정 데이터 정리 및 게스트 전환 마이그레이션.
+ * 기기 내 아이디·비밀번호 로그인 및 하드코딩 테스트 계정 제거:
+ * 저장된 로컬 계정의 비밀번호 필드를 삭제하고, 기존 구독 데이터는 게스트 데이터로 보존(손실 금지)한다.
+ */
+export const migrateLocalUsersToGuest = () => {
+  const users = readStoredValue(storageKeys.users, []);
+  if (Array.isArray(users) && users.length > 0) {
+    let changed = false;
+    const sanitized = users.map((u) => {
+      if (u.password !== undefined) {
+        changed = true;
+        const { password, ...rest } = u;
+        return rest;
+      }
+      return u;
+    });
+    if (changed) {
+      writeStoredValue(storageKeys.users, sanitized);
+    }
   }
-  writeStoredValue(storageKeys.users, users);
-  return user;
+
+  // 만약 현재 프로필이 로컬 아이디 로그인(provider === "꾸독" or !isGoogle && !guest)이었다면
+  // 구독 데이터 손실 없이 게스트 프로필로 승계/보존
+  const profile = readStoredValue(storageKeys.profile, null);
+  if (profile && profile.provider === "꾸독" && !profile.user_id) {
+    writeStoredValue(storageKeys.profile, {
+      ...profile,
+      provider: "Guest",
+      guest: true,
+      nickname: profile.nickname || "게스트",
+    });
+  }
 };
 
-export const findUser = (accountId) => {
-  const users = getStoredUsers();
-  const found = users.find((u) => u.accountId?.toLowerCase() === accountId?.toLowerCase());
-  if (found) return found;
-  return DEFAULT_USERS.find((u) => u.accountId?.toLowerCase() === accountId?.toLowerCase()) || null;
-};
