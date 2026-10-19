@@ -44,6 +44,11 @@ public class PaymentCapturePlugin extends Plugin {
 
     @PluginMethod
     public void simulatePayment(PluginCall call) {
+        if (!com.submate.app.BuildConfig.DEBUG) {
+            call.reject("simulatePayment is only available in debug builds.", "FORBIDDEN");
+            return;
+        }
+
         String pkg = call.getString("package", "com.shcard.smartpay");
         String title = call.getString("title", "[신한카드] 결제승인");
         String body = call.getString("body", "넷플릭스 17,000원(일시불) 정상승인 09/07");
