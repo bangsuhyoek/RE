@@ -176,12 +176,17 @@ export function CancelModal({
 
   const [cancelSessionActive, setCancelSessionActive] = useState(false);
   const [cancelReminderSet, setCancelReminderSet] = useState(false);
-  const [aiCancelConsent, setAiCancelConsentState] = useState(() => readCancelAiConsent());
+  const [aiCancelConsent, setAiCancelConsentState] = useState(() => readCancelAiConsent(null, userId));
+
+  useEffect(() => {
+    setAiCancelConsentState(readCancelAiConsent(null, userId));
+  }, [userId]);
 
   const toggleAiCancelConsent = () => {
-    const next = setCancelAiConsent(!aiCancelConsent);
+    const next = setCancelAiConsent(!aiCancelConsent, null, userId);
     setAiCancelConsentState(next);
   };
+
 
   const sessionRef = useRef(null);
   if (!sessionRef.current) {
@@ -372,7 +377,9 @@ export function CancelModal({
         cancelUrl: subscription.cancelUrl,
         guideSteps: subscription.guideSteps,
         aiConsent: aiCancelConsent,
+        userId,
       },
+
       handleFlowResult
     );
 

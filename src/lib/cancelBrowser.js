@@ -1,6 +1,11 @@
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { getApiEndpoint } from "./apiBase.js";
 import { supabase } from "./supabase.js";
+import {
+  readUserConsent,
+  setUserConsent,
+  revokeUserConsent,
+} from "./consentStore.js";
 
 const NativeCancelBrowser = registerPlugin("CancelBrowser");
 
@@ -9,38 +14,39 @@ export const CANCEL_AI_CONSENT_KEY = "submate.cancelAiConsent.v1";
 /**
  * AI 해지 도우미(버튼 이름 Google Gemini 전송) 선택 동의 여부 조회
  * - 기본값은 false(미동의)이며 사용자가 명시적으로 켰을 때만 true 반환
+ * - 사용자 ID별(비로그인 guest)로 저장 및 조회
  * @param {Storage|null} [storage]
+ * @param {string|null} [userId]
  * @returns {boolean}
  */
-export function readCancelAiConsent(storage = null) {
-  try {
-    const store = storage || (typeof window !== "undefined" ? window.localStorage : null);
-    if (!store) return false;
-    const raw = store.getItem(CANCEL_AI_CONSENT_KEY);
-    return raw === "granted" || raw === "true";
-  } catch {
-    return false;
-  }
+export function readCancelAiConsent(storage = null, userId = null) {
+  return readUserConsent(userId, "cancel", storage);
 }
 
 /**
  * AI 해지 도우미 선택 동의 상태 저장
+ * - 사용자 ID별(비로그인 guest)로 저장
  * @param {boolean} granted
  * @param {Storage|null} [storage]
+ * @param {string|null} [userId]
  * @returns {boolean}
  */
-export function setCancelAiConsent(granted, storage = null) {
-  const next = Boolean(granted);
-  try {
-    const store = storage || (typeof window !== "undefined" ? window.localStorage : null);
-    if (store) {
-      store.setItem(CANCEL_AI_CONSENT_KEY, next ? "granted" : "declined");
-    }
-  } catch {
-    // ignore storage errors
-  }
-  return next;
+export function setCancelAiConsent(granted, storage = null, userId = null) {
+  return setUserConsent(userId, "cancel", granted, {}, storage);
 }
+
+/**
+ * 해지 브라우저 WebView 세션(쿠키 및 웹 스토리지)을 네이티브 플러그인을 통해 삭제
+ */
+export async function clearCancelBrowserSession() {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    await NativeCancelBrowser.clearSession();
+  } catch (err) {
+    console.warn("CancelBrowser clearSession failed:", err);
+  }
+}
+
 
 /**
  * 네이티브 CancelBrowser 결과 객체를 검증 및 정규화
@@ -344,7 +350,7 @@ export async function openCancelBrowser(options = {}, onResult = null) {
         let aiAuthToken = "";
         const aiAllowed =
           options.aiConsent === true ||
-          (options.aiConsent === undefined && readCancelAiConsent());
+          (options.aiConsent === undefined && readCancelAiConsent(null, options.userId || null));
 
         if (aiAllowed) {
           try {

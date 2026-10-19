@@ -551,7 +551,7 @@ export function AgentSheet({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [consentGranted, setConsentGranted] = useState(() => readChatConsent());
+  const [consentGranted, setConsentGranted] = useState(() => readChatConsent(userId));
   const [showConsentPrompt, setShowConsentPrompt] = useState(false);
   const [pendingUserText, setPendingUserText] = useState("");
   const [context, setContext] = useState({ lastSubscriptionId: null, lastIntent: null });
@@ -565,6 +565,12 @@ export function AgentSheet({
   const approvalsRef = useRef(approvals);
   const mandatesRef = useRef(mandates);
   const recordedRef = useRef(new Set()); const executingActionIdsRef = useRef(new Set()); const prevUserIdRef = useRef(userId);
+
+  // Sync consent state when userId changes
+  useEffect(() => {
+    setConsentGranted(readChatConsent(userId));
+  }, [userId]);
+
 
   // Load chat history if messages is empty on mount
   useEffect(() => {
@@ -654,13 +660,13 @@ export function AgentSheet({
   };
 
   const handleRevokeConsent = () => {
-    revokeChatConsent();
+    revokeChatConsent(userId);
     setConsentGranted(false);
     onToast?.("AI 데이터 전송을 껐어요. 간단 모드로 전환됩니다.");
   };
 
   const handleAcceptConsent = () => {
-    grantChatConsent();
+    grantChatConsent(userId);
     setConsentGranted(true);
     setShowConsentPrompt(false);
     if (pendingUserText) {
@@ -669,6 +675,7 @@ export function AgentSheet({
       executeSend(textToRun, true);
     }
   };
+
 
   const handleDeclineConsent = () => {
     setShowConsentPrompt(false);
@@ -700,11 +707,15 @@ export function AgentSheet({
     const effectiveUsageAnswers = usageAnswers || readStoredValue(storageKeys.usageAnswers, {});
     let response = runAgent({ text, subscriptions, context, usageAnswers: effectiveUsageAnswers });
     if (response.type === "unknown" || response.type === "clarify") {
-      const interpretation = await interpretWithAi(text, subscriptions);
-      if (interpretation) {
-        response = runAgent({ text, subscriptions, interpretation, context, usageAnswers: effectiveUsageAnswers });
+      const isConsented = readChatConsent(userId);
+      if (isConsented) {
+        const interpretation = await interpretWithAi(text, subscriptions, userId);
+        if (interpretation) {
+          response = runAgent({ text, subscriptions, interpretation, context, usageAnswers: effectiveUsageAnswers });
+        }
       }
     }
+
 
     const newSubId = response.subscriptionId || (response.subscription ? (response.subscription.subscriptionId || response.subscription.id) : null);
     const newIntent = response.intent && response.intent !== "unknown" ? response.intent : null;
