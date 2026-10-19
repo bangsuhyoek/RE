@@ -27,7 +27,7 @@ SubMate는 웹 기술(React/Vite) 기반의 코어 비즈니스 로직과 UI를 
   │     ├── /api/agent (자연어 문장 구독 해석)
   │     ├── /api/ocr (영수증/캡처 AI OCR 분석)
   │     ├── /api/cancel-next-step (AI 해지 경로 탐색)
-  │     └── /api/account-delete (회원 탈퇴 - *통합 후 확인 필요)
+  │     └── /api/account-delete (회원 탈퇴 및 연관 데이터 영구 삭제)
   ├── Supabase Cloud (AWS 리전)
   │     ├── PostgreSQL DB (Row Level Security, AES-256 저장 암호화)
   │     └── Supabase Auth (Google OAuth 2.0 간편 로그인 전용)
@@ -53,7 +53,7 @@ SubMate는 웹 기술(React/Vite) 기반의 코어 비즈니스 로직과 UI를 
 - **`api/agent.js`**: 사용자가 입력한 자연어 문장(300자 이내)에서 구독 서비스명, 요금제, 결제일 자동 추출 (`api/_lib/agentInterpretation.js`).
 - **`api/ocr.js`**: 영수증/캡처 이미지에서 텍스트를 파싱하여 구독 정보 추출 (Gemini 우선, Cloud Vision 예비).
 - **`api/cancel-next-step.js`**: 해지 브라우저 화면의 버튼 텍스트(마스킹 완료)를 분석하여 다음 단계 추천.
-- **`api/account-delete.js`**: 회원 탈퇴 및 관련 데이터 연쇄 삭제 (*통합 후 확인 필요: `account_deletion` 스트림에서 구현 중).
+- **`api/account-delete.js`**: 회원 탈퇴 및 관련 데이터 연쇄 삭제 (`POST /api/account-delete`).
 
 ### 2.3 데이터베이스 및 인증 레이어 (Supabase)
 - **Google OAuth 단일화**: 자체 아이디/비밀번호 방식을 제거하고 Supabase Auth를 통한 Google OAuth 2.0 간편 로그인만 지원.
