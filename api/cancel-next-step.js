@@ -1,5 +1,6 @@
 import { verifySupabaseAuth } from "./_lib/auth.js";
 import { consumeRateLimit } from "./_lib/rateLimit.js";
+import { callGemini, getCandidateModels } from "./_lib/gemini.js";
 import {
   validateAndClamp,
   buildPrompt,
@@ -9,13 +10,6 @@ import {
 
 const OVERALL_TIMEOUT_MS = 3000;
 const MODEL_TIMEOUT_MS = 2200;
-const MIN_REMAINING_BUDGET_MS = 400;
-
-const DEFAULT_CANCEL_MODELS = [
-  "gemini-3.5-flash-lite",
-  "gemini-3.5-flash",
-  "gemini-flash-latest",
-];
 
 const sendJson = (response, status, payload) => {
   if (typeof response.status === "function") {
@@ -53,7 +47,8 @@ export default async function handler(request, response) {
   }
 
   if (request.method !== "POST") {
-    return sendJson(response, 400, { error: "INVALID_REQUEST" });
+    response.setHeader("Allow", "POST, OPTIONS");
+    return sendJson(response, 405, { error: "METHOD_NOT_ALLOWED" });
   }
 
   // 1. Auth check
@@ -82,16 +77,7 @@ export default async function handler(request, response) {
     return sendJson(response, 503, { error: "CANCEL_AI_NOT_CONFIGURED" });
   }
 
-  // 3. Rate limiting
-  const rateLimitResult = await consumeRateLimit({
-    userId,
-    bearerToken: authHeader,
-  });
-  if (!rateLimitResult.allowed) {
-    return sendJson(response, 429, { error: "RATE_LIMIT_EXCEEDED" });
-  }
-
-  // 4. Validate & clamp request body
+  // 3. Validate & clamp request body before consuming quota
   const rawBody = readBody(request);
   const validation = validateAndClamp(rawBody);
   if (!validation.valid) {
@@ -99,94 +85,55 @@ export default async function handler(request, response) {
   }
   const clampedInput = validation.value;
 
-  // 5. Build prompt & prepare Gemini call
+  // 4. Rate limiting: user quota + project-wide global Gemini quota
+  const rateLimitResult = await consumeRateLimit({
+    userId,
+    bearerToken: authHeader,
+    endpoint: "cancel_next_step",
+    checkGlobal: true,
+  });
+
+  if (rateLimitResult.failClosed) {
+    response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+    return sendJson(response, 503, { error: "RATE_LIMIT_UNAVAILABLE" });
+  }
+
+  if (!rateLimitResult.allowed) {
+    response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+    return sendJson(response, 429, { error: "RATE_LIMIT_EXCEEDED" });
+  }
+
+  // 5. Build prompt & call Gemini with model fallback
   const prompt = buildPrompt(clampedInput);
   const configuredModel =
     process.env.GEMINI_CANCEL_MODEL ||
     process.env.GEMINI_MODEL ||
-    DEFAULT_CANCEL_MODELS[0];
-  const models = Array.from(new Set([configuredModel, ...DEFAULT_CANCEL_MODELS]));
-  const baseUrl = (
-    process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com"
-  ).replace(/\/+$/, "");
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), OVERALL_TIMEOUT_MS);
-  const startTime = Date.now();
+    "gemini-3.5-flash-lite";
+  const candidateModels = Array.from(new Set([configuredModel, ...getCandidateModels("cancel")]));
 
   try {
-    let lastTimedOut = false;
-    for (const model of models) {
-      const remaining = OVERALL_TIMEOUT_MS - (Date.now() - startTime);
-      if (remaining < MIN_REMAINING_BUDGET_MS) {
-        break;
-      }
-      const attemptController = new AbortController();
-      const onOverallAbort = () => attemptController.abort();
-      controller.signal.addEventListener("abort", onOverallAbort, { once: true });
-      const attemptTimer = setTimeout(
-        () => attemptController.abort(),
-        Math.min(MODEL_TIMEOUT_MS, remaining)
-      );
+    const rawText = await callGemini({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0,
+        responseMimeType: "application/json",
+        responseSchema: cancelNextStepResponseSchema,
+        maxOutputTokens: 256,
+      },
+      candidateModels,
+      apiKey,
+      overallTimeoutMs: OVERALL_TIMEOUT_MS,
+      attemptTimeoutMs: MODEL_TIMEOUT_MS,
+      maxAttempts: 3,
+    });
 
-      try {
-        const url =
-          baseUrl +
-          "/v1beta/models/" +
-          encodeURIComponent(model) +
-          ":generateContent?key=" +
-          encodeURIComponent(apiKey);
-
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0,
-              responseMimeType: "application/json",
-              responseSchema: cancelNextStepResponseSchema,
-            },
-          }),
-          signal: attemptController.signal,
-        });
-
-        if (!res.ok) {
-          if (res.status === 401 || res.status === 403) {
-            break;
-          }
-          continue;
-        }
-
-        const data = await res.json().catch(() => null);
-        const textPart = data?.candidates?.[0]?.content?.parts?.find((p) => p.text)?.text;
-        if (!textPart) {
-          continue;
-        }
-
-        const normalized = normalize(textPart, clampedInput);
-        return sendJson(response, 200, normalized);
-      } catch (err) {
-        if (controller.signal.aborted || attemptController.signal.aborted || err?.name === "AbortError") {
-          lastTimedOut = true;
-          if (controller.signal.aborted) break;
-        }
-      } finally {
-        clearTimeout(attemptTimer);
-        controller.signal.removeEventListener("abort", onOverallAbort);
-      }
-    }
-
-    if (lastTimedOut || controller.signal.aborted) {
-      return sendJson(response, 504, { error: "CANCEL_AI_TIMEOUT" });
-    }
-    return sendJson(response, 502, { error: "CANCEL_AI_FAILED" });
+    const normalized = normalize(rawText, clampedInput);
+    return sendJson(response, 200, normalized);
   } catch (err) {
-    if (controller.signal.aborted || err?.name === "AbortError") {
-      return sendJson(response, 504, { error: "CANCEL_AI_TIMEOUT" });
-    }
-    return sendJson(response, 502, { error: "CANCEL_AI_FAILED" });
-  } finally {
-    clearTimeout(timer);
+    const timedOut = err?.name === "AbortError";
+    return sendJson(response, timedOut ? 504 : 502, {
+      error: timedOut ? "CANCEL_AI_TIMEOUT" : "CANCEL_AI_FAILED",
+    });
   }
 }
+

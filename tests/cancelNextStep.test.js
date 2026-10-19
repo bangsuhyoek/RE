@@ -124,7 +124,7 @@ test("validateAndClamp: valid body clamped and scrubbed", () => {
   assert.equal(res.value.serviceName, "Netflix 회원님");
   assert.equal(res.value.host, "netflix.com");
   assert.equal(res.value.pageTitle, "계정 관리 [NUM]");
-  assert.equal(res.value.history[0], "설정 010-[NUM]-[NUM]");
+  assert.equal(res.value.history[0], "설정 [PHONE]");
   assert.equal(res.value.elements[0].text, "[EMAIL] 해지하기");
   assert.equal(res.value.elements[0].i, 10);
 });
@@ -280,6 +280,9 @@ test("handler: happy path with mocked fetch returning Gemini JSON", async () => 
     if (url.includes("/auth/v1/user")) {
       return new Response(JSON.stringify({ id: "user-123" }), { status: 200 });
     }
+    if (url.includes("/rpc/")) {
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
+    }
     if (url.includes("generateContent")) {
       const geminiResponse = {
         candidates: [
@@ -344,6 +347,9 @@ test("handler: timeout abort triggers 504 CANCEL_AI_TIMEOUT", async () => {
     if (url.includes("/auth/v1/user")) {
       return new Response(JSON.stringify({ id: "user-123" }), { status: 200 });
     }
+    if (url.includes("/rpc/")) {
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
+    }
     if (url.includes("generateContent")) {
       const err = new Error("The operation was aborted");
       err.name = "AbortError";
@@ -387,6 +393,9 @@ test("handler: falls back to secondary model when primary model returns 503", as
   globalThis.fetch = async (url) => {
     if (url.includes("/auth/v1/user")) {
       return new Response(JSON.stringify({ id: "user-123" }), { status: 200 });
+    }
+    if (url.includes("/rpc/")) {
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
     }
     if (url.includes("generateContent")) {
       calledModels.push(url);
