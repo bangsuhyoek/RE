@@ -169,6 +169,9 @@ test("유효한 토큰 -> 200 정규화된 해석 결과 반환", async () => {
     if (String(url).includes("/auth/v1/user")) {
       return new Response(JSON.stringify({ id: "valid-user-123" }), { status: 200 });
     }
+    if (String(url).includes("/rpc/")) {
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
+    }
     if (String(url).includes("generateContent")) {
       return new Response(
         JSON.stringify({
@@ -220,9 +223,20 @@ test("10분 내 21번째 요청 -> 429 RATE_LIMITED 및 Retry-After 헤더", asy
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
   process.env.GEMINI_API_KEY = "test-gemini-key";
 
+  let rpcCount = 0;
   globalThis.fetch = async (url) => {
     if (String(url).includes("/auth/v1/user")) {
       return new Response(JSON.stringify({ id: "rate-limit-user" }), { status: 200 });
+    }
+    if (String(url).includes("/rpc/consume_endpoint_quota")) {
+      rpcCount++;
+      if (rpcCount > 20) {
+        return new Response(JSON.stringify({ allowed: false, retry_after_seconds: 300 }), { status: 200 });
+      }
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
+    }
+    if (String(url).includes("/rpc/consume_global_gemini_quota")) {
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
     }
     return new Response(
       JSON.stringify({
@@ -272,6 +286,9 @@ test("첫 번째 모델 지연/실패 -> 두 번째 모델이 예산 내 응답"
   globalThis.fetch = async (url, options) => {
     if (String(url).includes("/auth/v1/user")) {
       return new Response(JSON.stringify({ id: "fallback-user" }), { status: 200 });
+    }
+    if (String(url).includes("/rpc/")) {
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
     }
     if (String(url).includes("generateContent")) {
       callCount++;

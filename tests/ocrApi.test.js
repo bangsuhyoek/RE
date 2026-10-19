@@ -15,6 +15,9 @@ const mockAuthSuccess = (fetchImpl) => async (url, opts) => {
   if (String(url).includes("/auth/v1/user")) {
     return new Response(JSON.stringify({ id: "valid-ocr-user" }), { status: 200 });
   }
+  if (String(url).includes("/rpc/")) {
+    return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
+  }
   if (fetchImpl) return fetchImpl(url, opts);
   return new Response(JSON.stringify({}), { status: 200 });
 };
@@ -169,6 +172,9 @@ test("Gemini 모델이 high demand(503)를 반환하면 다음 fallback 모델�
     if (String(url).includes("/auth/v1/user")) {
       return new Response(JSON.stringify({ id: "valid-ocr-user" }), { status: 200 });
     }
+    if (String(url).includes("/rpc/")) {
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
+    }
     callCount++;
     calledUrls.push(url);
     if (callCount === 1) {
@@ -232,6 +238,9 @@ test("모든 Gemini 모델이 high demand(503)를 반환하면 사용자 친화�
   globalThis.fetch = async (url) => {
     if (String(url).includes("/auth/v1/user")) {
       return new Response(JSON.stringify({ id: "valid-ocr-user" }), { status: 200 });
+    }
+    if (String(url).includes("/rpc/")) {
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
     }
     return {
       ok: false,

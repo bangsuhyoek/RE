@@ -200,7 +200,7 @@ test("Happy path with mocked Gemini SSE producing a functionCall then text -> as
         json: async () => ({ id: "user-happy" }),
       };
     }
-    if (urlStr.includes("/rpc/consume_agent_chat_quota")) {
+    if (urlStr.includes("/rpc/")) {
       return {
         ok: true,
         json: async () => ({ allowed: true, retry_after_seconds: 0 }),
@@ -324,7 +324,7 @@ test("Action event emitted for propose_* call", async () => {
         json: async () => ({ id: "user-action" }),
       };
     }
-    if (urlStr.includes("/rpc/consume_agent_chat_quota")) {
+    if (urlStr.includes("/rpc/")) {
       return {
         ok: true,
         json: async () => ({ allowed: true, retry_after_seconds: 0 }),
@@ -432,7 +432,7 @@ test("Provider error -> error event without provider text", async () => {
         json: async () => ({ id: "user-err" }),
       };
     }
-    if (urlStr.includes("/rpc/consume_agent_chat_quota")) {
+    if (urlStr.includes("/rpc/")) {
       return {
         ok: true,
         json: async () => ({ allowed: true, retry_after_seconds: 0 }),
