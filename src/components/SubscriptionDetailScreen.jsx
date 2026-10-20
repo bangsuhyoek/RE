@@ -236,6 +236,40 @@ export function SubscriptionDetailScreen({
     setEditError("");
   }, [subscription?.subscriptionId, subscription?.id]);
 
+  // 훅은 아래 조기 return 보다 먼저, 매 렌더에서 같은 순서로 호출되어야 한다.
+  const canonicalServiceId = useMemo(() => {
+    if (!subscription) return null;
+    const targetName = (subscription.name || "").toLowerCase().replace(/\s+/g, "");
+    const targetId = (subscription.serviceId || subscription.id || "").toLowerCase();
+    const matched = serviceCatalog.find((s) => {
+      const sId = (s.id || "").toLowerCase();
+      const sName = (s.name || "").toLowerCase().replace(/\s+/g, "");
+      return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);
+    });
+    return matched?.id || subscription.serviceId || subscription.id;
+  }, [subscription]);
+
+  const policy = useMemo(() => (subscription ? getCancelPolicy(canonicalServiceId) : null), [subscription, canonicalServiceId]);
+  const paymentChannel = useMemo(() => (subscription ? resolvePaymentChannel(subscription) : null), [subscription]);
+  const timingAdvice = useMemo(
+    () => (subscription ? getCancelTimingAdvice({ subscription: { ...subscription, paymentChannel }, policy }) : null),
+    [subscription, paymentChannel, policy]
+  );
+  const railPlan = useMemo(
+    () => (subscription ? getRailCancelPlan({ subscription, channel: paymentChannel }) : null),
+    [subscription, paymentChannel]
+  );
+  const expectedNextWatchDate = useMemo(() => {
+    if (!subscription) return null;
+    const next = expectedChargeAfterCancel(subscription, new Date());
+    return next ? (next.getMonth() + 1) + "월 " + next.getDate() + "일" : null;
+  }, [subscription]);
+
+  const detailCancelSessionRef = useRef(null);
+  if (subscription && (!detailCancelSessionRef.current || detailCancelSessionRef.current.serviceId !== canonicalServiceId)) {
+    detailCancelSessionRef.current = createCancelSession({ serviceId: canonicalServiceId, stepsTotal: 1 });
+  }
+
   if (!subscription) {
     return (
       <main className="px-5 pb-12 pt-12 text-center">
@@ -250,7 +284,7 @@ export function SubscriptionDetailScreen({
     setEditError("");
     const amount = Number(draft.amount);
     const dueDay = Math.max(1, Math.min(31, Number(draft.dueDay)));
-    if (!Number.isFinite(amount) || amount <= 0) {
+    if (!Number.isFinite(amount) || amount < 0) {
       setEditError("결제 금액을 올바르게 입력해 주세요.");
       return;
     }
@@ -266,34 +300,7 @@ export function SubscriptionDetailScreen({
   const monthlyAmount = toMonthlyAmount(subscription);
   const annualAmount = toAnnualAmount(subscription);
 
-  const canonicalServiceId = useMemo(() => {
-    const targetName = (subscription.name || "").toLowerCase().replace(/\s+/g, "");
-    const targetId = (subscription.serviceId || subscription.id || "").toLowerCase();
-    const matched = serviceCatalog.find((s) => {
-      const sId = (s.id || "").toLowerCase();
-      const sName = (s.name || "").toLowerCase().replace(/\s+/g, "");
-      return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);
-    });
-    return matched?.id || subscription.serviceId || subscription.id;
-  }, [subscription]);
-
-  const policy = useMemo(() => getCancelPolicy(canonicalServiceId), [canonicalServiceId]);
-  const paymentChannel = useMemo(() => resolvePaymentChannel(subscription), [subscription]);
-  const timingAdvice = useMemo(
-    () => getCancelTimingAdvice({ subscription: { ...subscription, paymentChannel }, policy }),
-    [subscription, paymentChannel, policy]
-  );
   const isMoneyWarning = hasMoneyRelevantWarning(timingAdvice);
-  const railPlan = useMemo(() => getRailCancelPlan({ subscription, channel: paymentChannel }), [subscription, paymentChannel]);
-  const expectedNextWatchDate = useMemo(() => {
-    const next = expectedChargeAfterCancel(subscription, new Date());
-    return next ? (next.getMonth() + 1) + "월 " + next.getDate() + "일" : null;
-  }, [subscription]);
-
-  const detailCancelSessionRef = useRef(null);
-  if (!detailCancelSessionRef.current || detailCancelSessionRef.current.serviceId !== canonicalServiceId) {
-    detailCancelSessionRef.current = createCancelSession({ serviceId: canonicalServiceId, stepsTotal: 1 });
-  }
 
   // 알림 시간 설정 파라미터 (스크롤 피커와 연동)
   const alertEnabled = subscription.alertEnabled !== undefined ? Boolean(subscription.alertEnabled) : (subscription.alertD3 !== false || subscription.alertD1 !== false);
