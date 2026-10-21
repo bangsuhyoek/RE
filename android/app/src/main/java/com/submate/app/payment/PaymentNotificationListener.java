@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import com.submate.app.BuildConfig;
 
 public class PaymentNotificationListener extends NotificationListenerService {
 
@@ -50,12 +51,16 @@ public class PaymentNotificationListener extends NotificationListenerService {
         long now = System.currentTimeMillis();
 
         if (isDuplicateEvent(this, dedupKey, now)) {
-            Log.d(TAG, "Duplicate payment alert ignored");
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "Duplicate payment alert ignored");
+            }
             return;
         }
         recordDedupEvent(this, dedupKey, now);
 
-        Log.i(TAG, "Detected Subscription Payment! Service: " + parsed.serviceName);
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "Detected Subscription Payment! Service: " + parsed.serviceName);
+        }
         PaymentNotificationHelper.dispatchQuickAddNotification(this, parsed);
     }
 
@@ -152,7 +157,9 @@ public class PaymentNotificationListener extends NotificationListenerService {
         String bigText = bigTextCs != null ? bigTextCs.toString() : "";
         String fullBody = (text + " " + bigText).trim();
 
-        Log.d(TAG, "Notification received from: " + packageName);
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Notification received from: " + packageName);
+        }
 
         Set<String> installedIds = PaymentPackageRegistry.getInstalledServiceIds(this);
         return PaymentParser.parse(packageName, title, fullBody, installedIds);

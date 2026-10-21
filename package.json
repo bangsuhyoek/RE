@@ -1,7 +1,7 @@
 {
   "name": "submate-mvp",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.3",
   "type": "module",
   "packageManager": "pnpm@11.25.0",
   "engines": {
@@ -20,7 +20,8 @@
     "crawl": "node scripts/crawler/index.js",
     "crawl:promotions": "node scripts/crawler/runPromotionPipeline.js",
     "crawl:refunds": "node scripts/crawler/refundPolicyCheck.js",
-    "crawl:schedule": "node scripts/crawler/scheduler.js"
+    "crawl:schedule": "node scripts/crawler/scheduler.js",
+    "version:android": "node scripts/sync-android-version.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
