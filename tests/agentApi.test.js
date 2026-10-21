@@ -68,6 +68,7 @@ test("인증 토큰 없음 -> 401 및 Gemini 호출 안 됨", async () => {
   const originalEnv = { ...process.env };
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   process.env.GEMINI_API_KEY = "test-gemini-key";
 
   try {
@@ -104,6 +105,7 @@ test("유효하지 않은 토큰 -> 401", async () => {
   const originalEnv = { ...process.env };
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   process.env.GEMINI_API_KEY = "test-gemini-key";
 
   try {
@@ -163,6 +165,7 @@ test("유효한 토큰 -> 200 정규화된 해석 결과 반환", async () => {
 
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   process.env.GEMINI_API_KEY = "test-gemini-key";
 
   globalThis.fetch = async (url) => {
@@ -221,6 +224,7 @@ test("10분 내 21번째 요청 -> 429 RATE_LIMITED 및 Retry-After 헤더", asy
 
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   process.env.GEMINI_API_KEY = "test-gemini-key";
 
   let rpcCount = 0;
@@ -279,6 +283,7 @@ test("첫 번째 모델 지연/실패 -> 두 번째 모델이 예산 내 응답"
 
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   process.env.GEMINI_API_KEY = "test-gemini-key";
   process.env.GEMINI_MODEL = "first-model";
 

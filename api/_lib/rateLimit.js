@@ -1,3 +1,5 @@
+import { verifySupabaseAuth } from "./auth.js";
+
 const RATE_LIMIT_10M_MS = 10 * 60 * 1000;
 const RPC_TIMEOUT_MS = 3000;
 
@@ -59,6 +61,11 @@ const checkInMemoryLimit = (userId, limit10m = 20, limitDaily = 150) => {
 
 const getEndpointLimits = (endpoint) => {
   switch (endpoint) {
+    case "account_delete":
+      return {
+        limit10m: parseInt(process.env.ACCOUNT_DELETE_QUOTA_10M, 10) || 3,
+        limitDaily: parseInt(process.env.ACCOUNT_DELETE_QUOTA_DAILY, 10) || 5,
+      };
     case "ocr":
       return {
         limit10m: parseInt(process.env.OCR_QUOTA_10M, 10) || 20,
@@ -88,11 +95,14 @@ const getEndpointLimits = (endpoint) => {
  * Checks and increments project-wide global daily Gemini quota.
  * Fails closed if the RPC call fails.
  */
-export const consumeGlobalQuota = async ({ bearerToken }) => {
+export const consumeGlobalQuota = async () => {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !anonKey || !bearerToken) {
+  if (!supabaseUrl || !serviceRoleKey) {
+    if (process.env.SUBMATE_DEV_CHAT_BYPASS === "1") {
+      return { allowed: true, retryAfterSeconds: 0 };
+    }
     return {
       allowed: false,
       failClosed: true,
@@ -106,13 +116,12 @@ export const consumeGlobalQuota = async ({ bearerToken }) => {
 
   try {
     const endpointUrl = supabaseUrl.replace(/\/+$/, "") + "/rest/v1/rpc/consume_global_gemini_quota";
-    const authHeader = bearerToken.startsWith("Bearer ") ? bearerToken : `Bearer ${bearerToken}`;
 
     const res = await fetch(endpointUrl, {
       method: "POST",
       headers: {
-        apikey: anonKey,
-        Authorization: authHeader,
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ p_max_daily: globalLimit }),
@@ -160,10 +169,31 @@ export const consumeGlobalQuota = async ({ bearerToken }) => {
  */
 export const consumeEndpointQuota = async ({ userId, bearerToken, endpoint = "chat" }) => {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !anonKey || !bearerToken) {
+  if (!supabaseUrl || !serviceRoleKey) {
     if (process.env.SUBMATE_DEV_CHAT_BYPASS === "1" || (!bearerToken && userId === "anonymous")) {
+      const limits = getEndpointLimits(endpoint);
+      return checkInMemoryLimit(userId || "anonymous", limits.limit10m, limits.limitDaily);
+    }
+    return {
+      allowed: false,
+      failClosed: true,
+      retryAfterSeconds: 60,
+    };
+  }
+
+  let targetUserId = userId;
+  if (!targetUserId && bearerToken) {
+    try {
+      targetUserId = await verifySupabaseAuth(bearerToken);
+    } catch {
+      targetUserId = null;
+    }
+  }
+
+  if (!targetUserId) {
+    if (process.env.SUBMATE_DEV_CHAT_BYPASS === "1" || userId === "anonymous") {
       const limits = getEndpointLimits(endpoint);
       return checkInMemoryLimit(userId || "anonymous", limits.limit10m, limits.limitDaily);
     }
@@ -179,26 +209,19 @@ export const consumeEndpointQuota = async ({ userId, bearerToken, endpoint = "ch
   const timer = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
 
   try {
-    const isLegacyChat = endpoint === "chat";
-    const rpcPath = isLegacyChat
-      ? "/rest/v1/rpc/consume_agent_chat_quota"
-      : "/rest/v1/rpc/consume_endpoint_quota";
-
-    const endpointUrl = supabaseUrl.replace(/\/+$/, "") + rpcPath;
-    const authHeader = bearerToken.startsWith("Bearer ") ? bearerToken : `Bearer ${bearerToken}`;
-    const rpcBody = isLegacyChat
-      ? "{}"
-      : JSON.stringify({
-          p_endpoint: endpoint,
-          p_max_10m: limits.limit10m,
-          p_max_daily: limits.limitDaily,
-        });
+    const endpointUrl = supabaseUrl.replace(/\/+$/, "") + "/rest/v1/rpc/consume_endpoint_quota";
+    const rpcBody = JSON.stringify({
+      p_user_id: targetUserId,
+      p_endpoint: endpoint,
+      p_max_10m: limits.limit10m,
+      p_max_daily: limits.limitDaily,
+    });
 
     const res = await fetch(endpointUrl, {
       method: "POST",
       headers: {
-        apikey: anonKey,
-        Authorization: authHeader,
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
         "Content-Type": "application/json",
       },
       body: rpcBody,
@@ -206,7 +229,7 @@ export const consumeEndpointQuota = async ({ userId, bearerToken, endpoint = "ch
     });
 
     if (!res.ok) {
-      console.warn(`${rpcPath} RPC non-ok:`, res.status);
+      console.warn("consume_endpoint_quota RPC non-ok:", res.status);
       return {
         allowed: false,
         failClosed: true,
@@ -255,7 +278,7 @@ export const consumeRateLimit = async ({ userId, bearerToken, endpoint = "chat",
   }
 
   // 2. Consume global Gemini quota if requested and authenticated
-  if (checkGlobal && bearerToken) {
+  if (checkGlobal) {
     const globalQuotaResult = await consumeGlobalQuota({ bearerToken });
     if (!globalQuotaResult.allowed) {
       return globalQuotaResult;

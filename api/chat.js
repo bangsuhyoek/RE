@@ -26,7 +26,21 @@ const sendSseEvent = (response, event, data) => {
 };
 
 export default async function handler(request, response) {
+  // Support Cross-Origin Requests from mobile Capacitor apps (e.g. capacitor://localhost, http://localhost)
+  response.setHeader("Access-Control-Allow-Origin", "*");
+  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (request.method === "OPTIONS") {
+    if (typeof response.status === "function") {
+      return response.status(204).end();
+    }
+    response.statusCode = 204;
+    return response.end();
+  }
+
   if (request.method !== "POST") {
+    response.setHeader("Allow", "POST, OPTIONS");
     return sendJsonError(response, 405, "허용되지 않는 메소드입니다.", "METHOD_NOT_ALLOWED");
   }
 
@@ -372,7 +386,7 @@ export default async function handler(request, response) {
     }
 
     sendSseEvent(response, "done", {});
-  } catch (err) {
+  } catch {
     sendSseEvent(response, "error", {
       code: "CHAT_ERROR",
       message: "답변을 생성하는 중에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",

@@ -273,10 +273,11 @@ test("handler: happy path with mocked fetch returning Gemini JSON", async () => 
   process.env.GEMINI_API_KEY = "mock-key";
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   _resetInMemoryRateLimits();
 
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url, options) => {
+  globalThis.fetch = async (url) => {
     if (url.includes("/auth/v1/user")) {
       return new Response(JSON.stringify({ id: "user-123" }), { status: 200 });
     }
@@ -340,6 +341,7 @@ test("handler: timeout abort triggers 504 CANCEL_AI_TIMEOUT", async () => {
   process.env.GEMINI_API_KEY = "mock-key";
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   _resetInMemoryRateLimits();
 
   const originalFetch = globalThis.fetch;
@@ -386,6 +388,7 @@ test("handler: falls back to secondary model when primary model returns 503", as
   process.env.GEMINI_CANCEL_MODEL = "gemini-primary-unavailable";
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   _resetInMemoryRateLimits();
 
   const calledModels = [];

@@ -19,6 +19,7 @@ export const CONFIRMED_USER_TABLES = [
   "subscriptions",
   "receipt_recognitions",
   "agent_chat_usage",
+  "api_endpoint_usage",
 ];
 
 /**

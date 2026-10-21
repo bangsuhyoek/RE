@@ -73,6 +73,7 @@ test("1. fail-closed 503 and Retry-After when user/global quota RPC fails", asyn
   const originalEnv = { ...process.env };
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   process.env.GEMINI_API_KEY = "test-gemini-key";
 
   // Simulate RPC failure (500)
@@ -159,9 +160,7 @@ test("2. Method Not Allowed (405) with Allow header on all endpoints", async () 
     const res = createMockRes();
     await handler(req, res);
     assert.equal(res.statusCode, 405, `${name} should reject GET with 405`);
-    if (name !== "chat") {
-      assert.ok(res.headers.allow, `${name} should set Allow header`);
-    }
+    assert.ok(res.headers.allow, `${name} should set Allow header`);
   }
 });
 
@@ -170,6 +169,7 @@ test("3. Retry-After header on 429 across endpoints", async () => {
   const originalEnv = { ...process.env };
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   process.env.GEMINI_API_KEY = "test-gemini-key";
 
   globalThis.fetch = async (url) => {
@@ -454,5 +454,89 @@ test("7. Shared Gemini client: x-goog-api-key header, no query key, and attempt 
     }
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test("8. chat OPTIONS returns 204 and CORS headers", async () => {
+  const req = createMockReq({ method: "OPTIONS" });
+  const res = createMockRes();
+  await chatHandler(req, res);
+
+  assert.equal(res.statusCode, 204);
+  assert.equal(res.headers["access-control-allow-origin"], "*");
+  assert.equal(res.headers["access-control-allow-methods"], "POST, OPTIONS");
+  assert.equal(res.headers["access-control-allow-headers"], "Content-Type, Authorization");
+});
+
+test("9. rateLimit sends service-role auth and p_user_id", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalEnv = { ...process.env };
+  process.env.SUPABASE_URL = "https://example.supabase.co";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-srv-secret-key-999";
+
+  const rpcCalls = [];
+  globalThis.fetch = async (url, options) => {
+    rpcCalls.push({ url: String(url), headers: options?.headers || {}, body: JSON.parse(options?.body || "{}") });
+    return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
+  };
+
+  try {
+    const result = await consumeRateLimit({
+      userId: "00000000-0000-0000-0000-000000000001",
+      bearerToken: "user-jwt-token",
+      endpoint: "chat",
+      checkGlobal: true,
+    });
+
+    assert.equal(result.allowed, true);
+    assert.equal(rpcCalls.length, 2, "Should call consume_endpoint_quota and consume_global_gemini_quota");
+
+    // 1) Endpoint quota RPC call
+    const epCall = rpcCalls.find((c) => c.url.includes("/rpc/consume_endpoint_quota"));
+    assert.ok(epCall, "Must call /rpc/consume_endpoint_quota");
+    assert.equal(epCall.headers.apikey, "test-srv-secret-key-999", "Must send service role key as apikey");
+    assert.equal(epCall.headers.Authorization || epCall.headers.authorization, "Bearer test-srv-secret-key-999", "Must send service role key in Authorization");
+    assert.equal(epCall.body.p_user_id, "00000000-0000-0000-0000-000000000001", "Must pass verified p_user_id");
+    assert.equal(epCall.body.p_endpoint, "chat", "Must pass p_endpoint");
+
+    // 2) Global Gemini quota RPC call
+    const globalCall = rpcCalls.find((c) => c.url.includes("/rpc/consume_global_gemini_quota"));
+    assert.ok(globalCall, "Must call /rpc/consume_global_gemini_quota");
+    assert.equal(globalCall.headers.apikey, "test-srv-secret-key-999", "Must send service role key as apikey");
+    assert.equal(globalCall.headers.Authorization || globalCall.headers.authorization, "Bearer test-srv-secret-key-999", "Must send service role key in Authorization");
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env = originalEnv;
+  }
+});
+
+test("10. rateLimit fails closed when service role key is missing", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalEnv = { ...process.env };
+  process.env.SUPABASE_URL = "https://example.supabase.co";
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  delete process.env.SUBMATE_DEV_CHAT_BYPASS;
+
+  let fetchCalled = false;
+  globalThis.fetch = async () => {
+    fetchCalled = true;
+    return new Response("{}", { status: 200 });
+  };
+
+  try {
+    const result = await consumeRateLimit({
+      userId: "user-no-key",
+      bearerToken: "user-jwt-token",
+      endpoint: "chat",
+      checkGlobal: true,
+    });
+
+    assert.equal(result.allowed, false, "Must disallow when service role key is missing");
+    assert.equal(result.failClosed, true, "Must mark as failClosed");
+    assert.equal(result.retryAfterSeconds, 60);
+    assert.equal(fetchCalled, false, "Must not call fetch when service role key is missing");
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env = originalEnv;
   }
 });

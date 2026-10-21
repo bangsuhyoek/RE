@@ -323,6 +323,9 @@ test("응답 및 오류에 개인정보(PII)가 포함되지 않는다", async (
         headers: { "Content-Type": "application/json" },
       });
     }
+    if (String(url).includes("/rpc/")) {
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
+    }
     return new Response(JSON.stringify({}), { status: 200 });
   };
 
@@ -344,6 +347,88 @@ test("응답 및 오류에 개인정보(PII)가 포함되지 않는다", async (
     assert.equal(bodyString.includes(sensitiveUid), false, "응답에 사용자 ID가 포함되어서는 안 됨");
     assert.equal(res.statusCode, 200);
     assert.equal(res.body.ok, true);
+  } finally {
+    _setSupabaseAdmin(null);
+    globalThis.fetch = originalFetch;
+    process.env = originalEnv;
+  }
+});
+
+test("account-delete: rate limit 한도 초과 시 429와 Retry-After 헤더를 반환한다", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalEnv = { ...process.env };
+  process.env.SUPABASE_URL = "https://example.supabase.co";
+  process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-role-key";
+
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/auth/v1/user")) {
+      return new Response(JSON.stringify({ id: "user-rate-limited" }), { status: 200 });
+    }
+    if (String(url).includes("/rpc/")) {
+      return new Response(JSON.stringify({ allowed: false, retry_after_seconds: 120 }), { status: 200 });
+    }
+    return new Response(JSON.stringify({}), { status: 200 });
+  };
+
+  const fakeAdmin = createFakeSupabaseAdmin();
+  _setSupabaseAdmin(fakeAdmin);
+
+  try {
+    const req = {
+      method: "POST",
+      headers: { authorization: "Bearer token-value" },
+      body: { confirmation: "탈퇴" },
+    };
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    assert.equal(res.statusCode, 429);
+    assert.equal(res.body.code, "RATE_LIMITED");
+    assert.equal(res.headers["retry-after"], "120");
+    assert.equal(fakeAdmin.callLog.length, 0, "Rate limit에 걸리면 DB 삭제 작업이 실행되어서는 안 됨");
+  } finally {
+    _setSupabaseAdmin(null);
+    globalThis.fetch = originalFetch;
+    process.env = originalEnv;
+  }
+});
+
+test("account-delete: rate limit 실패 시 fail-closed 503과 Retry-After: 60을 반환한다", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalEnv = { ...process.env };
+  process.env.SUPABASE_URL = "https://example.supabase.co";
+  process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-role-key";
+
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/auth/v1/user")) {
+      return new Response(JSON.stringify({ id: "user-rate-limited" }), { status: 200 });
+    }
+    if (String(url).includes("/rpc/")) {
+      return new Response(JSON.stringify({ error: "db error" }), { status: 500 });
+    }
+    return new Response(JSON.stringify({}), { status: 200 });
+  };
+
+  const fakeAdmin = createFakeSupabaseAdmin();
+  _setSupabaseAdmin(fakeAdmin);
+
+  try {
+    const req = {
+      method: "POST",
+      headers: { authorization: "Bearer token-value" },
+      body: { confirmation: "탈퇴" },
+    };
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    assert.equal(res.statusCode, 503);
+    assert.equal(res.body.code, "RATE_LIMIT_UNAVAILABLE");
+    assert.equal(res.headers["retry-after"], "60");
+    assert.equal(fakeAdmin.callLog.length, 0, "Rate limit 실패 시 DB 삭제 작업이 실행되어서는 안 됨");
   } finally {
     _setSupabaseAdmin(null);
     globalThis.fetch = originalFetch;

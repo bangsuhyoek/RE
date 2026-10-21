@@ -164,6 +164,7 @@ test("Gemini 모델이 high demand(503)를 반환하면 다음 fallback 모델�
   const originalEnv = { ...process.env };
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   process.env.GEMINI_API_KEY = "test-mock-key";
   let callCount = 0;
   const calledUrls = [];
@@ -233,6 +234,7 @@ test("모든 Gemini 모델이 high demand(503)를 반환하면 사용자 친화�
   const originalEnv = { ...process.env };
   process.env.SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
   process.env.GEMINI_API_KEY = "test-mock-key";
 
   globalThis.fetch = async (url) => {

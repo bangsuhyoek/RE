@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { verifySupabaseAuth } from "./_lib/auth.js";
 import { deleteAccount } from "./_lib/accountDeletion.js";
+import { consumeRateLimit } from "./_lib/rateLimit.js";
 
 let adminClientOverride = null;
 export const _setSupabaseAdmin = (client) => {
@@ -25,6 +26,11 @@ const readBody = (request) => {
 };
 
 export default async function handler(request, response) {
+  // Support Cross-Origin Requests from mobile Capacitor apps
+  response.setHeader("Access-Control-Allow-Origin", "*");
+  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
   if (request.method === "OPTIONS") {
     if (typeof response.status === "function") return response.status(204).end();
     response.statusCode = 204;
@@ -41,9 +47,9 @@ export default async function handler(request, response) {
   }
 
   // 1. Supabase 인증 토큰 검증 (토큰/개인정보 로깅 금지)
+  const authHeader = request.headers?.authorization || request.headers?.Authorization;
   let userId;
   try {
-    const authHeader = request.headers?.authorization || request.headers?.Authorization;
     userId = await verifySupabaseAuth(authHeader);
   } catch (err) {
     if (err?.code === "AGENT_AUTH_NOT_CONFIGURED") {
@@ -102,7 +108,33 @@ export default async function handler(request, response) {
     });
   }
 
-  // 4. Supabase Admin 클라이언트 생성 및 계정 삭제 실행
+  // 4. Rate Limiting: 사용자 할당량 확인 (fail-closed, 10분당 3회 / 일일 5회)
+  const rateLimitResult = await consumeRateLimit({
+    userId,
+    bearerToken: authHeader,
+    endpoint: "account_delete",
+    checkGlobal: false,
+  });
+
+  if (rateLimitResult.failClosed) {
+    response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+    return send(response, 503, {
+      ok: false,
+      code: "RATE_LIMIT_UNAVAILABLE",
+      message: "일시적으로 사용량 확인이 불가능합니다. 잠시 후 다시 시도해 주세요.",
+    });
+  }
+
+  if (!rateLimitResult.allowed) {
+    response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+    return send(response, 429, {
+      ok: false,
+      code: "RATE_LIMITED",
+      message: `요청 한도를 초과했습니다. ${rateLimitResult.retryAfterSeconds || 60}초 후에 다시 시도해 주세요.`,
+    });
+  }
+
+  // 5. Supabase Admin 클라이언트 생성 및 계정 삭제 실행
   try {
     const supabaseAdmin =
       adminClientOverride ||

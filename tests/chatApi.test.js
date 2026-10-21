@@ -141,7 +141,7 @@ test("429 when quota RPC says not allowed", async () => {
         json: async () => ({ id: "user-rate-limited" }),
       };
     }
-    if (String(url).includes("/rpc/consume_agent_chat_quota")) {
+    if (String(url).includes("/rpc/consume_endpoint_quota") || String(url).includes("/rpc/consume_agent_chat_quota")) {
       return {
         ok: true,
         json: async () => ({ allowed: false, retry_after_seconds: 42 }),
@@ -154,6 +154,7 @@ test("429 when quota RPC says not allowed", async () => {
     process.env.GEMINI_API_KEY = "dummy-key";
     process.env.SUPABASE_URL = "https://example.supabase.co";
     process.env.SUPABASE_ANON_KEY = "dummy-anon-key";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "dummy-service-key";
 
     const req = createMockReq({
       token: "rate-limited-token",
@@ -192,7 +193,7 @@ test("Happy path with mocked Gemini SSE producing a functionCall then text -> as
     });
   };
 
-  globalThis.fetch = async (url, options) => {
+  globalThis.fetch = async (url) => {
     const urlStr = String(url);
     if (urlStr.includes("/auth/v1/user")) {
       return {
@@ -262,6 +263,7 @@ test("Happy path with mocked Gemini SSE producing a functionCall then text -> as
     process.env.GEMINI_API_KEY = "dummy-key";
     process.env.SUPABASE_URL = "https://example.supabase.co";
     process.env.SUPABASE_ANON_KEY = "dummy-anon-key";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "dummy-service-key";
 
     const req = createMockReq({
       token: "valid-token",
@@ -384,6 +386,7 @@ test("Action event emitted for propose_* call", async () => {
     process.env.GEMINI_API_KEY = "dummy-key";
     process.env.SUPABASE_URL = "https://example.supabase.co";
     process.env.SUPABASE_ANON_KEY = "dummy-anon-key";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "dummy-service-key";
 
     const req = createMockReq({
       token: "valid-token",
@@ -452,6 +455,7 @@ test("Provider error -> error event without provider text", async () => {
     process.env.GEMINI_API_KEY = "dummy-key";
     process.env.SUPABASE_URL = "https://example.supabase.co";
     process.env.SUPABASE_ANON_KEY = "dummy-anon-key";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "dummy-service-key";
 
     const req = createMockReq({
       token: "valid-token",
