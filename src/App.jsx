@@ -708,7 +708,9 @@ export default function App() {
 
   // Hardware back button handler: keep latest state in a ref so listener is registered once on mount.
   const handleBackButton = useCallback(() => {
-    if (termsOpen) {
+    if (paymentCaptureDisclosureOpen) {
+      setPaymentCaptureDisclosureOpen(false);
+    } else if (termsOpen) {
       setTermsOpen(false);
     } else if (accountOpen) {
       setAccountOpen(false);
@@ -737,6 +739,7 @@ export default function App() {
       CapApp.exitApp();
     }
   }, [
+    paymentCaptureDisclosureOpen,
     termsOpen,
     accountOpen,
     notificationCenterOpen,

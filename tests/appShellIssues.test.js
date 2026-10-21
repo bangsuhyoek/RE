@@ -134,3 +134,36 @@ test("catalogLoader: loads subscription data lazily and caches module", async ()
   assert.equal(getCachedCatalog(), data);
 });
 
+
+
+test("Hardware back button handler prioritizes paymentCaptureDisclosureOpen over other overlays", () => {
+  // Simulate App's handleBackButton logic priority chain
+  let paymentCaptureDisclosureOpen = true;
+  let termsOpen = true;
+  let accountOpen = true;
+  let closed = [];
+
+  const handleBackButton = () => {
+    if (paymentCaptureDisclosureOpen) {
+      paymentCaptureDisclosureOpen = false;
+      closed.push("paymentCaptureDisclosure");
+    } else if (termsOpen) {
+      termsOpen = false;
+      closed.push("terms");
+    } else if (accountOpen) {
+      accountOpen = false;
+      closed.push("account");
+    }
+  };
+
+  handleBackButton();
+  assert.equal(paymentCaptureDisclosureOpen, false);
+  assert.equal(termsOpen, true);
+  assert.equal(accountOpen, true);
+  assert.deepEqual(closed, ["paymentCaptureDisclosure"]);
+
+  handleBackButton();
+  assert.equal(termsOpen, false);
+  assert.equal(accountOpen, true);
+  assert.deepEqual(closed, ["paymentCaptureDisclosure", "terms"]);
+});

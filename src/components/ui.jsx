@@ -1049,37 +1049,71 @@ export function Toast({ toast, onClose, duration = 2500 }) {
   );
 }
 
+let nextSheetId = 0;
+const activeSheetStack = [];
+
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function BottomSheet({ children, onClose, label }) {
   const dialogRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   // 열리면 포커스를 시트 안으로 옮기고, 닫히면 시트를 열기 전 위치로 돌려준다.
+  // 또한 시트 스택에 등록하여 여러 시트가 열려 있을 때 최상위 시트만 Escape 로 닫히도록 한다.
   useEffect(() => {
+    const sheetId = ++nextSheetId;
+    activeSheetStack.push({ id: sheetId, dialogRef, close: () => onCloseRef.current?.() });
+
     const dialog = dialogRef.current;
     const previouslyFocused = document.activeElement;
     if (dialog && !dialog.contains(document.activeElement)) {
       dialog.focus({ preventScroll: true });
     }
+
+    const handleGlobalKeyDown = (event) => {
+      if (event.key !== "Escape") return;
+      if (activeSheetStack.length === 0) return;
+      const top = activeSheetStack[activeSheetStack.length - 1];
+      if (top.id !== sheetId) return;
+
+      // 시트 내부에 다른 dialog(예: 결제수단 선택 창)가 떠 있다면 그 창이 자체 Escape 처리를 하도록 양보
+      const topDialog = top.dialogRef.current;
+      if (topDialog && topDialog.querySelector('[role="dialog"]')) return;
+
+      event.stopPropagation();
+      top.close();
+    };
+
+    document.addEventListener("keydown", handleGlobalKeyDown);
+
     return () => {
+      document.removeEventListener("keydown", handleGlobalKeyDown);
+      const index = activeSheetStack.findIndex((item) => item.id === sheetId);
+      if (index !== -1) {
+        activeSheetStack.splice(index, 1);
+      }
       if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) {
         previouslyFocused.focus({ preventScroll: true });
+      } else {
+        const nextTop = activeSheetStack[activeSheetStack.length - 1];
+        const nextDialog = nextTop?.dialogRef.current;
+        if (nextDialog && !nextDialog.contains(document.activeElement)) {
+          nextDialog.focus({ preventScroll: true });
+        }
       }
     };
   }, []);
 
-  // Esc 로 닫고, Tab 은 시트 안에서만 돈다. 시트 안에 다른 창(role="dialog", 예: 결제수단 선택 창)이 열려 있거나
+  // Tab 은 시트 안에서만 돈다. 시트 안에 다른 창(role="dialog", 예: 결제수단 선택 창)이 열려 있거나
   // 키가 그 창에서 왔으면 그 창이 처리하도록 손대지 않는다.
   const handleKeyDown = (event) => {
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (event.target.closest?.('[role="dialog"]') !== dialog || dialog.querySelector('[role="dialog"]')) return;
-    if (event.key === "Escape") {
-      event.stopPropagation();
-      onClose?.();
-      return;
-    }
     if (event.key !== "Tab") return;
     event.stopPropagation();
     const focusable = Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
