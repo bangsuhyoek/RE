@@ -1,5 +1,6 @@
 import { SERVICE_ALIAS_CATALOG } from "./serviceAliases.js";
 import { getCancelGuide } from "../../src/data/cancelGuides.js";
+import { getKstDateString } from "./kstDate.js";
 
 // Tool Declarations for Gemini
 export const CHAT_TOOL_DECLARATIONS = [
@@ -194,7 +195,7 @@ const isValidDateStr = (dateStr) => {
 // Pure tool executors over snapshot
 export const executeTool = ({ name, args, snapshot, emitAction }) => {
   const subscriptions = Array.isArray(snapshot?.subscriptions) ? snapshot.subscriptions : [];
-  const todayStr = snapshot?.today || new Date().toISOString().slice(0, 10);
+  const todayStr = snapshot?.today || getKstDateString();
 
   switch (name) {
     case "list_subscriptions": {
@@ -338,17 +339,26 @@ export const executeTool = ({ name, args, snapshot, emitAction }) => {
         const amt = Number(s.amount) || 0;
 
         if (cycle === "매년") {
-          if (s.nextChargeDate >= fromStr && s.nextChargeDate <= toStr) {
-            const chargeDateObj = new Date(s.nextChargeDate + "T00:00:00Z");
+          let [chargeY, chargeM, chargeD] = s.nextChargeDate.split("-").map(Number);
+          let chargeDateStr = s.nextChargeDate;
+          while (chargeDateStr < todayStr) {
+            chargeY += 1;
+            const daysInMonth = new Date(Date.UTC(chargeY, chargeM, 0)).getUTCDate();
+            const targetDay = Math.min(chargeD, daysInMonth);
+            chargeDateStr = `${chargeY}-${String(chargeM).padStart(2, "0")}-${String(targetDay).padStart(2, "0")}`;
+          }
+
+          if (chargeDateStr >= fromStr && chargeDateStr <= toStr) {
+            const chargeDateObj = new Date(chargeDateStr + "T00:00:00Z");
             const daysLeft = Math.round((chargeDateObj.getTime() - todayDate.getTime()) / (24 * 60 * 60 * 1000));
             upcoming.push({
               id: s.id,
               name: s.name,
-              date: s.nextChargeDate,
+              date: chargeDateStr,
               amount: amt,
               dDay: daysLeft,
               billingCycle: s.billingCycle,
-              nextChargeDate: s.nextChargeDate,
+              nextChargeDate: chargeDateStr,
               daysLeft,
               paymentMethod: s.paymentMethod,
             });
@@ -366,7 +376,7 @@ export const executeTool = ({ name, args, snapshot, emitAction }) => {
             const daysInCurMonth = new Date(Date.UTC(curY, curM, 0)).getUTCDate();
             const targetDay = Math.min(baseD, daysInCurMonth);
             const dateStr = `${curY}-${String(curM).padStart(2, "0")}-${String(targetDay).padStart(2, "0")}`;
-            if (dateStr >= fromStr && dateStr <= toStr) {
+            if (dateStr >= fromStr && dateStr <= toStr && dateStr >= s.nextChargeDate) {
               const chargeDateObj = new Date(dateStr + "T00:00:00Z");
               const daysLeft = Math.round((chargeDateObj.getTime() - todayDate.getTime()) / (24 * 60 * 60 * 1000));
               upcoming.push({

@@ -59,6 +59,31 @@ test("체험판 구독은 TRIAL D-1 배지와 메시지를 갖는다", () => {
   assert.equal(alerts[0].badge, "TRIAL D-1");
 });
 
+test("체험판 구독은 alertD1이 false이거나 미지정이어도 TRIAL D-1 알림을 항상 생성한다", () => {
+  const trialSubWithFalse = {
+    subscriptionId: "trial-sub-false",
+    name: "쿠팡 와우",
+    amount: 7890,
+    isTrial: true,
+    dueDay: 15,
+    alertD1: false,
+  };
+  const trialSubWithUndefined = {
+    subscriptionId: "trial-sub-undef",
+    name: "티빙",
+    amount: 9900,
+    status: "trial",
+    dueDay: 15,
+  };
+  const refDate = new Date("2026-09-14T10:00:00Z");
+  const alerts = generateSubscriptionAlerts([trialSubWithFalse, trialSubWithUndefined], refDate);
+  assert.equal(alerts.length, 2);
+  assert.equal(alerts[0].type, "trial_d1");
+  assert.equal(alerts[0].badge, "TRIAL D-1");
+  assert.equal(alerts[1].type, "trial_d1");
+  assert.equal(alerts[1].badge, "TRIAL D-1");
+});
+
 test("createTestNotification은 올바른 테스트 알림 아이템을 생성한다", () => {
   const sub = { id: "netflix", name: "Netflix", amount: 17000, plan: "프리미엄" };
   const testItem = createTestNotification(sub, "billing_d3");

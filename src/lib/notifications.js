@@ -58,7 +58,7 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
     const isTrial = Boolean(sub.isTrial || sub.status === "trial");
 
     // D-1 Alert
-    if (days === 1 && sub.alertD1) {
+    if (days === 1 && (isTrial || sub.alertD1)) {
       alerts.push({
         id: `alert-${sub.subscriptionId}-d1`,
         subscriptionId: sub.subscriptionId,
@@ -431,7 +431,7 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
         }
 
         // D-1 예약 (오전 9시)
-        if (sub.alertD1) {
+        if (isTrial || sub.alertD1) {
           const d1Date = new Date(chargeDate);
           d1Date.setDate(d1Date.getDate() - 1);
           d1Date.setHours(9, 0, 0, 0);

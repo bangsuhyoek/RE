@@ -32,19 +32,37 @@ export const getNextChargeDate = (subscription, reference = new Date()) => {
   const today = startOfDay(reference);
   const isYearly = subscription?.billingCycle === "매년";
 
-  if (isYearly && subscription.nextBillingDate) {
+  if (subscription?.nextBillingDate) {
     const explicitParsed = parseLocalDate(subscription.nextBillingDate);
     const explicit = explicitParsed ? startOfDay(explicitParsed) : null;
     if (explicit && explicit >= today) return explicit;
-    const targetMonth = explicit ? explicit.getMonth() : today.getMonth();
-    const targetDay = explicit ? explicit.getDate() : (subscription.dueDay || 1);
-    let targetYear = (explicit ? explicit.getFullYear() : today.getFullYear()) + 1;
-    let candidate = dateForDueDay(targetYear, targetMonth, targetDay);
-    while (candidate < today) {
-      targetYear += 1;
-      candidate = dateForDueDay(targetYear, targetMonth, targetDay);
+    if (explicit) {
+      if (isYearly) {
+        const targetMonth = explicit.getMonth();
+        const targetDay = explicit.getDate();
+        let targetYear = explicit.getFullYear() + 1;
+        let candidate = dateForDueDay(targetYear, targetMonth, targetDay);
+        while (candidate < today) {
+          targetYear += 1;
+          candidate = dateForDueDay(targetYear, targetMonth, targetDay);
+        }
+        return candidate;
+      }
+
+      const targetDay = explicit.getDate();
+      let curYear = explicit.getFullYear();
+      let curMonth = explicit.getMonth() + 1;
+      let candidate = dateForDueDay(curYear, curMonth, targetDay);
+      while (candidate < today) {
+        curMonth += 1;
+        if (curMonth > 11) {
+          curYear += Math.floor(curMonth / 12);
+          curMonth = curMonth % 12;
+        }
+        candidate = dateForDueDay(curYear, curMonth, targetDay);
+      }
+      return candidate;
     }
-    return candidate;
   }
 
   if (isYearly) {

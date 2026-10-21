@@ -569,3 +569,85 @@ test("propose_set_alerts rejects when values are already identical", () => {
   assert.equal(diffAll.status, "proposed_to_user");
   assert.equal(actions.length, 1);
 });
+
+test("get_upcoming_payments는 과거의 nextChargeDate를 가진 연간 구독을 현재 연도로 롤포워드한다", () => {
+  const snapshot = {
+    today: "2026-03-15",
+    subscriptions: [
+      {
+        id: "sub-annual-past",
+        name: "연간 구독",
+        amount: 120000,
+        billingCycle: "매년",
+        nextChargeDate: "2025-04-15",
+        status: "active",
+      },
+    ],
+  };
+
+  const res = executeTool({
+    name: "get_upcoming_payments",
+    args: { range: "next_month" },
+    snapshot,
+  });
+
+  assert.equal(res.upcomingCount, 1);
+  assert.equal(res.payments[0].name, "연간 구독");
+  assert.equal(res.payments[0].date, "2026-04-15");
+  assert.equal(res.payments[0].dDay, 31);
+  assert.equal(res.total, 120000);
+});
+
+test("get_upcoming_payments의 매월 프로젝션은 미래의 nextChargeDate 이전 날짜를 발행하지 않는다", () => {
+  const snapshot = {
+    today: "2026-10-18",
+    subscriptions: [
+      {
+        id: "sub-trial-deferred",
+        name: "체험 구독",
+        amount: 9900,
+        billingCycle: "매월",
+        nextChargeDate: "2027-01-15",
+        status: "active",
+      },
+    ],
+  };
+
+  const res = executeTool({
+    name: "get_upcoming_payments",
+    args: { range: "next_month" },
+    snapshot,
+  });
+
+  assert.equal(res.upcomingCount, 0);
+  assert.equal(res.total, 0);
+});
+
+test("executeTool은 snapshot.today가 없을 때 KST 기준 오늘 날짜를 기본값으로 사용한다", () => {
+  // UTC로는 2026-10-20 23:30이지만 KST(UTC+9)로는 2026-10-21 08:30인 시점
+  const originalDate = globalThis.Date;
+  const mockNow = new originalDate("2026-10-20T23:30:00.000Z");
+  class MockDate extends originalDate {
+    constructor(...args) {
+      if (args.length === 0) {
+        super(mockNow.getTime());
+      } else {
+        super(...args);
+      }
+    }
+    static now() {
+      return mockNow.getTime();
+    }
+  }
+  globalThis.Date = MockDate;
+  try {
+    const res = executeTool({
+      name: "get_upcoming_payments",
+      args: { days: 7 },
+      snapshot: { subscriptions: [] },
+    });
+    assert.equal(res.today, "2026-10-21");
+  } finally {
+    globalThis.Date = originalDate;
+  }
+});
