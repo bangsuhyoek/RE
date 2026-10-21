@@ -47,8 +47,8 @@ public class PaymentNotificationListener extends NotificationListenerService {
         }
 
         // 중복 방지 (카드사 앱 푸시와 SMS가 동시에 오거나 재부팅/재시작 후 중복 알림 방지 - 24시간 보관)
-        String dedupKey = computeDedupHash(parsed.serviceId, parsed.serviceName, parsed.amount, parsed.currency);
         long now = System.currentTimeMillis();
+        String dedupKey = computeDedupHash(parsed.serviceId, parsed.serviceName, parsed.amount, parsed.currency, now);
 
         if (isDuplicateEvent(this, dedupKey, now)) {
             if (BuildConfig.DEBUG) {
@@ -65,10 +65,17 @@ public class PaymentNotificationListener extends NotificationListenerService {
     }
 
     public static String computeDedupHash(String serviceId, String serviceName, int amount, String currency) {
-        String base = (serviceId != null ? serviceId : "") + "|"
-                + (serviceName != null ? serviceName : "") + "|"
-                + amount + "|"
-                + (currency != null ? currency : "KRW");
+        return computeDedupHash(serviceId, serviceName, amount, currency, 0L);
+    }
+
+    public static String computeDedupHash(String serviceId, String serviceName, int amount, String currency, long timestampMs) {
+        String base;
+        if (serviceId != null && !serviceId.trim().isEmpty()) {
+            base = "id:" + serviceId.trim() + "|" + amount + "|" + (currency != null ? currency : "KRW");
+        } else {
+            long bucket = timestampMs > 0 ? (timestampMs / DEDUP_WINDOW_MS) : 0L;
+            base = "norm:" + amount + "|" + (currency != null ? currency : "KRW") + "|b:" + bucket;
+        }
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] digest = md.digest(base.getBytes("UTF-8"));

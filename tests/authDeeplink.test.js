@@ -155,3 +155,20 @@ test("간단 모드 (동의 없음/철회): /api/agent 절대 호출 안 함 (nu
     global.fetch = originalFetch;
   }
 });
+
+test("딥링크 파싱: quick-add amount가 음수/NaN/비정상값일 때 0 이상의 유한수로 clamp된다", () => {
+  const negativeUrl = "submate://quick-add?name=Netflix&amount=-15000";
+  assert.equal(parseDeepLink(negativeUrl).quickAdd.amount, 0);
+
+  const nanUrl = "submate://quick-add?name=Netflix&amount=notanumber";
+  assert.equal(parseDeepLink(nanUrl).quickAdd.amount, 0);
+
+  const emptyUrl = "submate://quick-add?name=Netflix&amount=";
+  assert.equal(parseDeepLink(emptyUrl).quickAdd.amount, 0);
+
+  const infinityUrl = "submate://quick-add?name=Netflix&amount=Infinity";
+  assert.equal(parseDeepLink(infinityUrl).quickAdd.amount, 0);
+
+  const validUrl = "submate://quick-add?name=Netflix&amount=17000";
+  assert.equal(parseDeepLink(validUrl).quickAdd.amount, 17000);
+});

@@ -86,6 +86,16 @@ public class PaymentParser {
     }
 
     public static final int USD_KRW_EXCHANGE_RATE = 1350;
+    private static class AmountCandidate {
+        int amount;
+        String currency;
+        double originalAmount;
+        boolean isEstimated;
+        int start;
+        int end;
+        int distanceToVerb;
+    }
+
 
     public static class ParsedPayment {
         public String serviceId = "";
@@ -103,14 +113,23 @@ public class PaymentParser {
         public String rawText = "";
     }
 
-    private static final Pattern AMOUNT_PATTERN = Pattern.compile("([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,7})\\s*원|[$]\\s*([0-9]+(?:[.][0-9]{2})?)");
+    private static final Pattern AMOUNT_PATTERN = Pattern.compile(
+            "(?:[₩￦]|(?i:KRW)\s*)?\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)\s*(?:원|(?i:KRW))" +
+            "|(?i:KRW)\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)" +
+            "|[$]\s*([0-9]+(?:[.][0-9]{2})?)" +
+            "|([0-9]+(?:[.][0-9]{2})?)\s*(?i:USD)" +
+            "|(?i:USD)\s*([0-9]+(?:[.][0-9]{2})?)" +
+            "|[₩￦]\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)"
+    );
     private static final Pattern RECURRING_KEYWORD = Pattern.compile("(정기|자동결제|정기결제|매월|구독|멤버십|와우|플러스멤버십|월간|인보이스|invoice|receipt|주문\\s*영수증|결제\\s*영수증|갱신)", Pattern.CASE_INSENSITIVE);
     private static final Pattern TRIAL_KEYWORD = Pattern.compile("(무료\\s*체험|체험\\s*기간|체험판|free\\s*trial|첫\\s*달\\s*0원|0원\\s*시작|체험\\s*종료)", Pattern.CASE_INSENSITIVE);
     private static final Pattern PG_MASKED_MERCHANT = Pattern.compile("(google\\s*\\*\\s*services|google\\s*play|구글플레이|애플코리아|apple\\.com/bill|이니시스|kg이니시스|토스페이먼츠|나이스페이|다날|케이씨피|nhn\\s*kcp)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern NEGATIVE_KEYWORD = Pattern.compile("(취소|환불|승인취소|결제취소|반품|카드대금|후불교통|교통카드|송금|이체|적금|대출|이자|현금서비스|배송완료|주문취소|장바구니)");
+    private static final Pattern NEGATIVE_KEYWORD = Pattern.compile("(결제\s*취소|승인\s*취소|취소\s*승인|주문\s*취소|취소되었습니다|취소\s*완료|환불\s*완료|환불\s*처리|환불\s*되었습니다|환불\s*진행|반품|카드대금|후불교통|교통카드|송금|이체|적금|대출|이자|현금서비스|배송완료|장바구니)");
     private static final Pattern WITHDRAWAL_NEGATIVE = Pattern.compile("(ATM|계좌|이체|송금|예금|입금)");
     private static final Pattern CARD_APPROVAL_HINT = Pattern.compile("(체크카드|체크|승인|결제)");
     private static final Pattern BUSINESS_SUFFIX = Pattern.compile("(헤어|미용실|치과|식당|마트|로지스틱스|물류|카페|베이커리|의원|병원|모텔|호텔|빌딩|세탁|주유소|약국|분식|반점)");
+    private static final Pattern BALANCE_PREFIX = Pattern.compile("(잔액|잔여|누적|한도)\s*:?\s*$");
+    private static final Pattern PAYMENT_VERB = Pattern.compile("(결제|승인|출금|사용)");
 
     public static ParsedPayment parse(String packageName, String title, String body) {
         return parse(packageName, title, body, Collections.emptySet());
@@ -135,34 +154,99 @@ public class PaymentParser {
 
         boolean isTrial = TRIAL_KEYWORD.matcher(combined).find();
 
-        // 2. 금액 파싱 (원통화 및 원금액 보존, 원화 환산은 상수 + isEstimated)
+        // 2. 금액 파싱 (원통화 및 원금액 보존, 잔액/잔여/누적/한도 금액 제외 및 결제 동사 최근접 우선)
         Matcher amountMatcher = AMOUNT_PATTERN.matcher(combined);
+        List<AmountCandidate> candidates = new ArrayList<>();
+
+        while (amountMatcher.find()) {
+            int matchStart = amountMatcher.start();
+            int matchEnd = amountMatcher.end();
+
+            // 금액 바로 앞에 잔액/잔여/누적/한도 접두어가 붙어 있는지 확인
+            String prefix = combined.substring(0, matchStart);
+            if (BALANCE_PREFIX.matcher(prefix).find()) {
+                continue;
+            }
+
+            String krw1 = amountMatcher.group(1);
+            String krw2 = amountMatcher.group(2);
+            String usd1 = amountMatcher.group(3);
+            String usd2 = amountMatcher.group(4);
+            String usd3 = amountMatcher.group(5);
+            String krw3 = amountMatcher.group(6);
+
+            AmountCandidate cand = new AmountCandidate();
+            cand.start = matchStart;
+            cand.end = matchEnd;
+
+            if (krw1 != null || krw2 != null || krw3 != null) {
+                String raw = krw1 != null ? krw1 : (krw2 != null ? krw2 : krw3);
+                try {
+                    cand.amount = Integer.parseInt(raw.replace(",", ""));
+                    cand.currency = "KRW";
+                    cand.originalAmount = cand.amount;
+                    cand.isEstimated = false;
+                    candidates.add(cand);
+                } catch (NumberFormatException ignored) {}
+            } else if (usd1 != null || usd2 != null || usd3 != null) {
+                String rawUsd = usd1 != null ? usd1 : (usd2 != null ? usd2 : usd3);
+                try {
+                    double dollars = Double.parseDouble(rawUsd);
+                    cand.currency = "USD";
+                    cand.originalAmount = dollars;
+                    cand.amount = (int) Math.round(dollars * USD_KRW_EXCHANGE_RATE);
+                    cand.isEstimated = true;
+                    candidates.add(cand);
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+
         int amount = 0;
         String currency = "KRW";
         double originalAmount = 0.0;
         boolean isEstimated = false;
 
-        while (amountMatcher.find()) {
-            String krw = amountMatcher.group(1);
-            String usd = amountMatcher.group(2);
-            if (krw != null) {
-                try {
-                    amount = Integer.parseInt(krw.replace(",", ""));
-                    currency = "KRW";
-                    originalAmount = amount;
-                    isEstimated = false;
-                    break;
-                } catch (NumberFormatException ignored) {}
-            } else if (usd != null) {
-                try {
-                    double dollars = Double.parseDouble(usd);
-                    currency = "USD";
-                    originalAmount = dollars;
-                    amount = (int) Math.round(dollars * USD_KRW_EXCHANGE_RATE);
-                    isEstimated = true;
-                    break;
-                } catch (NumberFormatException ignored) {}
+        if (!candidates.isEmpty()) {
+            // 결제 동사(결제/승인/출금/사용)와의 거리 계산
+            List<int[]> verbSpans = new ArrayList<>();
+            Matcher verbMatcher = PAYMENT_VERB.matcher(combined);
+            while (verbMatcher.find()) {
+                verbSpans.add(new int[]{verbMatcher.start(), verbMatcher.end()});
             }
+
+            AmountCandidate bestCand = candidates.get(0);
+            int minDistance = Integer.MAX_VALUE;
+
+            for (AmountCandidate c : candidates) {
+                int dist = Integer.MAX_VALUE;
+                if (verbSpans.isEmpty()) {
+                    dist = 0;
+                } else {
+                    for (int[] span : verbSpans) {
+                        int currentDist;
+                        if (span[1] <= c.start) {
+                            currentDist = c.start - span[1];
+                        } else if (c.end <= span[0]) {
+                            currentDist = span[0] - c.end;
+                        } else {
+                            currentDist = 0;
+                        }
+                        if (currentDist < dist) {
+                            dist = currentDist;
+                        }
+                    }
+                }
+                c.distanceToVerb = dist;
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    bestCand = c;
+                }
+            }
+
+            amount = bestCand.amount;
+            currency = bestCand.currency;
+            originalAmount = bestCand.originalAmount;
+            isEstimated = bestCand.isEstimated;
         }
 
         if (amount == 0 && !isTrial) {

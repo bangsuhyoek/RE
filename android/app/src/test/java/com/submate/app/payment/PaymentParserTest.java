@@ -259,4 +259,104 @@ public class PaymentParserTest {
         assertFalse("해지 이동도 결제도 아닌 버튼은 자동 탭하지 않습니다.",
                 com.submate.app.webguide.AutoAdvancer.isAutoTapCandidate("프로필 사진 바꾸기", true));
     }
+    @Test
+    public void testBalanceCapturedInsteadOfChargeFixed() {
+        PaymentParser.ParsedPayment parsed = PaymentParser.parse(
+                "com.kbstar.kbbank",
+                "KB국민은행",
+                "[KB국민은행] 잔액 500,000원 넷플릭스 17,000원 출금"
+        );
+        assertNotNull("넷플릭스 출금 결제는 파싱되어야 합니다.", parsed);
+        assertEquals("잔액 500,000원이 아닌 실제 출금 금액 17,000원이 추출되어야 합니다.", 17000, parsed.amount);
+    }
+
+    @Test
+    public void testNegativeKeywordContextInspection() {
+        PaymentParser.ParsedPayment p1 = PaymentParser.parse(
+                "com.shcard.smartpay",
+                "신한카드",
+                "넷플릭스 17,000원 결제완료 (취소문의: 1588-0000)"
+        );
+        assertNotNull("취소문의는 결제 취소가 아니므로 파싱되어야 합니다.", p1);
+        assertEquals(17000, p1.amount);
+
+        PaymentParser.ParsedPayment p2 = PaymentParser.parse(
+                "com.shcard.smartpay",
+                "신한카드",
+                "넷플릭스 17,000원 결제완료 (환불불가)"
+        );
+        assertNotNull("환불불가는 결제 취소가 아니므로 파싱되어야 합니다.", p2);
+        assertEquals(17000, p2.amount);
+
+        String[] cancellations = {
+                "넷플릭스 17,000원 결제취소",
+                "넷플릭스 17,000원 승인취소",
+                "넷플릭스 17,000원 취소승인",
+                "넷플릭스 17,000원 환불완료",
+                "넷플릭스 17,000원 환불 처리",
+                "넷플릭스 17,000원 취소되었습니다"
+        };
+        for (String c : cancellations) {
+            assertNull("실제 취소/환불 알림은 기각되어야 합니다: " + c,
+                    PaymentParser.parse("com.shcard.smartpay", "신한카드", c));
+        }
+    }
+
+    @Test
+    public void testExtendedAmountFormats() {
+        PaymentParser.ParsedPayment p1 = PaymentParser.parse("com.shcard.smartpay", "신한카드", "유튜브 ₩15,900 결제");
+        assertNotNull("₩15,900 인식 실패", p1);
+        assertEquals(15900, p1.amount);
+        assertEquals("KRW", p1.currency);
+
+        PaymentParser.ParsedPayment p2 = PaymentParser.parse("com.shcard.smartpay", "신한카드", "유튜브 ￦15,900 결제");
+        assertNotNull("￦15,900 인식 실패", p2);
+        assertEquals(15900, p2.amount);
+        assertEquals("KRW", p2.currency);
+
+        PaymentParser.ParsedPayment p3 = PaymentParser.parse("com.shcard.smartpay", "신한카드", "유튜브 KRW 15900 결제");
+        assertNotNull("KRW 15900 인식 실패", p3);
+        assertEquals(15900, p3.amount);
+        assertEquals("KRW", p3.currency);
+
+        PaymentParser.ParsedPayment p4 = PaymentParser.parse("com.shcard.smartpay", "신한카드", "유튜브 15,900 KRW 결제");
+        assertNotNull("15,900 KRW 인식 실패", p4);
+        assertEquals(15900, p4.amount);
+        assertEquals("KRW", p4.currency);
+
+        PaymentParser.ParsedPayment p5 = PaymentParser.parse("com.shcard.smartpay", "신한카드", "유튜브 USD 9.99 결제");
+        assertNotNull("USD 9.99 인식 실패", p5);
+        assertEquals("USD", p5.currency);
+        assertEquals(9.99, p5.originalAmount, 0.001);
+        assertEquals(Math.round(9.99 * PaymentParser.USD_KRW_EXCHANGE_RATE), p5.amount);
+        assertTrue(p5.isEstimated);
+
+        PaymentParser.ParsedPayment p6 = PaymentParser.parse("com.shcard.smartpay", "신한카드", "유튜브 9.99 USD 결제");
+        assertNotNull("9.99 USD 인식 실패", p6);
+        assertEquals("USD", p6.currency);
+        assertEquals(9.99, p6.originalAmount, 0.001);
+        assertEquals(Math.round(9.99 * PaymentParser.USD_KRW_EXCHANGE_RATE), p6.amount);
+        assertTrue(p6.isEstimated);
+
+        PaymentParser.ParsedPayment p7 = PaymentParser.parse("com.shcard.smartpay", "신한카드", "유튜브 900원 결제");
+        assertNotNull("900원 인식 실패", p7);
+        assertEquals(900, p7.amount);
+        assertEquals("KRW", p7.currency);
+    }
+    @Test
+    public void testDedupDifferentServicesSameAmountNotMerged() {
+        long now = System.currentTimeMillis();
+        // Two different services with same amount (e.g. 17,000 KRW)
+        String hashNetflix = PaymentNotificationListener.computeDedupHash("netflix", "Netflix", 17000, "KRW");
+        String hashTving = PaymentNotificationListener.computeDedupHash("tving", "티빙", 17000, "KRW");
+        assertNotEquals("서로 다른 serviceId를 가진 서비스는 같은 금액이어도 다른 해시여야 합니다.", hashNetflix, hashTving);
+    }
+
+    @Test
+    public void testDedupSameChargeCardAndBankAppMerged() {
+        // Same charge from a card app ("Netflix", serviceId="netflix") and bank app (serviceName="", serviceId="netflix")
+        String hashCard = PaymentNotificationListener.computeDedupHash("netflix", "Netflix", 17000, "KRW");
+        String hashBank = PaymentNotificationListener.computeDedupHash("netflix", "", 17000, "KRW");
+        assertEquals("동일한 serviceId의 결제는 원천 앱이 달라 serviceName이 비어있어도 동일한 중복 해시를 가져야 합니다.", hashCard, hashBank);
+    }
 }

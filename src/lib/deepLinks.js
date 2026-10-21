@@ -1,7 +1,7 @@
 // src/lib/deepLinks.js
-import { registerPlugin } from "@capacitor/core";
+import { PaymentCapture } from "./paymentCapture.js";
 
-export const NativePaymentCapture = registerPlugin("PaymentCapture");
+export const NativePaymentCapture = PaymentCapture;
 
 /**
  * 딥링크 파싱 및 타입 식별
@@ -50,7 +50,7 @@ export function parseDeepLink(rawUrl) {
 
     const quickAdd = {
       name: params.get("name") || "",
-      amount: Number(params.get("amount")) || 0,
+      amount: (() => { const val = Number(params.get("amount")); return Number.isFinite(val) && val >= 0 ? val : 0; })(),
       plan: params.get("plan") || "",
       paymentMethod: params.get("method") || "",
       category: params.get("category") || "기타",
