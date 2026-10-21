@@ -93,6 +93,11 @@ export async function runCrawlerPipeline({ catalogFilePath } = {}) {
   console.log(` - Synced Items: ${syncResult.updatedCount}`);
   console.log(` - Kept Existing (crawl failed): ${syncResult.keptExistingCount ?? 0}`);
 
+  if (failedItems.length === CRAWLER_CONFIG.targets.length) {
+    console.error(`\n❌ All ${CRAWLER_CONFIG.targets.length} crawl targets failed.`);
+    process.exitCode = 1;
+  }
+
   return {
     targetsProcessed: CRAWLER_CONFIG.targets.length,
     successCount,

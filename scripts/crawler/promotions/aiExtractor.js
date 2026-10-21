@@ -58,7 +58,11 @@ export function validateUpdatedOffer(candidate, promotion = {}, { now = Date.now
     }
   }
 
-  const saving = originalPrice - offerPrice;
+  const isAnnual = String(kind).includes("연간") || promotion.category === "학생/연간";
+  const rawSaving = Number(candidate.saving);
+  const saving = Number.isFinite(rawSaving) && rawSaving > 0 && (isAnnual || rawSaving <= originalPrice)
+    ? rawSaving
+    : originalPrice - offerPrice;
   const benefitPeriod = candidate.benefitPeriod
     ? String(candidate.benefitPeriod).trim()
     : promotion.benefitPeriod || "상시 진행 (공식 검증 완료)";

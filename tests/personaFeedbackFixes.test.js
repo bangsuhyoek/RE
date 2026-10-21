@@ -41,3 +41,22 @@ test("홈 배너가 연결하는 확인된 혜택이 카탈로그에 존재한�
   const naverPromo = promotionCatalog.find((p) => p.id === "naverplus-netflix");
   assert.ok(naverPromo.link.startsWith("https://help.naver.com/"));
 });
+
+test("연간이 아닌 프로모션은 saving이 originalPrice를 초과하지 않는다", () => {
+  for (const promo of promotionCatalog) {
+    const isAnnual = promo.kind?.includes("연간") || promo.category === "학생/연간";
+    if (!isAnnual) {
+      assert.ok(
+        promo.saving <= promo.originalPrice,
+        `${promo.id} saving(${promo.saving})이 originalPrice(${promo.originalPrice})를 초과합니다`
+      );
+      if (promo.offerPrice > 0) {
+        assert.equal(
+          promo.saving,
+          promo.originalPrice - promo.offerPrice,
+          `${promo.id} saving(${promo.saving})이 originalPrice(${promo.originalPrice}) - offerPrice(${promo.offerPrice})와 일치하지 않습니다`
+        );
+      }
+    }
+  }
+});

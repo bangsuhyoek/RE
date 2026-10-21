@@ -81,7 +81,39 @@ test("Full Crawler Pipeline should execute and update a catalog file", async () 
   const content = fs.readFileSync(filePath, "utf-8");
   assert.ok(content.includes("export const serviceCatalog = ["));
   assert.ok(content.includes('"id": "netflix"'));
+  process.exitCode = 0;
   fs.rmSync(tempDir, { recursive: true, force: true });
+});
+
+test("모든 크롤 대상이 실패하면 process.exitCode = 1로 설정된다", async () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "submate-crawler-fail-"));
+  const filePath = path.join(tempDir, "subscriptionData.js");
+  const sourcePath = path.resolve(__dirname, "../src/data/subscriptionData.js");
+  fs.copyFileSync(sourcePath, filePath);
+
+  const prevExitCode = process.exitCode;
+  const origCrawl = CrawlerAgent.prototype.crawl;
+  try {
+    process.exitCode = 0;
+    CrawlerAgent.prototype.crawl = async (target) => ({
+      targetId: target.id,
+      url: target.url,
+      status: "FAILED",
+      statusCode: 500,
+      rawContent: null,
+      html: "",
+      error: "Network failure",
+      durationMs: 10,
+    });
+
+    const result = await runCrawlerPipeline({ catalogFilePath: filePath });
+    assert.ok(result);
+    assert.equal(process.exitCode, 1);
+  } finally {
+    CrawlerAgent.prototype.crawl = origCrawl;
+    process.exitCode = prevExitCode;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
 });
 
 test("페이지를 읽지 못한 서비스는 카탈로그의 기존 가격과 확인 시각을 덮어쓰지 않는다", () => {
