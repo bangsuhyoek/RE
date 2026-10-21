@@ -25,7 +25,7 @@ const runMiddleware = async ({ method = "POST", url = "/api/ocr", body = {} } = 
   };
   let nextCalled = false;
   await createLocalOcrMiddleware()(request, response, () => { nextCalled = true; });
-  return { response, payload: raw ? JSON.parse(raw) : null, nextCalled };
+  return { response, headers, payload: raw ? JSON.parse(raw) : null, nextCalled };
 };
 
 test("Vite 개발 서버에서 결제 문자 OCR API를 실행한다", async () => {
@@ -72,4 +72,34 @@ test("Vite 로컬 API 미들웨어에서 OPTIONS preflight 요청이 204로 정�
   assert.equal(agentPreflight.response.statusCode, 204);
   assert.equal(agentPreflight.response.writableEnded, true);
 });
+
+test("Vite 로컬 API 미들웨어에서 본문 파싱 오류(400) 시 CORS 헤더가 포함된다", async () => {
+  const request = Readable.from([Buffer.from("invalid json {")]);
+  request.method = "POST";
+  request.url = "/api/ocr";
+
+  let raw = "";
+  const headers = new Map();
+  const response = {
+    statusCode: 200,
+    headersSent: false,
+    writableEnded: false,
+    setHeader(name, value) {
+      headers.set(name.toLowerCase(), value);
+    },
+    end(value = "") {
+      raw += value;
+      this.headersSent = true;
+      this.writableEnded = true;
+    },
+  };
+  await createLocalOcrMiddleware()(request, response, () => {});
+  assert.equal(response.statusCode, 400);
+  assert.equal(headers.get("access-control-allow-origin"), "*");
+  assert.equal(headers.get("access-control-allow-methods"), "POST, OPTIONS");
+  assert.equal(headers.get("access-control-allow-headers"), "Content-Type, Authorization");
+  const payload = JSON.parse(raw);
+  assert.equal(payload.ok, false);
+});
+
 

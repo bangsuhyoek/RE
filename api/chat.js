@@ -2,6 +2,7 @@ import { verifySupabaseAuth } from "./_lib/auth.js";
 import { consumeRateLimit } from "./_lib/rateLimit.js";
 import { fetchGeminiStream, getCandidateModels } from "./_lib/gemini.js";
 import { CHAT_TOOL_DECLARATIONS, TOOL_LABELS, executeTool } from "./_lib/chatTools.js";
+import { getKstDateString } from "./_lib/kstDate.js";
 
 const MAX_BODY_BYTES = 200 * 1024; // 200KB limit
 const MAX_MESSAGES = 12;
@@ -22,6 +23,7 @@ const sendJsonError = (response, status, error, code) => {
 };
 
 const sendSseEvent = (response, event, data) => {
+  if (response.writableEnded) return;
   response.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 };
 
@@ -79,6 +81,9 @@ export default async function handler(request, response) {
     try {
       body = JSON.parse(body);
     } catch {
+      return sendJsonError(response, 400, "잘못된 JSON 형식입니다.", "BAD_REQUEST");
+    }
+    if (!body || typeof body !== "object") {
       return sendJsonError(response, 400, "잘못된 JSON 형식입니다.", "BAD_REQUEST");
     }
   } else if (body && typeof body === "object") {
@@ -187,15 +192,24 @@ export default async function handler(request, response) {
   const overallController = new AbortController();
   const overallTimer = setTimeout(() => overallController.abort(), OVERALL_TIMEOUT_MS);
 
+  const onClose = () => {
+    if (!response.writableEnded) {
+      overallController.abort();
+    }
+  };
+  response.on?.("close", onClose);
+
   let hasStreamedAnyOutput = false;
 
   const emitAction = (action) => {
-    sendSseEvent(response, "action", action);
+    if (!response.writableEnded && !overallController.signal.aborted) {
+      sendSseEvent(response, "action", action);
+    }
   };
 
   try {
     // Build system instruction & snapshot context
-    const todayStr = snapshot.today || new Date().toISOString().slice(0, 10);
+    const todayStr = snapshot.today || getKstDateString();
     const compactSnapshot = {
       today: todayStr,
       subscriptions: snapshot.subscriptions.map((s) => ({
@@ -387,13 +401,18 @@ export default async function handler(request, response) {
 
     sendSseEvent(response, "done", {});
   } catch {
-    sendSseEvent(response, "error", {
-      code: "CHAT_ERROR",
-      message: "답변을 생성하는 중에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
+    if (!overallController.signal.aborted && !response.writableEnded) {
+      sendSseEvent(response, "error", {
+        code: "CHAT_ERROR",
+        message: "답변을 생성하는 중에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+      });
+    }
   } finally {
     clearTimeout(overallTimer);
-    response.end();
+    response.off?.("close", onClose);
+    if (!response.writableEnded) {
+      response.end();
+    }
   }
 }
 

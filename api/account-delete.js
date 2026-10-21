@@ -22,7 +22,7 @@ const readBody = (request) => {
   if (typeof request.body === "string") {
     return JSON.parse(request.body);
   }
-  return request.body || {};
+  return request.body;
 };
 
 export default async function handler(request, response) {
@@ -79,6 +79,13 @@ export default async function handler(request, response) {
   try {
     body = readBody(request);
   } catch {
+    return send(response, 400, {
+      ok: false,
+      code: "INVALID_JSON",
+      message: "요청 본문 형식이 올바르지 않습니다.",
+    });
+  }
+  if (!body || typeof body !== "object") {
     return send(response, 400, {
       ok: false,
       code: "INVALID_JSON",

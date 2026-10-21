@@ -103,6 +103,9 @@ export const createLocalOcrMiddleware = () => async (request, response, next) =>
     await routeHandler(request, createResponseAdapter(response));
   } catch (error) {
     if (response.writableEnded) return;
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     response.statusCode = error?.statusCode || 500;
     response.setHeader("Content-Type", "application/json; charset=utf-8");
     response.end(JSON.stringify({

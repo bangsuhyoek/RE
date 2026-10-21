@@ -5,6 +5,7 @@ import chatHandler from "../api/chat.js";
 import agentHandler from "../api/agent.js";
 import ocrHandler from "../api/ocr.js";
 import cancelHandler from "../api/cancel-next-step.js";
+import accountDeleteHandler from "../api/account-delete.js";
 import { callGemini } from "../api/_lib/gemini.js";
 import { scrub, buildPrompt } from "../api/_lib/cancelNextStep.js";
 import { consumeRateLimit } from "../api/_lib/rateLimit.js";
@@ -48,6 +49,7 @@ function createMockRes() {
     end(str) {
       if (str) this.chunks.push(str);
       this.ended = true;
+      this.writableEnded = true;
       if (!this.body && this.chunks.length > 0) {
         try {
           this.body = JSON.parse(this.chunks.join(""));
@@ -56,6 +58,22 @@ function createMockRes() {
         }
       }
       return this;
+    },
+    on(event, listener) {
+      if (!this._listeners) this._listeners = {};
+      if (!this._listeners[event]) this._listeners[event] = [];
+      this._listeners[event].push(listener);
+      return this;
+    },
+    off(event, listener) {
+      if (!this._listeners || !this._listeners[event]) return this;
+      this._listeners[event] = this._listeners[event].filter((l) => l !== listener);
+      return this;
+    },
+    emit(event, ...args) {
+      if (!this._listeners || !this._listeners[event]) return false;
+      for (const l of [...this._listeners[event]]) l(...args);
+      return true;
     },
   };
 }
@@ -540,3 +558,194 @@ test("10. rateLimit fails closed when service role key is missing", async () => 
     process.env = originalEnv;
   }
 });
+
+test("11. null/non-object request body returns 400 across all endpoints", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalEnv = { ...process.env };
+  process.env.SUPABASE_URL = "https://example.supabase.co";
+  process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+  process.env.GEMINI_API_KEY = "test-gemini-key";
+  globalThis.fetch = mockAuthOnly();
+
+  try {
+    // agent: body is null or JSON 'null'
+    const agentRes1 = createMockRes();
+    await agentHandler(createMockReq({ token: "test-token", body: null }), agentRes1);
+    assert.equal(agentRes1.statusCode, 400);
+    assert.equal(agentRes1.body?.code, "INVALID_JSON");
+
+    const agentRes2 = createMockRes();
+    await agentHandler(createMockReq({ token: "test-token", body: "null" }), agentRes2);
+    assert.equal(agentRes2.statusCode, 400);
+    assert.equal(agentRes2.body?.code, "INVALID_JSON");
+
+    // ocr: body is null or JSON 'null'
+    const ocrRes1 = createMockRes();
+    await ocrHandler(createMockReq({ token: "test-token", body: null }), ocrRes1);
+    assert.equal(ocrRes1.statusCode, 400);
+    assert.equal(ocrRes1.body?.code, "INVALID_JSON");
+
+    const ocrRes2 = createMockRes();
+    await ocrHandler(createMockReq({ token: "test-token", body: "null" }), ocrRes2);
+    assert.equal(ocrRes2.statusCode, 400);
+    assert.equal(ocrRes2.body?.code, "INVALID_JSON");
+
+    // chat: body is null or JSON 'null'
+    const chatRes1 = createMockRes();
+    await chatHandler(createMockReq({ token: "test-token", body: null }), chatRes1);
+    assert.equal(chatRes1.statusCode, 400);
+    assert.equal(chatRes1.body?.code, "BAD_REQUEST");
+
+    const chatRes2 = createMockRes();
+    await chatHandler(createMockReq({ token: "test-token", body: "null" }), chatRes2);
+    assert.equal(chatRes2.statusCode, 400);
+    assert.equal(chatRes2.body?.code, "BAD_REQUEST");
+
+    // cancel-next-step: body is null or JSON 'null'
+    const cancelRes1 = createMockRes();
+    await cancelHandler(createMockReq({ token: "test-token", body: null }), cancelRes1);
+    assert.equal(cancelRes1.statusCode, 400);
+    assert.equal(cancelRes1.body?.error, "INVALID_REQUEST");
+
+    const cancelRes2 = createMockRes();
+    await cancelHandler(createMockReq({ token: "test-token", body: "null" }), cancelRes2);
+    assert.equal(cancelRes2.statusCode, 400);
+    assert.equal(cancelRes2.body?.error, "INVALID_REQUEST");
+
+    // account-delete: body is null or JSON 'null'
+    const delRes1 = createMockRes();
+    await accountDeleteHandler(createMockReq({ token: "test-token", body: null }), delRes1);
+    assert.equal(delRes1.statusCode, 400);
+    assert.equal(delRes1.body?.code, "INVALID_JSON");
+
+    const delRes2 = createMockRes();
+    await accountDeleteHandler(createMockReq({ token: "test-token", body: "null" }), delRes2);
+    assert.equal(delRes2.statusCode, 400);
+    assert.equal(delRes2.body?.code, "INVALID_JSON");
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env = originalEnv;
+  }
+});
+
+test("12. chat aborts controller and halts rounds when response closes prematurely", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalEnv = { ...process.env };
+  process.env.SUPABASE_URL = "https://example.supabase.co";
+  process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+  process.env.GEMINI_API_KEY = "test-gemini-key";
+
+  let geminiCalls = 0;
+  let capturedSignal = null;
+  const res = createMockRes();
+
+  globalThis.fetch = async (url, opts) => {
+    const urlStr = String(url);
+    if (urlStr.includes("/auth/v1/user")) {
+      return new Response(JSON.stringify({ id: "user-chat-abort" }), { status: 200 });
+    }
+    if (urlStr.includes("/rpc/")) {
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
+    }
+    if (urlStr.includes("streamGenerateContent")) {
+      geminiCalls++;
+      capturedSignal = opts?.signal;
+
+      return {
+        ok: true,
+        status: 200,
+        body: new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode('data: {"candidates":[{"content":{"parts":[{"text":"첫단어 "}]}}]}\\n\\n'));
+            res.emit("close");
+            controller.close();
+          },
+        }),
+      };
+    }
+    return new Response("{}", { status: 200 });
+  };
+
+  try {
+    const req = createMockReq({
+      token: "test-token",
+      body: {
+        messages: [{ role: "user", content: "안녕" }],
+        snapshot: { today: "2026-10-21", subscriptions: [] },
+      },
+    });
+
+    await chatHandler(req, res);
+
+    assert.equal(geminiCalls, 1);
+    assert.ok(capturedSignal, "Abort signal should have been passed to Gemini stream");
+    assert.equal(capturedSignal.aborted, true, "Signal should be aborted when client closes connection");
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env = originalEnv;
+  }
+});
+
+test("13. chat falls back to KST date string when snapshot.today is omitted", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalEnv = { ...process.env };
+  process.env.SUPABASE_URL = "https://example.supabase.co";
+  process.env.SUPABASE_ANON_KEY = "test-anon-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+  process.env.GEMINI_API_KEY = "test-gemini-key";
+
+  let capturedRequestBody = null;
+  globalThis.fetch = async (url, opts) => {
+    const urlStr = String(url);
+    if (urlStr.includes("/auth/v1/user")) {
+      return new Response(JSON.stringify({ id: "user-kst-test" }), { status: 200 });
+    }
+    if (urlStr.includes("/rpc/")) {
+      return new Response(JSON.stringify({ allowed: true, retry_after_seconds: 0 }), { status: 200 });
+    }
+    if (urlStr.includes("streamGenerateContent")) {
+      capturedRequestBody = JSON.parse(opts?.body || "{}");
+      return {
+        ok: true,
+        status: 200,
+        body: new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode('data: {"candidates":[{"content":{"parts":[{"text":"오늘 날짜 안내"}]}}]}\\n\\n'));
+            controller.close();
+          },
+        }),
+      };
+    }
+    return new Response("{}", { status: 200 });
+  };
+
+  try {
+    const req = createMockReq({
+      token: "test-token",
+      body: {
+        messages: [{ role: "user", content: "오늘 며칠이야?" }],
+        snapshot: { subscriptions: [] },
+      },
+    });
+    const res = createMockRes();
+
+    await chatHandler(req, res);
+
+    assert.ok(capturedRequestBody, "Gemini should be called");
+    const sysPrompt = capturedRequestBody.systemInstruction?.parts?.[0]?.text || "";
+    const kstFormatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const expectedKstToday = kstFormatter.format(new Date());
+    assert.ok(sysPrompt.includes(expectedKstToday), "System instruction should include KST today date");
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env = originalEnv;
+  }
+});
+
