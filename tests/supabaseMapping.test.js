@@ -110,3 +110,51 @@ test("mapDbToSubscription은 DB 레코드를 클라이언트 객체로 정확히
   assert.equal(mapDbToSubscription({ ...row, alert_d3: true }).alertD3, true);
   assert.equal(mapDbToSubscription({ ...row, alert_d3: false }).alertD3, false);
 });
+
+test("memo, alertDDay, alertHour, alertAmpm 필드가 DB 매핑 및 클라이언트 복원에서 보존된다 (Round Trip)", () => {
+  const originalSub = {
+    id: "netflix",
+    subscriptionId: "sub-roundtrip-1",
+    name: "Netflix",
+    plan: "프리미엄",
+    amount: 17000,
+    memo: "가족 공유 계정 4인 팟",
+    alertDDay: 3,
+    alertHour: "09",
+    alertAmpm: "오전",
+  };
+
+  const dbRow = mapSubscriptionToDb(originalSub, "user-test-uuid");
+  assert.equal(dbRow.memo, "가족 공유 계정 4인 팟");
+  assert.equal(dbRow.alert_dday, 3);
+  assert.equal(dbRow.alert_hour, 9);
+  assert.equal(dbRow.alert_ampm, "오전");
+
+  const restoredSub = mapDbToSubscription(dbRow);
+  assert.equal(restoredSub.memo, "가족 공유 계정 4인 팟");
+  assert.equal(restoredSub.alertDDay, 3);
+  assert.equal(restoredSub.alertHour, "09");
+  assert.equal(restoredSub.alertAmpm, "오전");
+
+  // 잘못된 enum 값은 null로 정규화되어 DB 에러 방지
+  const invalidSub = {
+    ...originalSub,
+    alertAmpm: "새벽",
+  };
+  const mappedInvalid = mapSubscriptionToDb(invalidSub, "user-test-uuid");
+  assert.equal(mappedInvalid.alert_ampm, null);
+});
+
+test("Lazy catalog race: mapDbToSubscription은 catalog가 주어지거나 캐시되어 있으면 monogram과 cancelUrl을 복원한다", () => {
+  const mockCatalog = [
+    { id: "custom-music", name: "커스텀 뮤직", monogram: "CM", cancelUrl: "https://music.example.com/cancel" },
+  ];
+  const row = {
+    subscription_id: "sub-cat-1",
+    service_id: "custom-music",
+    service_name: "커스텀 뮤직",
+  };
+  const restored = mapDbToSubscription(row, mockCatalog);
+  assert.equal(restored.monogram, "CM");
+  assert.equal(restored.cancelUrl, "https://music.example.com/cancel");
+});

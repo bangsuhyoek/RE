@@ -73,6 +73,7 @@ export const createMockSubscriptions = () =>
       alertD3: true,
       alertD1: true,
       renewalPending: false,
+      isDemo: true,
     }));
   })();
 

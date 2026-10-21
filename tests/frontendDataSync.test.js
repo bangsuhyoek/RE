@@ -143,3 +143,51 @@ test("8. createSubscriptionId는 manual- / custom- 접두어와 고유 ID를 생
   assert.match(idCustom, /^custom-/);
   assert.notEqual(id1, id2);
 });
+
+test("9. 게스트 시드 구독(seed- 접두어 또는 isDemo: true)은 클라우드 동기화 시 업로드 대상에서 제외된다", () => {
+  const localList = [
+    { subscriptionId: "seed-netflix", name: "Netflix", isDemo: true, amount: 17000 },
+    { subscriptionId: "seed-spotify", name: "Spotify", amount: 10900 }, // isDemo 플래그가 없더라도 seed- 접두어로 제외
+    { subscriptionId: "sub-real-user-1", name: "ChatGPT Plus", amount: 27000 },
+  ];
+
+  const { merged, toUpload } = mergeSubscriptions({
+    localList,
+    cloudList: [],
+    tombstones: {},
+  });
+
+  assert.equal(toUpload.length, 1);
+  assert.equal(toUpload[0].subscriptionId, "sub-real-user-1");
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].subscriptionId, "sub-real-user-1");
+});
+
+test("10. 클라우드 구독 병합 시 서버 필드가 null이면 로컬 필드(memo, alertDDay, alertHour, alertAmpm)를 보존한다", () => {
+  const localSub = {
+    subscriptionId: "sub-merge-1",
+    name: "Netflix",
+    memo: "로컬에서 작성한 중요한 메모",
+    alertDDay: 2,
+    alertHour: "10",
+    alertAmpm: "오전",
+    updatedAt: "2026-09-01T10:00:00.000Z",
+  };
+
+  // 클라우드가 더 최신이지만 신규 필드가 DB 마이그레이션 전이거나 null인 경우
+  const cloudSub = {
+    subscriptionId: "sub-merge-1",
+    name: "Netflix",
+    memo: null,
+    alertDDay: null,
+    alertHour: null,
+    alertAmpm: null,
+    updatedAt: "2026-09-02T10:00:00.000Z",
+  };
+
+  const resolved = resolveSubscriptionMerge(localSub, cloudSub);
+  assert.equal(resolved.memo, "로컬에서 작성한 중요한 메모");
+  assert.equal(resolved.alertDDay, 2);
+  assert.equal(resolved.alertHour, "10");
+  assert.equal(resolved.alertAmpm, "오전");
+});

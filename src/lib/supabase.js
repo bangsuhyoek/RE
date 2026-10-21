@@ -1,4 +1,4 @@
-import { getCachedCatalog } from "../data/catalogLoader.js";
+import { getCachedCatalog, loadSubscriptionData } from "../data/catalogLoader.js";
 import { PAYMENT_CHANNEL_IDS } from "./paymentChannels.js";
 import { Browser } from "@capacitor/browser";
 import { isNativePlatform } from "./platform.js";
@@ -58,10 +58,11 @@ export async function signOut() {
   return supabase.auth.signOut();
 }
 
-export function mapDbToSubscription(row) {
+export function mapDbToSubscription(row, catalog = null) {
   const targetName = (row.service_name || '').toLowerCase().replace(/\s+/g, '');
   const targetId = (row.service_id || row.subscription_id || '').toLowerCase();
-  const matched = (getCachedCatalog()?.serviceCatalog || []).find((s) => {
+  const activeCatalog = catalog || getCachedCatalog()?.serviceCatalog || [];
+  const matched = activeCatalog.find((s) => {
     const sId = (s.id || '').toLowerCase();
     const sName = (s.name || '').toLowerCase().replace(/\s+/g, '');
     return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);
@@ -99,6 +100,10 @@ export function mapDbToSubscription(row) {
     originalAmount: row.original_amount != null ? Number(row.original_amount) : null,
     planId: row.plan_id || null,
     paymentChannel: PAYMENT_CHANNEL_IDS.includes(row.payment_channel) ? row.payment_channel : null,
+    memo: row.memo ?? '',
+    alertDDay: row.alert_dday != null ? Number(row.alert_dday) : undefined,
+    alertHour: row.alert_hour != null ? String(row.alert_hour).padStart(2, '0') : null,
+    alertAmpm: row.alert_ampm || null,
   };
 }
 
@@ -132,6 +137,10 @@ export function mapSubscriptionToDb(sub, userId) {
     next_billing_date: sub.nextBillingDate || null,
     renewal_reviewed_for: sub.renewalReviewedFor || null,
     payment_channel: PAYMENT_CHANNEL_IDS.includes(sub.paymentChannel) ? sub.paymentChannel : null,
+    memo: sub.memo ?? null,
+    alert_dday: sub.alertDDay != null ? Number(sub.alertDDay) : null,
+    alert_hour: sub.alertHour != null ? Number(sub.alertHour) : null,
+    alert_ampm: (sub.alertAmpm === '오전' || sub.alertAmpm === '오후') ? sub.alertAmpm : null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -139,6 +148,7 @@ export function mapSubscriptionToDb(sub, userId) {
 export async function fetchUserSubscriptions(userId) {
   if (!supabase || !userId) return [];
   try {
+    await loadSubscriptionData().catch(() => null);
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
@@ -155,6 +165,7 @@ export async function fetchUserSubscriptions(userId) {
 export async function upsertDbSubscription(userId, sub) {
   if (!supabase || !userId) return null;
   try {
+    await loadSubscriptionData().catch(() => null);
     const row = mapSubscriptionToDb(sub, userId);
     const { data, error } = await supabase
       .from('subscriptions')

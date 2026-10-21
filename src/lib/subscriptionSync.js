@@ -29,8 +29,16 @@ export function resolveSubscriptionMerge(localSub, cloudSub) {
     // 로컬이 더 최신: 로컬 데이터를 유지하되 서버에만 있는 필드가 있다면 보존
     return { ...cloudSub, ...localSub };
   }
-  // 클라우드가 더 최신이거나 같음
-  return { ...localSub, ...cloudSub };
+  // 클라우드가 더 최신이거나 같음:
+  // 서버 행의 필드가 null/undefined/비어있고 로컬에 값이 존재하는 경우 로컬 값 보존 (손실 방지)
+  const merged = { ...localSub, ...cloudSub };
+  const preserveWhenCloudNull = ["memo", "alertDDay", "alertHour", "alertAmpm"];
+  for (const key of preserveWhenCloudNull) {
+    if (cloudSub[key] == null && localSub[key] != null) {
+      merged[key] = localSub[key];
+    }
+  }
+  return merged;
 }
 
 /**
@@ -86,7 +94,7 @@ export function mergeSubscriptions({ localList = [], cloudList = [], tombstones 
   // 2. 로컬에만 있는 아이템 (클라우드에 없음)
   for (const [id, localSub] of localById.entries()) {
     if (mergedMap.has(id)) continue;
-    if (localSub.isDemo) continue; // 데모 데이터는 클라우드 동기화 제외
+    if (localSub.isDemo || String(id || "").startsWith("seed-") || String(localSub.subscriptionId || "").startsWith("seed-")) continue; // 데모 데이터는 클라우드 동기화 제외
 
     const deletedAt = tombstones[id] ? parseTimestamp(tombstones[id]) : 0;
     const localTime = parseTimestamp(localSub.updatedAt || localSub.createdAt);
