@@ -1,4 +1,4 @@
-import { serviceCatalog } from "../data/subscriptionData.js";
+import { getCachedCatalog } from "../data/catalogLoader.js";
 import { PAYMENT_CHANNEL_IDS } from "./paymentChannels.js";
 import { Browser } from "@capacitor/browser";
 import { isNativePlatform } from "./platform.js";
@@ -61,7 +61,7 @@ export async function signOut() {
 export function mapDbToSubscription(row) {
   const targetName = (row.service_name || '').toLowerCase().replace(/\s+/g, '');
   const targetId = (row.service_id || row.subscription_id || '').toLowerCase();
-  const matched = serviceCatalog.find((s) => {
+  const matched = (getCachedCatalog()?.serviceCatalog || []).find((s) => {
     const sId = (s.id || '').toLowerCase();
     const sName = (s.name || '').toLowerCase().replace(/\s+/g, '');
     return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);

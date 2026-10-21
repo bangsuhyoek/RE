@@ -19,7 +19,7 @@ import {
 } from "./ui";
 import { DifficultySurvey } from "./DifficultySurvey";
 import { CancelProofCapture } from "./CancelProofCapture";
-import { serviceCatalog } from "../data/subscriptionData";
+import { getCachedCatalog, loadSubscriptionData } from "../data/catalogLoader";
 import { getCancelPolicy } from "../data/cancelPolicies";
 import { getCancelTimingAdvice } from "../lib/cancelTiming";
 import { createCancelSession } from "../lib/cancelDifficulty";
@@ -196,6 +196,7 @@ function NotificationTimeScrollPickerModal({
 }
 
 export function SubscriptionDetailScreen({
+  catalog = null,
   subscription,
   subscriptions = [],
   onUpdate,
@@ -237,17 +238,27 @@ export function SubscriptionDetailScreen({
   }, [subscription?.subscriptionId, subscription?.id]);
 
   // 훅은 아래 조기 return 보다 먼저, 매 렌더에서 같은 순서로 호출되어야 한다.
+  const [asyncCatalog, setAsyncCatalog] = useState(() => getCachedCatalog()?.serviceCatalog || []);
+  useEffect(() => {
+    if (asyncCatalog.length === 0) {
+      loadSubscriptionData().then((mod) => {
+        if (mod?.serviceCatalog) setAsyncCatalog(mod.serviceCatalog);
+      });
+    }
+  }, [asyncCatalog.length]);
+  const activeCatalog = catalog || asyncCatalog;
+
   const canonicalServiceId = useMemo(() => {
     if (!subscription) return null;
     const targetName = (subscription.name || "").toLowerCase().replace(/\s+/g, "");
     const targetId = (subscription.serviceId || subscription.id || "").toLowerCase();
-    const matched = serviceCatalog.find((s) => {
+    const matched = activeCatalog.find((s) => {
       const sId = (s.id || "").toLowerCase();
       const sName = (s.name || "").toLowerCase().replace(/\s+/g, "");
       return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);
     });
     return matched?.id || subscription.serviceId || subscription.id;
-  }, [subscription]);
+  }, [subscription, activeCatalog]);
 
   const policy = useMemo(() => (subscription ? getCancelPolicy(canonicalServiceId) : null), [subscription, canonicalServiceId]);
   const paymentChannel = useMemo(() => (subscription ? resolvePaymentChannel(subscription) : null), [subscription]);

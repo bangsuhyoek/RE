@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { createMockSubscriptions } from "../data/subscriptionData";
 import {
   generateSubscriptionAlerts,
   createTestNotification,

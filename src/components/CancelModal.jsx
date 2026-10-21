@@ -16,7 +16,7 @@ import { BottomSheet, Button, ServiceMark } from "./ui";
 import { formatWon } from "../lib/dates";
 import { toMonthlyAmount, toAnnualAmount } from "../lib/subscriptionMath";
 import { CancelBrowserModal } from "./CancelBrowserModal";
-import { serviceCatalog } from "../data/subscriptionData";
+import { getCachedCatalog, loadSubscriptionData } from "../data/catalogLoader";
 import { getCancelGuide } from "../data/cancelGuides";
 import { getCancelPolicy } from "../data/cancelPolicies";
 import { getCancelTimingAdvice } from "../lib/cancelTiming";
@@ -112,11 +112,21 @@ export function CancelModal({
   rotationPlan = null,
   onOpenRotation,
   userId = null,
+  catalog = null,
 }) {
+  const [asyncCatalog, setAsyncCatalog] = useState(() => getCachedCatalog()?.serviceCatalog || []);
+  useEffect(() => {
+    if (asyncCatalog.length === 0) {
+      loadSubscriptionData().then((mod) => {
+        if (mod?.serviceCatalog) setAsyncCatalog(mod.serviceCatalog);
+      });
+    }
+  }, [asyncCatalog.length]);
+  const activeCatalog = catalog || asyncCatalog;
   const { subscription, guide, policy, canonicalServiceId } = useMemo(() => {
     const targetName = (rawSub.name || "").toLowerCase().replace(/\s+/g, "");
     const targetId = (rawSub.id || rawSub.subscriptionId || "").toLowerCase();
-    const matched = serviceCatalog.find((s) => {
+    const matched = activeCatalog.find((s) => {
       const sId = (s.id || "").toLowerCase();
       const sName = (s.name || "").toLowerCase().replace(/\s+/g, "");
       return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);
@@ -138,7 +148,7 @@ export function CancelModal({
         guideSteps: resolvedGuide.steps,
       },
     };
-  }, [rawSub]);
+  }, [rawSub, activeCatalog]);
 
   const [channel, setChannel] = useState(() => resolvePaymentChannel(rawSub));
   const routes = useMemo(
@@ -148,7 +158,6 @@ export function CancelModal({
   const usesServicePage = routes.primary.kind === "service";
   const isStoreRoute = routes.primary.kind === "google_play" || routes.primary.kind === "app_store";
 
-  const isYearly = subscription.billingCycle === "매년";
   const monthlySavings = toMonthlyAmount(subscription);
   const yearlySavings = toAnnualAmount(subscription);
 

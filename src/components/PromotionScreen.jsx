@@ -1,32 +1,32 @@
 import { useMemo, useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { MacroPerkBlock, HanddrawnHatchedDivider } from "./MacroPerkBlock";
-import { serviceCatalog } from "../data/subscriptionData";
+import { getCachedCatalog } from "../data/catalogLoader";
 
-function getPromoCategories(promotion) {
+function getPromoCategories(promotion, catalog = null) {
   const cats = new Set();
   if (promotion.category) cats.add(promotion.category);
   (promotion.sourceServiceIds || []).forEach((sId) => {
-    const matchedService = serviceCatalog.find((s) => s.id === sId);
+    const matchedService = (catalog || getCachedCatalog()?.serviceCatalog || []).find((s) => s.id === sId);
     if (matchedService?.category) cats.add(matchedService.category);
   });
   return cats;
 }
 
-function resolveFilter(promotion, filter, userSubscribedServiceIds) {
+function resolveFilter(promotion, filter, userSubscribedServiceIds, catalog = []) {
   if (filter === "all") return true;
   if (filter === "direct") return Boolean(promotion.isDirectMatch);
   if (filter === "100원/무료") return promotion.category === "100원/무료" || promotion.offerPrice === 0 || promotion.offerPrice === 100;
   if (filter === "통신사/결합") return promotion.category === "통신사/결합" || promotion.id.includes("bundle") || promotion.id.includes("nerget") || promotion.id.includes("naver");
   if (filter === "학생/연간") return promotion.category === "학생/연간" || promotion.kind?.includes("연간") || promotion.kind?.includes("학생");
   
-  const promoCats = getPromoCategories(promotion);
+  const promoCats = getPromoCategories(promotion, catalog);
   return promoCats.has(filter);
 }
 
-function getServiceDisplayInfo(promotion) {
+function getServiceDisplayInfo(promotion, catalog = null) {
   const primaryServiceId = promotion.sourceServiceIds?.[0] || promotion.id.split("-")[0];
-  const primaryService = serviceCatalog.find((s) => s.id === primaryServiceId);
+  const primaryService = (catalog || getCachedCatalog()?.serviceCatalog || []).find((s) => s.id === primaryServiceId);
 
   const isPartnership =
     (promotion.sourceServiceIds || []).length > 1 ||
@@ -74,7 +74,8 @@ function getBadgeInfo(promotion, isUserSubscribed) {
   return { text: promotion.kind || (promotion.category + " 추천"), isHighlight: false };
 }
 
-export function PromotionScreen({ subscriptions = [], promotions = [], onOpenPromotion }) {
+export function PromotionScreen({
+  catalog = null, subscriptions = [], promotions = [], onOpenPromotion }) {
   const [filter, setFilter] = useState("all");
 
   const userSubscribedServiceIds = useMemo(() => {
@@ -83,7 +84,7 @@ export function PromotionScreen({ subscriptions = [], promotions = [], onOpenPro
       const sId = sub.service_id || sub.serviceId || sub.id;
       if (sId) ids.add(sId);
       const nameKey = String(sub.name || "").toLowerCase().replace(/\s+/g, "");
-      const matched = serviceCatalog.find(
+      const matched = (catalog || getCachedCatalog()?.serviceCatalog || []).find(
         (s) =>
           s.id === sId ||
           s.name.toLowerCase().replace(/\s+/g, "") === nameKey ||
@@ -94,14 +95,14 @@ export function PromotionScreen({ subscriptions = [], promotions = [], onOpenPro
       }
     });
     return ids;
-  }, [subscriptions]);
+  }, [subscriptions, catalog]);
 
   const userSubscribedCategories = useMemo(() => {
     const cats = new Set();
     subscriptions.forEach((sub) => {
       const sId = sub.service_id || sub.serviceId || sub.id;
       const nameKey = String(sub.name || "").toLowerCase().replace(/\s+/g, "");
-      const matched = serviceCatalog.find(
+      const matched = (catalog || getCachedCatalog()?.serviceCatalog || []).find(
         (s) =>
           s.id === sId ||
           s.name.toLowerCase().replace(/\s+/g, "") === nameKey ||
@@ -111,7 +112,7 @@ export function PromotionScreen({ subscriptions = [], promotions = [], onOpenPro
       if (cat && cat !== "기타") cats.add(cat);
     });
     return cats;
-  }, [subscriptions]);
+  }, [subscriptions, catalog]);
 
   const isPersonalized = subscriptions.length > 0;
 

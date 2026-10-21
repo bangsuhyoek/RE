@@ -4,13 +4,15 @@ import { App as CapApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Bell, LoaderCircle } from "lucide-react";
-import { AuthLogin, AuthRegister } from "./components/AuthScreens";
+import { AuthLogin } from "./components/AuthScreens";
 import { SplashScreen, LandingScreen } from "./components/LandingScreen";
-import { requestPaymentCapturePermission, simulatePaymentDetection } from "./lib/paymentCapture";
+import { requestPaymentCapturePermission, simulatePaymentDetection, gatedRequestPaymentCapturePermission, setPaymentCaptureConsent } from "./lib/paymentCapture";
+import { PaymentCaptureDisclosureModal } from "./components/capture/PaymentCaptureDisclosureModal";
 import { isNativePlatform } from "./lib/platform";
 import { HomeScreen } from "./components/HomeScreen";
 import { AppHeader, BottomNavigation, Toast } from "./components/ui";
-import { promotionCatalog, serviceCatalog } from "./data/subscriptionData";
+import { SyncStatusIndicator } from "./components/SyncStatusIndicator";
+import { loadSubscriptionData } from "./data/catalogLoader";
 import {
   migrateLocalUsersToGuest,
   removeDemoSubscriptions,
@@ -91,12 +93,14 @@ export default function App() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [termsTab, setTermsTab] = useState("terms");
+  const [paymentCaptureDisclosureOpen, setPaymentCaptureDisclosureOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [agentOpen, setAgentOpen] = useState(false);
   const [agentMessages, setAgentMessages] = useState([]);
   const [agentInitialInsight, setAgentInitialInsight] = useState(null);
+  const [catalog, setCatalog] = useState([]);
   const [livePromotions, setLivePromotions] = useState(() =>
-    getInitialPromotions({ fallbackPromotions: promotionCatalog })
+    getInitialPromotions({ fallbackPromotions: [] })
   );
   // 알림·딥링크 리스너는 앱 시작 때 한 번만 등록되므로 최신 처리 함수를 ref로 넘긴다.
   const detectedPaymentHandlerRef = useRef(null);
@@ -118,13 +122,28 @@ export default function App() {
 
   useEffect(() => {
     let active = true;
-    loadLivePromotions({
-      fallbackPromotions: promotionCatalog,
-      supabaseClient: supabase,
-    }).then((items) => {
-      if (active && Array.isArray(items) && items.length > 0) {
-        setLivePromotions(items);
+    loadSubscriptionData().then((mod) => {
+      if (active && mod?.serviceCatalog) {
+        setCatalog(mod.serviceCatalog);
       }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    loadSubscriptionData().then((mod) => {
+      if (!active) return;
+      loadLivePromotions({
+        fallbackPromotions: mod?.promotionCatalog || [],
+        supabaseClient: supabase,
+      }).then((items) => {
+        if (active && Array.isArray(items) && items.length > 0) {
+          setLivePromotions(items);
+        }
+      });
     });
     return () => {
       active = false;
@@ -251,12 +270,30 @@ export default function App() {
   };
 
   const handleRequestPaymentCapture = async () => {
+    if (!isNativePlatform()) {
+      handleOpenTerms("permissions");
+      notify("웹 환경입니다. 앱 접근 권한 안내 문서를 표시합니다.");
+      return;
+    }
+
+    const res = await gatedRequestPaymentCapturePermission({
+      userId: profile?.user_id || null,
+      onRequireDisclosure: () => {
+        setPaymentCaptureDisclosureOpen(true);
+      },
+    });
+
+    if (res?.status === "PERMISSION_GRANTED" || res?.status === "REQUESTED") {
+      notify("시스템 설정에서 꾸독 '알림 접근 허용'을 켜주세요.");
+    }
+  };
+
+  const handleConfirmPaymentCaptureDisclosure = async () => {
+    setPaymentCaptureConsent(true, null, profile?.user_id || null);
+    setPaymentCaptureDisclosureOpen(false);
     if (isNativePlatform()) {
       await requestPaymentCapturePermission();
       notify("시스템 설정에서 꾸독 '알림 접근 허용'을 켜주세요.");
-    } else {
-      handleOpenTerms("permissions");
-      notify("웹 환경입니다. 앱 접근 권한 안내 문서를 표시합니다.");
     }
   };
 
@@ -315,7 +352,10 @@ export default function App() {
     togglePinSubscription,
     muteSubscription,
     deleteSubscription,
-  } = useSubscriptions({ currentRoute: screen.route });
+    syncState,
+    pendingRetryCount,
+    retrySync,
+  } = useSubscriptions({ currentRoute: screen.route, catalog });
 
   // Notifications domain state
   const {
@@ -357,7 +397,7 @@ export default function App() {
       return [...items.filter((item) => !ids.has(item.id)), ...current];
     });
   }, [setNotifications]);
-  const care = useCareFeed({ subscriptions, catalog: serviceCatalog, onEvents: handleCareEvents });
+  const care = useCareFeed({ subscriptions, catalog, onEvents: handleCareEvents });
   const { topInsight: agentInsight, dismiss: dismissAgentInsight } = useAgentInsights(subscriptions);
 
   const handleOpenAgentInsight = useCallback((insight) => {
@@ -665,47 +705,36 @@ export default function App() {
     }
   }, [profile, screen.route, screen.params, navigate]);
 
-  // Hardware back button support for Android (Capacitor)
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-
-    let listenerHandle = null;
-    CapApp.addListener("backButton", () => {
-      if (termsOpen) {
-        setTermsOpen(false);
-      } else if (accountOpen) {
-        setAccountOpen(false);
-      } else if (notificationCenterOpen) {
-        setNotificationCenterOpen(false);
-      } else if (discoveryOpen) {
-        setDiscoveryOpen(false);
-      } else if (addOpen) {
-        setAddOpen(false);
-      } else if (cancelTarget) {
-        closeCancellation();
-      } else if (agentOpen) {
-        setAgentOpen(false);
-      } else if (rotationOpen) {
-        setRotationOpen(false);
-      } else if (renewalTarget) {
-        setRenewalTarget(null);
-      } else if (screen.route === "detail") {
-        setHighlightCancelId(null);
-        navigate("subscriptions");
-      } else if (screen.route === "register") {
-        navigate("login");
-      } else if (screen.route !== "home" && screen.route !== "login") {
-        navigate("home");
-      } else {
-        CapApp.exitApp();
-      }
-    }).then((handle) => {
-      listenerHandle = handle;
-    });
-
-    return () => {
-      listenerHandle?.remove();
-    };
+  // Hardware back button handler: keep latest state in a ref so listener is registered once on mount.
+  const handleBackButton = useCallback(() => {
+    if (termsOpen) {
+      setTermsOpen(false);
+    } else if (accountOpen) {
+      setAccountOpen(false);
+    } else if (notificationCenterOpen) {
+      setNotificationCenterOpen(false);
+    } else if (discoveryOpen) {
+      setDiscoveryOpen(false);
+    } else if (addOpen) {
+      setAddOpen(false);
+    } else if (cancelTarget) {
+      closeCancellation();
+    } else if (agentOpen) {
+      setAgentOpen(false);
+    } else if (rotationOpen) {
+      setRotationOpen(false);
+    } else if (renewalTarget) {
+      setRenewalTarget(null);
+    } else if (screen.route === "detail") {
+      setHighlightCancelId(null);
+      navigate("subscriptions");
+    } else if (screen.route === "register") {
+      navigate("login");
+    } else if (screen.route !== "home" && screen.route !== "login") {
+      navigate("home");
+    } else {
+      CapApp.exitApp();
+    }
   }, [
     termsOpen,
     accountOpen,
@@ -723,6 +752,34 @@ export default function App() {
     setNotificationCenterOpen,
     setRenewalTarget,
   ]);
+
+  const backButtonHandlerRef = useRef(handleBackButton);
+  useEffect(() => {
+    backButtonHandlerRef.current = handleBackButton;
+  }, [handleBackButton]);
+
+  // Hardware back button support for Android (Capacitor)
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    let cancelled = false;
+    let listenerHandle = null;
+
+    CapApp.addListener("backButton", () => {
+      backButtonHandlerRef.current?.();
+    }).then((handle) => {
+      if (cancelled) {
+        handle?.remove();
+      } else {
+        listenerHandle = handle;
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      listenerHandle?.remove();
+    };
+  }, []);
 
   const selectedSubscription = useMemo(
     () => getSubscriptionById(screen.id),
@@ -798,7 +855,7 @@ export default function App() {
   const handleOnboardingFinish = (customItems) => {
     const itemsToCreate = Array.isArray(customItems) && customItems.length > 0
       ? customItems
-      : serviceCatalog.filter((service) => selectedOnboarding.includes(service.id));
+      : catalog.filter((service) => selectedOnboarding.includes(service.id));
     const created = itemsToCreate.map((item, idx) => createSubscription(item, idx));
     setSubscriptions((current) => {
       const currentList = Array.isArray(current) ? current : [];
@@ -826,7 +883,7 @@ export default function App() {
   const handleAddSubscriptionBatch = useCallback((items = []) => {
     if (!Array.isArray(items) || items.length === 0) return;
     // 묶음 전체를 한 번에 만들고 한 번에 반영한다. 기존 목록·묶음 안의 중복은 빼고 항목마다 고유 ID 를 붙인다.
-    const { records, skippedCount } = buildDiscoveredSubscriptions(items, subscriptions, { catalog: serviceCatalog });
+    const { records, skippedCount } = buildDiscoveredSubscriptions(items, subscriptions, { catalog });
     if (records.length === 0) {
       notify("선택한 구독은 이미 등록되어 있어요.");
       return;
@@ -843,7 +900,7 @@ export default function App() {
       records.length + "개의 숨은 구독을 한 번에 등록했어요!" +
       (skippedCount > 0 ? " (이미 있는 " + skippedCount + "개는 제외)" : "")
     );
-  }, [navigate, notify, profile?.user_id, screen.route, setOnboardingComplete, setSubscriptions, subscriptions]);
+  }, [catalog, navigate, notify, profile?.user_id, screen.route, setOnboardingComplete, setSubscriptions, subscriptions]);
 
   const handlePromotion = useCallback((promotion) => {
     if (promotion?.link) {
@@ -872,7 +929,7 @@ export default function App() {
 
     content = (
       <OnboardingScreen
-        catalog={serviceCatalog}
+        catalog={catalog}
         selectedIds={selectedOnboarding}
         onToggle={(id) =>
           setSelectedOnboarding((current) =>
@@ -955,10 +1012,11 @@ export default function App() {
   } else if (screen.route === "calendar") {
     content = <CalendarScreen subscriptions={subscriptions} onOpen={(id) => navigate("detail", id)} />;
   } else if (screen.route === "promotions") {
-    content = <PromotionScreen subscriptions={subscriptions} promotions={livePromotions} onOpenPromotion={handlePromotion} />;
+    content = <PromotionScreen catalog={catalog} subscriptions={subscriptions} promotions={livePromotions} onOpenPromotion={handlePromotion} />;
   } else if (screen.route === "detail") {
     content = (
       <SubscriptionDetailScreen
+        catalog={catalog}
         subscription={selectedSubscription}
         subscriptions={subscriptions}
         onUpdate={(id, update) => updateSubscription(id, update, notify)}
@@ -1003,6 +1061,11 @@ export default function App() {
           }}
         />
       )}
+      <SyncStatusIndicator
+        syncState={syncState}
+        pendingRetryCount={pendingRetryCount}
+        onRetry={retrySync}
+      />
       {hasAppChrome && screen.route !== "home" && screen.route !== "detail" && (
         <AppHeader
           title={pageTitle}
@@ -1044,7 +1107,7 @@ export default function App() {
       <Suspense fallback={<SheetFallback />}>
       {addOpen && (
         <AddModal
-          catalog={serviceCatalog}
+          catalog={catalog}
           subscriptions={subscriptions}
           initialMode={addInitialMode}
           initialData={quickAddData}
@@ -1068,7 +1131,7 @@ export default function App() {
       )}
       {discoveryOpen && (
         <SubscriptionDiscoveryModal
-          catalog={serviceCatalog}
+          catalog={catalog}
           subscriptions={subscriptions}
           onClose={() => setDiscoveryOpen(false)}
           onAddBatch={handleAddSubscriptionBatch}
@@ -1077,6 +1140,7 @@ export default function App() {
       )}
       {cancelSubscription && (
         <CancelModal
+          catalog={catalog}
           subscription={cancelSubscription}
           promotion={cancelTarget?.promotion}
           autoOpen={cancelTarget?.autoOpen}
@@ -1159,6 +1223,13 @@ export default function App() {
           onTestPaymentDetection={handleTestPaymentDetection}
           onRequestPaymentCapture={handleRequestPaymentCapture}
           onOpenTerms={handleOpenTerms}
+        />
+      )}
+      {paymentCaptureDisclosureOpen && (
+        <PaymentCaptureDisclosureModal
+          isOpen={paymentCaptureDisclosureOpen}
+          onConfirm={handleConfirmPaymentCaptureDisclosure}
+          onCancel={() => setPaymentCaptureDisclosureOpen(false)}
         />
       )}
       {termsOpen && (

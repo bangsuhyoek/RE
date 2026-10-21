@@ -26,7 +26,7 @@ import {
   PaymentMethodTriggerField,
   PaymentMethodPickerModal,
 } from "./PaymentMethod";
-import { serviceCatalog } from "../data/subscriptionData";
+import { getCachedCatalog } from "../data/catalogLoader";
 
 export {
   PaymentIcon,
@@ -810,7 +810,8 @@ export function getSubscriptionDisplayAmount(subscription) {
   // 0원인 무료체험(프로모션) 구독인 경우 카탈로그에서 정상 결제 예정 금액 탐색
   const cleanName = (subscription?.name || "").toLowerCase().trim();
   const cleanId = (subscription?.id || "").toLowerCase().trim();
-  const matched = serviceCatalog.find(
+  const catalog = getCachedCatalog()?.serviceCatalog || [];
+  const matched = catalog.find(
     (s) => s.id === cleanId || s.name.toLowerCase() === cleanName || cleanName.includes(s.name.toLowerCase()) || s.name.toLowerCase().includes(cleanName)
   );
   if (matched) {

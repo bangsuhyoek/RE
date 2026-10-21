@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
-import { createMockSubscriptions, serviceCatalog } from "../data/subscriptionData";
+import { createMockSubscriptions } from "../data/mockSubscriptions";
+import { getCachedCatalog } from "../data/catalogLoader";
 import { getMonthKey, isPastDueThisCycle } from "../lib/dates";
 import {
   appendCancelRecord,
@@ -22,7 +23,7 @@ import {
   dequeueRetry,
 } from "../lib/subscriptionSync";
 
-export const createSubscription = (service, index = 0) => ({
+export const createSubscription = (service) => ({
   ...service,
   subscriptionId: createSubscriptionId(`onboard-${service.id}`),
   createdAt: new Date().toISOString(),
@@ -34,7 +35,11 @@ export const createSubscription = (service, index = 0) => ({
   renewalPending: false,
 });
 
-export function useSubscriptions({ currentRoute = "home" } = {}) {
+export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
+  const catalogRef = useRef(catalog);
+  useEffect(() => {
+    catalogRef.current = catalog;
+  }, [catalog]);
   // 스토리지 스키마 마이그레이션 v1 -> v2 수행
   useEffect(() => {
     ensureStorageMigration();
@@ -72,6 +77,23 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
   const [cancelTarget, setCancelTarget] = useState(null);
   const [renewalTarget, setRenewalTarget] = useState(null);
   const [completedCancelId, setCompletedCancelId] = useState(null);
+  const [pendingRetryCount, setPendingRetryCount] = useState(() => getRetryQueue().length);
+  const [syncState, setSyncState] = useState(() => (getRetryQueue().length > 0 ? "error" : "idle"));
+
+  const refreshSyncQueueState = useCallback(() => {
+    const queue = getRetryQueue();
+    setPendingRetryCount(queue.length);
+    setSyncState(queue.length > 0 ? "error" : "idle");
+  }, []);
+
+  const safeEnqueueRetryRef = useRef();
+  safeEnqueueRetryRef.current = (item) => {
+    enqueueRetry(item);
+    refreshSyncQueueState();
+  };
+  const safeEnqueueRetry = useCallback((item) => {
+    safeEnqueueRetryRef.current?.(item);
+  }, []);
 
   // Storage sync
   useEffect(() => {
@@ -103,7 +125,13 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
   const processRetryQueue = useCallback(async (userId) => {
     if (!userId) return;
     const queue = getRetryQueue();
-    if (queue.length === 0) return;
+    if (queue.length === 0) {
+      setPendingRetryCount(0);
+      setSyncState("idle");
+      return;
+    }
+
+    setSyncState("syncing");
 
     for (const item of queue) {
       if (item.type === "upsert" && item.data) {
@@ -138,7 +166,20 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
         }
       }
     }
+    const remaining = getRetryQueue().length;
+    setPendingRetryCount(remaining);
+    setSyncState(remaining > 0 ? "error" : "idle");
   }, []);
+
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === storageKeys.syncRetryQueue) {
+        refreshSyncQueueState();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [refreshSyncQueueState]);
 
   // 온라인 복귀 리스너 등록
   useEffect(() => {
@@ -149,7 +190,7 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     };
     window.addEventListener("online", handleOnline);
     return () => window.removeEventListener("online", handleOnline);
-  }, [profile?.user_id, processRetryQueue]);
+  }, [profile?.user_id, processRetryQueue, safeEnqueueRetry]);
 
   // 계정 전환 및 클라우드 동기화 (수정시각 비교, tombstone 오프라인 삭제, 실패 재시도 대기열)
   const lastUserIdRef = useRef(profile?.user_id || null);
@@ -173,6 +214,8 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
       writeStoredValue(storageKeys.subscriptions, []);
       clearStoredValue(storageKeys.syncTombstones);
       clearStoredValue(storageKeys.syncRetryQueue);
+      setPendingRetryCount(0);
+      setSyncState("idle");
     } else {
       writeStoredValue(storageKeys.ownerUserId, currentUserId);
     }
@@ -197,10 +240,10 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
           toUpload.forEach((sub) => {
             upsertDbSubscription(currentUserId, sub).then((saved) => {
               if (!saved) {
-                enqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub });
+                safeEnqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub });
               }
             }).catch(() => {
-              enqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub });
+              safeEnqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub });
             });
           });
         }
@@ -210,10 +253,10 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
           toDeleteFromCloud.forEach((subId) => {
             deleteDbSubscription(currentUserId, subId).then((deleted) => {
               if (!deleted) {
-                enqueueRetry({ id: subId, type: "delete" });
+                safeEnqueueRetry({ id: subId, type: "delete" });
               }
             }).catch(() => {
-              enqueueRetry({ id: subId, type: "delete" });
+              safeEnqueueRetry({ id: subId, type: "delete" });
             });
           });
         }
@@ -232,7 +275,7 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     return () => {
       active = false;
     };
-  }, [profile?.user_id, processRetryQueue]);
+  }, [profile?.user_id, processRetryQueue, safeEnqueueRetry]);
 
   // Check past-due renewal for current month on home route
   useEffect(() => {
@@ -276,7 +319,8 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
       return false;
     }
     const queryName = (data.name || "").trim().toLowerCase().replace(/\s+/g, "");
-    const matched = serviceCatalog.find((service) => {
+    const activeCatalog = (catalogRef.current && catalogRef.current.length > 0) ? catalogRef.current : (getCachedCatalog()?.serviceCatalog || []);
+    const matched = activeCatalog.find((service) => {
       if (data.id && service.id === data.id) return true;
       if (service.name.toLowerCase().replace(/\s+/g, "") === queryName) return true;
       if ((service.aliases || []).some((a) => a.toLowerCase().replace(/\s+/g, "") === queryName)) return true;
@@ -303,17 +347,17 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     if (profile?.user_id) {
       upsertDbSubscription(profile.user_id, record).then((saved) => {
         if (!saved) {
-          enqueueRetry({ id: record.subscriptionId, type: "upsert", data: record });
+          safeEnqueueRetry({ id: record.subscriptionId, type: "upsert", data: record });
         }
       }).catch((err) => {
-        enqueueRetry({ id: record.subscriptionId, type: "upsert", data: record });
+        safeEnqueueRetry({ id: record.subscriptionId, type: "upsert", data: record });
         console.error(err);
       });
     }
     setOnboardingComplete(true);
     notify?.(`${record.name}을 내 구독에 추가했어요.`);
     return true;
-  }, [subscriptions, profile?.user_id]);
+  }, [subscriptions, profile?.user_id, safeEnqueueRetry]);
 
   const updateSubscription = useCallback((subscriptionId, update, notify) => {
     const target = subscriptions.find((s) => s.subscriptionId === subscriptionId || s.id === subscriptionId);
@@ -323,10 +367,10 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     if (updatedTarget && profile?.user_id) {
       upsertDbSubscription(profile.user_id, updatedTarget).then((saved) => {
         if (!saved) {
-          enqueueRetry({ id: updatedTarget.subscriptionId, type: "upsert", data: updatedTarget });
+          safeEnqueueRetry({ id: updatedTarget.subscriptionId, type: "upsert", data: updatedTarget });
         }
       }).catch((err) => {
-        enqueueRetry({ id: updatedTarget.subscriptionId, type: "upsert", data: updatedTarget });
+        safeEnqueueRetry({ id: updatedTarget.subscriptionId, type: "upsert", data: updatedTarget });
         console.error(err);
       });
     }
@@ -336,7 +380,7 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
       )
     );
     notify?.("구독 정보를 저장했어요.");
-  }, [subscriptions, profile?.user_id]);
+  }, [subscriptions, profile?.user_id, safeEnqueueRetry]);
 
   const togglePinSubscription = useCallback((subscriptionId, notify) => {
     const target = subscriptions.find((s) => s.subscriptionId === subscriptionId || s.id === subscriptionId);
@@ -348,10 +392,10 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     if (profile?.user_id) {
       upsertDbSubscription(profile.user_id, updatedTarget).then((saved) => {
         if (!saved) {
-          enqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
+          safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
         }
       }).catch((err) => {
-        enqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
+        safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
         console.error(err);
       });
     }
@@ -363,7 +407,7 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
       )
     );
     notify?.(newPinned ? `${target.name}을(를) 상단에 고정 강조했어요.` : `${target.name} 고정을 해제했어요.`);
-  }, [subscriptions, profile?.user_id]);
+  }, [subscriptions, profile?.user_id, safeEnqueueRetry]);
 
   const muteSubscription = useCallback((subscriptionId, notify) => {
     const target = subscriptions.find((s) => s.subscriptionId === subscriptionId || s.id === subscriptionId);
@@ -373,10 +417,10 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     if (updatedTarget && profile?.user_id) {
       upsertDbSubscription(profile.user_id, updatedTarget).then((saved) => {
         if (!saved) {
-          enqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
+          safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
         }
       }).catch((err) => {
-        enqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
+        safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
         console.error(err);
       });
     }
@@ -386,7 +430,7 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
       )
     );
     notify?.("사전 알림을 모두 껐어요.");
-  }, [subscriptions, profile?.user_id]);
+  }, [subscriptions, profile?.user_id, safeEnqueueRetry]);
 
   const startCancellation = useCallback((subscriptionId, promotion = null, options = {}) => {
     const target = subscriptions.find((subscription) =>
@@ -420,17 +464,17 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     if (profile?.user_id) {
       deleteDbSubscription(profile.user_id, target.subscriptionId).then((ok) => {
         if (!ok) {
-          enqueueRetry({ id: target.subscriptionId, type: "delete" });
+          safeEnqueueRetry({ id: target.subscriptionId, type: "delete" });
         }
       }).catch(() => {
-        enqueueRetry({ id: target.subscriptionId, type: "delete" });
+        safeEnqueueRetry({ id: target.subscriptionId, type: "delete" });
       });
     }
     setSavedAmount((amount) => amount + (finalSaved || target.amount));
     setCompletedCancelId(target.subscriptionId);
     setCancelTarget(null);
     onComplete?.();
-  }, [subscriptions, profile?.user_id]);
+  }, [subscriptions, profile?.user_id, safeEnqueueRetry]);
 
   const handleRenewal = useCallback((keep, notify) => {
     if (!renewalSubscription) return;
@@ -445,10 +489,10 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
       if (profile?.user_id) {
         upsertDbSubscription(profile.user_id, updated).then((saved) => {
           if (!saved) {
-            enqueueRetry({ id: updated.subscriptionId, type: "upsert", data: updated });
+            safeEnqueueRetry({ id: updated.subscriptionId, type: "upsert", data: updated });
           }
         }).catch((err) => {
-          enqueueRetry({ id: updated.subscriptionId, type: "upsert", data: updated });
+          safeEnqueueRetry({ id: updated.subscriptionId, type: "upsert", data: updated });
           console.error(err);
         });
       }
@@ -469,17 +513,17 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
       if (profile?.user_id) {
         deleteDbSubscription(profile.user_id, renewalSubscription.subscriptionId).then((ok) => {
           if (!ok) {
-            enqueueRetry({ id: renewalSubscription.subscriptionId, type: "delete" });
+            safeEnqueueRetry({ id: renewalSubscription.subscriptionId, type: "delete" });
           }
         }).catch(() => {
-          enqueueRetry({ id: renewalSubscription.subscriptionId, type: "delete" });
+          safeEnqueueRetry({ id: renewalSubscription.subscriptionId, type: "delete" });
         });
       }
       setSavedAmount((amount) => amount + renewalSubscription.amount);
       notify?.(`${renewalSubscription.name}을 목록에서 해지 처리했어요.`);
     }
     setRenewalTarget(null);
-  }, [renewalSubscription, profile?.user_id]);
+  }, [renewalSubscription, profile?.user_id, safeEnqueueRetry]);
 
   const deleteSubscription = useCallback((subscriptionId) => {
     const target = subscriptions.find((sub) => (sub.subscriptionId || sub.id) === subscriptionId);
@@ -490,13 +534,13 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     if (profile?.user_id) {
       deleteDbSubscription(profile.user_id, targetId).then((ok) => {
         if (!ok) {
-          enqueueRetry({ id: targetId, type: "delete" });
+          safeEnqueueRetry({ id: targetId, type: "delete" });
         }
       }).catch(() => {
-        enqueueRetry({ id: targetId, type: "delete" });
+        safeEnqueueRetry({ id: targetId, type: "delete" });
       });
     }
-  }, [profile?.user_id, subscriptions]);
+  }, [profile?.user_id, subscriptions, safeEnqueueRetry]);
 
   return {
     profile,
@@ -526,5 +570,12 @@ export function useSubscriptions({ currentRoute = "home" } = {}) {
     togglePinSubscription,
     muteSubscription,
     deleteSubscription,
+    syncState,
+    pendingRetryCount,
+    retrySync: () => {
+      if (profile?.user_id) {
+        return processRetryQueue(profile.user_id);
+      }
+    },
   };
 }
