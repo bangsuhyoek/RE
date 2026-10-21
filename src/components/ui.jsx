@@ -1,24 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
-  BarChart2,
-  Bell,
-  BellOff,
   CalendarDays,
   Camera,
   CreditCard,
-  ExternalLink,
-  FileText,
   Home,
-  MoreVertical,
   Plus,
   Sparkles,
-  User,
   Loader2,
   X,
   Pin,
 } from "lucide-react";
-import { daysUntilCharge, formatBillingDate, formatWon } from "../lib/dates";
+import { daysUntilCharge, formatWon } from "../lib/dates";
 import {
   PaymentIcon,
   PaymentMethodBadge,
@@ -728,8 +721,6 @@ export function BottomNavigation({
   route,
   onNavigate,
   onOpenAdd,
-  onOpenNotifications,
-  onOpenAccount,
 }) {
   return (
     <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-[calc(3.75rem+env(safe-area-inset-bottom,0px))] w-full max-w-full sm:max-w-[440px] -translate-x-1/2 items-center justify-around border-t border-gray-100 bg-white px-2 pb-[max(0.4rem,calc(env(safe-area-inset-bottom,0px)+0.2rem))] pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.03)]" aria-label="주요 탐색">
@@ -827,10 +818,7 @@ export function getSubscriptionDisplayAmount(subscription) {
 export function SubscriptionCard({
   subscription,
   onOpen,
-  onCancel,
-  onMute,
   onTogglePin,
-  detail = false,
   variant = "card",
   className = "",
 }) {

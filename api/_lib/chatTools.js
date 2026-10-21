@@ -243,9 +243,9 @@ export const executeTool = ({ name, args, snapshot, emitAction }) => {
       for (const s of activeSubs) {
         const amt = Number(s.amount) || 0;
         const cycle = s.billingCycle || "매월";
-        let subCost = 0;
-        let monthlyEquivalent = 0;
-        let yearlyEquivalent = 0;
+        let subCost;
+        let monthlyEquivalent;
+        let yearlyEquivalent;
 
         if (cycle === "매년") {
           monthlyEquivalent = Math.round(amt / 12);
@@ -297,8 +297,8 @@ export const executeTool = ({ name, args, snapshot, emitAction }) => {
       const range = args?.range || "days";
       const todayDate = new Date(todayStr + "T00:00:00Z");
 
-      let fromStr = todayStr;
-      let toStr = todayStr;
+      let fromStr;
+      let toStr;
       let daysQueried = undefined;
 
       if (range === "this_month") {
@@ -356,7 +356,7 @@ export const executeTool = ({ name, args, snapshot, emitAction }) => {
           }
         } else {
           // 매월
-          const [baseY, baseM, baseD] = s.nextChargeDate.split("-").map(Number);
+          const [, , baseD] = s.nextChargeDate.split("-").map(Number);
           const [fromY, fromM] = fromStr.split("-").map(Number);
           const [toY, toM] = toStr.split("-").map(Number);
 

@@ -254,17 +254,6 @@ test("submitDifficultyReport: Postgres 23505 unique violation 처리 검증", as
   const userId = "user-pg-duplicate";
   grantDifficultyConsent(userId);
 
-  const row = {
-    service_id: "watcha",
-    steps_count: 5,
-    duration_sec: 120,
-    difficulty: 4,
-    outcome: "cancelled",
-    created_on: "2026-10-18",
-  };
-
-  // Unique violation error 객체 시뮬레이션
-  const originalFrom = (await import("../src/lib/supabase.js")).supabase?.from;
   // If supabase is null in test, we can mock error directly or verify that 23505 returns { skipped: true, reason: 'duplicate' }
   // We can test this by checking that error code 23505 is converted
   revokeDifficultyConsent(userId);

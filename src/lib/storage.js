@@ -86,7 +86,7 @@ export const readCancelHistory = () => {
 export const appendCancelRecord = (subscription, cancelledAt = new Date()) => {
   if (!subscription) return;
   const last4 = String(subscription.paymentMethod || "").match(/\d{4}/g)?.pop() || "";
-  const issuer = String(subscription.paymentMethod || "").replace(/[\d•*\-]+/g, " ").replace(/\s+/g, " ").trim();
+  const issuer = String(subscription.paymentMethod || "").replace(/[-0-9•*]+/g, " ").replace(/\s+/g, " ").trim();
   const record = {
     id: subscription.id,
     serviceId: subscription.serviceId || subscription.id,
@@ -142,8 +142,9 @@ export const migrateLocalUsersToGuest = () => {
     const sanitized = users.map((u) => {
       if (u.password !== undefined) {
         changed = true;
-        const { password, ...rest } = u;
-        return rest;
+        const copy = { ...u };
+        delete copy.password;
+        return copy;
       }
       return u;
     });

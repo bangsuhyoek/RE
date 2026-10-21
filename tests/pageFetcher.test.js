@@ -2,9 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   PageState,
-  BLOCK_TEXT_PATTERNS,
   classifyPage,
-  detectBlockReason,
   decodeHtmlBuffer,
   isTransientOutcome,
   calculateRetryDelay,
@@ -224,7 +222,7 @@ test("createCachedQueue: 도메인별 max 1 동시성, 최소 간격(minGap), de
   // 3. 같은 호스트에 대해 연속 요청 시 minGap(800ms) 유지 검증
   const baseStart = mockClock.now();
   const seqLog = [];
-  const mockHostFetch = async (url, options) => {
+  const mockHostFetch = async (url) => {
     const start = mockClock.now();
     seqLog.push({ url, start });
     return { url, start };

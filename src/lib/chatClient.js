@@ -8,7 +8,6 @@ import {
   readUserConsent,
   setUserConsent,
   revokeUserConsent,
-  migrateLegacyConsentIfNeeded,
 } from "./consentStore.js";
 
 export const CHAT_CONSENT_KEY = "submate.chatConsent.v1";
@@ -54,7 +53,7 @@ export function sanitizePaymentMethod(method = "") {
   if (info && info.name && info.name !== "결제수단 미등록") {
     return info.name;
   }
-  const cleaned = raw.replace(/[0-9•*·\-]+/g, " ").replace(/\s+/g, " ").trim();
+  const cleaned = raw.replace(/[-0-9•*·]+/g, " ").replace(/\s+/g, " ").trim();
   return cleaned || null;
 }
 
@@ -154,13 +153,17 @@ export function saveChatHistory(userId = null, messages = []) {
   try {
     const list = Array.isArray(messages) ? messages.slice(-MAX_PERSISTED_MESSAGES) : [];
     getClientStorage().setItem(getChatStorageKey(userId), JSON.stringify(list));
-  } catch {}
+  } catch {
+    // 스토리지 저장 실패 시 무시
+  }
 }
 
 export function clearChatHistory(userId = null) {
   try {
     getClientStorage().removeItem(getChatStorageKey(userId));
-  } catch {}
+  } catch {
+    // 스토리지 삭제 실패 시 무시
+  }
 }
 
 /**
@@ -209,7 +212,9 @@ export function createSSEParser(onEvent) {
       let parsedData = rawData;
       try {
         parsedData = JSON.parse(rawData);
-      } catch {}
+      } catch {
+        // JSON 파싱 실패 시 원본 문자열 유지
+      }
 
       onEvent({ event: eventType, data: parsedData });
     }
@@ -294,7 +299,9 @@ export async function streamChat({ messages = [], snapshot, context, signal, onE
     let errorJson = null;
     try {
       errorJson = await response.json();
-    } catch {}
+    } catch {
+      // 응답 본문 파싱 실패 시 무시
+    }
 
     const errorMessage = errorJson?.error || (response.status === 429 ? "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요." : "서버 오류가 발생했습니다.");
     const code = errorJson?.code || (response.status === 429 ? "RATE_LIMITED" : response.status === 401 ? "UNAUTHORIZED" : response.status === 503 ? "SERVICE_UNAVAILABLE" : "SERVER_ERROR");

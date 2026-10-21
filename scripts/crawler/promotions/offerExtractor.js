@@ -45,11 +45,11 @@ export function parseTerms(text) {
     if (unit === "week" && source[m.index + m[0].length] === "년") continue;
     // "2026년", "15일"(날짜) 같은 달력 표기는 제외
     if (unit === "year" && Number(m[1]) > 10) continue;
-    if (unit === "day" && /(?:\d|매)\s*[.\/월]\s*$/.test(source.slice(Math.max(0, m.index - 4), m.index))) continue;
+    if (unit === "day" && /(?:\d|매)\s*[./월]\s*$/.test(source.slice(Math.max(0, m.index - 4), m.index))) continue;
     addDuration(Number(m[1]), unit);
   }
-  for (const m of source.matchAll(/(첫|한)\s*달(?!\s*마다)/g)) addDuration(1, "month");
-  for (const m of source.matchAll(/첫\s*해/g)) addDuration(1, "year");
+  if (/(첫|한)\s*달(?!\s*마다)/.test(source)) addDuration(1, "month");
+  if (/첫\s*해/.test(source)) addDuration(1, "year");
   for (const m of source.matchAll(/\b(\d{1,3})[\s-]*(months?|weeks?|days?|years?)\b/gi)) {
     addDuration(Number(m[1]), m[2].toLowerCase().replace(/s$/, ""));
   }

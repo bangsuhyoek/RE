@@ -7,10 +7,7 @@ import {
   snoozeInsightId,
   isInsightSnoozed,
   readSnoozedInsights,
-  writeDismissedInsights,
-  writeSnoozedInsights,
 } from "../src/lib/agentInsights.js";
-import { toLocalDateKey } from "../src/lib/dates.js";
 
 // Mock localStorage for node test environment
 const mockStorage = (() => {

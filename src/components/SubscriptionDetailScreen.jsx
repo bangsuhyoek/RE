@@ -4,9 +4,6 @@ import {
   ChevronLeft,
   Pencil,
   Sparkles,
-  AlertTriangle,
-  Clock,
-  ExternalLink,
   CalendarPlus,
 } from "lucide-react";
 import {
@@ -65,6 +62,7 @@ function ScrollWheelColumn({ items, value, onChange }) {
     if (index !== -1 && containerRef.current) {
       containerRef.current.scrollTop = index * itemHeight;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ��ũ�� �� �巳�� �ʱ� ����Ʈ �� ���� ��ġ ����ȭ ����
   }, []);
 
   return (
@@ -235,6 +233,7 @@ export function SubscriptionDetailScreen({
     });
     setEditing(false);
     setEditError("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- ���� ��ü �ĺ��ڰ� �ٲ� ���� draft�� �����ϰ� ������� ���� ���� ������ ������
   }, [subscription?.subscriptionId, subscription?.id]);
 
   // 훅은 아래 조기 return 보다 먼저, 매 렌더에서 같은 순서로 호출되어야 한다.

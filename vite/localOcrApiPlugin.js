@@ -79,7 +79,7 @@ export const createLocalOcrMiddleware = () => async (request, response, next) =>
     if (!globalThis.__submateAuthBypassInstalled) {
       globalThis.__submateAuthBypassInstalled = true;
       const originalFetch = globalThis.fetch;
-      globalThis.fetch = async function (url, options) {
+      globalThis.fetch = async function (url) {
         const urlStr = typeof url === "string" ? url : url?.url || "";
         if (urlStr.includes("/auth/v1/user")) {
           return new Response(JSON.stringify({ id: "dev-chat-e2e-user" }), {

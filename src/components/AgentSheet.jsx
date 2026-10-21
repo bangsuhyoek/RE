@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
-import { AlertTriangle, Check, CloudUpload, Copy, ExternalLink, FileText, Fingerprint, HelpCircle, Loader2, RotateCcw, Send, Square, Trash2, ShieldCheck, Sparkles, TrendingDown, TrendingUp, X } from "lucide-react";
+import { AlertTriangle, Check, CloudUpload, Copy, ExternalLink, FileText, Fingerprint, Loader2, Send, Square, Trash2, ShieldCheck, Sparkles, TrendingDown, TrendingUp, X } from "lucide-react";
 import { BottomSheet, Button } from "./ui";
 import { ActionCard } from "./agent/ActionCard";
 import { ConsentCard } from "./agent/ConsentCard";
@@ -21,11 +21,9 @@ import { formatWon } from "../lib/dates";
 import { readEvidenceCases, readStoredValue, storageKeys, writeStoredValue } from "../lib/storage";
 import {
   appendDecisionToCase,
-  buildSuggestions,
   createEvidenceCase,
   createMandate,
   decideApproval,
-  findApplicableMandate,
   formatEvidenceSummary,
   isMandateActive,
   mergeApproval,
@@ -575,6 +573,7 @@ export function AgentSheet({
   // Load chat history if messages is empty on mount
   useEffect(() => {
     if (prevUserIdRef.current !== userId) { prevUserIdRef.current = userId; const saved = loadChatHistory(userId); onMessagesChange(saved); } else if (!messages || messages.length === 0) { const saved = loadChatHistory(userId); if (saved.length > 0) { onMessagesChange(saved); } }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ����Ʈ �� ����� ���� �������� ��ȭ �̷��� �����ϱ� ���� messages/onMessagesChange ������� ������
   }, [userId]);
 
   // Handle initialInsight if provided
@@ -595,7 +594,7 @@ export function AgentSheet({
       };
       return [insightMsg, ...curr];
     });
-  }, [initialInsight]);
+  }, [initialInsight, onMessagesChange]);
 
   // Persist messages whenever they change
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, X, ArrowRight, Bell, Calendar, CreditCard, DollarSign, PlusCircle, Trash2, Info } from "lucide-react";
+import { Check, X, ArrowRight, Bell, CreditCard, PlusCircle, Trash2, Info } from "lucide-react";
 import { formatWon } from "../../lib/dates.js";
 import { Button } from "../ui.jsx";
 
@@ -11,7 +11,7 @@ export function ActionCard({
 }) {
   const [loading, setLoading] = useState(false);
 
-  const { id, type, payload, summary, status, before } = action;
+  const { type, payload, summary, status, before } = action;
   const isDone = status === "executed" || action.done;
   const isCancelled = status === "cancelled";
 

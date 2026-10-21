@@ -1,9 +1,3 @@
-const dayAfterToday = () => {
-  const now = new Date();
-  const lastDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  return Math.min(now.getDate() + 1, lastDate);
-};
-
 export const serviceCatalog = [
   {
     "id": "chatgpt",

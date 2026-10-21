@@ -101,7 +101,6 @@ export function ComplaintDrafts({ caseInfo, proof = null, refund = null, onToast
   let currentContent = "";
   let currentTitle = "";
   let currentUrl = null;
-  let currentUrlLabel = "";
   let currentTips = [];
 
   if (activeTab === "refund") {
@@ -109,7 +108,6 @@ export function ComplaintDrafts({ caseInfo, proof = null, refund = null, onToast
     const requestTo = refundObj?.requestTo || (serviceName + " 고객센터");
     currentTitle = "환불 요청서 (" + requestTo + " 제출용)";
     currentUrl = refundObj?.url || caseInfo.refund?.url || caseInfo.supportUrl || null;
-    currentUrlLabel = refundObj?.urlLabel || caseInfo.refund?.urlLabel || (serviceName + " 고객센터 바로가기");
     currentTips = [
       "서비스 고객센터 1:1 문의나 이메일 접수란에 복사한 내용을 붙여 넣으세요.",
       "해외 서비스인 경우 'EN' 탭을 눌러 영문 요청서로 복사할 수 있습니다.",
@@ -118,13 +116,11 @@ export function ComplaintDrafts({ caseInfo, proof = null, refund = null, onToast
     currentContent = ccnDraft.body;
     currentTitle = ccnDraft.title;
     currentUrl = ccnDraft.submitUrl;
-    currentUrlLabel = ccnDraft.submitLabel;
     currentTips = ccnDraft.tips;
   } else if (activeTab === "ftc") {
     currentContent = ftcDraft.body;
     currentTitle = ftcDraft.title;
     currentUrl = ftcDraft.submitUrl;
-    currentUrlLabel = ftcDraft.submitLabel;
     currentTips = ftcDraft.tips;
   }
 

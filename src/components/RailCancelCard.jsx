@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { AlertTriangle, ExternalLink, Smartphone } from "lucide-react";
 import { Button } from "./ui";
 import { getRailOpenUrl, openRailApp } from "../lib/railCancel";

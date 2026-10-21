@@ -91,7 +91,7 @@ export async function saveCancelProof({
       req.onerror = () => reject(req.error || new Error("Failed to save cancel proof"));
       tx.oncomplete = () => db.close();
     });
-  } catch (err) {
+  } catch {
     // If IndexedDB transaction fails, fall back to memoryStore
     memoryStore.set(proof.id, proof);
     return proof;
@@ -129,7 +129,7 @@ export async function getCancelProof(recordId) {
       req.onerror = () => reject(req.error || new Error("Failed to get cancel proof"));
       tx.oncomplete = () => db.close();
     });
-  } catch (err) {
+  } catch {
     for (const proof of memoryStore.values()) {
       if (proof.recordId === recordId || proof.subscriptionId === recordId || proof.id === recordId) {
         return proof;
@@ -209,7 +209,7 @@ export async function listCancelProofs() {
       req.onerror = () => reject(req.error || new Error("Failed to list cancel proofs"));
       tx.oncomplete = () => db.close();
     });
-  } catch (err) {
+  } catch {
     return Array.from(memoryStore.values()).sort(
       (a, b) => new Date(b.createdAt || b.cancelledAt) - new Date(a.createdAt || a.cancelledAt)
     );
@@ -240,7 +240,7 @@ export async function deleteCancelProof(id) {
       req.onerror = () => reject(req.error || new Error("Failed to delete cancel proof"));
       tx.oncomplete = () => db.close();
     });
-  } catch (err) {
+  } catch {
     const existed = memoryStore.has(id);
     memoryStore.delete(id);
     return existed;

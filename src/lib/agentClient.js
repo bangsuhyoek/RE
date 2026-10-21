@@ -22,15 +22,14 @@ export async function interpretWithAi(text, subscriptions = [], userId = null, c
 
   if (!supabase?.auth) return null;
 
-  let session = null;
+  let token;
   try {
     const sessionRes = await supabase.auth.getSession();
-    session = sessionRes?.data?.session;
+    token = sessionRes?.data?.session?.access_token || null;
   } catch {
     return null;
   }
 
-  const token = session?.access_token;
   if (!token) return null;
 
   const controller = new AbortController();

@@ -85,7 +85,7 @@ export class FormalVerifier {
    * @param {Object} parserAgent - 파서 에이전트 인스턴스
    * @returns {Object} 검증 통과된 최종 안전 카탈로그 항목
    */
-  ensureVerifiedItem(item, target, parserAgent) {
+  ensureVerifiedItem(item, target) {
     const check = this.verifyItem(item);
     if (check.isValid) {
       return { item, isVerified: true, isCorrected: false, errors: [] };

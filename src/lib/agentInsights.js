@@ -32,7 +32,9 @@ export function writeDismissedInsights(list) {
   if (!storage) return;
   try {
     storage.setItem(AGENT_INSIGHT_DISMISSED_KEY, JSON.stringify(Array.isArray(list) ? list : []));
-  } catch {}
+  } catch {
+    // 스토리지 접근 실패 시 무시
+  }
 }
 
 export function dismissInsightId(id) {
@@ -79,7 +81,9 @@ export function writeSnoozedInsights(record) {
   if (!storage) return;
   try {
     storage.setItem(AGENT_INSIGHT_SNOOZED_KEY, JSON.stringify(record && typeof record === "object" ? record : {}));
-  } catch {}
+  } catch {
+    // 스토리지 접근 실패 시 무시
+  }
 }
 
 export function snoozeInsightId(id, now = new Date()) {

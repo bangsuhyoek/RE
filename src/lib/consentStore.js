@@ -145,7 +145,9 @@ export function setUserConsent(userId, kind, granted, { version = CURRENT_POLICY
     } else if (kind === "chat") {
       store.setItem(LEGACY_CHAT_CONSENT_KEY, granted ? "granted" : "declined");
     }
-  } catch {}
+  } catch {
+    // 레거시 키 동기화 실패 시 무시
+  }
   return Boolean(granted);
 }
 
@@ -169,5 +171,7 @@ export function clearConsentOnSignOut(storage = null) {
   try {
     store.removeItem(LEGACY_CHAT_CONSENT_KEY);
     store.removeItem(LEGACY_CANCEL_CONSENT_KEY);
-  } catch {}
+  } catch {
+    // 로그아웃 키 정리 실패 시 무시
+  }
 }

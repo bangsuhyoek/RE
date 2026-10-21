@@ -96,7 +96,7 @@ export const promotionSources = {
   "google-one-promo": { urls: ["https://one.google.com/about/plans"], claim: { type: "manual", reason: "구글원 첫 달 무료 체험은 구글 플레이 앱 결제 및 기기 프로모션 전용으로 공개 웹에서 미제공" } },
   "evernote-promo": { urls: ["https://evernote.com/students"] },
   "1password-promo": { urls: ["https://1password.com/pricing/password-manager"], claim: { patterns: ["famil|가족", "\\b5\\b|five"] } },
-  "framer-promo": { urls: ["https://www.framer.com/pricing"], claim: { patterns: ["Start free|Free Framer domain|\$\s*0\b"] } },
+  "framer-promo": { urls: ["https://www.framer.com/pricing"], claim: { patterns: ["Start free|Free Framer domain|\\$\\s*0\\b"] } },
   "webflow-promo": { urls: ["https://webflow.com/pricing"], claim: { patterns: ["Starter", "free|무료", "2\\s*(sites|개\\s*사이트)"] } },
   "adobe-student-66": { urls: ["https://www.adobe.com/kr/creativecloud/buy/students.html"] },
   "adobe-new-user-25": { urls: ["https://www.adobe.com/kr/creativecloud/plans.html"] },

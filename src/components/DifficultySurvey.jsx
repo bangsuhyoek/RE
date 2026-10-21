@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, CheckCircle2, ShieldCheck, ThumbsUp, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, ShieldCheck, X } from "lucide-react";
 import { Button } from "./ui";
 import {
   buildDifficultyReport,

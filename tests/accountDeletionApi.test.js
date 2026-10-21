@@ -2,9 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import handler, { _setSupabaseAdmin } from "../api/account-delete.js";
 import {
-  CONFIRMED_USER_TABLES,
-  deleteUserData,
-  deleteAuthUser,
   deleteAccount,
   sha256Hex,
 } from "../api/_lib/accountDeletion.js";

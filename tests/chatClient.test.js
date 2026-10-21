@@ -4,12 +4,10 @@ import {
   buildChatSnapshot,
   createSSEParser,
   formatMessagesForServer,
-  getChatStorageKey,
   getAuthToken,
   loadChatHistory,
   saveChatHistory,
   clearChatHistory,
-  sanitizePaymentMethod,
   MAX_PERSISTED_MESSAGES,
 } from "../src/lib/chatClient.js";
 

@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { PAYMENT_RAILS } from "../src/data/paymentRails.js";
 import {
-  CARRIER_OPTIONS,
   WARNING_MESSAGE,
   detectCarrierId,
   getRailOpenUrl,

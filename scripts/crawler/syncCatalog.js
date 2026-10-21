@@ -55,7 +55,7 @@ export class CatalogSyncer {
         existingServices = JSON.parse(rawJson);
       } catch (err) {
         process.exitCode = 1;
-        throw new Error(`Failed to parse existing serviceCatalog JSON in ${this.filePath}: ${err.message}`);
+        throw new Error(`Failed to parse existing serviceCatalog JSON in ${this.filePath}: ${err.message}`, { cause: err });
       }
     }
 

@@ -11,7 +11,6 @@ import { ParserAgent } from "../scripts/crawler/agents/parserAgent.js";
 import { FormalVerifier } from "../scripts/crawler/verifier.js";
 import { CatalogSyncer } from "../scripts/crawler/syncCatalog.js";
 import { runCrawlerPipeline } from "../scripts/crawler/index.js";
-import { runPromotionPipeline } from "../scripts/crawler/runPromotionPipeline.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -172,7 +171,7 @@ test("runPromotionPipeline: --apply 실행 시 Supabase DB 오류가 발생하�
 
     // Supabase DB 오류를 재현하는 fake client
     const fakeClientWithDbError = {
-      from(table) {
+      from() {
         return {
           async upsert() {
             return { error: { message: "connection refused: 5432", code: "ECONNREFUSED" } };

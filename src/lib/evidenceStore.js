@@ -10,7 +10,6 @@ import { EVIDENCE_TITLES } from "./subscriptionAgent.js";
  */
 
 const SERVER_KINDS = new Set(["price_increase", "trial_conversion", "charged_after_cancel"]);
-const RETENTION_MS = 365 * 86_400_000;
 
 export function readEvidenceConsent(userId) {
   const consent = readStoredValue(storageKeys.evidenceConsent, null);

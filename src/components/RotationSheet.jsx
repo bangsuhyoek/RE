@@ -19,7 +19,7 @@ export function RotationSheet({ subscriptions = [], saved = null, onSave, onClea
     [subscriptions]
   );
   const [category, setCategory] = useState(saved?.category || available[0]?.category || "");
-  const candidates = available.find((entry) => entry.category === category)?.candidates || [];
+  const candidates = useMemo(() => available.find((entry) => entry.category === category)?.candidates || [], [available, category]);
   const [order, setOrder] = useState(() => (saved?.category === category && saved?.order) || []);
 
   const ordered = useMemo(() => {

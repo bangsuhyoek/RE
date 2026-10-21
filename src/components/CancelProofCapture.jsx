@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Camera, Check, Clock, Image as ImageIcon, ShieldCheck, X } from "lucide-react";
+import { Camera, Check, Clock, ShieldCheck, X } from "lucide-react";
 import { Button } from "./ui";
-import { formatWon } from "../lib/dates";
 import { formatKSTDateTime } from "../lib/complaintDrafts";
 import { resizeImageFile, saveCancelProof } from "../lib/cancelProof";
 
@@ -20,7 +19,7 @@ import { resizeImageFile, saveCancelProof } from "../lib/cancelProof";
  */
 export function CancelProofCapture({ record, onSaved }) {
   const [imagePreview, setImagePreview] = useState(null);
-  const [note, setNote] = useState("");
+  const [note] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(null);
@@ -37,7 +36,8 @@ export function CancelProofCapture({ record, onSaved }) {
     try {
       const dataUrl = await resizeImageFile(file, { maxSize: 1600, quality: 0.85 });
       setImagePreview(dataUrl);
-    } catch (err) {
+    } catch {
+      // 이미지 리사이즈/불러오기 실패 시 사용자 안내 표시
       setError("이미지를 불러오지 못했어요. 다시 시도해 주세요.");
     }
   };
@@ -62,7 +62,8 @@ export function CancelProofCapture({ record, onSaved }) {
       });
       setSaved(true);
       onSaved?.(proof);
-    } catch (err) {
+    } catch {
+      // 증빙 IndexedDB 저장 실패 시 사용자 안내 표시
       setError("증빙을 저장하지 못했어요. 다시 시도해 주세요.");
     } finally {
       setSaving(false);

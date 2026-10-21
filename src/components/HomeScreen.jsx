@@ -10,7 +10,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import { Button, SubscriptionCard, ServiceMark } from "./ui";
+import { Button, SubscriptionCard } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 import { calculateMonthlyTotal, calculateYearlyTotal } from "../lib/subscriptionAgent";
 

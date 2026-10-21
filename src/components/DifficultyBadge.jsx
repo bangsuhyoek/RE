@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle, Flame, HelpCircle } from "lucide-react";
 import { difficultyLabel, fetchDifficultyScore } from "../lib/cancelDifficulty";
 
 /**

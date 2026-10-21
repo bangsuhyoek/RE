@@ -132,12 +132,10 @@ export async function callGemini({
   }
 
   let lastError = null;
-  let attemptsMade = 0;
 
   try {
     for (let i = 0; i < attemptLimit; i++) {
       const model = models[i];
-      attemptsMade += 1;
 
       const elapsed = Date.now() - startTime;
       const remainingTotal = overallTimeoutMs - elapsed;

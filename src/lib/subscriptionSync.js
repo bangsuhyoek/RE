@@ -1,7 +1,6 @@
 // 구독 데이터 동기화 알고리즘: 수정 시각(updated_at) 비교 병합, tombstone 오프라인 삭제, 실패 재시도 대기열
 
 import { readStoredValue, writeStoredValue, storageKeys, STORAGE_SCHEMA_VERSION } from "./storage.js";
-import { upsertDbSubscription, deleteDbSubscription, fetchUserSubscriptions } from "./supabase.js";
 
 /**
  * 타임스탬프 파싱 (ISO 문자열 또는 밀리초 숫자)

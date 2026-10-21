@@ -4,8 +4,6 @@ import { BottomSheet, Button, IconButton, ServiceMark, CategoryBadge, CATEGORY_P
 import { formatWon } from "../lib/dates";
 import { PaymentMethodTriggerField } from "./PaymentMethod";
 
-const COMMON_PAYMENTS = ["신용/체크카드", "신한카드", "현대카드", "KB국민카드", "삼성카드", "카카오페이", "네이버페이", "토스페이", "기타"];
-
 function ServiceDirectConfigModal({ service, currentConfig, onSave, onRemove, onClose }) {
   const plans = service.availablePlans || [{ plan: service.plan || "기본", amount: service.amount }];
   const [selectedPlan, setSelectedPlan] = useState(() => currentConfig?.plan || service.plan || "기본");

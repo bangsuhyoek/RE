@@ -17,6 +17,7 @@ export const INTERPRETABLE_INTENTS = [
 
 function sanitizePromptField(val) {
   return String(val || "")
+    // eslint-disable-next-line no-control-regex -- 제어 문자 주입 방지를 위한 의도적 제어 문자 필터링
     .replace(/[\r\n\x00-\x1F\x7F]/g, " ")
     .trim()
     .slice(0, 60);

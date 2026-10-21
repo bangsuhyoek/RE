@@ -22,7 +22,7 @@ export function parseDeepLink(rawUrl) {
   let parsed;
   try {
     parsed = new URL(rawUrl);
-  } catch (err) {
+  } catch {
     return { type: "unknown", error: "INVALID_URL" };
   }
 

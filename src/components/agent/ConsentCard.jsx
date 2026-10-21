@@ -1,4 +1,4 @@
-import { ShieldAlert, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { Button } from "../ui.jsx";
 
 export function ConsentCard({ onAccept, onDecline }) {

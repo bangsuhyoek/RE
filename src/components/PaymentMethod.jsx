@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronRight, X, ArrowLeft, Plus, Check } from "lucide-react";
 import {
   getPaymentMethodInfo,
@@ -143,11 +143,11 @@ export function PaymentMethodPickerModal({
     resetAndClose();
   };
 
-  const resetAndClose = () => {
+  const resetAndClose = useCallback(() => {
     setIsCustom(false);
     setCustomText("");
     onClose();
-  };
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -158,7 +158,7 @@ export function PaymentMethodPickerModal({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, resetAndClose]);
 
   // 바텀시트 안에서 열리므로 포커스를 선택 창으로 옮겨 Esc·Tab 이 선택 창 기준으로 동작하게 하고, 닫히면 되돌린다.
   useEffect(() => {

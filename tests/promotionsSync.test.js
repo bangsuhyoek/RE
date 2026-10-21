@@ -63,7 +63,7 @@ test("syncPromotionsToSupabase는 benefits 및 service_benefits 테이블에 Ups
   const mockSupabase = {
     from(table) {
       return {
-        async select(columns) {
+        async select() {
           if (table === "subscription_services") {
             return { data: [{ id: "youtube" }], error: null };
           }
@@ -234,7 +234,7 @@ test("syncPromotionsToSupabase는 subscription_services에 없는 service_id 매
   const mockSupabase = {
     from(table) {
       return {
-        async select(cols) {
+        async select() {
           if (table === "subscription_services") {
             return {
               data: [{ id: "netflix" }, { id: "youtube" }],
@@ -285,7 +285,7 @@ test("syncPromotionsToSupabase는 subscription_services에 없는 service_id 매
 test("syncPromotionsToSupabase는 Supabase 오류를 삼키지 않고 message 및 code와 함께 errors에 포함한다", async () => {
   // 1. benefits upsert 오류
   const clientBenefitErr = {
-    from(table) {
+    from() {
       return {
         async upsert() {
           return {

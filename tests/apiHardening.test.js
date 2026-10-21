@@ -5,8 +5,8 @@ import chatHandler from "../api/chat.js";
 import agentHandler from "../api/agent.js";
 import ocrHandler from "../api/ocr.js";
 import cancelHandler from "../api/cancel-next-step.js";
-import { callGemini, fetchGeminiStream, getCandidateModels, buildGeminiUrl } from "../api/_lib/gemini.js";
-import { scrub, buildPrompt, validateAndClamp } from "../api/_lib/cancelNextStep.js";
+import { callGemini } from "../api/_lib/gemini.js";
+import { scrub, buildPrompt } from "../api/_lib/cancelNextStep.js";
 import { consumeRateLimit } from "../api/_lib/rateLimit.js";
 
 function createMockReq(options = {}) {

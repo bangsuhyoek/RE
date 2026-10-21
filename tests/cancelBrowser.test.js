@@ -9,7 +9,6 @@ import {
   NATIVE_GUIDE_SUPPORTED_SERVICES,
   isNativeGuideSupported,
   canShowManualComplete,
-  isAutoCancelDetectionAvailable,
   getStepVisualMeta,
   CANCEL_AI_CONSENT_KEY,
   readCancelAiConsent,

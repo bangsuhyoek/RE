@@ -1,10 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isPastDueThisCycle, parseLocalDate, getNextChargeDate } from "../src/lib/dates.js";
+import { isPastDueThisCycle, parseLocalDate } from "../src/lib/dates.js";
 import {
   mergeSubscriptions,
   resolveSubscriptionMerge,
-  ensureStorageMigration,
 } from "../src/lib/subscriptionSync.js";
 import { storageKeys, readStoredValue, writeStoredValue } from "../src/lib/storage.js";
 import { createSubscriptionId } from "../src/lib/ids.js";

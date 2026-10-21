@@ -37,8 +37,6 @@ export const MOBILE_HEADERS = {
   "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
 };
 
-const USER_AGENT = DESKTOP_USER_AGENT;
-
 const LOGIN_URL_PATTERNS = [
   /\/(?:log-?in|sign-?in|signin|auth|nidlogin|oauth|sso)(?:[/?#.]|$)/i,
   /accounts\.google\.com/i,
@@ -273,7 +271,9 @@ async function configureContext(context) {
       Object.defineProperty(navigator, "webdriver", {
         get: () => undefined,
       });
-    } catch {}
+    } catch {
+      // webdriver 속성 재정의 실패 무시
+    }
   }).catch(() => {});
 
   // 이미지, 미디어, 폰트 요청 차단 (DOM alt 텍스트는 보존됨)

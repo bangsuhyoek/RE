@@ -4,7 +4,6 @@ import { supabase } from "./supabase.js";
 import {
   readUserConsent,
   setUserConsent,
-  revokeUserConsent,
 } from "./consentStore.js";
 
 const NativeCancelBrowser = registerPlugin("CancelBrowser");
@@ -314,15 +313,15 @@ export async function openCancelBrowser(options = {}, onResult = null) {
     let settled = false;
     let listenerHandle = null;
 
-    return new Promise(async (resolve) => {
+    return new Promise((resolve) => {
       const deliver = (result) => {
         if (settled) return;
         settled = true;
         if (listenerHandle) {
           try {
             listenerHandle.remove?.();
-          } catch (e) {
-            // ignore
+          } catch {
+            // 리스너 해제 실패 무시
           }
           listenerHandle = null;
         }
@@ -334,6 +333,7 @@ export async function openCancelBrowser(options = {}, onResult = null) {
         resolve(result);
       };
 
+      (async () => {
       try {
         try {
           listenerHandle = await NativeCancelBrowser.addListener("cancelFlowResult", (data) => {
@@ -358,7 +358,9 @@ export async function openCancelBrowser(options = {}, onResult = null) {
             if (typeof endpoint === "string" && endpoint.startsWith("https://")) {
               aiEndpoint = endpoint;
             }
-          } catch {}
+            } catch {
+              // 엔드포인트 URL 파싱 오류 시 무시
+            }
 
           try {
             const sessionRes = await supabase?.auth?.getSession?.();
@@ -392,6 +394,7 @@ export async function openCancelBrowser(options = {}, onResult = null) {
           resolve({ action: "FALLBACK_WEB" });
         }
       }
+      })();
     });
   }
 

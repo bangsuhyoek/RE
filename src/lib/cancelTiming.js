@@ -80,7 +80,7 @@ export function getCancelTimingAdvice({ subscription = {}, policy = null, now = 
         const days = daysUntilCharge(subForDate, now);
       daysLeft = typeof days === "number" && !isNaN(days) ? days : null;
     }
-  } catch (err) {
+  } catch {
     nextDate = null;
     daysLeft = null;
   }
@@ -91,8 +91,8 @@ export function getCancelTimingAdvice({ subscription = {}, policy = null, now = 
   const checkedAt = policy?.checkedAt || null;
   const detail = policy?.summary || (isStore ? "스토어 결제 구독은 해지해도 남은 기간 끝까지 이용할 수 있어요." : null);
 
-  let kind = "unknown";
-  let headline = "";
+  let kind;
+  let headline;
   let reminderAt = null;
   let reminderLabel = null;
 

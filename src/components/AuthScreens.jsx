@@ -59,7 +59,7 @@ export function AuthLogin({ onSocial, onGuest }) {
 }
 
 // 레거시 호환 및 빈 내보내기 방지
-export function AuthRegister({ onBack, onComplete }) {
+export function AuthRegister() {
   return null;
 }
 

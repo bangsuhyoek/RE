@@ -18,7 +18,6 @@ Capacitor.PluginHeaders = [
 ];
 
 let lastScheduled = [];
-let lastCancelled = [];
 let permissionsResult = { display: "granted" };
 let pendingResult = { notifications: [] };
 
@@ -27,7 +26,6 @@ Capacitor.nativePromise = async (pluginName, methodName, options) => {
   if (methodName === "checkPermissions") return permissionsResult;
   if (methodName === "getPending") return pendingResult;
   if (methodName === "cancel") {
-    lastCancelled = options?.notifications || [];
     return {};
   }
   if (methodName === "schedule") {
@@ -41,7 +39,6 @@ const { scheduleSubscriptionNotifications } = await import("../src/lib/notificat
 
 test("활성 월간 구독은 2개 결제 주기(cycle 1, cycle 2)의 D-3 및 D-1 알림을 스케줄링한다", async () => {
   lastScheduled = [];
-  lastCancelled = [];
 
   const sub = {
     subscriptionId: "sub-netflix",

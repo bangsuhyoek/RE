@@ -1,6 +1,4 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Capacitor } from "@capacitor/core";
-import { App as CapApp } from "@capacitor/app";
 import { readStoredValue, storageKeys } from "../lib/storage.js";
 
 export const PAGE_TITLES = {

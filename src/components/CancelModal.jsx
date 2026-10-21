@@ -335,6 +335,7 @@ export function CancelModal({
       active = false;
       handle?.remove?.();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ���� �⺻ ������ ����� ���� ����Ƽ�� �����ʸ� �����ϸ� handleFlowResult�� �ֽ� Ŭ������ ������
   }, [stableSubId, canonicalServiceId, subscription.name, subscription.amount]);
 
   // 브라우저 복귀 감지

@@ -120,8 +120,8 @@ export function getRailCancelPlan({ subscription = {}, channel: rawChannel, serv
     const rail = carrierId ? PAYMENT_RAILS[carrierId] : null;
 
     let actions = [];
-    let steps = [];
-    let effect = "";
+    let steps;
+    let effect;
     let checkedAt = "2026-10-16";
 
     if (rail) {

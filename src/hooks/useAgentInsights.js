@@ -30,12 +30,13 @@ export function useAgentInsights(subscriptions = []) {
 
   const usageAnswers = useMemo(() => {
     return readStoredValue(storageKeys.usageAnswers, {});
-  }, [version, subscriptions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- storageKeys.usageAnswers�� ���� Ű�̸� dismiss/snooze(version) ������ �亯 ����ȸ
+  }, [version]);
 
   const rawInsights = useMemo(() => {
     const now = new Date();
     return generateAgentInsights(subscriptions, { now, usageAnswers });
-    // Stable memoization on subscriptions, usage answers, and today's date key
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ���� ����(todayKey)�� ���� ���, ���� �亯�� ���� �λ���Ʈ�� ����
   }, [subscriptions, usageAnswers, todayKey]);
 
   // Filter out dismissed and snoozed insights
@@ -47,6 +48,7 @@ export function useAgentInsights(subscriptions = []) {
       if (isInsightSnoozed(item.id, now)) return false;
       return true;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dismiss/snooze ����(version) ���� �� ���͸��� �ٽ� ����
   }, [rawInsights, version]);
 
   const topInsight = insights.length > 0 ? insights[0] : null;
@@ -55,6 +57,7 @@ export function useAgentInsights(subscriptions = []) {
   useEffect(() => {
     if (!topInsight || topInsight.priority !== "high") return;
     scheduleAgentInsightNotification(topInsight, new Date());
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- topInsight 객체 전체가 아닌 식별자와 우선순위 속성만 감지하여 불필요한 알림 발송 방지
   }, [topInsight?.id, topInsight?.priority]);
 
   const dismiss = useCallback((id) => {

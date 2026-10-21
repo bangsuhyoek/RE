@@ -401,7 +401,7 @@ export function getCardLast4(paymentMethod = "") {
 export function describePaymentMethod(paymentMethod = "") {
   const last4 = getCardLast4(paymentMethod);
   // 카드번호 전체가 저장돼 있어도 숫자는 모두 지우고 끝 4자리만 따로 표기한다.
-  const issuer = String(paymentMethod).replace(/[\d•*\-]+/g, " ").replace(/\s+/g, " ").trim();
+  const issuer = String(paymentMethod).replace(/[-0-9•*]+/g, " ").replace(/\s+/g, " ").trim();
   if (!issuer && !last4) return "등록된 결제수단 없음";
   return last4 ? (issuer || "카드") + " (끝자리 " + last4 + ")" : issuer;
 }
@@ -700,7 +700,7 @@ function buildUpcomingResponse({ subscriptions, now }) {
   };
 }
 
-import { toMonthlyAmount, toAnnualAmount, calculateMonthlyTotal, calculateYearlyTotal } from "./subscriptionMath.js";
+import { toMonthlyAmount, calculateMonthlyTotal, calculateYearlyTotal } from "./subscriptionMath.js";
 export { calculateMonthlyTotal, calculateYearlyTotal };
 
 function buildSpendingResponse({ subscriptions = [] }) {

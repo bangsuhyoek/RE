@@ -351,7 +351,6 @@ export default function App() {
     updateSubscription,
     togglePinSubscription,
     muteSubscription,
-    deleteSubscription,
     syncState,
     pendingRetryCount,
     retrySync,
@@ -361,8 +360,6 @@ export default function App() {
   const {
     notifications,
     setNotifications,
-    activeBanner,
-    setActiveBanner,
     notificationCenterOpen,
     setNotificationCenterOpen,
     notificationPermission,
@@ -668,7 +665,9 @@ export default function App() {
           if (typeof window !== "undefined") {
             try {
               sessionStorage.setItem("submate_google_login_notified_user", user.id);
-            } catch (e) {}
+            } catch {
+              // ���� ���丮�� ���� ���� ȯ��(��ũ�� ��� ��) ���ܴ� �����Ѵ�
+            }
           }
           navigate("home");
           notify(`${nickname}님, 구글 계정으로 로그인되었어요!`);
@@ -678,7 +677,9 @@ export default function App() {
         if (typeof window !== "undefined") {
           try {
             sessionStorage.removeItem("submate_google_login_notified_user");
-          } catch (e) {}
+          } catch {
+              // ���� ���丮�� ���� ���� ȯ��(��ũ�� ��� ��) ���ܴ� �����Ѵ�
+            }
         }
         setProfile(null);
         setSubscriptions([]);
@@ -814,7 +815,9 @@ export default function App() {
     if (typeof window !== "undefined") {
       try {
         sessionStorage.removeItem("submate_google_login_notified_user");
-      } catch (e) {}
+      } catch {
+              // ���� ���丮�� ���� ���� ȯ��(��ũ�� ��� ��) ���ܴ� �����Ѵ�
+            }
     }
     // 동의 정리 및 해지 브라우저 WebView 세션(쿠키, 웹 저장소) 삭제
     clearConsentOnSignOut();

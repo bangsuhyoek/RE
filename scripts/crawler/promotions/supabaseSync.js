@@ -66,7 +66,9 @@ export function computeDday(promotion, { now = Date.now() } = {}) {
       if (parsed && parsed.endAt) {
         targetKst = getKstDateString(parsed.endAt);
       }
-    } catch {}
+    } catch {
+      // JSON 파싱 실패 시 extractDeadline 으로 대체
+    }
     if (!targetKst) {
       const extracted = extractDeadline(periodText, { now: nowMs });
       if (extracted) targetKst = extracted;
@@ -175,7 +177,9 @@ function isAnonKey(key) {
       const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
       return payload.role === "anon";
     }
-  } catch {}
+  } catch {
+    // 토큰 파싱 또는 디코딩 실패 시 anon 아님 처리
+  }
   return false;
 }
 
@@ -301,7 +305,7 @@ export async function syncPromotionsToSupabase(
 
   if (!benefitError && rawServiceBenefitRows.length > 0) {
     let serviceRows = null;
-    let serviceSelectError = null;
+    let serviceSelectError;
     try {
       const fromObj = client.from("subscription_services");
       if (typeof fromObj?.select === "function") {

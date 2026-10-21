@@ -36,14 +36,14 @@ export function parseKoreanCampaignPeriod(input, { now = Date.now(), referenceYe
     dates.push({ start, end: start === null ? null : start + DAY - 1, index: match.index, length: match[0].length, inferredYear });
     occupied.push([match.index, match.index + match[0].length]);
   };
-  for (const m of text.matchAll(/(?<!\d)(\d{4}|\d{2})\s*(?:[.\/-]|년)\s*(\d{1,2})\s*(?:[.\/-]|월)\s*(\d{1,2})(?:\s*일)?(?!\d)/g)) {
+  for (const m of text.matchAll(/(?<!\d)(\d{4}|\d{2})\s*(?:[./-]|년)\s*(\d{1,2})\s*(?:[./-]|월)\s*(\d{1,2})(?:\s*일)?(?!\d)/g)) {
     const y = Number(m[1]); add(m, y < 100 ? 2000 + y : y, +m[2], +m[3]);
   }
   for (const m of text.matchAll(/(?<!\d)(?:(\d{4}|\d{2})\s*년\s*)?(\d{1,2})\s*월\s*말(?:일)?/g)) {
     const y = m[1] ? (+m[1] < 100 ? 2000 + +m[1] : +m[1]) : year;
     const month = +m[2]; add(m, y, month, new Date(Date.UTC(y, month, 0)).getUTCDate(), !m[1]);
   }
-  for (const m of text.matchAll(/(?<![\d.\/-])(\d{1,2})\s*(?:[.\/-]|월)\s*(\d{1,2})(?:\s*일)?(?!\d)/g)) {
+  for (const m of text.matchAll(/(?<![\d./-])(\d{1,2})\s*(?:[./-]|월)\s*(\d{1,2})(?:\s*일)?(?!\d)/g)) {
     if (occupied.some(([a, b]) => m.index < b && m.index + m[0].length > a)) continue;
     add(m, year, +m[1], +m[2], true);
   }
@@ -101,12 +101,12 @@ export function inspectCampaignHTML(html, promotion) {
     const key = $(el).attr('property') ?? $(el).attr('name');
     if (/(?:title|description)$/.test(key)) push('structured-meta', $(el).attr('content'));
   });
-  $('script[type="application/ld+json"]').each((_, el) => { try { push('json-ld', jsonText(JSON.parse($(el).text()))); } catch {} });
+  $('script[type="application/ld+json"]').each((_, el) => { try { push('json-ld', jsonText(JSON.parse($(el).text()))); } catch { /* json-ld 파싱 실패 무시 */ } });
   $('script').each((_, el) => {
     const node = $(el), raw = node.text();
     if (node.attr('type') === 'application/ld+json') return;
     if (node.attr('id') === '__NEXT_DATA__' || /application\/(?:json|[^;]+\+json)/.test(node.attr('type') ?? '')) {
-      try { push('hydration', jsonText(JSON.parse(raw))); } catch {}
+      try { push('hydration', jsonText(JSON.parse(raw))); } catch { /* hydration json 파싱 실패 무시 */ }
     } else { const data = assignedJSON(raw); if (data) push('hydration', jsonText(data)); }
   });
   push('description', $('meta[name="description"]').attr('content'));
@@ -268,7 +268,8 @@ export async function validatePromotion(promotion, {
   if (period.startAt && instant(period.startAt) > now) return finish('SUSPICIOUS', 'NOT_STARTED');
   if (period.kind === 'unknown') return finish('SUSPICIOUS', 'UNRESOLVED_PERIOD');
   evidence = verifier.verify(inspection, promotion, period, previousValid);
-  const { matchesCampaign, ...report } = evidence;
+  const report = { ...evidence };
+  delete report.matchesCampaign;
   const active = evidence.brandFound && evidence.campaignFound && evidence.score >= threshold;
   return finish(active ? 'ACTIVE' : 'SUSPICIOUS', active ? 'VERIFIED' : 'INSUFFICIENT_CAMPAIGN_EVIDENCE', {
     ...report, isSpaShell: inspection.isSpaShell,
