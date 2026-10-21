@@ -1,6 +1,6 @@
 # SubMate 프로젝트 개선 진행 상황 및 향후 추진 계획
 
-**문서 작성일:** 2026년 10월 20일  
+**문서 작성일:** 2026년 10월 21일 (개선 작업 현행화)  
 **기준 커밋:** `15d3e65` (fix(integration): 로그아웃 시 동기화 메타데이터 정리, 로컬 디버그 스크립트 린트 제외)  
 **환경:** Windows, pnpm, Capacitor Android, Vercel Serverless, Supabase
 
@@ -43,10 +43,10 @@
    - Android SDK 설치 실패로 멈춰 있던 GitHub Actions 워크플로를 `platform-tools` 명시 및 최신 SHA 고정 액션으로 전면 재구성했습니다.
    - 빌드 도구 취약점을 완전히 해소하고 ESLint 10을 도입하여 린트 기반 품질 검증을 통과했습니다.
 4. **통합 리그레션 검증 통과 (2026-10-20 기준)**
-   - `pnpm test`: 457개 JS 단위 테스트 모두 통과 (실패 0)
+   - `pnpm test`: 479개 JS 단위 테스트 모두 통과 (실패 0)
    - `pnpm build`: 웹 빌드 성공
    - Android `gradlew testDebugUnitTest`: 성공
-   - `pnpm lint`: 오류 0건, 경고 179건 (주로 미사용 변수·빈 catch 블록)
+   - `pnpm lint`: 오류 0건, 경고 165건 (주로 미사용 변수·빈 catch 블록 및 Hook 의존성)
 5. **구독 상세 화면 결함 수정 (작업 트리 반영, 미커밋)**
    - `SubscriptionDetailScreen.jsx`의 조건부 Hook 호출을 조기 return 앞으로 옮겨, 보던 구독이 사라질 때 화면이 오류로 넘어가는 문제를 해소했습니다.
    - 상세 화면에서 0원(무료체험) 구독도 수정·저장할 수 있게 했습니다.
@@ -54,36 +54,62 @@
 
 ---
 
-## 4. 앞으로 진행되어야 할 핵심 작업 (우선순위별)
+## 4. 2026-10-21 추가 개선 구현 내역
 
-1. **구독 상세 화면 결함 수정 커밋** (수정 완료, 커밋 대기)
-   - `SubscriptionDetailScreen.jsx` 조건부 Hook 호출 수정 및 0원 구독 수정 저장 허용
-2. **린트 경고 정리**
-   - 미사용 변수·빈 catch 블록·불필요한 대입 등 동작 영향이 없는 경고부터 정리
-   - `react-hooks/exhaustive-deps` 경고 11건은 동작 영향 검토 후 개별 처리
-3. **작업 환경 정리**
-   - 머지 완료된 작업 워크트리 11개(`D:\SubMate-wt\*`) 및 `codex/<stream>` 브랜치 정리
-4. **출시**
-   - `codex/agent-approval-mvp` → `main` 병합 (현재 `main` 대비 101 커밋 앞섬)
-   - Supabase 마이그레이션 원격 적용 → Vercel 프로덕션 배포 → Play 스토어용 AAB 생성
-5. **저장소 위생**
-   - 루트의 PRD 생성 스크립트(`build_prd_doc.py`, `build_prd_v2.py`) 보관 위치 정리 여부 검토
+1. **보안 및 할당량 보호 강화**
+   - 할당량 차감 RPC(`consume_endpoint_quota`, `consume_global_gemini_quota`)를 `service_role` 전용으로 제한하는 신규 마이그레이션(`supabase/migrations/20261021090000_quota_rpc_service_role_only.sql`) 추가 및 엔드포인트 화이트리스트 도입.
+   - `api/_lib/rateLimit.js`에서 `SUPABASE_SERVICE_ROLE_KEY`와 서버 검증된 사용자 ID 기반으로 RPC를 호출하도록 개선하여, 기존에 로그인 사용자 누구나 프로젝트 전역 Gemini 일일 할당량을 고갈시킬 수 있던 취약점 차단.
+2. **API 안정성 및 계정 탈퇴 보강**
+   - `api/chat.js` CORS OPTIONS preflight(204) 정상 처리 추가.
+   - 회원 탈퇴 시 `api_endpoint_usage` 레코드도 함께 삭제되도록 보강하고, `/api/account-delete` 엔드포인트에 Rate Limit(10분당 3회, 일일 5회) 적용.
+3. **앱 안정성 및 프런트엔드 최적화**
+   - Android 뒤로가기 버튼 리스너 중복 등록 방지 (단 1회 등록).
+   - 오프라인/동기화 실패 저장 건에 대한 "동기화 대기 중" 상태 표시기 추가.
+   - 구독 카탈로그(`src/data/subscriptionCatalog.js`) 지연 로딩 적용으로 첫 화면 index 번들 청크 축소 (323.8 kB -> 255.5 kB).
+   - 1,881줄에 달하던 `AddModal.jsx`를 `src/components/addModal/` 하위 컴포넌트들로 분리하여 ~789줄 수준으로 슬림화.
+4. **Play 스토어 정책 준수 (고지 및 동의)**
+   - 알림 접근 권한 설정 이동 전 눈에 띄는 사전 고지 및 동의 모달(`src/components/capture/PaymentCaptureDisclosureModal.jsx`) 추가 및 게이팅 로직(`src/lib/paymentCapture.js`) 연동.
+5. **Android 네이티브 및 CI 고도화**
+   - Android 디버그 로그를 `BuildConfig.DEBUG` 가드로 보호하고 릴리스 시 R8으로 제거되도록 설정.
+   - `scripts/sync-android-version.mjs` 및 `pnpm version:android` 스크립트 구축 (`package.json` 버전 1.0.3 = `versionName`, `versionCode` 4 동기화).
+   - GitHub Actions CI에서 버전 동기화 검사 및 `bundleRelease` (AAB 아티팩트 빌드) 단계 추가, CI 테스트 단계 타임존(`TZ=Asia/Seoul`) 명시.
+6. **저장소 위생 및 검증 결과**
+   - 루트의 PRD 생성 스크립트를 `scripts/docs/`(`build_prd_doc.py`, `build_prd_v2.py`)로 이동 정리 완료.
+   - `pnpm test`: 479개 단위 테스트 통과 (실패 0).
+   - `pnpm lint`: 오류 0건, 경고 165건.
 
 ---
 
-## 5. 브랜치 통합 및 배포 계획
+## 5. 앞으로 진행되어야 할 핵심 작업 (우선순위별)
+
+1. **Vercel 환경변수 설정 (`SUPABASE_SERVICE_ROLE_KEY`)**
+   - 신규 마이그레이션을 원격에 적용하기 **전에** Vercel 환경변수에 `SUPABASE_SERVICE_ROLE_KEY`를 먼저 등록해야 함 (미설정 시 모든 AI 엔드포인트가 fail-closed로 동작하여 호출 실패).
+2. **Supabase 마이그레이션 원격 적용**
+3. **main 브랜치 병합 및 Vercel 프로덕션 배포**
+4. **Play Console 데이터 보안/권한 선언 일치 및 실서명 기반 Play Store AAB 빌드**
+   - 앱 내 고지 텍스트와 일치하는 권한/데이터 보안 선언 및 릴리스 키 서명.
+5. **잔여 165개 린트 경고 정리**
+   - `react-hooks/exhaustive-deps` 포함 잔여 린트 경고 해소.
+6. **작업 환경 정리 (워크트리 정리)**
+   - 머지 완료된 작업 워크트리(`D:\SubMate-wt\*`) 정리.
+7. **컴포넌트 리팩터링 및 코드 경량화**
+   - `AgentSheet.jsx`(1,375줄) 분리 및 `App.jsx` 추가 경량화.
+
+---
+
+## 6. 브랜치 통합 및 배포 계획
 
 1. **스트림별 순차 구현 및 검증** — 완료
    - 11개 워크트리 모두 명세서(`D:\SubMate-wt\_briefs\*.md`)에 맞춰 구현하고 로컬 테스트를 통과했습니다.
 2. **`codex/agent-approval-mvp`로 순차 머지** — 완료
    - 11개 스트림 모두 병합되었습니다 (마지막 통합 `150a613`, 후속 수정 `15d3e65`).
-3. **통합 리그레션 테스트** — 완료
-   - `pnpm test` 457개 통과, `pnpm lint` 오류 0건, `pnpm build` 성공, `gradlew testDebugUnitTest` 성공.
+3. **통합 리그레션 테스트 및 추가 개선** — 완료
+   - `pnpm test` 479개 통과, `pnpm lint` 오류 0건/경고 165건, `pnpm build` 성공, `gradlew testDebugUnitTest` 성공.
 4. **main 브랜치 병합 및 배포** — 남음
-   - Supabase 마이그레이션 원격 적용
-   - Vercel 프로덕션 배포 트리거 및 환경변수 갱신
-   - Play 스토어용 신규 APK/AAB 생성
+   - Vercel에 `SUPABASE_SERVICE_ROLE_KEY` 설정 후 Supabase 마이그레이션 원격 적용
+   - main 병합 및 Vercel 프로덕션 배포 트리거
+   - Play 스토어용 실서명 AAB 생성 및 콘솔 선언
 5. **저장소 및 git 히스토리 위생 정리** — 남음
-   - 머지 완료된 작업 워크트리·브랜치 정리, 루트 PRD 생성 스크립트 보관 위치 검토
+   - 머지 완료된 작업 워크트리 정리 (`D:\SubMate-wt\*`)
    - 원격 저장소 대용량 blob 정리 필요 여부 최종 검토
 

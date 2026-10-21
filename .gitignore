@@ -30,3 +30,4 @@ public/catalog/promotions-review.json
 public/catalog/reviewed_feedback_summary.json
 
 .mixdog/
+__pycache__/
