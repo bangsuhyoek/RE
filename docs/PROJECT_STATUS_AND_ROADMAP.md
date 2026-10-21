@@ -46,7 +46,7 @@
    - `pnpm test`: 479개 JS 단위 테스트 모두 통과 (실패 0)
    - `pnpm build`: 웹 빌드 성공
    - Android `gradlew testDebugUnitTest`: 성공
-   - `pnpm lint`: 오류 0건, 경고 165건 (주로 미사용 변수·빈 catch 블록 및 Hook 의존성)
+   - `pnpm lint`: 오류 0건, 경고 0건 (`react-hooks/exhaustive-deps` 포함 전건 정리 완료)
 5. **구독 상세 화면 결함 수정 (작업 트리 반영, 미커밋)**
    - `SubscriptionDetailScreen.jsx`의 조건부 Hook 호출을 조기 return 앞으로 옮겨, 보던 구독이 사라질 때 화면이 오류로 넘어가는 문제를 해소했습니다.
    - 상세 화면에서 0원(무료체험) 구독도 수정·저장할 수 있게 했습니다.
@@ -76,7 +76,7 @@
 6. **저장소 위생 및 검증 결과**
    - 루트의 PRD 생성 스크립트를 `scripts/docs/`(`build_prd_doc.py`, `build_prd_v2.py`)로 이동 정리 완료.
    - `pnpm test`: 479개 단위 테스트 통과 (실패 0).
-   - `pnpm lint`: 오류 0건, 경고 165건.
+   - `pnpm lint`: 오류 0건, 경고 0건.
 
 ---
 
@@ -88,11 +88,9 @@
 3. **main 브랜치 병합 및 Vercel 프로덕션 배포**
 4. **Play Console 데이터 보안/권한 선언 일치 및 실서명 기반 Play Store AAB 빌드**
    - 앱 내 고지 텍스트와 일치하는 권한/데이터 보안 선언 및 릴리스 키 서명.
-5. **잔여 165개 린트 경고 정리**
-   - `react-hooks/exhaustive-deps` 포함 잔여 린트 경고 해소.
-6. **작업 환경 정리 (워크트리 정리)**
+5. **작업 환경 정리 (워크트리 정리)**
    - 머지 완료된 작업 워크트리(`D:\SubMate-wt\*`) 정리.
-7. **컴포넌트 리팩터링 및 코드 경량화**
+6. **컴포넌트 리팩터링 및 코드 경량화**
    - `AgentSheet.jsx`(1,375줄) 분리 및 `App.jsx` 추가 경량화.
 
 ---
@@ -104,7 +102,7 @@
 2. **`codex/agent-approval-mvp`로 순차 머지** — 완료
    - 11개 스트림 모두 병합되었습니다 (마지막 통합 `150a613`, 후속 수정 `15d3e65`).
 3. **통합 리그레션 테스트 및 추가 개선** — 완료
-   - `pnpm test` 479개 통과, `pnpm lint` 오류 0건/경고 165건, `pnpm build` 성공, `gradlew testDebugUnitTest` 성공.
+   - `pnpm test` 479개 통과, `pnpm lint` 오류 0건/경고 0건, `pnpm build` 성공, `gradlew testDebugUnitTest` 성공.
 4. **main 브랜치 병합 및 배포** — 남음
    - Vercel에 `SUPABASE_SERVICE_ROLE_KEY` 설정 후 Supabase 마이그레이션 원격 적용
    - main 병합 및 Vercel 프로덕션 배포 트리거
