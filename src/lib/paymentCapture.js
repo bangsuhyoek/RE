@@ -1,5 +1,10 @@
 import { registerPlugin } from "@capacitor/core";
 import { isNativePlatform } from "./platform.js";
+import {
+  readUserConsent,
+  setUserConsent,
+  revokeUserConsent,
+} from "./consentStore.js";
 
 export const PaymentCapture = registerPlugin("PaymentCapture", {
   web: {
@@ -20,6 +25,65 @@ export const PaymentCapture = registerPlugin("PaymentCapture", {
     }),
   },
 });
+
+export const PAYMENT_CAPTURE_CONSENT_KIND = "payment_capture";
+
+/**
+ * 결제 알림 감지 사전 고지 동의 여부 조회
+ * @param {Storage|null} [storage]
+ * @param {string|null} [userId]
+ * @returns {boolean}
+ */
+export function readPaymentCaptureConsent(storage = null, userId = null) {
+  return readUserConsent(userId, PAYMENT_CAPTURE_CONSENT_KIND, storage);
+}
+
+/**
+ * 결제 알림 감지 사전 고지 동의 상태 저장
+ * @param {boolean} granted
+ * @param {Storage|null} [storage]
+ * @param {string|null} [userId]
+ * @returns {boolean}
+ */
+export function setPaymentCaptureConsent(granted, storage = null, userId = null) {
+  return setUserConsent(userId, PAYMENT_CAPTURE_CONSENT_KIND, granted, {}, storage);
+}
+
+/**
+ * 결제 알림 감지 사전 고지 동의 철회
+ * @param {Storage|null} [storage]
+ * @param {string|null} [userId]
+ */
+export function revokePaymentCaptureConsent(storage = null, userId = null) {
+  revokeUserConsent(userId, PAYMENT_CAPTURE_CONSENT_KIND, storage);
+}
+
+/**
+ * 사전 동의 여부를 확인하고 게이팅(gating)하여 권한 설정을 요청하는 함수
+ * - 동의가 확인된 경우에만 requestPaymentCapturePermission()을 호출합니다.
+ * - 동의가 없는 경우 onRequireDisclosure 콜백을 실행하거나 거부 상태를 반환합니다.
+ *
+ * @param {object} [options]
+ * @param {string|null} [options.userId]
+ * @param {Storage|null} [options.storage]
+ * @param {Function} [options.onRequireDisclosure]
+ * @returns {Promise<{ status: string }>}
+ */
+export async function gatedRequestPaymentCapturePermission({
+  userId = null,
+  storage = null,
+  onRequireDisclosure = null,
+} = {}) {
+  const hasConsent = readPaymentCaptureConsent(storage, userId);
+  if (!hasConsent) {
+    if (typeof onRequireDisclosure === "function") {
+      onRequireDisclosure();
+      return { status: "DISCLOSURE_REQUIRED" };
+    }
+    return { status: "CONSENT_REQUIRED" };
+  }
+  return await requestPaymentCapturePermission();
+}
 
 export async function checkPaymentCapturePermission() {
   if (!isNativePlatform()) {
@@ -118,7 +182,9 @@ export function writeCaptureSourceSettingsLocal(settings) {
       email: Boolean(settings?.email),
     };
     window.localStorage.setItem(CAPTURE_SETTINGS_STORAGE_KEY, JSON.stringify(val));
-  } catch {}
+  } catch {
+    /* storage write fallback */
+  }
 }
 
 export async function getCaptureSourceSettings() {
@@ -163,4 +229,3 @@ export async function setCaptureSourceSettings(settings = {}) {
     return { success: false, ...payload };
   }
 }
-

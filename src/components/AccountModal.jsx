@@ -11,7 +11,11 @@ import {
   getCaptureSourceSettings,
   setCaptureSourceSettings,
   readCaptureSourceSettingsLocal,
+  readPaymentCaptureConsent,
+  setPaymentCaptureConsent,
+  revokePaymentCaptureConsent,
 } from "../lib/paymentCapture";
+import { PaymentCaptureDisclosureModal } from "./capture/PaymentCaptureDisclosureModal";
 
 /**
  * 결제 알림 수집 출처 설정.
@@ -247,6 +251,34 @@ export function AccountModal({
   const [nicknameInput, setNicknameInput] = useState(currentNickname);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [showDisclosureModal, setShowDisclosureModal] = useState(false);
+  const [captureConsented, setCaptureConsented] = useState(() => readPaymentCaptureConsent(null, userId));
+
+  const handleOpenCaptureSettings = () => {
+    if (readPaymentCaptureConsent(null, userId)) {
+      onRequestPaymentCapture?.();
+    } else {
+      setShowDisclosureModal(true);
+    }
+  };
+
+  const handleConfirmDisclosure = () => {
+    setPaymentCaptureConsent(true, null, userId);
+    setCaptureConsented(true);
+    setShowDisclosureModal(false);
+    onRequestPaymentCapture?.();
+  };
+
+  const handleCancelDisclosure = () => {
+    setShowDisclosureModal(false);
+    onToast?.("결제 자동 감지 동의가 취소되었습니다. 수동 등록은 언제든지 이용하실 수 있어요.");
+  };
+
+  const handleRevokeCaptureConsent = () => {
+    revokePaymentCaptureConsent(null, userId);
+    setCaptureConsented(false);
+    onToast?.("결제 자동 감지 동의를 철회했습니다.");
+  };
 
   const isGoogle = profile?.provider === "Google";
 
@@ -390,11 +422,20 @@ export function AccountModal({
                 체험
               </Button>
             )}
+            {captureConsented && (
+              <button
+                type="button"
+                onClick={handleRevokeCaptureConsent}
+                className="text-[11px] text-[#8B95A1] hover:text-[#F04452] underline underline-offset-2 px-1"
+              >
+                동의 철회
+              </button>
+            )}
             {onRequestPaymentCapture && (
               <Button
                 size="compact"
                 className="!py-1.5 !px-2.5 !text-[11px] !bg-emerald-600 !text-white hover:!bg-emerald-700 cursor-pointer"
-                onClick={onRequestPaymentCapture}
+                onClick={handleOpenCaptureSettings}
               >
                 설정
               </Button>
@@ -434,6 +475,12 @@ export function AccountModal({
           <span>로그아웃</span>
         </Button>
       </div>
+
+      <PaymentCaptureDisclosureModal
+        isOpen={showDisclosureModal}
+        onConfirm={handleConfirmDisclosure}
+        onCancel={handleCancelDisclosure}
+      />
     </BottomSheet>
   );
 }
