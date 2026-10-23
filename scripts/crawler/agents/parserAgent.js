@@ -22,16 +22,40 @@ export class ParserAgent {
       const html = crawlResult.rawContent;
 
       // 1. 숫자 가격 정보 정규식 추출 시도
-      const priceMatches = html.match(/(?:월\s*)?([0-9,]{4,6})\s*원/g) || [];
+      const priceMatches = html.match(/(?:월\s*)?([0-9,]{4,7})\s*원/g) || [];
       const extractedPrices = priceMatches
         .map((p) => parseInt(p.replace(/[^0-9]/g, ""), 10))
         .filter((price) => !isNaN(price) && price >= 1000 && price <= 200000);
 
+      // target.fallbackData 기준 합리적 범위(0.5배 ~ 2배)이거나 기존 fallback 요금제 금액과 일치하는 후보 필터링
+      const fallbackAmount = target.fallbackData?.amount;
+      const fallbackPlans = target.fallbackData?.availablePlans || [];
+      const fallbackPlanAmounts = fallbackPlans
+        .map((p) => p.amount)
+        .filter((a) => typeof a === "number" && a > 0);
+
+      if (typeof fallbackAmount === "number" && fallbackAmount > 0 && !fallbackPlanAmounts.includes(fallbackAmount)) {
+        fallbackPlanAmounts.push(fallbackAmount);
+      }
+
+      const validPrices = extractedPrices.filter((price) => {
+        if (fallbackPlanAmounts.length > 0) {
+          const minAllowed = Math.min(...fallbackPlanAmounts) * 0.5;
+          const maxAllowed = Math.max(...fallbackPlanAmounts) * 2.0;
+          const inRange = price >= minAllowed && price <= maxAllowed;
+          const matchesPlan = fallbackPlanAmounts.includes(price);
+          return inRange || matchesPlan;
+        }
+        return true;
+      });
+
       // 2. 가용한 요금제 구성
       let availablePlans = [...(target.fallbackData?.availablePlans || [])];
-      if (extractedPrices.length > 0) {
-        const uniquePrices = Array.from(new Set(extractedPrices)).sort((a, b) => a - b);
+      let hasParsedPrices = false;
+      if (validPrices.length > 0) {
+        const uniquePrices = Array.from(new Set(validPrices)).sort((a, b) => a - b);
         if (uniquePrices.length >= 1) {
+          hasParsedPrices = true;
           availablePlans = uniquePrices.map((amount, idx) => ({
             plan: idx === 0 ? "기본 플랜" : idx === 1 ? "스탠다드" : "프리미엄",
             amount,
@@ -40,15 +64,34 @@ export class ParserAgent {
       }
 
       // 3. 대표 요금제 및 금액 산정
-      const primaryPlan = target.fallbackData?.plan || availablePlans[0]?.plan || "기본 요금제";
-      const primaryAmount =
-        target.fallbackData?.amount || availablePlans[availablePlans.length - 1]?.amount || 10000;
+      let primaryPlan = target.fallbackData?.plan || availablePlans[0]?.plan || "기본 요금제";
+      let primaryAmount;
+      let parseStatus;
+
+      if (hasParsedPrices) {
+        const matchingPlan = availablePlans.find((p) => p.plan === target.fallbackData?.plan);
+        primaryAmount = matchingPlan ? matchingPlan.amount : availablePlans[availablePlans.length - 1]?.amount;
+        if (!target.fallbackData?.plan) {
+          primaryPlan = availablePlans[availablePlans.length - 1]?.plan || "기본 플랜";
+        }
+        parseStatus = "PARSED_SUCCESS";
+      } else {
+        primaryAmount = target.fallbackData?.amount || availablePlans[availablePlans.length - 1]?.amount || 10000;
+        parseStatus = extractedPrices.length > 0
+          ? "FALLBACK_PRICE_OUT_OF_RANGE"
+          : "FALLBACK_NO_PRICE_FOUND";
+        if (extractedPrices.length > 0) {
+          console.warn(
+            `[ParserAgent Warning] All extracted prices for target '${target.id}' were out of range: [${extractedPrices.join(", ")}]. Retaining fallbackData.`
+          );
+        }
+      }
 
       // 4. 구조화된 plans 배열 생성
       const plans = availablePlans.map((item) => ({
         name: item.plan,
         amount: item.amount,
-        billingCycle: "매월",
+        billingCycle: item.plan && item.plan.includes("연") ? "매년" : "매월",
         quality: item.plan.includes("프리미엄")
           ? "4K UHD"
           : item.plan.includes("스탠다드")
@@ -70,7 +113,7 @@ export class ParserAgent {
         plans,
         cancelUrl: target.cancelUrl,
         lastUpdated: new Date().toISOString(),
-        parseStatus: "PARSED_SUCCESS",
+        parseStatus,
       };
     } catch (err) {
       return this.buildCatalogItemFromFallback(target, `PARSE_EXCEPTION: ${err.message}`);
@@ -90,7 +133,7 @@ export class ParserAgent {
     const plans = fallback.availablePlans.map((item) => ({
       name: item.plan,
       amount: item.amount,
-      billingCycle: "매월",
+      billingCycle: item.plan && item.plan.includes("연") ? "매년" : "매월",
       quality: item.plan.includes("프리미엄") ? "4K UHD" : "1080p",
     }));
 

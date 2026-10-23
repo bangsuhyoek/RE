@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { IconButton, ServiceMark } from "./ui";
-import { formatKoreanMonth, formatWon, getCalendarDays, getLastDate, parseLocalDate } from "../lib/dates";
+import { formatKoreanMonth, formatWon, getCalendarDays, getLastDate } from "../lib/dates";
+import { buildDuesByDay } from "../lib/calendarDues";
 
 export function CalendarScreen({ subscriptions, onOpen }) {
   const [date, setDate] = useState(() => new Date());
@@ -14,25 +15,8 @@ export function CalendarScreen({ subscriptions, onOpen }) {
   const clampedDay = Math.min(selectedDay, lastDay);
 
   const duesByDay = useMemo(() => {
-    const map = new Map();
-    for (const sub of subscriptions) {
-      if (sub.billingCycle === "매년") {
-        const parsedNext = sub.nextBillingDate ? parseLocalDate(sub.nextBillingDate) : null;
-        const parsedCreated = sub.createdAt ? parseLocalDate(sub.createdAt) : null;
-        const chargeDate = parsedNext || parsedCreated || null;
-        if (chargeDate !== null) {
-          if (chargeDate.getFullYear() !== year || chargeDate.getMonth() !== month) {
-            continue;
-          }
-        }
-      }
-      const day = Math.min(sub.dueDay, lastDay);
-      const list = map.get(day) || [];
-      list.push(sub);
-      map.set(day, list);
-    }
-    return map;
-  }, [lastDay, subscriptions, month, year]);
+    return buildDuesByDay(subscriptions, month, lastDay);
+  }, [lastDay, subscriptions, month]);
 
   const selectedDues = duesByDay.get(clampedDay) || [];
   const selectedTotal = selectedDues.reduce((sum, item) => sum + item.amount, 0);

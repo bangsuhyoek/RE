@@ -7,6 +7,7 @@ import { formatWon } from "../lib/dates";
 import { formatKSTDateTime } from "../lib/complaintDrafts";
 import { recordKey } from "../lib/cancelVerification";
 import { deleteCancelProof, listCancelProofs } from "../lib/cancelProof";
+import { toMonthlySavedAmount } from "../lib/subscriptionMath";
 
 function matchProofForRecord(record, proofs = []) {
   if (!record || !Array.isArray(proofs) || proofs.length === 0) return null;
@@ -109,7 +110,7 @@ export function CancelHistorySection({
   };
 
   const monthlySavedTotal =
-    savedAmount > 0 ? savedAmount : cancelHistory.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    savedAmount > 0 ? savedAmount : cancelHistory.reduce((sum, item) => sum + toMonthlySavedAmount(item), 0);
 
   return (
     <section className="mt-4 space-y-3" aria-label="해지한 구독" data-testid="cancel-history-section">

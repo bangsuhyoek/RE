@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import handler, { _setSupabaseAdmin } from "../api/account-delete.js";
 import {
   deleteAccount,
+  deleteStorageObjects,
   sha256Hex,
 } from "../api/_lib/accountDeletion.js";
 
@@ -431,5 +432,349 @@ test("account-delete: rate limit 실패 시 fail-closed 503과 Retry-After: 60�
     globalThis.fetch = originalFetch;
     process.env = originalEnv;
   }
+});
+
+test("RPC 우선 호출: delete_submate_user_data RPC 성공 시 단일 트랜잭션으로 처리되고 순차 DELETE는 호출되지 않는다", async () => {
+  const callLog = [];
+  const fakeAdmin = {
+    callLog,
+    storage: {
+      listBuckets: async () => ({ data: [], error: null }),
+    },
+    rpc: async (fn, args) => {
+      callLog.push({ type: "rpc", fn, args });
+      return { data: { ok: true }, error: null };
+    },
+    from: (table) => {
+      callLog.push({ type: "table_from", table });
+      return {
+        delete: () => ({
+          eq: async () => ({ data: null, error: null }),
+        }),
+      };
+    },
+    auth: {
+      admin: {
+        deleteUser: async (uid) => {
+          callLog.push({ type: "auth_delete_user", uid });
+          return { data: { user: { id: uid } }, error: null };
+        },
+      },
+    },
+  };
+
+  const userId = "test-rpc-user-1";
+  const result = await deleteAccount({
+    supabaseAdmin: fakeAdmin,
+    userId,
+    confirmation: "탈퇴",
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.deleted, true);
+  assert.equal(result.fallback, false, "RPC 성공 시 fallback이 false여야 함");
+
+  const rpcCalls = callLog.filter((c) => c.type === "rpc");
+  assert.equal(rpcCalls.length, 1, "delete_submate_user_data RPC가 1회 호출되어야 함");
+  assert.equal(rpcCalls[0].fn, "delete_submate_user_data");
+  assert.deepEqual(rpcCalls[0].args, { target_user_id: userId });
+
+  const tableCalls = callLog.filter((c) => c.type === "table_from");
+  assert.equal(tableCalls.length, 0, "RPC 성공 시 개별 테이블 순차 DELETE가 호출되지 않아야 함");
+
+  const authCalls = callLog.filter((c) => c.type === "auth_delete_user");
+  assert.equal(authCalls.length, 1, "auth 사용자가 최종 삭제되어야 함");
+});
+
+test("RPC 미배포 시 폴백: 42883 또는 PGRST202 반환 시 순차 DELETE로 안전하게 폴백한다", async () => {
+  for (const errCase of [
+    { code: "42883", message: "function public.delete_submate_user_data(uuid) does not exist" },
+    { code: "PGRST202", message: "Could not find the function in the schema cache" },
+    { status: 404, message: "Not Found" },
+  ]) {
+    const callLog = [];
+    const fakeAdmin = {
+      callLog,
+      storage: {
+        listBuckets: async () => ({ data: [], error: null }),
+      },
+      rpc: async (fn, args) => {
+        callLog.push({ type: "rpc", fn, args });
+        return { data: null, error: errCase };
+      },
+      from: (table) => ({
+        delete: () => ({
+          eq: async (col, val) => {
+            callLog.push({ type: "table_delete", table, col, val });
+            return { data: null, error: null };
+          },
+        }),
+      }),
+      auth: {
+        admin: {
+          deleteUser: async (uid) => {
+            callLog.push({ type: "auth_delete_user", uid });
+            return { data: { user: { id: uid } }, error: null };
+          },
+        },
+      },
+    };
+
+    const userId = "test-fallback-user";
+    const result = await deleteAccount({
+      supabaseAdmin: fakeAdmin,
+      userId,
+      confirmation: "탈퇴",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.deleted, true);
+    assert.equal(result.fallback, true, "RPC 미배포 시 fallback이 true여야 함");
+
+    const tableDeletions = callLog.filter((c) => c.type === "table_delete");
+    assert.ok(tableDeletions.length > 0, "폴백 시 순차 테이블 DELETE가 실행되어야 함");
+
+    const authCalls = callLog.filter((c) => c.type === "auth_delete_user");
+    assert.equal(authCalls.length, 1, "auth 사용자 삭제가 정상 수행되어야 함");
+  }
+});
+
+test("RPC 치명적 오류: DB 실행 에러(50001 등) 시 순차 삭제로 폴백하지 않고 오류를 던지며 auth 사용자도 삭제하지 않는다", async () => {
+  const callLog = [];
+  const fakeAdmin = {
+    callLog,
+    storage: {
+      listBuckets: async () => ({ data: [], error: null }),
+    },
+    rpc: async (fn, args) => {
+      callLog.push({ type: "rpc", fn, args });
+      return { data: null, error: { code: "50001", message: "Deadlock detected in transaction" } };
+    },
+    from: (table) => ({
+      delete: () => ({
+        eq: async (col, val) => {
+          callLog.push({ type: "table_delete", table, col, val });
+          return { data: null, error: null };
+        },
+      }),
+    }),
+    auth: {
+      admin: {
+        deleteUser: async (uid) => {
+          callLog.push({ type: "auth_delete_user", uid });
+          return { data: { user: { id: uid } }, error: null };
+        },
+      },
+    },
+  };
+
+  const userId = "test-error-user";
+  await assert.rejects(
+    async () => {
+      await deleteAccount({
+        supabaseAdmin: fakeAdmin,
+        userId,
+        confirmation: "탈퇴",
+      });
+    },
+    (err) => {
+      assert.equal(err.code, "TABLE_DELETION_FAILED");
+      return true;
+    }
+  );
+
+  const tableDeletions = callLog.filter((c) => c.type === "table_delete");
+  assert.equal(tableDeletions.length, 0, "치명적 RPC 오류 시 순차 삭제를 시도하지 않아야 함");
+
+  const authCalls = callLog.filter((c) => c.type === "auth_delete_user");
+  assert.equal(authCalls.length, 0, "치명적 RPC 오류 시 auth 사용자를 삭제하지 않아야 함");
+});
+
+test("재귀 스토리지 삭제: 하위 폴더(id/metadata null)를 재귀 탐색하여 중첩된 파일 경로들을 수집하고 삭제한다", async () => {
+  const userId = "test-storage-tree-user";
+  const removedPaths = [];
+  const listedPrefixes = [];
+
+  const tree = {
+    [userId]: [
+      { name: "root-receipt.png", id: "id-1", metadata: { size: 1024 } },
+      { name: "docs", id: null, metadata: null },
+    ],
+    [`${userId}/docs`]: [
+      { name: "statement.pdf", id: "id-2", metadata: { size: 2048 } },
+      { name: "2026", id: null, metadata: null },
+    ],
+    [`${userId}/docs/2026`]: [
+      { name: "october.json", id: "id-3", metadata: { size: 512 } },
+    ],
+  };
+
+  const fakeAdmin = {
+    storage: {
+      listBuckets: async () => ({
+        data: [{ id: "user-assets" }],
+        error: null,
+      }),
+      from: () => ({
+        list: async (prefix) => {
+          listedPrefixes.push(prefix);
+          return { data: tree[prefix] || [], error: null };
+        },
+        remove: async (paths) => {
+          removedPaths.push(...paths);
+          return { data: paths, error: null };
+        },
+      }),
+    },
+  };
+
+  const result = await deleteStorageObjects(fakeAdmin, userId);
+  assert.equal(result.ok, true);
+  assert.equal(result.deletedCount, 3, "중첩된 3개 파일이 모두 삭제 집계되어야 함");
+
+  assert.deepEqual(removedPaths, [
+    `${userId}/root-receipt.png`,
+    `${userId}/docs/statement.pdf`,
+    `${userId}/docs/2026/october.json`,
+  ]);
+
+  assert.deepEqual(listedPrefixes, [
+    userId,
+    `${userId}/docs`,
+    `${userId}/docs/2026`,
+  ]);
+});
+
+test("스토리지 안전 검증: 최대 재귀 깊이(5) 초과 탐색 중단 및 경로 순회(..) 방지", async () => {
+  const userId = "test-depth-safety-user";
+  const removedPaths = [];
+  const listedPrefixes = [];
+
+  // 깊이 6까지 이어지는 폴더 트리 및 악의적 .. 경로 포함
+  const fakeAdmin = {
+    storage: {
+      listBuckets: async () => ({
+        data: [{ id: "test-bucket" }],
+        error: null,
+      }),
+      from: () => ({
+        list: async (prefix) => {
+          listedPrefixes.push(prefix);
+          const parts = prefix.split("/");
+          const depth = parts.length;
+          if (depth === 1) {
+            return {
+              data: [
+                { name: "d1", id: null, metadata: null },
+                { name: "../secret.key", id: "bad", metadata: {} },
+              ],
+              error: null,
+            };
+          }
+          if (depth >= 2 && depth <= 5) {
+            return {
+              data: [
+                { name: `file-${depth}.txt`, id: `f-${depth}`, metadata: {} },
+                { name: `d${depth}`, id: null, metadata: null },
+              ],
+              error: null,
+            };
+          }
+          // depth 6 이상
+          return {
+            data: [{ name: "unreachable.txt", id: "unreach", metadata: {} }],
+            error: null,
+          };
+        },
+        remove: async (paths) => {
+          removedPaths.push(...paths);
+          return { data: paths, error: null };
+        },
+      }),
+    },
+  };
+
+  const result = await deleteStorageObjects(fakeAdmin, userId);
+  assert.equal(result.ok, true);
+
+  // 깊이 5 초과 경로는 탐색되지 않음 (최대 5레벨까지만 탐색)
+  assert.ok(!listedPrefixes.some((p) => p.split("/").length > 5));
+  // 악의적 경로는 절대 삭제 대상에 포함되지 않음
+  assert.ok(!removedPaths.some((p) => p.includes("..") || !p.startsWith(`${userId}/`)));
+});
+
+test("스토리지 삭제 페이지네이션: 100건 초과(101건) 시 다음 페이지를 조회해 모두 삭제하고 페이지 상한(20페이지)에서 멈춘다", async () => {
+  const userId = "test-pagination-user";
+  const removedPaths = [];
+  const listCalls = [];
+
+  // 1. 101개 파일 페이지네이션 검증 (1페이지 100건, 2페이지 1건)
+  const page1Files = Array.from({ length: 100 }, (_, i) => ({
+    name: `file-${i + 1}.png`,
+    id: `id-${i + 1}`,
+    metadata: { size: 100 },
+  }));
+  const page2Files = [
+    { name: "file-101.png", id: "id-101", metadata: { size: 100 } },
+  ];
+
+  const fakeAdmin101 = {
+    storage: {
+      listBuckets: async () => ({
+        data: [{ id: "receipts" }],
+        error: null,
+      }),
+      from: () => ({
+        list: async (prefix, options) => {
+          listCalls.push({ prefix, options });
+          const offset = options?.offset || 0;
+          if (offset === 0) return { data: page1Files, error: null };
+          if (offset === 100) return { data: page2Files, error: null };
+          return { data: [], error: null };
+        },
+        remove: async (paths) => {
+          removedPaths.push(...paths);
+          return { data: paths, error: null };
+        },
+      }),
+    },
+  };
+
+  const res101 = await deleteStorageObjects(fakeAdmin101, userId);
+  assert.equal(res101.ok, true);
+  assert.equal(res101.deletedCount, 101, "101개 파일이 모두 삭제 집계되어야 함");
+  assert.equal(removedPaths.length, 101, "remove에 101개 경로가 모두 전달되어야 함");
+  assert.equal(listCalls.length, 2, "list가 2페이지(offset 0, offset 100) 호출되어야 함");
+  assert.equal(listCalls[0].options.offset, 0);
+  assert.equal(listCalls[1].options.offset, 100);
+
+  // 2. 페이지 상한(MAX_STORAGE_PAGES_PER_FOLDER = 20)에서 무한 루프 없이 중단되는지 검증
+  let infiniteListCalls = 0;
+  const infinitePage = Array.from({ length: 100 }, (_, i) => ({
+    name: `loop-file-${i}.txt`,
+    id: `loop-${i}`,
+    metadata: {},
+  }));
+
+  const fakeAdminInfinite = {
+    storage: {
+      listBuckets: async () => ({
+        data: [{ id: "infinite-bucket" }],
+        error: null,
+      }),
+      from: () => ({
+        list: async () => {
+          infiniteListCalls++;
+          return { data: infinitePage, error: null };
+        },
+        remove: async (paths) => ({ data: paths, error: null }),
+      }),
+    },
+  };
+
+  const resInfinite = await deleteStorageObjects(fakeAdminInfinite, userId);
+  assert.equal(resInfinite.ok, true);
+  assert.equal(infiniteListCalls, 20, "페이지 상한인 20회에서 호출이 중단되어야 함");
+  assert.equal(resInfinite.deletedCount, 2000, "20페이지 분량(2000건)만 수집되어야 함");
 });
 

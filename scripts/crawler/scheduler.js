@@ -10,9 +10,16 @@ import { runPromotionPipeline } from "./runPromotionPipeline.js";
 import { runRefundPolicyCheck } from "./refundPolicyCheck.js";
 
 export class CrawlerScheduler {
-  constructor(cronIntervalMs = 86400000) { // 기본 24시간 (매일)
+  constructor(cronIntervalMs = 86400000, {
+    pipelineFn = runCrawlerPipeline,
+    promotionPipelineFn = runPromotionPipeline,
+    refundCheckFn = runRefundPolicyCheck,
+  } = {}) {
     this.cronIntervalMs = cronIntervalMs;
     this.timerId = null;
+    this.pipelineFn = pipelineFn;
+    this.promotionPipelineFn = promotionPipelineFn;
+    this.refundCheckFn = refundCheckFn;
   }
 
   /**
@@ -36,23 +43,35 @@ export class CrawlerScheduler {
   async executeTask() {
     console.log(`\n[Scheduler Trigger] Running scheduled crawl task at ${new Date().toISOString()}...`);
     try {
-      const result = await runCrawlerPipeline();
-      console.log(`[Scheduler Success] Updated ${result.syncResult.updatedCount} service catalog items.`);
+      const result = await this.pipelineFn();
+      if (!result?.syncResult?.success) {
+        console.error(`[Scheduler Error] Crawler pipeline failed to sync catalog.`);
+        process.exitCode = 1;
+      } else {
+        console.log(`[Scheduler Success] Updated ${result.syncResult.updatedCount} service catalog items.`);
+      }
     } catch (err) {
       console.error(`[Scheduler Error] Task failed:`, err);
+      process.exitCode = 1;
     }
 
     // 프로모션 재확인: 확인된 혜택만 앱 데이터에 남기고 나머지는 삭제한다.
     try {
-      const report = await runPromotionPipeline({ apply: true });
-      console.log(`[Scheduler Success] Promotions kept ${report.applied.kept}, removed ${report.applied.removed.length}.`);
+      const report = await this.promotionPipelineFn({ apply: true });
+      if (!report || !report.applied || (report.applied.dbSync?.errors && report.applied.dbSync.errors.length > 0)) {
+        console.error(`[Scheduler Error] Promotion pipeline completed with errors.`);
+        process.exitCode = 1;
+      } else {
+        console.log(`[Scheduler Success] Promotions kept ${report.applied.kept}, removed ${report.applied.removed.length}.`);
+      }
     } catch (err) {
       console.error(`[Scheduler Error] Promotion check failed:`, err);
+      process.exitCode = 1;
     }
 
     // 환불 정책 출처 확인: 문구가 사라진 정책은 사람이 원문을 다시 확인한다.
     try {
-      const results = await runRefundPolicyCheck();
+      const results = await this.refundCheckFn();
       const needsReview = results.filter((result) => result.status !== "OK");
       if (needsReview.length) {
         console.warn(`[Scheduler Warning] Refund policies to review: ${needsReview.map((r) => r.id + "(" + r.status + ")").join(", ")}`);
@@ -61,6 +80,7 @@ export class CrawlerScheduler {
       }
     } catch (err) {
       console.error(`[Scheduler Error] Refund policy check failed:`, err);
+      process.exitCode = 1;
     }
   }
 

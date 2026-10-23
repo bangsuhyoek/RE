@@ -4,6 +4,7 @@ import { Button, IconButton, SubscriptionCard } from "./ui";
 import { CancelHistorySection } from "./CancelHistorySection";
 import { daysUntilCharge, formatWon } from "../lib/dates";
 import { calculateMonthlyTotal } from "../lib/subscriptionAgent";
+import { toMonthlySavedAmount } from "../lib/subscriptionMath";
 
 export function SubscriptionListScreen({
   subscriptions,
@@ -75,7 +76,7 @@ export function SubscriptionListScreen({
         >
           <span className="text-[13px] font-semibold text-[#333D4B]">해지한 구독 {cancelHistory.length}개</span>
           <span className="flex items-center gap-0.5 text-[13px] font-semibold text-[#6B7684]">
-            매달 {formatWon(savedAmount || cancelHistory.reduce((s, r) => s + (Number(r.amount) || 0), 0))} 아끼는 중
+            매달 {formatWon(savedAmount > 0 ? savedAmount : cancelHistory.reduce((s, r) => s + toMonthlySavedAmount(r), 0))} 아끼는 중
             <ChevronRight size={15} className="text-[#B0B8C1]" />
           </span>
         </button>

@@ -259,9 +259,19 @@ export function PromotionScreen({
             // 통일된 절약 금액 양식 산출
             const savingAmount = Number(promotion.saving) || 0;
             const isAnnual = promotion.kind?.includes("연간") || promotion.category === "학생/연간";
-            const savingText = savingAmount > 0
-              ? (isAnnual ? `연 ${savingAmount.toLocaleString("ko-KR")}원 절약` : `월 ${savingAmount.toLocaleString("ko-KR")}원 절약`)
-              : (promotion.offerPrice === 0 ? "0원 무료" : null);
+            const isTrial = Boolean(promotion.kind?.includes("무료") || promotion.kind?.includes("체험"));
+            let savingText = null;
+            if (isAnnual) {
+              savingText = savingAmount > 0
+                ? `연 ${savingAmount.toLocaleString("ko-KR")}원 절약`
+                : (promotion.offerPrice === 0 ? "0원 무료" : null);
+            } else if (isTrial) {
+              savingText = "체험 혜택";
+            } else if (savingAmount > 0) {
+              savingText = `월 ${savingAmount.toLocaleString("ko-KR")}원 절약`;
+            } else if (promotion.offerPrice === 0) {
+              savingText = "0원 무료";
+            }
 
             const offerPriceText = promotion.offerPrice === 0
               ? "0원 무료"

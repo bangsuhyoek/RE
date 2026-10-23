@@ -2,6 +2,7 @@ import { buildInterpretationPrompt, normalizeInterpretation } from "./_lib/agent
 import { verifySupabaseAuth } from "./_lib/auth.js";
 import { consumeRateLimit, _resetInMemoryRateLimits } from "./_lib/rateLimit.js";
 import { callGemini, getCandidateModels } from "./_lib/gemini.js";
+import { applyCors } from "./_lib/cors.js";
 
 const MAX_TEXT_LENGTH = 300;
 const MAX_SERVICES = 60;
@@ -28,9 +29,7 @@ const readBody = (request) => {
 };
 
 export default async function handler(request, response) {
-  response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  applyCors(request, response);
 
   if (request.method === "OPTIONS") {
     if (typeof response.status === "function") return response.status(204).end();

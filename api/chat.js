@@ -3,6 +3,7 @@ import { consumeRateLimit } from "./_lib/rateLimit.js";
 import { fetchGeminiStream, getCandidateModels } from "./_lib/gemini.js";
 import { CHAT_TOOL_DECLARATIONS, TOOL_LABELS, executeTool } from "./_lib/chatTools.js";
 import { getKstDateString } from "./_lib/kstDate.js";
+import { applyCors } from "./_lib/cors.js";
 
 const MAX_BODY_BYTES = 200 * 1024; // 200KB limit
 const MAX_MESSAGES = 12;
@@ -28,10 +29,7 @@ const sendSseEvent = (response, event, data) => {
 };
 
 export default async function handler(request, response) {
-  // Support Cross-Origin Requests from mobile Capacitor apps (e.g. capacitor://localhost, http://localhost)
-  response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  applyCors(request, response);
 
   if (request.method === "OPTIONS") {
     if (typeof response.status === "function") {

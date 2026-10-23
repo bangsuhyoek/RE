@@ -7,8 +7,8 @@
 ## 1. 정기 운영 작업 (Routine Operations)
 
 ### 1.1 크롤러 주간 예약 워크플로 및 PR 검토
-- **스케줄 워크플로**: `.github/workflows/crawler-schedule.yml` (*통합 후 확인 필요: `data_pipeline` 스트림에서 구현 중)
-- **동작 주기**: 매주 월요일 새벽 자동 실행되어 국내 구독 서비스의 최신 요금제, 프로모션, 해지/환불 정책을 스크랩하고 카탈로그 변경사항을 PR로 생성.
+- **스케줄 워크플로**: `.github/workflows/crawler-schedule.yml` (정기 크롤러 및 프로모션 파이프라인 자동화)
+- **동작 주기**: 매주 월요일 03:00 UTC (12:00 KST) 자동 실행(`cron: '0 3 * * 1'`) 및 필요 시 수동 트리거(`workflow_dispatch`). 전체 카탈로그 크롤링(`pnpm crawl`), 프로모션 파이프라인(`pnpm crawl:promotions`), 환불 정책 검증(`pnpm crawl:refunds`), 검증 테스트(`pnpm test`)를 수행하고, 데이터 변경 발생 시 `data-update/crawler-scheduled` 브랜치로 PR 자동 생성.
 - **운영자 PR 검토 절차**:
   1. 자동 생성된 PR의 diff를 확인하여 가격 변동, 폐지된 요금제, 신규 서비스 검토.
   2. 로컬에서 환불 정책 유효성 검증 스크립트 실행:

@@ -33,7 +33,7 @@ SubMate는 **React + Vite** 웹 기술을 기반으로 개발되며, **Capacitor
   ```
 
 ### 3. 백엔드 API CORS 유지 (`api/`)
-- 모바일 웹뷰의 Origin(`capacitor://localhost`, `http://localhost`, `https://localhost`)에서 오는 요청을 허용하도록 `OPTIONS` Preflight 및 `Access-Control-Allow-Origin: *` 헤더를 유지해야 합니다.
+- 모바일 웹뷰의 Origin(`capacitor://localhost`, `http://localhost`, `https://localhost`) 및 로컬 개발 출처(`http://localhost:5173`, `http://127.0.0.1:5173`)를 기본 허용 출처 목록으로 관리하며, 추가 도메인은 `ALLOWED_ORIGINS` 환경변수(쉼표 구분)를 통해 동적으로 허용합니다. 허용된 출처에 대해서만 `Access-Control-Allow-Origin`을 반환하고 `Vary: Origin` 헤더를 설정합니다.
 
 ### 4. 네이티브 UI / UX 고려사항
 - **Safe Area Insets**: 스마트폰 노치 및 하단 제스처 바에 의해 UI가 가려지지 않도록 `index.html`의 `viewport-fit=cover` 및 `index.css`의 `.pt-safe`, `.pb-safe` 클래스를 활용합니다.
@@ -56,12 +56,14 @@ corepack pnpm install --frozen-lockfile
 | :--- | :--- |
 | `pnpm dev` | Vite 로컬 웹 개발 서버 실행 (`http://localhost:5173`) |
 | `pnpm test` | 단위 및 회귀 테스트 전체 실행 (`node --test tests/*.test.js`) |
+| `pnpm lint` | ESLint를 이용한 코드 스타일 및 정적 분석 검사 (`eslint .`) |
 | `pnpm build` | 정적 웹 번들 빌드 (`dist/`) |
 | `pnpm preview` | 빌드된 정적 웹 번들 로컬 미리보기 |
 | `pnpm run cap:sync` | 웹 빌드 산출물을 Android 네이티브 프로젝트로 동기화 |
 | `pnpm run cap:build` | 웹 빌드와 Capacitor 동기화를 연속 수행 (`pnpm build && cap sync`) |
 | `pnpm run cap:open:android` | Android Studio에서 `android/` 프로젝트 열기 |
 | `pnpm run build:apk` | Gradle을 이용한 Android 디버그 APK 빌드 스크립트 실행 |
+| `pnpm run version:android` | `package.json` 버전을 Android `build.gradle`(`versionName`, `versionCode`)에 동기화 |
 | `pnpm crawl` | 전체 카탈로그 크롤링 파이프라인 실행 |
 | `pnpm crawl:promotions` | 프로모션 정보 수집 및 검증 파이프라인 실행 |
 | `pnpm crawl:refunds` | 서비스별 환불/해지 정책 검증 실행 |
@@ -84,6 +86,8 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 # Supabase 서버 연동 (Vercel Serverless Functions)
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
+# (주의: 비밀값이므로 클라이언트 노출 절대 금지, 누락 시 할당량 체크 fail-closed로 모든 API가 503 반환)
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # 모바일 앱 빌드 시 배포된 백엔드 API 주소 (웹 로컬 개발 시에는 빈 값)
 VITE_API_BASE_URL=https://submate.vercel.app
@@ -98,7 +102,7 @@ VITE_API_BASE_URL=https://submate.vercel.app
 
 ### 1. 웹 및 서버리스 API 배포 (Vercel)
 - **배포 순서 대원칙**: **Supabase DB 마이그레이션이 Vercel API 배포보다 먼저** 완료되어야 합니다.
-- Vercel 프로젝트 환경 변수에 `GEMINI_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`가 올바르게 등록되어 있는지 확인합니다.
+- Vercel 프로젝트 환경 변수에 `GEMINI_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`가 올바르게 등록되어 있는지 확인합니다. (`SUPABASE_SERVICE_ROLE_KEY`는 서버 전용 비밀값이므로 클라이언트 노출을 절대 금지해야 하며, 미설정 시 할당량 fail-closed 정책에 의해 모든 서버리스 API가 503으로 차단됩니다.)
 - 자세한 절차는 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)를 참조하십시오.
 
 ### 2. Android 패키징 및 서명

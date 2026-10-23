@@ -22,6 +22,7 @@ import {
   enqueueRetry,
   dequeueRetry,
 } from "../lib/subscriptionSync";
+import { toMonthlyAmount } from "../lib/subscriptionMath";
 
 export const createSubscription = (service) => ({
   ...service,
@@ -70,6 +71,8 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
     }
     return effectiveProfile?.guest || isGuestParam ? createMockSubscriptions() : [];
   });
+  const subscriptionsRef = useRef(subscriptions);
+  subscriptionsRef.current = subscriptions;
 
   const [onboardingComplete, setOnboardingComplete] = useState(() => readStoredValue(storageKeys.onboardingComplete, false));
   const [savedAmount, setSavedAmount] = useState(() => readStoredValue(storageKeys.savedAmount, 0));
@@ -210,6 +213,7 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
     // 1) 다른 사용자로 전환된 경우: 이전 로컬 데이터 업로드 금지, 비우고 새 계정 데이터 로드
     if (isDifferentUser) {
       writeStoredValue(storageKeys.ownerUserId, currentUserId);
+      subscriptionsRef.current = [];
       setSubscriptions([]);
       writeStoredValue(storageKeys.subscriptions, []);
       clearStoredValue(storageKeys.syncTombstones);
@@ -228,41 +232,42 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
       const cloudList = Array.isArray(cloudSubs) ? cloudSubs : [];
       const tombstones = readStoredValue(storageKeys.syncTombstones, {});
 
-      setSubscriptions((localCurrent) => {
-        const { merged, toUpload, toDeleteFromCloud } = mergeSubscriptions({
-          localList: localCurrent,
-          cloudList,
-          tombstones,
-        });
-
-        // 클라우드 업로드 필요 항목 처리
-        if (toUpload.length > 0) {
-          toUpload.forEach((sub) => {
-            upsertDbSubscription(currentUserId, sub).then((saved) => {
-              if (!saved) {
-                safeEnqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub });
-              }
-            }).catch(() => {
-              safeEnqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub });
-            });
-          });
-        }
-
-        // 클라우드 삭제 필요 항목 처리 (오프라인 삭제 톰스톤 반영)
-        if (toDeleteFromCloud.length > 0) {
-          toDeleteFromCloud.forEach((subId) => {
-            deleteDbSubscription(currentUserId, subId).then((deleted) => {
-              if (!deleted) {
-                safeEnqueueRetry({ id: subId, type: "delete" });
-              }
-            }).catch(() => {
-              safeEnqueueRetry({ id: subId, type: "delete" });
-            });
-          });
-        }
-
-        return merged.length > 0 ? merged : localCurrent;
+      const localList = isDifferentUser ? [] : (subscriptionsRef.current || []);
+      const { merged, toUpload, toDeleteFromCloud } = mergeSubscriptions({
+        localList,
+        cloudList,
+        tombstones,
       });
+
+      setSubscriptions(merged);
+
+      if (!active) return;
+
+      // 클라우드 업로드 필요 항목 처리
+      if (toUpload.length > 0) {
+        toUpload.forEach((sub) => {
+          upsertDbSubscription(currentUserId, sub).then((saved) => {
+            if (!saved) {
+              safeEnqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub });
+            }
+          }).catch(() => {
+            safeEnqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub });
+          });
+        });
+      }
+
+      // 클라우드 삭제 필요 항목 처리 (오프라인 삭제 톰스톤 반영)
+      if (toDeleteFromCloud.length > 0) {
+        toDeleteFromCloud.forEach((subId) => {
+          deleteDbSubscription(currentUserId, subId).then((deleted) => {
+            if (!deleted) {
+              safeEnqueueRetry({ id: subId, type: "delete" });
+            }
+          }).catch(() => {
+            safeEnqueueRetry({ id: subId, type: "delete" });
+          });
+        });
+      }
 
       if (cloudList.length > 0) {
         setOnboardingComplete(true);
@@ -470,7 +475,13 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
         safeEnqueueRetry({ id: target.subscriptionId, type: "delete" });
       });
     }
-    setSavedAmount((amount) => amount + (finalSaved || target.amount));
+    const rawSaved = finalSaved != null ? finalSaved : target.amount;
+    const monthlySaved = toMonthlyAmount({
+      ...target,
+      ...(typeof subscriptionId === "object" && subscriptionId !== null ? subscriptionId : {}),
+      amount: rawSaved,
+    });
+    setSavedAmount((amount) => amount + monthlySaved);
     setCompletedCancelId(target.subscriptionId);
     setCancelTarget(null);
     onComplete?.();
@@ -519,7 +530,7 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
           safeEnqueueRetry({ id: renewalSubscription.subscriptionId, type: "delete" });
         });
       }
-      setSavedAmount((amount) => amount + renewalSubscription.amount);
+      setSavedAmount((amount) => amount + toMonthlyAmount(renewalSubscription));
       notify?.(`${renewalSubscription.name}을 목록에서 해지 처리했어요.`);
     }
     setRenewalTarget(null);

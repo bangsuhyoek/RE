@@ -4,6 +4,7 @@ import {
   createTestNotification,
   getStoredNotifications,
   saveStoredNotifications,
+  NOTIFICATION_STORAGE_KEY,
   requestNotificationPermission,
   initAndroidNotificationChannel,
   sendAppNotification,
@@ -16,6 +17,10 @@ import { readHash } from "./useNavigation";
 
 export function useNotificationManager({ subscriptions = [] } = {}) {
   const [notifications, setNotifications] = useState(() => {
+    if (typeof window !== "undefined" && window.localStorage?.getItem(NOTIFICATION_STORAGE_KEY) !== null) {
+      const stored = getStoredNotifications();
+      if (Array.isArray(stored)) return stored;
+    }
     const stored = getStoredNotifications();
     if (stored.length > 0) return stored;
     return subscriptions.length > 0 ? generateSubscriptionAlerts(subscriptions) : [];
@@ -39,7 +44,7 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
   }, []);
 
   useEffect(() => {
-    if (notifications.length > 0) {
+    if (Array.isArray(notifications)) {
       saveStoredNotifications(notifications);
     }
   }, [notifications]);
@@ -136,6 +141,7 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
 
   const clearAll = useCallback(() => {
     setNotifications([]);
+    saveStoredNotifications([]);
   }, []);
 
   return {

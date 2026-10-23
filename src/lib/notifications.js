@@ -47,6 +47,17 @@ export function saveStoredNotifications(list) {
   writeStoredValue(NOTIFICATION_STORAGE_KEY, list);
 }
 
+/** 12시간제 오전/오후 및 시간 문자열을 24시간제 정수(0~23)로 변환 */
+export function parseAlertTimeTo24Hours(ampm = "오전", hour = "09") {
+  let h = Number(hour) || 9;
+  if (ampm === "오후") {
+    if (h < 12) h += 12;
+  } else if (ampm === "오전") {
+    if (h === 12) h = 0;
+  }
+  return h;
+}
+
 /**
  * Generate alert items for subscriptions based on D-3, D-1, and TODAY rules
  */
@@ -54,13 +65,21 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
   const alerts = [];
 
   for (const sub of subscriptions) {
+    if (sub.status === "cancelled") continue;
+    if (sub.alertEnabled === false) continue;
     const days = daysUntilCharge(sub, referenceDate);
     const isTrial = Boolean(sub.isTrial || sub.status === "trial");
+    const subId = sub.subscriptionId || sub.id;
+    const nextCharge = getNextChargeDate(sub, referenceDate);
+    const cycleKey = nextCharge ? toLocalDateKey(nextCharge) : toLocalDateKey(referenceDate);
+    const hasAlertDDay = sub.alertDDay !== undefined && sub.alertDDay !== null;
+    const targetDDay = hasAlertDDay ? Number(sub.alertDDay) : null;
 
     // D-1 Alert
-    if (days === 1 && (isTrial || sub.alertD1)) {
+    const shouldAlertD1 = hasAlertDDay ? targetDDay === 1 : (isTrial || sub.alertD1);
+    if (days === 1 && shouldAlertD1) {
       alerts.push({
-        id: `alert-${sub.subscriptionId}-d1`,
+        id: `alert-${subId}-${cycleKey}-d1`,
         subscriptionId: sub.subscriptionId,
         serviceName: sub.name,
         amount: sub.amount,
@@ -82,9 +101,10 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
     }
 
     // D-3 Alert
-    if (days === 3 && sub.alertD3 !== false) {
+    const shouldAlertD3 = hasAlertDDay ? targetDDay === 3 : (sub.alertD3 !== false);
+    if (days === 3 && shouldAlertD3) {
       alerts.push({
-        id: `alert-${sub.subscriptionId}-d3`,
+        id: `alert-${subId}-${cycleKey}-d3`,
         subscriptionId: sub.subscriptionId,
         serviceName: sub.name,
         amount: sub.amount,
@@ -101,10 +121,34 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
       });
     }
 
+    // Custom D-day Alert when targetDDay is not 1 and not 3 (e.g. D-2, D-5)
+    if (hasAlertDDay && targetDDay !== 1 && targetDDay !== 3 && days === targetDDay) {
+      alerts.push({
+        id: `alert-${subId}-${cycleKey}-d${targetDDay}`,
+        subscriptionId: sub.subscriptionId,
+        serviceName: sub.name,
+        amount: sub.amount,
+        plan: sub.plan,
+        monogram: sub.monogram || sub.name?.slice(0, 1) || "S",
+        category: sub.category || "기타",
+        type: isTrial ? `trial_d${targetDDay}` : `billing_d${targetDDay}`,
+        badge: isTrial ? `TRIAL D-${targetDDay}` : `D-${targetDDay}`,
+        title: isTrial
+          ? `[체험 만료 D-${targetDDay}] ${sub.name} 무료체험 종료`
+          : `[결제 D-${targetDDay}] ${sub.name} 결제 예정`,
+        message: isTrial
+          ? `${targetDDay}일 뒤 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
+          : `${targetDDay}일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
+        timestamp: new Date().toISOString(),
+        daysUntil: targetDDay,
+        read: false,
+      });
+    }
+
     // TODAY Alert
     if (days === 0) {
       alerts.push({
-        id: `alert-${sub.subscriptionId}-today`,
+        id: `alert-${subId}-${cycleKey}-today`,
         subscriptionId: sub.subscriptionId,
         serviceName: sub.name,
         amount: sub.amount,
@@ -373,13 +417,12 @@ export function takeDueCancelReminders(now = new Date()) {
 /**
  * 향후 30~60일간의 결제 사전 알림(D-3, D-1)을 네이티브 로컬 알림 큐에 배치 스케줄링
  */
-export async function scheduleSubscriptionNotifications(subscriptions = []) {
+export async function scheduleSubscriptionNotifications(subscriptions = [], now = new Date()) {
   if (!Capacitor.isNativePlatform()) return false;
   try {
     const perm = await LocalNotifications.checkPermissions();
     if (perm.display !== "granted") return false;
 
-    const now = new Date();
     const pending = await LocalNotifications.getPending();
     const overdue = selectOverdueToRearm(pending?.notifications || [], subscriptions, now);
     if (pending?.notifications?.length > 0) {
@@ -390,6 +433,7 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
 
     for (const sub of subscriptions) {
       if (sub.status === "cancelled") continue;
+      if (sub.alertEnabled === false) continue;
       const isTrial = Boolean(sub.isTrial || sub.status === "trial");
       const subKey = sub.subscriptionId || sub.id;
 
@@ -407,47 +451,81 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
         }
       }
 
+      const hasAlertDDay = sub.alertDDay !== undefined && sub.alertDDay !== null;
+      const targetHour = parseAlertTimeTo24Hours(sub.alertAmpm, sub.alertHour);
+
       for (let cycleIndex = 0; cycleIndex < chargeDates.length; cycleIndex++) {
         const chargeDate = chargeDates[cycleIndex];
         const cycleKey = toLocalDateKey(chargeDate);
 
-        // D-3 예약 (오전 9시)
-        if (sub.alertD3 !== false) {
-          const d3Date = new Date(chargeDate);
-          d3Date.setDate(d3Date.getDate() - 3);
-          d3Date.setHours(9, 0, 0, 0);
+        if (hasAlertDDay) {
+          const dday = Number(sub.alertDDay);
+          const alertDate = new Date(chargeDate);
+          alertDate.setDate(alertDate.getDate() - dday);
+          alertDate.setHours(targetHour, 0, 0, 0);
 
-          if (d3Date > now) {
-            const notifId = Math.abs(stringHashCode(`${subKey}-${cycleKey}-d3`));
+          if (alertDate > now) {
+            const notifId = Math.abs(stringHashCode(`${subKey}-${cycleKey}-d${dday}`));
+            const type = isTrial ? `trial_d${dday}` : `billing_d${dday}`;
+            const title = isTrial
+              ? (dday === 1 ? `[체험 만료 D-1] ${sub.name} 무료체험 종료` : `[체험 만료 D-${dday}] ${sub.name} 무료체험 종료`)
+              : (dday === 1 ? `[결제 D-1] ${sub.name} 결제 예정` : `[결제 D-${dday}] ${sub.name} 결제 예정`);
+            const body = isTrial
+              ? (dday === 1
+                  ? `내일 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
+                  : `${dday}일 뒤 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`)
+              : (dday === 1
+                  ? `내일 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`
+                  : `${dday}일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`);
+
             scheduledList.push({
               id: notifId % 100000000,
-              title: `[결제 D-3] ${sub.name} 결제 예정`,
-              body: `3일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
+              title,
+              body,
               channelId: "submate-billing-channel",
-              ...scheduledAt(d3Date),
-              extra: { subscriptionId: subKey, cycle: cycleIndex + 1, type: "billing_d3" },
+              ...scheduledAt(alertDate),
+              extra: { subscriptionId: subKey, cycle: cycleIndex + 1, type },
             });
           }
-        }
+        } else {
+          // D-3 예약 (기본 시각)
+          if (sub.alertD3 !== false) {
+            const d3Date = new Date(chargeDate);
+            d3Date.setDate(d3Date.getDate() - 3);
+            d3Date.setHours(targetHour, 0, 0, 0);
 
-        // D-1 예약 (오전 9시)
-        if (isTrial || sub.alertD1) {
-          const d1Date = new Date(chargeDate);
-          d1Date.setDate(d1Date.getDate() - 1);
-          d1Date.setHours(9, 0, 0, 0);
+            if (d3Date > now) {
+              const notifId = Math.abs(stringHashCode(`${subKey}-${cycleKey}-d3`));
+              scheduledList.push({
+                id: notifId % 100000000,
+                title: `[결제 D-3] ${sub.name} 결제 예정`,
+                body: `3일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
+                channelId: "submate-billing-channel",
+                ...scheduledAt(d3Date),
+                extra: { subscriptionId: subKey, cycle: cycleIndex + 1, type: "billing_d3" },
+              });
+            }
+          }
 
-          if (d1Date > now) {
-            const notifId = Math.abs(stringHashCode(`${subKey}-${cycleKey}-d1`));
-            scheduledList.push({
-              id: notifId % 100000000,
-              title: isTrial ? `[체험 만료 D-1] ${sub.name} 무료체험 종료` : `[결제 D-1] ${sub.name} 결제 예정`,
-              body: isTrial
-                ? `내일 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
-                : `내일 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
-              channelId: "submate-billing-channel",
-              ...scheduledAt(d1Date),
-              extra: { subscriptionId: subKey, cycle: cycleIndex + 1, type: isTrial ? "trial_d1" : "billing_d1" },
-            });
+          // D-1 예약 (기본 시각)
+          if (isTrial || sub.alertD1) {
+            const d1Date = new Date(chargeDate);
+            d1Date.setDate(d1Date.getDate() - 1);
+            d1Date.setHours(targetHour, 0, 0, 0);
+
+            if (d1Date > now) {
+              const notifId = Math.abs(stringHashCode(`${subKey}-${cycleKey}-d1`));
+              scheduledList.push({
+                id: notifId % 100000000,
+                title: isTrial ? `[체험 만료 D-1] ${sub.name} 무료체험 종료` : `[결제 D-1] ${sub.name} 결제 예정`,
+                body: isTrial
+                  ? `내일 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
+                  : `내일 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
+                channelId: "submate-billing-channel",
+                ...scheduledAt(d1Date),
+                extra: { subscriptionId: subKey, cycle: cycleIndex + 1, type: isTrial ? "trial_d1" : "billing_d1" },
+              });
+            }
           }
         }
       }

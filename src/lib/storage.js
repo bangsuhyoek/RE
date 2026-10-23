@@ -94,6 +94,7 @@ export const appendCancelRecord = (subscription, cancelledAt = new Date()) => {
     name: subscription.name,
     plan: subscription.plan || "",
     amount: Number(subscription.grossAmount ?? subscription.amount) || 0,
+    billingCycle: subscription.billingCycle || "매월",
     paymentMethod: [issuer, last4].filter(Boolean).join(" "),
     supportUrl: subscription.supportUrl || null,
     cancelledAt: cancelledAt.toISOString(),

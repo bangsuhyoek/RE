@@ -244,6 +244,10 @@ export function HomeScreen({
 
   const displayAmount = annual ? yearly : monthly;
 
+  const activeSubscriptionsCount = useMemo(() => {
+    return subscriptions.filter((sub) => sub && sub.status !== "cancelled").length;
+  }, [subscriptions]);
+
   // 결제 예정순 정렬 (무료체험 최우선 -> 사용자 지정 고정(강조) -> 빠른 결제일 순)
   const sortedSubscriptions = useMemo(() => {
     return [...subscriptions].sort((a, b) => {
@@ -347,7 +351,7 @@ export function HomeScreen({
           </span>
           <div className="mt-1 leading-none">
             <span className="text-[26px] font-black text-black tracking-tight">
-              {subscriptions.length}
+              {activeSubscriptionsCount}
             </span>
             <span className="text-[15px] font-bold text-gray-600 ml-0.5">
               개

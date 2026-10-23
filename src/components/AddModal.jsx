@@ -511,8 +511,8 @@ export function AddModal({
         form.billingCycle,
 
       nextBillingDate:
-        form.billingCycle === "매년"
-          ? form.nextBillingDate
+        form.billingCycle === "매년" || Boolean(form.isTrial)
+          ? form.nextBillingDate || null
           : null,
 
       paymentMethod:

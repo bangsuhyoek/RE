@@ -476,14 +476,25 @@ test("7. Shared Gemini client: x-goog-api-key header, no query key, and attempt 
 });
 
 test("8. chat OPTIONS returns 204 and CORS headers", async () => {
-  const req = createMockReq({ method: "OPTIONS" });
-  const res = createMockRes();
-  await chatHandler(req, res);
+  const reqNoOrigin = createMockReq({ method: "OPTIONS" });
+  const resNoOrigin = createMockRes();
+  await chatHandler(reqNoOrigin, resNoOrigin);
 
-  assert.equal(res.statusCode, 204);
-  assert.equal(res.headers["access-control-allow-origin"], "*");
-  assert.equal(res.headers["access-control-allow-methods"], "POST, OPTIONS");
-  assert.equal(res.headers["access-control-allow-headers"], "Content-Type, Authorization");
+  assert.equal(resNoOrigin.statusCode, 204);
+  assert.equal(resNoOrigin.headers["access-control-allow-origin"], undefined);
+  assert.equal(resNoOrigin.headers["access-control-allow-methods"], "POST, OPTIONS");
+  assert.equal(resNoOrigin.headers["access-control-allow-headers"], "Content-Type, Authorization");
+  assert.equal(resNoOrigin.headers["vary"], "Origin");
+
+  const reqWithOrigin = createMockReq({ method: "OPTIONS", headers: { origin: "http://localhost:5173" } });
+  const resWithOrigin = createMockRes();
+  await chatHandler(reqWithOrigin, resWithOrigin);
+
+  assert.equal(resWithOrigin.statusCode, 204);
+  assert.equal(resWithOrigin.headers["access-control-allow-origin"], "http://localhost:5173");
+  assert.equal(resWithOrigin.headers["access-control-allow-methods"], "POST, OPTIONS");
+  assert.equal(resWithOrigin.headers["access-control-allow-headers"], "Content-Type, Authorization");
+  assert.equal(resWithOrigin.headers["vary"], "Origin");
 });
 
 test("9. rateLimit sends service-role auth and p_user_id", async () => {

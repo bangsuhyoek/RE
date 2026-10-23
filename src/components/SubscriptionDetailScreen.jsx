@@ -218,6 +218,7 @@ export function SubscriptionDetailScreen({
     dueDay: subscription?.dueDay || 1,
     paymentMethod: subscription?.paymentMethod || "신한카드 ****4521",
     memo: subscription?.memo || "",
+    nextBillingDate: subscription?.nextBillingDate || "",
   }));
 
   useEffect(() => {
@@ -230,6 +231,7 @@ export function SubscriptionDetailScreen({
       dueDay: subscription.dueDay || 1,
       paymentMethod: subscription.paymentMethod || "신한카드 ****4521",
       memo: subscription.memo || "",
+      nextBillingDate: subscription.nextBillingDate || "",
     });
     setEditing(false);
     setEditError("");
@@ -293,16 +295,34 @@ export function SubscriptionDetailScreen({
   const save = () => {
     setEditError("");
     const amount = Number(draft.amount);
-    const dueDay = Math.max(1, Math.min(31, Number(draft.dueDay)));
     if (!Number.isFinite(amount) || amount < 0) {
       setEditError("결제 금액을 올바르게 입력해 주세요.");
       return;
     }
-    if (!Number.isFinite(dueDay) || dueDay < 1 || dueDay > 31) {
-      setEditError("결제일을 1~31일 사이로 입력해 주세요.");
-      return;
+
+    let dueDay;
+    let nextBillingDate = null;
+
+    if (draft.billingCycle === "매년") {
+      if (!draft.nextBillingDate) {
+        setEditError("갱신일을 선택해 주세요.");
+        return;
+      }
+      const parsedDay = Number(String(draft.nextBillingDate).split("-")[2]);
+      if (!Number.isFinite(parsedDay) || parsedDay < 1 || parsedDay > 31) {
+        setEditError("올바른 갱신일을 입력해 주세요.");
+        return;
+      }
+      dueDay = parsedDay;
+      nextBillingDate = draft.nextBillingDate;
+    } else {
+      dueDay = Math.max(1, Math.min(31, Number(draft.dueDay)));
+      if (!Number.isFinite(dueDay) || dueDay < 1 || dueDay > 31) {
+        setEditError("결제일을 1~31일 사이로 입력해 주세요.");
+        return;
+      }
     }
-    onUpdate(subscription.subscriptionId, { ...draft, amount, dueDay });
+    onUpdate(subscription.subscriptionId, { ...draft, amount, dueDay, nextBillingDate });
     setEditing(false);
   };
 
@@ -577,17 +597,29 @@ export function SubscriptionDetailScreen({
                   onChange={(e) => setDraft((v) => ({ ...v, amount: e.target.value }))}
                 />
               </label>
-              <label className="block text-[12px] font-semibold text-gray-500">
-                결제일 (1~31일)
-                <input
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
-                  type="number"
-                  min="1"
-                  max="31"
-                  value={draft.dueDay}
-                  onChange={(e) => setDraft((v) => ({ ...v, dueDay: e.target.value }))}
-                />
-              </label>
+              {draft.billingCycle === "매년" ? (
+                <label className="block text-[12px] font-semibold text-gray-500">
+                  갱신일
+                  <input
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
+                    type="date"
+                    value={draft.nextBillingDate || ""}
+                    onChange={(e) => setDraft((v) => ({ ...v, nextBillingDate: e.target.value }))}
+                  />
+                </label>
+              ) : (
+                <label className="block text-[12px] font-semibold text-gray-500">
+                  결제일 (1~31일)
+                  <input
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
+                    type="number"
+                    min="1"
+                    max="31"
+                    value={draft.dueDay}
+                    onChange={(e) => setDraft((v) => ({ ...v, dueDay: e.target.value }))}
+                  />
+                </label>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <label className="block text-[12px] font-semibold text-gray-500">

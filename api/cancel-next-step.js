@@ -7,6 +7,7 @@ import {
   normalize,
   cancelNextStepResponseSchema,
 } from "./_lib/cancelNextStep.js";
+import { applyCors } from "./_lib/cors.js";
 
 const OVERALL_TIMEOUT_MS = 3000;
 const MODEL_TIMEOUT_MS = 2200;
@@ -33,17 +34,12 @@ const readBody = (request) => {
 };
 
 export default async function handler(request, response) {
-  response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
-  response.setHeader(
-    "Access-Control-Allow-Headers",
-    "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
-  );
+  applyCors(request, response);
 
   if (request.method === "OPTIONS") {
-    response.statusCode = 200;
-    response.end();
-    return;
+    if (typeof response.status === "function") return response.status(204).end();
+    response.statusCode = 204;
+    return response.end();
   }
 
   if (request.method !== "POST") {

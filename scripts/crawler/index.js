@@ -19,13 +19,17 @@ export async function runCrawlerPipeline({ catalogFilePath } = {}) {
   console.log("[Pipeline Step 1] Initializing Multi-Agent Subscription Crawler...");
   console.log("=================================================");
 
-  const crawler = new CrawlerAgent({ timeoutMs: CRAWLER_CONFIG.timeoutMs });
+  const crawler = new CrawlerAgent({
+    timeoutMs: CRAWLER_CONFIG.timeoutMs,
+    maxRetries: CRAWLER_CONFIG.maxRetries,
+  });
   const parser = new ParserAgent();
   const verifier = new FormalVerifier();
   const syncer = new CatalogSyncer(catalogFilePath);
 
   const verifiedCatalogItems = [];
   let successCount = 0;
+  let fallbackCount = 0;
   let correctedCount = 0;
 
   for (const target of CRAWLER_CONFIG.targets) {
@@ -48,13 +52,15 @@ export async function runCrawlerPipeline({ catalogFilePath } = {}) {
 
     if (verificationResult.isVerified) {
       verifiedCatalogItems.push(verificationResult.item);
-      successCount++;
       if (usedFallback) {
+        fallbackCount++;
         console.log(`    └─ ⚠️ 페이지를 읽지 못해(${parsedItem.parseStatus}) 카탈로그의 기존 값을 유지합니다`);
       } else if (verificationResult.isCorrected) {
         correctedCount++;
+        successCount++;
         console.log(`    └─ Verified via Self-Correction Fallback ✅`);
       } else {
+        successCount++;
         console.log(`    └─ Verified Successfully ✅`);
       }
     } else {
@@ -72,11 +78,20 @@ export async function runCrawlerPipeline({ catalogFilePath } = {}) {
   const failedItems = verifiedCatalogItems.filter(
     (item) => item.parseStatus && item.parseStatus !== "PARSED_SUCCESS"
   );
+  const failedCount = failedItems.length;
+
   if (failedItems.length > 0) {
     console.warn(`\n⚠️ 수집/검증 실패 항목 목록 (${failedItems.length}개):`);
     for (const f of failedItems) {
       console.warn(` - [${f.id}] ${f.name} (사유: ${f.parseStatus})`);
     }
+  }
+
+  // 전체 실패 검사: 동기화(syncer.sync) 이전에 판정하여 전체 실패 시 동기화를 건너뛰고 Error throw
+  if (failedItems.length === CRAWLER_CONFIG.targets.length) {
+    console.error(`\n❌ All ${CRAWLER_CONFIG.targets.length} crawl targets failed.`);
+    process.exitCode = 1;
+    throw new Error(`All ${CRAWLER_CONFIG.targets.length} crawl targets failed.`);
   }
 
   // 4. 확장 인프라 동기화 (Sync to serviceCatalog)
@@ -88,20 +103,19 @@ export async function runCrawlerPipeline({ catalogFilePath } = {}) {
   console.log(`\n🎉 Pipeline Completed!`);
   console.log(` - Total Targets Processed: ${CRAWLER_CONFIG.targets.length}`);
   console.log(` - Verified Items: ${successCount}`);
+  console.log(` - Fallback (Kept Existing): ${fallbackCount}`);
   console.log(` - Self-Corrected Items: ${correctedCount}`);
+  console.log(` - Failed Items: ${failedCount}`);
   console.log(` - Catalog Sync Status: ${syncResult.success ? "SUCCESS" : "FAILED"}`);
   console.log(` - Synced Items: ${syncResult.updatedCount}`);
   console.log(` - Kept Existing (crawl failed): ${syncResult.keptExistingCount ?? 0}`);
 
-  if (failedItems.length === CRAWLER_CONFIG.targets.length) {
-    console.error(`\n❌ All ${CRAWLER_CONFIG.targets.length} crawl targets failed.`);
-    process.exitCode = 1;
-  }
-
   return {
     targetsProcessed: CRAWLER_CONFIG.targets.length,
     successCount,
+    fallbackCount,
     correctedCount,
+    failedCount,
     syncResult,
     catalog: verifiedCatalogItems,
   };

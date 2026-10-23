@@ -15,14 +15,24 @@ import { runCrawlerPipeline } from "../scripts/crawler/index.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 test("CrawlerAgent should return structured crawl response", async () => {
-  const agent = new CrawlerAgent({ timeoutMs: 5000 });
-  const target = CRAWLER_CONFIG.targets[0]; // Netflix
-  const result = await agent.crawl(target);
+  const origFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () =>
+      new Response("<html><body><div>월 17,000원</div></body></html>", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      });
+    const agent = new CrawlerAgent({ timeoutMs: 5000 });
+    const target = CRAWLER_CONFIG.targets[0]; // Netflix
+    const result = await agent.crawl(target);
 
-  assert.ok(result);
-  assert.equal(result.targetId, "netflix");
-  assert.ok(["SUCCESS", "FAILED"].includes(result.status));
-  assert.equal(typeof result.durationMs, "number");
+    assert.ok(result);
+    assert.equal(result.targetId, "netflix");
+    assert.ok(["SUCCESS", "FAILED"].includes(result.status));
+    assert.equal(typeof result.durationMs, "number");
+  } finally {
+    globalThis.fetch = origFetch;
+  }
 });
 
 test("ParserAgent should produce valid catalog item structure", () => {
@@ -72,24 +82,46 @@ test("Full Crawler Pipeline should execute and update a catalog file", async () 
   const filePath = path.join(tempDir, "subscriptionData.js");
   fs.copyFileSync(sourcePath, filePath);
 
-  const result = await runCrawlerPipeline({ catalogFilePath: filePath });
-  assert.ok(result);
-  assert.equal(result.targetsProcessed, CRAWLER_CONFIG.targets.length);
-  assert.equal(result.successCount, CRAWLER_CONFIG.targets.length);
-  assert.equal(result.syncResult.success, true);
+  const origCrawl = CrawlerAgent.prototype.crawl;
+  try {
+    CrawlerAgent.prototype.crawl = async (target) => ({
+      targetId: target.id,
+      url: target.url,
+      requestedUrl: target.url,
+      finalUrl: target.url,
+      redirects: [],
+      status: "SUCCESS",
+      statusCode: 200,
+      contentType: "text/html",
+      rawContent: `<html><body><div>${target.name} 월 15,000원</div></body></html>`,
+      html: `<html><body><div>${target.name} 월 15,000원</div></body></html>`,
+      crawledAt: new Date().toISOString(),
+      fetchedAt: new Date().toISOString(),
+      durationMs: 5,
+    });
 
-  const content = fs.readFileSync(filePath, "utf-8");
-  assert.ok(content.includes("export const serviceCatalog = ["));
-  assert.ok(content.includes('"id": "netflix"'));
-  process.exitCode = 0;
-  fs.rmSync(tempDir, { recursive: true, force: true });
+    const result = await runCrawlerPipeline({ catalogFilePath: filePath });
+    assert.ok(result);
+    assert.equal(result.targetsProcessed, CRAWLER_CONFIG.targets.length);
+    assert.equal(result.successCount, CRAWLER_CONFIG.targets.length);
+    assert.equal(result.syncResult.success, true);
+
+    const content = fs.readFileSync(filePath, "utf-8");
+    assert.ok(content.includes("export const serviceCatalog = ["));
+    assert.ok(content.includes('"id": "netflix"'));
+    process.exitCode = 0;
+  } finally {
+    CrawlerAgent.prototype.crawl = origCrawl;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
 });
 
-test("모든 크롤 대상이 실패하면 process.exitCode = 1로 설정된다", async () => {
+test("모든 크롤 대상이 실패하면 동기화를 건너뛰고 예외를 던지며 process.exitCode = 1로 설정된다", async () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "submate-crawler-fail-"));
   const filePath = path.join(tempDir, "subscriptionData.js");
   const sourcePath = path.resolve(__dirname, "../src/data/subscriptionData.js");
   fs.copyFileSync(sourcePath, filePath);
+  const initialContent = fs.readFileSync(filePath, "utf-8");
 
   const prevExitCode = process.exitCode;
   const origCrawl = CrawlerAgent.prototype.crawl;
@@ -98,21 +130,257 @@ test("모든 크롤 대상이 실패하면 process.exitCode = 1로 설정된다"
     CrawlerAgent.prototype.crawl = async (target) => ({
       targetId: target.id,
       url: target.url,
+      requestedUrl: target.url,
+      finalUrl: target.url,
+      redirects: [],
       status: "FAILED",
       statusCode: 500,
+      contentType: "",
       rawContent: null,
       html: "",
       error: "Network failure",
       durationMs: 10,
     });
 
-    const result = await runCrawlerPipeline({ catalogFilePath: filePath });
-    assert.ok(result);
+    await assert.rejects(
+      async () => await runCrawlerPipeline({ catalogFilePath: filePath }),
+      /All \d+ crawl targets failed/
+    );
     assert.equal(process.exitCode, 1);
+
+    // 전체 실패 시 동기화를 건너뛰므로 파일이 전혀 변경되지 않아야 함
+    const afterContent = fs.readFileSync(filePath, "utf-8");
+    assert.equal(afterContent, initialContent);
   } finally {
     CrawlerAgent.prototype.crawl = origCrawl;
     process.exitCode = prevExitCode;
     fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("부분 실패 시 기존처럼 동기화하되 failedCount를 포함하고 fallback은 successCount에서 제외된다", async () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "submate-crawler-partial-"));
+  const filePath = path.join(tempDir, "subscriptionData.js");
+  const sourcePath = path.resolve(__dirname, "../src/data/subscriptionData.js");
+  fs.copyFileSync(sourcePath, filePath);
+
+  const prevExitCode = process.exitCode;
+  const origCrawl = CrawlerAgent.prototype.crawl;
+  try {
+    process.exitCode = 0;
+    // 1개(netflix)만 성공, 나머지 6개는 실패
+    CrawlerAgent.prototype.crawl = async (target) => {
+      if (target.id === "netflix") {
+        return {
+          targetId: target.id,
+          url: target.url,
+          requestedUrl: target.url,
+          finalUrl: target.url,
+          redirects: [],
+          status: "SUCCESS",
+          statusCode: 200,
+          contentType: "text/html",
+          rawContent: "<html><body>월 17,000원</body></html>",
+          html: "<html><body>월 17,000원</body></html>",
+          durationMs: 10,
+        };
+      }
+      return {
+        targetId: target.id,
+        url: target.url,
+        requestedUrl: target.url,
+        finalUrl: target.url,
+        redirects: [],
+        status: "FAILED",
+        statusCode: 500,
+        contentType: "",
+        rawContent: null,
+        html: "",
+        error: "Network failure",
+        durationMs: 10,
+      };
+    };
+
+    const result = await runCrawlerPipeline({ catalogFilePath: filePath });
+    assert.ok(result);
+    assert.equal(result.successCount, 1);
+    assert.equal(result.failedCount, 6);
+    assert.equal(result.fallbackCount, 6);
+    assert.equal(result.syncResult.success, true);
+    assert.equal(result.syncResult.keptExistingCount, 6);
+  } finally {
+    CrawlerAgent.prototype.crawl = origCrawl;
+    process.exitCode = prevExitCode;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CrawlerScheduler는 파이프라인 실패 시 [Scheduler Error]를 기록하고 process.exitCode = 1을 설정한다", async () => {
+  const { CrawlerScheduler } = await import("../scripts/crawler/scheduler.js");
+  const prevExitCode = process.exitCode;
+  const errors = [];
+  const logs = [];
+  const origConsoleError = console.error;
+  const origConsoleLog = console.log;
+
+  try {
+    process.exitCode = 0;
+    console.error = (...args) => errors.push(args.join(" "));
+    console.log = (...args) => logs.push(args.join(" "));
+
+    const scheduler = new CrawlerScheduler(100000, {
+      pipelineFn: async () => {
+        throw new Error("All 7 crawl targets failed.");
+      },
+      promotionPipelineFn: async () => {
+        throw new Error("Promotion network error");
+      },
+      refundCheckFn: async () => [],
+    });
+
+    await scheduler.executeTask();
+
+    assert.equal(process.exitCode, 1);
+    assert.ok(errors.some((e) => e.includes("[Scheduler Error] Task failed:")));
+    assert.ok(errors.some((e) => e.includes("[Scheduler Error] Promotion check failed:")));
+    assert.ok(!logs.some((l) => l.includes("[Scheduler Success] Updated")));
+    assert.ok(!logs.some((l) => l.includes("[Scheduler Success] Promotions kept")));
+  } finally {
+    console.error = origConsoleError;
+    console.log = origConsoleLog;
+    process.exitCode = prevExitCode;
+  }
+});
+
+test("ParserAgent: 파싱된 가격이 fallbackData보다 항상 우선하며 연간 요금제는 매년으로 매핑된다", () => {
+  const parser = new ParserAgent();
+  const target = {
+    id: "test-service",
+    name: "Test Service",
+    fallbackData: {
+      plan: "기본 플랜",
+      amount: 10000,
+      availablePlans: [{ plan: "기본 플랜", amount: 10000 }],
+    },
+  };
+
+  // 1. 파싱된 가격(19,000원)이 있는 경우 fallbackData(10,000원) 대신 19,000원이 대표 금액으로 반영
+  const parsedWithNewPrice = parser.parse(
+    {
+      status: "SUCCESS",
+      rawContent: "<html><body>신규 요금 월 19,000원</body></html>",
+    },
+    target
+  );
+  assert.equal(parsedWithNewPrice.amount, 19000);
+  assert.equal(parsedWithNewPrice.parseStatus, "PARSED_SUCCESS");
+
+  // 2. 파싱된 가격이 없는 경우(범위 밖이거나 정규식 매칭 실패) fallbackData 사용
+  const parsedWithoutPrice = parser.parse(
+    {
+      status: "SUCCESS",
+      rawContent: "<html><body>요금 정보 없음 (500원 등 범위 밖)</body></html>",
+    },
+    target
+  );
+  assert.equal(parsedWithoutPrice.amount, 10000);
+  assert.equal(parsedWithoutPrice.parseStatus, "FALLBACK_NO_PRICE_FOUND");
+
+  // 3. 요금제 이름에 '연'이 포함되면 billingCycle이 '매년'으로 매핑
+  const yearlyTarget = {
+    id: "test-yearly",
+    name: "Yearly Service",
+    fallbackData: {
+      plan: "연간 프리미엄",
+      amount: 120000,
+      availablePlans: [
+        { plan: "월간 베이직", amount: 12000 },
+        { plan: "연간 프리미엄", amount: 120000 },
+      ],
+    },
+  };
+  const parsedYearly = parser.buildCatalogItemFromFallback(yearlyTarget);
+  assert.equal(parsedYearly.plans[0].billingCycle, "매월");
+  assert.equal(parsedYearly.plans[1].billingCycle, "매년");
+});
+
+test("ParserAgent: fallback 13,000원 대상에서 100,000원 마케팅 문구만 있으면 fallback 유지, 19,000원 요금 있으면 19,000원 채택", () => {
+  const parser = new ParserAgent();
+  const target = {
+    id: "test-streaming",
+    name: "Test Streaming",
+    fallbackData: {
+      plan: "스탠다드",
+      amount: 13000,
+      availablePlans: [{ plan: "스탠다드", amount: 13000 }],
+    },
+  };
+
+  // 1. 본문에 100,000원 마케팅 문구만 있는 경우: 13,000원 fallback 유지 및 parseStatus 오해 없음
+  const crawlWithMarketing = {
+    status: "SUCCESS",
+    rawContent: "<html><body>가입 시 100,000원 혜택 쿠폰팩 증정!</body></html>",
+  };
+  const parsedMarketing = parser.parse(crawlWithMarketing, target);
+  assert.equal(parsedMarketing.amount, 13000);
+  assert.equal(parsedMarketing.plan, "스탠다드");
+  assert.equal(parsedMarketing.parseStatus, "FALLBACK_PRICE_OUT_OF_RANGE");
+
+  // 2. 본문에 100,000원 마케팅 문구와 실제 19,000원 요금이 함께 있는 경우: 19,000원 채택
+  const crawlWithRealPrice = {
+    status: "SUCCESS",
+    rawContent: "<html><body>가입 시 100,000원 혜택! 월 19,000원에 이용하세요.</body></html>",
+  };
+  const parsedRealPrice = parser.parse(crawlWithRealPrice, target);
+  assert.equal(parsedRealPrice.amount, 19000);
+  assert.equal(parsedRealPrice.parseStatus, "PARSED_SUCCESS");
+});
+
+test("CrawlerAgent: 일시적 오류(5xx, 429, 네트워크) 시 maxRetries만큼 재시도하고 비재시도 오류(404)는 재시도하지 않는다", async () => {
+  const origFetch = globalThis.fetch;
+  try {
+    // 1. 500 일시적 오류: 1회 실패 후 2회차에 성공
+    let attempts500 = 0;
+    globalThis.fetch = async () => {
+      attempts500++;
+      if (attempts500 === 1) {
+        return new Response("Server error", { status: 500, statusText: "Internal Server Error" });
+      }
+      return new Response("<html><body>월 15,000원</body></html>", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      });
+    };
+
+    const agent = new CrawlerAgent({ timeoutMs: 2000, maxRetries: 2 });
+    const target = { id: "test", url: "https://example.com" };
+    const successResult = await agent.crawl(target);
+    assert.equal(successResult.status, "SUCCESS");
+    assert.equal(attempts500, 2);
+
+    // 2. 지속적 500 오류: maxRetries(2) 소진 (총 1 + 2 = 3회 시도) 후 FAILED 반환
+    let all500Attempts = 0;
+    globalThis.fetch = async () => {
+      all500Attempts++;
+      return new Response("Server error", { status: 500, statusText: "Internal Server Error" });
+    };
+    const failResult = await agent.crawl(target);
+    assert.equal(failResult.status, "FAILED");
+    assert.equal(all500Attempts, 3);
+    assert.equal(failResult.statusCode, 500);
+
+    // 3. 404 비재시도 오류: 즉시 1회만 시도하고 재시도 없이 FAILED 반환
+    let notFoundAttempts = 0;
+    globalThis.fetch = async () => {
+      notFoundAttempts++;
+      return new Response("Not found", { status: 404, statusText: "Not Found" });
+    };
+    const notFoundResult = await agent.crawl(target);
+    assert.equal(notFoundResult.status, "FAILED");
+    assert.equal(notFoundAttempts, 1);
+    assert.equal(notFoundResult.statusCode, 404);
+  } finally {
+    globalThis.fetch = origFetch;
   }
 });
 

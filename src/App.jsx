@@ -666,7 +666,7 @@ export default function App() {
             try {
               sessionStorage.setItem("submate_google_login_notified_user", user.id);
             } catch {
-              // ���� ���丮�� ���� ���� ȯ��(��ũ�� ��� ��) ���ܴ� �����Ѵ�
+              // 세션 스토리지 접근이 막힌 환경(시크릿 모드 등)에서는 무시한다
             }
           }
           navigate("home");
@@ -678,8 +678,8 @@ export default function App() {
           try {
             sessionStorage.removeItem("submate_google_login_notified_user");
           } catch {
-              // ���� ���丮�� ���� ���� ȯ��(��ũ�� ��� ��) ���ܴ� �����Ѵ�
-            }
+            // 세션 스토리지 접근이 막힌 환경(시크릿 모드 등)에서는 무시한다
+          }
         }
         setProfile(null);
         setSubscriptions([]);
@@ -819,8 +819,8 @@ export default function App() {
       try {
         sessionStorage.removeItem("submate_google_login_notified_user");
       } catch {
-              // ���� ���丮�� ���� ���� ȯ��(��ũ�� ��� ��) ���ܴ� �����Ѵ�
-            }
+        // 세션 스토리지 접근이 막힌 환경(시크릿 모드 등)에서는 무시한다
+      }
     }
     // 동의 정리 및 해지 브라우저 WebView 세션(쿠키, 웹 저장소) 삭제
     clearConsentOnSignOut();

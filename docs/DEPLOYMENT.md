@@ -40,7 +40,9 @@ Vercel 대시보드 [Settings > Environment Variables]에 아래 변수들을 �
 | `SUPABASE_ANON_KEY` | Supabase 공개 anon API 키 |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase 서비스 롤 비밀 키 (회원 탈퇴 `POST /api/account-delete` 관리자 작업용) |
 | `DISCORD_WEBHOOK_URL` | (선택) 크롤러 파이프라인 검수 알림용 디스코드 웹훅 |
-| `GOOGLE_APPLICATION_CREDENTIALS` | (선택) Google Cloud Vision OCR 예비 연동용 서비스 계정 JSON |
+| `GOOGLE_VISION_API_KEY` | (선택) Google Cloud Vision OCR 예비 연동용 API 키 |
+
+> 💡 **키 제한 권고**: `GOOGLE_VISION_API_KEY` 사용 시 Google Cloud 콘솔에서 Cloud Vision API 전용 API 제한 및 HTTP 리퍼러 제한(또는 IP 제한)을 적용하여 키 유출 및 오용을 방지하세요.
 
 ### 3.2 배포 실행
 - `main` 브랜치에 푸시하거나 Vercel CLI로 배포를 실행합니다:

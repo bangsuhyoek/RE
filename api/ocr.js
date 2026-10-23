@@ -2,10 +2,12 @@ import { parseReceiptText } from "./_lib/receiptParser.js";
 import { verifySupabaseAuth } from "./_lib/auth.js";
 import { consumeRateLimit } from "./_lib/rateLimit.js";
 import { callGemini, getCandidateModels } from "./_lib/gemini.js";
+import { applyCors } from "./_lib/cors.js";
 
 const allowedMimeTypes = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024; // 원본 약 3MB 한도 (Vercel 4.5MB 본문 한도 전 방어)
 const MAX_RAW_BODY_BYTES = 4.2 * 1024 * 1024;
+const MAX_PASTED_TEXT_LENGTH = 20_000;
 
 const send = (response, status, payload) => {
   response.status(status).json(payload);
@@ -20,9 +22,12 @@ const callGoogleVision = async ({ imageBase64, apiKey }) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
   try {
-    const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${encodeURIComponent(apiKey)}`, {
+    const response = await fetch("https://vision.googleapis.com/v1/images:annotate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+      },
       body: JSON.stringify({
         requests: [{
           image: { content: imageBase64 },
@@ -44,10 +49,7 @@ const callGoogleVision = async ({ imageBase64, apiKey }) => {
 };
 
 export default async function handler(request, response) {
-  // Support Cross-Origin Requests from mobile Capacitor apps (e.g. capacitor://localhost, http://localhost)
-  response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  applyCors(request, response);
 
   if (request.method === "OPTIONS") {
     if (typeof response.status === "function") {
@@ -107,8 +109,40 @@ export default async function handler(request, response) {
     return send(response, 400, { ok: false, code: "INVALID_JSON", message: "요청 형식이 올바르지 않습니다." });
   }
 
-  const pastedText = String(body.text || "").trim();
+  const rawText = String(body.text ?? "");
+  if (rawText.length > MAX_PASTED_TEXT_LENGTH) {
+    return send(response, 413, { ok: false, code: "TEXT_TOO_LARGE", message: "텍스트는 20,000자 이하만 사용할 수 있습니다." });
+  }
+
+  const pastedText = rawText.trim();
   if (pastedText) {
+    if (!request.__isLocalDev) {
+      const rateLimitResult = await consumeRateLimit({
+        userId,
+        bearerToken: authHeader,
+        endpoint: "ocr",
+        checkGlobal: false,
+      });
+
+      if (rateLimitResult.failClosed) {
+        response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+        return send(response, 503, {
+          ok: false,
+          code: "RATE_LIMIT_UNAVAILABLE",
+          message: "일시적으로 사용량 확인이 불가능합니다. 잠시 후 다시 시도해 주세요.",
+        });
+      }
+
+      if (!rateLimitResult.allowed) {
+        response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+        return send(response, 429, {
+          ok: false,
+          code: "RATE_LIMITED",
+          message: "요청 한도를 초과했습니다. 잠시 후 다시 시도해 주세요.",
+        });
+      }
+    }
+
     const parsed = parseReceiptText(pastedText);
     return send(response, parsed.ok ? 200 : 422, parsed);
   }

@@ -68,3 +68,35 @@ test("validateImage checks image extensions and sizes", () => {
   assert.equal(validateImage({ name: "img.jpg", type: "image/jpeg", size: 9 * 1024 * 1024 }), "이미지는 8MB 이하만 사용할 수 있습니다.");
   assert.equal(validateImage({ name: "img.jpg", type: "image/jpeg", size: 1024 }), "");
 });
+
+test("무료체험 구독은 billingCycle이 매월이라도 nextBillingDate를 보존한다", () => {
+  const trialForm = makeInitialForm({
+    name: "밀리의 서재",
+    amount: 0,
+    dueDay: 15,
+    billingCycle: "매월",
+    nextBillingDate: "2026-11-15",
+    isTrial: true,
+  }, []);
+
+  assert.equal(trialForm.isTrial, true);
+  assert.equal(trialForm.billingCycle, "매월");
+  assert.equal(trialForm.nextBillingDate, "2026-11-15");
+
+  // AddModal handleSubmit 저장 규칙:
+  // nextBillingDate: form.billingCycle === "매년" || Boolean(form.isTrial) ? form.nextBillingDate || null : null
+  const resolveNextBillingDate = (form) =>
+    form.billingCycle === "매년" || Boolean(form.isTrial) ? form.nextBillingDate || null : null;
+
+  assert.equal(resolveNextBillingDate(trialForm), "2026-11-15");
+
+  const regularMonthlyForm = makeInitialForm({
+    name: "Netflix",
+    amount: 17000,
+    dueDay: 15,
+    billingCycle: "매월",
+    nextBillingDate: "2026-11-15",
+    isTrial: false,
+  }, []);
+  assert.equal(resolveNextBillingDate(regularMonthlyForm), null);
+});

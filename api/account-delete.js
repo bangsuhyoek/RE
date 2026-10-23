@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { verifySupabaseAuth } from "./_lib/auth.js";
 import { deleteAccount } from "./_lib/accountDeletion.js";
 import { consumeRateLimit } from "./_lib/rateLimit.js";
+import { applyCors } from "./_lib/cors.js";
 
 let adminClientOverride = null;
 export const _setSupabaseAdmin = (client) => {
@@ -26,10 +27,7 @@ const readBody = (request) => {
 };
 
 export default async function handler(request, response) {
-  // Support Cross-Origin Requests from mobile Capacitor apps
-  response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  applyCors(request, response);
 
   if (request.method === "OPTIONS") {
     if (typeof response.status === "function") return response.status(204).end();
@@ -149,7 +147,10 @@ export default async function handler(request, response) {
         auth: { persistSession: false, autoRefreshToken: false },
       });
 
-    await deleteAccount({ supabaseAdmin, userId, confirmation });
+    const deleteResult = await deleteAccount({ supabaseAdmin, userId, confirmation });
+    if (deleteResult?.fallback) {
+      console.warn("Account deletion completed using sequential fallback mode");
+    }
 
     return send(response, 200, {
       ok: true,
