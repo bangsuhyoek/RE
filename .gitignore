@@ -4,6 +4,9 @@ dist/
 .env.*
 !.env.example
 *.apk
+*.zip
+temp_*.txt
+test_py.txt
 *.idsig
 .idea/
 public/screenshots/
@@ -25,3 +28,6 @@ public/catalog/promotion-crawling-report-94.json
 public/catalog/promotions-archive.json
 public/catalog/promotions-review.json
 public/catalog/reviewed_feedback_summary.json
+
+.mixdog/
+__pycache__/

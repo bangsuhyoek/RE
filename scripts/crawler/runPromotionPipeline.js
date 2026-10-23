@@ -24,14 +24,19 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseKoreanCampaignPeriod } from "./promotionValidator.js";
 import { parseClaim, matchClaim, extractMonthlyPrices, extractDeadline } from "./promotions/offerExtractor.js";
+import { extractOfferWithAi } from "./promotions/aiExtractor.js";
+import { syncPromotionsToSupabase } from "./promotions/supabaseSync.js";
 import { createPageFetcher, createCachedQueue, PageState } from "./promotions/pageFetcher.js";
 import { getPromotionSource } from "./promotions/sources.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
+const PROMOTIONS_MASTER_JSON = path.join(ROOT, "public/catalog/promotions-master.json");
 const PROMOTIONS_JSON = path.join(ROOT, "public/catalog/promotions.json");
+const PROMOTIONS_REVIEW_JSON = path.join(ROOT, "public/catalog/promotions-review.json");
 const APP_DATA_JS = path.join(ROOT, "src/data/subscriptionData.js");
 const REPORT_DIR = path.join(ROOT, "outputs/promotion-crawler");
+export const SOFT_DEGRADATION_MS = 48 * 3600 * 1000;
 
 export const Verdict = Object.freeze({
   CONFIRMED: "CONFIRMED",
@@ -43,9 +48,10 @@ export const Verdict = Object.freeze({
 });
 
 function parseArgs(argv) {
-  const args = { apply: false, browser: true, headless: true, concurrency: 4, only: null, dumpText: false, forcePrune: false };
+  const args = { apply: false, syncDb: false, browser: true, headless: true, concurrency: 4, only: null, dumpText: false, forcePrune: false };
   for (const arg of argv) {
     if (arg === "--apply") args.apply = true;
+    else if (arg === "--sync-db") args.syncDb = true;
     else if (arg === "--force-prune") args.forcePrune = true;
     else if (arg === "--no-browser") args.browser = false;
     else if (arg === "--headful") args.headless = false;
@@ -77,15 +83,16 @@ function pageDeadlinePassed(deadline, now) {
   return Number.isFinite(end) && end < now;
 }
 
-/** 한 프로모션 판정 (페이지 수집 함수를 주입받아 테스트 가능) */
-export async function verifyPromotion(promotion, { loadPage, now = Date.now() }) {
+/** 한 프로모션 판정 (페이지 수집 함수 및 선택적 AI 추출 함수를 주입받아 테스트 가능) */
+export async function verifyPromotion(promotion, { loadPage, aiExtract = null, now = Date.now() }) {
   const source = getPromotionSource(promotion.id);
   const urls = [...new Set([...(source.urls ?? []), promotion.link].filter(Boolean))];
   const claim = parseClaim(promotion, source.claim ?? {});
-  const pages = await Promise.all(urls.map((url) => loadPage(url)));
+  const fetchHints = source.fetch;
+  const pages = await Promise.all(urls.map((url) => loadPage(url, fetchHints)));
   // 요금만 대조하는 페이지 (혜택 문구 판정에는 쓰지 않음). 예: 제휴 혜택의 정가는 원 서비스 요금표에 있다.
   const priceUrls = (source.priceUrls ?? []).filter((url) => !urls.includes(url));
-  const pricePages = await Promise.all(priceUrls.map((url) => loadPage(url)));
+  const pricePages = await Promise.all(priceUrls.map((url) => loadPage(url, fetchHints)));
 
   const checks = pages.map((page) => {
     const match = page.state === PageState.OK ? matchClaim(claim, page.text) : null;
@@ -135,6 +142,10 @@ export async function verifyPromotion(promotion, { loadPage, now = Date.now() })
 
   let verdict;
   let reason;
+  let autoUpdated = false;
+  let updatedOffer = null;
+  let aiEvidence = null;
+
   if (endedAt) {
     verdict = Verdict.EXPIRED;
     reason = "캠페인 종료일 " + endedAt.slice(0, 10) + " 경과";
@@ -158,6 +169,27 @@ export async function verifyPromotion(promotion, { loadPage, now = Date.now() })
     reason = "읽을 수 있는 페이지 없음 (" + [...new Set(checks.map((c) => c.state))].join(", ") + ")";
   }
 
+  // 하이브리드 2차 검증: CHANGED 또는 NOT_FOUND 상태이고 읽을 수 있는 페이지가 있을 때 AI 추출기 폴백 실행
+  if ((verdict === Verdict.CHANGED || verdict === Verdict.NOT_FOUND) && readable.length > 0 && typeof aiExtract === "function") {
+    const targetUrl = variantCheck?.url ?? readable[0].url;
+    const targetPage = pages.find((p) => p.requestedUrl === targetUrl && p.state === PageState.OK) ?? pages.find((p) => p.state === PageState.OK);
+    if (targetPage?.text) {
+      const aiResult = await aiExtract(promotion, targetPage.text, { now });
+      if (aiResult?.confirmed && aiResult?.updatedOffer) {
+        verdict = Verdict.CONFIRMED;
+        reason = "페이지 혜택 조건 변경 확인 및 자동 갱신";
+        autoUpdated = true;
+        updatedOffer = aiResult.updatedOffer;
+        aiEvidence = {
+          url: targetPage.finalUrl ?? targetPage.requestedUrl,
+          basis: aiResult.basis ?? "ai_hybrid",
+          text: snippet(aiResult.evidenceQuote, 240),
+          deadline: aiResult.updatedOffer.deadline ?? null,
+        };
+      }
+    }
+  }
+
   return {
     id: promotion.id,
     title: promotion.title,
@@ -165,10 +197,11 @@ export async function verifyPromotion(promotion, { loadPage, now = Date.now() })
     expected: claim.type === "manual" ? null : matchClaim(claim, "").expected,
     verdict,
     reason,
+    ...(autoUpdated ? { autoUpdated: true, updatedOffer } : {}),
     evidence: confirmedCheck
       ? { url: confirmedCheck.finalUrl ?? confirmedCheck.url, basis: confirmedCheck.basis, text: confirmedCheck.evidence, deadline: confirmedCheck.deadline }
-      : null,
-    pageSays: !confirmedCheck && variantCheck ? { url: variantCheck.finalUrl ?? variantCheck.url, text: variantCheck.variants } : null,
+      : aiEvidence,
+    pageSays: !confirmedCheck && !aiEvidence && variantCheck ? { url: variantCheck.finalUrl ?? variantCheck.url, text: variantCheck.variants } : null,
     linkState: linkCheck?.state ?? null,
     warnings,
     checks,
@@ -189,70 +222,117 @@ function readAppCatalog() {
   return { source, arrayStart, arrayEnd: end + 2, items: JSON.parse(source.slice(arrayStart, end + 2)) };
 }
 
-// 확실한 결과만 상태로 기록한다.
-// - CONFIRMED: 공식 페이지에서 혜택 문구를 확인함
-// - EXPIRED: 카탈로그/페이지에 적힌 종료일이 지남
-// 그 밖의 판정(조건 변경 추정, 문구 없음, 접속 실패, 수동 확인)은 확정 정보가 아니므로
-// 새 상태를 만들지 않고, 이전에 남아 있던 확인/만료 표시만 지운다.
 const VERIFIED_STATUS = {
   CONFIRMED: "LIVE_CONFIRMED",
   EXPIRED: "EXPIRED",
 };
 
+export const KEEP_STATUS = "LIVE_CONFIRMED";
+export const MAX_PRUNE_RATIO = 0.5;
+
 export function applyResult(item, result, checkedAt) {
   if (!result) return item;
   const next = { ...item, lastCheckedAt: checkedAt };
+
+  // 일시적 접속 장애(UNREACHABLE) 시 직전 검증 시각(또는 유예 시작 시각)으로부터 48시간 이내면 LIVE_CONFIRMED 유지
+  if (result.verdict === Verdict.UNREACHABLE && item.verifiedStatus === KEEP_STATUS) {
+    const refTime = Date.parse(item.lastVerifiedAt ?? item.softDegradedSince ?? "");
+    const nowMs = Date.parse(checkedAt);
+    if (Number.isFinite(refTime) && Number.isFinite(nowMs) && nowMs >= refTime && nowMs - refTime <= SOFT_DEGRADATION_MS) {
+      next.verifiedStatus = KEEP_STATUS;
+      next.softDegradedSince = item.softDegradedSince ?? checkedAt;
+      return next;
+    }
+  }
+
+  delete next.softDegradedSince;
   const status = VERIFIED_STATUS[result.verdict];
   if (status) next.verifiedStatus = status;
   else delete next.verifiedStatus;
-  if (result.verdict === Verdict.CONFIRMED) next.lastVerifiedAt = checkedAt;
+
+  if (result.verdict === Verdict.CONFIRMED) {
+    next.lastVerifiedAt = checkedAt;
+    if (result.autoUpdated && result.updatedOffer) {
+      Object.assign(next, result.updatedOffer, { autoUpdatedAt: checkedAt });
+    }
+  }
   return next;
 }
 
-// 앱에는 공식 페이지에서 확인된 혜택만 남긴다. 반영(--apply)할 때마다 나머지는 삭제한다.
-export const KEEP_STATUS = "LIVE_CONFIRMED";
-// 한 번에 절반 넘게 지워지면 혜택이 실제로 끝났다기보다 네트워크 장애·봇 차단 등
-// 점검 자체가 실패했을 가능성이 높으므로, --force-prune 없이는 아무 파일도 쓰지 않는다.
-export const MAX_PRUNE_RATIO = 0.5;
-
 export function planCatalogUpdate(items, byId, checkedAt, { forcePrune = false, maxPruneRatio = MAX_PRUNE_RATIO } = {}) {
-  const updated = items.map((p) => applyResult(p, byId.get(p.id), checkedAt));
-  const kept = updated.filter((p) => p.verifiedStatus === KEEP_STATUS);
-  const removed = updated.filter((p) => p.verifiedStatus !== KEEP_STATUS);
-  if (!forcePrune && items.length > 0 && removed.length / items.length > maxPruneRatio) {
+  const masterUpdated = items.map((p) => applyResult(p, byId.get(p.id), checkedAt));
+  const kept = masterUpdated.filter((p) => p.verifiedStatus === KEEP_STATUS && !p.isFreeTier);
+  const removed = masterUpdated.filter((p) => p.verifiedStatus !== KEEP_STATUS && !p.isFreeTier);
+
+  // 기존에 LIVE_CONFIRMED였던 항목 중 이번에 탈락하는 비율이 절반을 넘으면 서킷 브레이커 작동
+  const previouslyLive = items.filter((p) => p.verifiedStatus === KEEP_STATUS && !p.isFreeTier);
+  const droppedFromLive = previouslyLive.filter((p) => {
+    const updatedItem = masterUpdated.find((u) => u.id === p.id);
+    return updatedItem?.verifiedStatus !== KEEP_STATUS;
+  });
+
+  if (!forcePrune && previouslyLive.length > 0 && droppedFromLive.length / previouslyLive.length > maxPruneRatio) {
     throw new Error(
-      "확인되지 않은 혜택이 " + removed.length + "/" + items.length + "개로 절반을 넘어 삭제를 중단했습니다. " +
+      "확인되지 않은 혜택이 " + droppedFromLive.length + "/" + previouslyLive.length + "개로 절반을 넘어 삭제를 중단했습니다. " +
         "점검 실패(네트워크·차단)가 아닌지 보고서를 확인한 뒤, 정말 지우려면 --force-prune을 붙여 다시 실행하세요. 파일은 바뀌지 않았습니다."
     );
   }
-  return { kept, removed };
+
+  const review = [];
+  for (const item of items) {
+    const res = byId.get(item.id);
+    if (res?.verdict === Verdict.CHANGED) {
+      review.push({
+        id: item.id,
+        title: item.title,
+        currentKind: item.kind,
+        reason: res.reason,
+        pageSays: res.pageSays,
+        checkedAt,
+      });
+    }
+  }
+
+  return { masterUpdated, kept, removed, review };
+}
+
+function readMasterCatalog() {
+  const target = fs.existsSync(PROMOTIONS_MASTER_JSON) ? PROMOTIONS_MASTER_JSON : PROMOTIONS_JSON;
+  return JSON.parse(fs.readFileSync(target, "utf-8"));
 }
 
 function applyToAppData(results, checkedAt, { forcePrune = false } = {}) {
   const byId = new Map(results.map((r) => [r.id, r]));
 
-  // 두 파일 모두 먼저 계산·검증한 뒤에 쓴다. 중간에 실패하면 어느 파일도 바뀌지 않는다.
-  const jsonItems = JSON.parse(fs.readFileSync(PROMOTIONS_JSON, "utf-8"));
-  const jsonPlan = planCatalogUpdate(jsonItems, byId, checkedAt, { forcePrune });
-  const nextJson = JSON.stringify(jsonPlan.kept, null, 2) + "\n";
+  const masterItems = readMasterCatalog();
+  const plan = planCatalogUpdate(masterItems, byId, checkedAt, { forcePrune });
+  const nextMasterJson = JSON.stringify(plan.masterUpdated, null, 2) + "\n";
+  const nextLiveJson = JSON.stringify(plan.kept, null, 2) + "\n";
 
   const app = readAppCatalog();
-  const appPlan = planCatalogUpdate(app.items, byId, checkedAt, { forcePrune });
-  const nextArray = JSON.stringify(appPlan.kept, null, 2);
+  const nextArray = JSON.stringify(plan.kept, null, 2);
   const nextSource = app.source.slice(0, app.arrayStart) + nextArray + app.source.slice(app.arrayEnd);
   const check = nextSource.slice(app.arrayStart, app.arrayStart + nextArray.length);
-  if (JSON.parse(check).length !== appPlan.kept.length) throw new Error("promotionCatalog 갱신 결과 검증 실패 — 파일을 쓰지 않았습니다.");
+  if (JSON.parse(check).length !== plan.kept.length) throw new Error("promotionCatalog 갱신 결과 검증 실패 — 파일을 쓰지 않았습니다.");
 
   const writeAtomic = (file, content) => {
     const tmp = file + ".tmp-" + process.pid;
     fs.writeFileSync(tmp, content, "utf-8");
     fs.renameSync(tmp, file);
   };
-  writeAtomic(PROMOTIONS_JSON, nextJson);
+  writeAtomic(PROMOTIONS_MASTER_JSON, nextMasterJson);
+  writeAtomic(PROMOTIONS_JSON, nextLiveJson);
   writeAtomic(APP_DATA_JS, nextSource);
+  if (plan.review.length > 0) {
+    writeAtomic(PROMOTIONS_REVIEW_JSON, JSON.stringify(plan.review, null, 2) + "\n");
+  }
 
-  const removedIds = [...new Set([...jsonPlan.removed, ...appPlan.removed].map((p) => p.id))];
-  return { kept: jsonPlan.kept.length, removed: removedIds.map((id) => ({ id, reason: byId.get(id)?.reason ?? "이전부터 확인 상태 없음" })) };
+  return {
+    masterUpdated: plan.masterUpdated,
+    kept: plan.kept.length,
+    reviewCount: plan.review.length,
+    removed: plan.removed.map((p) => ({ id: p.id, reason: byId.get(p.id)?.reason ?? "이전부터 확인 상태 없음" })),
+  };
 }
 
 // ---------- 실행 ----------
@@ -261,16 +341,17 @@ export async function runPromotionPipeline(options = {}) {
   const args = { ...parseArgs([]), ...options };
   const now = Date.now();
   const checkedAt = new Date(now).toISOString();
-  let promotions = JSON.parse(fs.readFileSync(PROMOTIONS_JSON, "utf-8"));
+  let promotions = readMasterCatalog();
   if (args.only) promotions = promotions.filter((p) => args.only.has(p.id));
+  const aiExtract = args.aiExtract ?? (process.env.GEMINI_API_KEY ? extractOfferWithAi : null);
 
   const fetcher = await createPageFetcher({ useBrowser: args.browser, headless: args.headless });
   console.log("프로모션 " + promotions.length + "개 점검 시작 (수집 방식: " + fetcher.mode + ")");
   if (fetcher.fallbackReason && args.browser) console.warn("브라우저를 띄우지 못해 단순 fetch로 진행합니다: " + fetcher.fallbackReason);
 
   const pagesDir = path.join(REPORT_DIR, "pages");
-  const fetchAndMaybeDump = async (url) => {
-    const page = await fetcher.fetchPage(url);
+  const fetchAndMaybeDump = async (url, hints) => {
+    const page = await fetcher.fetchPage(url, hints);
     if (args.dumpText && page.text) {
       fs.mkdirSync(pagesDir, { recursive: true });
       const name = crypto.createHash("sha1").update(url).digest("hex").slice(0, 12) + ".txt";
@@ -287,7 +368,7 @@ export async function runPromotionPipeline(options = {}) {
       promotions.map(async (promotion) => {
         let result;
         try {
-          result = await verifyPromotion(promotion, { loadPage, now });
+          result = await verifyPromotion(promotion, { loadPage, aiExtract, now });
         } catch (error) {
           result = { id: promotion.id, title: promotion.title, claim: promotion.kind, verdict: Verdict.UNREACHABLE, reason: "점검 중 오류: " + (error?.message ?? error), warnings: [], checks: [] };
         }
@@ -316,15 +397,57 @@ export async function runPromotionPipeline(options = {}) {
   }
   console.log("보고서: " + path.relative(ROOT, path.join(REPORT_DIR, "latest-report.json")));
 
+  function formatDbSyncSummary(dbSync) {
+    if (!dbSync) return "Supabase 동기화: 결과 없음";
+    const invalidCount = dbSync.invalid?.length ?? 0;
+    const unknownList = dbSync.unknownServiceIds?.length ? `[${dbSync.unknownServiceIds.join(", ")}]` : "0개";
+    const errorCount = dbSync.errors?.length ?? 0;
+    const errorText = errorCount > 0
+      ? `${errorCount}건 (${dbSync.errors.map((e) => e.message || String(e)).join("; ")})`
+      : "0건";
+    if (dbSync.skipped) {
+      return `Supabase 동기화 건너뜀 (사유: ${dbSync.reason ?? "알 수 없음"}) · 무효 ${invalidCount}개 · 미등록 서비스 ${unknownList} · 오류 ${errorText}`;
+    }
+    return `Supabase 동기화: 혜택 ${dbSync.benefitsUpserted ?? 0}건 · 매핑 ${dbSync.mappingsUpserted ?? 0}건 · 무효 ${invalidCount}개 · 미등록 서비스 ${unknownList} · 오류 ${errorText}`;
+  }
+
   if (args.apply) {
     if (args.only) console.log("--only와 함께 실행해 해당 항목만 반영합니다.");
     const applied = applyToAppData(results, checkedAt, { forcePrune: args.forcePrune });
-    console.log("앱 데이터(promotions.json, subscriptionData.js)에 확인 상태를 반영했습니다. 남은 혜택 " + applied.kept + "개");
+    console.log("앱 데이터(promotions-master.json, promotions.json, subscriptionData.js)에 확인 상태를 반영했습니다. 남은 혜택 " + applied.kept + "개");
     if (applied.removed.length) {
-      console.log("확인되지 않아 삭제한 혜택 " + applied.removed.length + "개:");
+      console.log("확인되지 않아 라이브에서 제외한 혜택 " + applied.removed.length + "개:");
       for (const r of applied.removed) console.log(" - " + r.id + ": " + r.reason);
     }
-    report.applied = applied;
+    const dbSync = await syncPromotionsToSupabase(applied.masterUpdated, { updatedAt: checkedAt }).catch((err) => ({
+      skipped: true,
+      reason: err?.message ?? String(err),
+      benefitsUpserted: 0,
+      mappingsUpserted: 0,
+      invalid: [],
+      unknownServiceIds: [],
+      errors: [{ message: err?.message ?? String(err), code: null }],
+    }));
+    report.applied = { kept: applied.kept, reviewCount: applied.reviewCount, removed: applied.removed, dbSync };
+    console.log(formatDbSyncSummary(dbSync));
+    if ((dbSync.errors && dbSync.errors.length > 0) || (dbSync.skipped && dbSync.reason !== "SUPABASE_NOT_CONFIGURED")) {
+      process.exitCode = 1;
+    }
+  } else if (args.syncDb) {
+    const dbSync = await syncPromotionsToSupabase(readMasterCatalog(), { updatedAt: checkedAt }).catch((err) => ({
+      skipped: true,
+      reason: err?.message ?? String(err),
+      benefitsUpserted: 0,
+      mappingsUpserted: 0,
+      invalid: [],
+      unknownServiceIds: [],
+      errors: [{ message: err?.message ?? String(err), code: null }],
+    }));
+    report.dbSync = dbSync;
+    console.log(formatDbSyncSummary(dbSync));
+    if ((dbSync.errors && dbSync.errors.length > 0) || (dbSync.skipped && dbSync.reason !== "SUPABASE_NOT_CONFIGURED")) {
+      process.exitCode = 1;
+    }
   }
   return report;
 }

@@ -2,7 +2,7 @@ package com.submate.app.webguide.services.naver;
 
 import com.submate.app.webguide.state.GuideState;
 import com.submate.app.webguide.state.PageState;
-import com.submate.app.webguide.target.CharacterPlacement;
+import com.submate.app.webguide.target.PointerPlacement;
 import com.submate.app.webguide.target.GuideInteractionType;
 import com.submate.app.webguide.target.GuideStep;
 import com.submate.app.webguide.target.GuideTargetSpec;
@@ -57,7 +57,7 @@ public final class NaverMembershipGuide {
                             "text"
                     ),
                     GuideInteractionType.TAP,
-                    CharacterPlacement.AUTO,
+                    PointerPlacement.AUTO,
                     12,
                     NaverMonthlyCancelRoute.STEP_SETTINGS,
                     TargetVerificationStatus.LIVE_VERIFIED

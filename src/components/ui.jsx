@@ -1,24 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
-  BarChart2,
-  Bell,
-  BellOff,
   CalendarDays,
   Camera,
   CreditCard,
-  ExternalLink,
-  FileText,
   Home,
-  MoreVertical,
   Plus,
   Sparkles,
-  User,
   Loader2,
   X,
   Pin,
 } from "lucide-react";
-import { daysUntilCharge, formatBillingDate, formatWon } from "../lib/dates";
+import { daysUntilCharge, formatWon } from "../lib/dates";
 import {
   PaymentIcon,
   PaymentMethodBadge,
@@ -26,7 +19,7 @@ import {
   PaymentMethodTriggerField,
   PaymentMethodPickerModal,
 } from "./PaymentMethod";
-import { serviceCatalog } from "../data/subscriptionData";
+import { getCachedCatalog } from "../data/catalogLoader";
 
 export {
   PaymentIcon,
@@ -728,8 +721,6 @@ export function BottomNavigation({
   route,
   onNavigate,
   onOpenAdd,
-  onOpenNotifications,
-  onOpenAccount,
 }) {
   return (
     <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-[calc(3.75rem+env(safe-area-inset-bottom,0px))] w-full max-w-full sm:max-w-[440px] -translate-x-1/2 items-center justify-around border-t border-gray-100 bg-white px-2 pb-[max(0.4rem,calc(env(safe-area-inset-bottom,0px)+0.2rem))] pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.03)]" aria-label="주요 탐색">
@@ -810,7 +801,8 @@ export function getSubscriptionDisplayAmount(subscription) {
   // 0원인 무료체험(프로모션) 구독인 경우 카탈로그에서 정상 결제 예정 금액 탐색
   const cleanName = (subscription?.name || "").toLowerCase().trim();
   const cleanId = (subscription?.id || "").toLowerCase().trim();
-  const matched = serviceCatalog.find(
+  const catalog = getCachedCatalog()?.serviceCatalog || [];
+  const matched = catalog.find(
     (s) => s.id === cleanId || s.name.toLowerCase() === cleanName || cleanName.includes(s.name.toLowerCase()) || s.name.toLowerCase().includes(cleanName)
   );
   if (matched) {
@@ -826,10 +818,7 @@ export function getSubscriptionDisplayAmount(subscription) {
 export function SubscriptionCard({
   subscription,
   onOpen,
-  onCancel,
-  onMute,
   onTogglePin,
-  detail = false,
   variant = "card",
   className = "",
 }) {
@@ -839,12 +828,21 @@ export function SubscriptionCard({
   const isPinned = Boolean(subscription.isPinned || subscription.pinned);
   const displayAmount = getSubscriptionDisplayAmount(subscription);
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onOpen?.();
+    }
+  };
+
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onOpen}
+      onKeyDown={handleKeyDown}
       className={cx(
-        "flex w-full items-center justify-between text-left transition-colors cursor-pointer group/card",
+        "flex w-full items-center justify-between text-left transition-colors cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3182F6]",
         isGrouped
           ? "py-5 border-b border-gray-100/80 bg-transparent hover:bg-gray-50/40 active:bg-gray-100/50"
           : "card-press p-4 rounded-xl border border-gray-100/80 bg-white shadow-xs hover:border-gray-200 active:scale-[0.99]",
@@ -895,6 +893,9 @@ export function SubscriptionCard({
               e.stopPropagation();
               onTogglePin(subscription.subscriptionId || subscription.id);
             }}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+            }}
             className={cx(
               "p-1.5 rounded-full transition-all cursor-pointer",
               isPinned
@@ -908,7 +909,7 @@ export function SubscriptionCard({
           </button>
         )}
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -1048,11 +1049,100 @@ export function Toast({ toast, onClose, duration = 2500 }) {
   );
 }
 
+let nextSheetId = 0;
+const activeSheetStack = [];
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function BottomSheet({ children, onClose, label }) {
+  const dialogRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // 열리면 포커스를 시트 안으로 옮기고, 닫히면 시트를 열기 전 위치로 돌려준다.
+  // 또한 시트 스택에 등록하여 여러 시트가 열려 있을 때 최상위 시트만 Escape 로 닫히도록 한다.
+  useEffect(() => {
+    const sheetId = ++nextSheetId;
+    activeSheetStack.push({ id: sheetId, dialogRef, close: () => onCloseRef.current?.() });
+
+    const dialog = dialogRef.current;
+    const previouslyFocused = document.activeElement;
+    if (dialog && !dialog.contains(document.activeElement)) {
+      dialog.focus({ preventScroll: true });
+    }
+
+    const handleGlobalKeyDown = (event) => {
+      if (event.key !== "Escape") return;
+      if (activeSheetStack.length === 0) return;
+      const top = activeSheetStack[activeSheetStack.length - 1];
+      if (top.id !== sheetId) return;
+
+      // 시트 내부에 다른 dialog(예: 결제수단 선택 창)가 떠 있다면 그 창이 자체 Escape 처리를 하도록 양보
+      const topDialog = top.dialogRef.current;
+      if (topDialog && topDialog.querySelector('[role="dialog"]')) return;
+
+      event.stopPropagation();
+      top.close();
+    };
+
+    document.addEventListener("keydown", handleGlobalKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleGlobalKeyDown);
+      const index = activeSheetStack.findIndex((item) => item.id === sheetId);
+      if (index !== -1) {
+        activeSheetStack.splice(index, 1);
+      }
+      if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) {
+        previouslyFocused.focus({ preventScroll: true });
+      } else {
+        const nextTop = activeSheetStack[activeSheetStack.length - 1];
+        const nextDialog = nextTop?.dialogRef.current;
+        if (nextDialog && !nextDialog.contains(document.activeElement)) {
+          nextDialog.focus({ preventScroll: true });
+        }
+      }
+    };
+  }, []);
+
+  // Tab 은 시트 안에서만 돈다. 시트 안에 다른 창(role="dialog", 예: 결제수단 선택 창)이 열려 있거나
+  // 키가 그 창에서 왔으면 그 창이 처리하도록 손대지 않는다.
+  const handleKeyDown = (event) => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (event.target.closest?.('[role="dialog"]') !== dialog || dialog.querySelector('[role="dialog"]')) return;
+    if (event.key !== "Tab") return;
+    event.stopPropagation();
+    const focusable = Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+      (element) => element.getClientRects().length > 0
+    );
+    if (focusable.length === 0) {
+      event.preventDefault();
+      dialog.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || active === dialog || !dialog.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (active === last || !dialog.contains(active))) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
   return (
     <div className="sheet-backdrop fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={onClose}>
       <div
-        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-full sm:max-w-[440px] max-h-[90vh] max-h-[90dvh] flex flex-col rounded-t-[24px] border-t border-[#F2F4F6] bg-white px-4 sm:px-5 pb-[max(1.75rem,calc(env(safe-area-inset-bottom,0px)+1rem))] pt-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
+        ref={dialogRef}
+        tabIndex={-1}
+        onKeyDown={handleKeyDown}
+        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-full sm:max-w-[440px] max-h-[90vh] max-h-[90dvh] flex flex-col rounded-t-[24px] border-t border-[#F2F4F6] bg-white px-4 sm:px-5 pb-[max(1.75rem,calc(env(safe-area-inset-bottom,0px)+1rem))] pt-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)] outline-none"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"

@@ -1,0 +1,476 @@
+[
+  {
+    "id": "chatgpt",
+    "name": "ChatGPT Plus",
+    "catalogCancelUrl": "https://chatgpt.com/#settings/Subscription",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 열기",
+        "description": "화면 좌측 하단 프로필 아이콘 클릭 후 [Settings] 메뉴를 누르세요."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 진입",
+        "description": "[Subscription] 탭에서 [Manage]를 클릭하여 Stripe 결제창으로 이동합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소",
+        "description": "결제 관리 화면에서 [플랜 취소(Cancel plan)]를 누르고 취소를 확정합니다."
+      }
+    ],
+    "cancelUrlStatus": 403,
+    "officialHelpUrls": [
+      "https://help.openai.com/en/articles/7232927-canceling-your-chatgpt-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password",
+      "google",
+      "apple",
+      "microsoft"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "ChatGPT Home (chatgpt.com)",
+        "label": "Account menu (bottom left avatar/name) > Settings",
+        "kind": "nav"
+      },
+      {
+        "screen": "Settings Modal",
+        "label": "Billing",
+        "kind": "nav"
+      },
+      {
+        "screen": "Settings > Billing",
+        "label": "Cancel (under Cancel plan)",
+        "kind": "cancel_entry"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Cancel",
+    "successText": null,
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "Catalog guide lists going to [Subscription] tab > [Manage] to open Stripe portal and clicking [Cancel plan]. Current official documentation states: Open account menu > Settings > Billing > under Cancel plan, select Cancel (or Manage subscription for business).",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.openai.com/en/articles/7232927-canceling-your-chatgpt-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Official doc covers web (chatgpt.com), Apple App Store, Google Play, and ChatGPT Business. Web cancellation is done in account menu > Settings > Billing > Cancel."
+  },
+  {
+    "id": "claude-pro",
+    "name": "Claude Pro",
+    "catalogCancelUrl": "https://claude.ai/settings/billing",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 진입",
+        "description": "좌측 하단 내 계정 이름/프로필 클릭 후 [Settings]를 선택합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "청구 탭 이동",
+        "description": "좌측 설정 사이드바에서 [Billing] 메뉴를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "Claude Pro 섹션에서 [Cancel Subscription]을 누르고 확인합니다."
+      }
+    ],
+    "cancelUrlStatus": 403,
+    "officialHelpUrls": [
+      "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "google",
+      "email_otp"
+    ],
+    "loginHasPasswordField": false,
+    "steps": [
+      {
+        "screen": "Main screen (claude.ai or Claude Desktop)",
+        "label": "Initials or name (lower left corner) > Settings",
+        "kind": "nav"
+      },
+      {
+        "screen": "Settings",
+        "label": "Billing",
+        "kind": "nav"
+      },
+      {
+        "screen": "Settings > Billing",
+        "label": "Cancel",
+        "kind": "cancel_entry"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Cancel",
+    "successText": null,
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "Catalog guide lists [Cancel Subscription], but official doc explicitly specifies clicking the “Cancel” button under Settings > Billing.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Official help article was updated in Oct 2026 covering Pro and Max plans. Web/desktop subscriptions are canceled via web settings; mobile subscriptions (iOS/Android) must be cancelled in app store."
+  },
+  {
+    "id": "perplexity-pro",
+    "name": "Perplexity Pro",
+    "catalogCancelUrl": "https://www.perplexity.ai/settings/account",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴",
+        "description": "좌측 사이드바 하단 톱니바퀴 [Settings] 아이콘을 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "계정 탭 확인",
+        "description": "[Account] 탭에서 Perplexity Pro 멤버십 상태를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "요금제 우측 [Cancel Subscription] 버튼을 클릭하여 해지합니다."
+      }
+    ],
+    "cancelUrlStatus": 301,
+    "officialHelpUrls": [
+      "https://www.perplexity.ai/help-center/en/articles/10354283-canceling-a-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "google",
+      "apple",
+      "email_otp",
+      "saml_sso"
+    ],
+    "loginHasPasswordField": false,
+    "steps": [
+      {
+        "screen": "Perplexity Settings (perplexity.ai/settings)",
+        "label": "Scroll to Subscription under Perplexity Pro",
+        "kind": "nav"
+      },
+      {
+        "screen": "Settings > Perplexity Pro",
+        "label": "Manage Subscription",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Current Plan / Stripe portal",
+        "label": "Cancel subscription",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Cancel subscription",
+    "successText": null,
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "Catalog guide states clicking [Cancel Subscription] directly to the right of the plan in the [Account] tab. The official help center doc indicates going to Settings > scroll to \"Subscription\" under Perplexity Pro > click \"Manage Subscription\" to be redirected to the current plan page, then choose \"Cancel subscription.\"",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.perplexity.ai/help-center/en/articles/10354283-canceling-a-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Official Help Center article at help-center/en/articles/10354283-canceling-a-subscription. Covers web, iOS (App Store), and Android (Google Play). Note: Deleting account does not terminate subscription; cancellation takes effect at cycle end."
+  },
+  {
+    "id": "midjourney",
+    "name": "Midjourney",
+    "catalogCancelUrl": "https://www.midjourney.com/account",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 페이지 접속",
+        "description": "Midjourney 공식 사이트(midjourney.com/account)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 열기",
+        "description": "화면의 [Manage Sub] 버튼을 클릭해 결제 포털로 이동합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소 확정",
+        "description": "[Billing & Cancellation]에서 [Cancel Plan]을 누르고 주기 만료 취소를 선택합니다."
+      }
+    ],
+    "cancelUrlStatus": 403,
+    "officialHelpUrls": [
+      "https://docs.midjourney.com/hc/en-us/articles/25384024738573-Canceling-Your-Subscription",
+      "https://docs.midjourney.com/hc/en-us/articles/28014179406861-Managing-Your-Subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "discord",
+      "google"
+    ],
+    "loginHasPasswordField": false,
+    "steps": [
+      {
+        "screen": "midjourney.com",
+        "label": "Sign In (via Discord or Google)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Manage Subscription Page (midjourney.com/account)",
+        "label": "Cancel Plan",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Cancel Plan Dialog / Stripe portal",
+        "label": "Confirm cancellation (or Cancel at end of cycle / Refund if <20 GPU min)",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": "Option to refund immediately if <20 lifetime GPU minutes used, otherwise cancellation effective at end of current billing cycle with access preserved",
+    "finalButtonLabel": "Cancel Plan",
+    "successText": null,
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "Catalog guide lists navigating to midjourney.com/account, clicking [Manage Sub] button to open billing portal, and selecting [Billing & Cancellation] > [Cancel Plan]. Official documentation shows the button on the Manage Subscription page is directly labeled [Cancel Plan] (with [Edit Billing], [View Invoices], [Change Plan]), and note: if an upgrade/downgrade was scheduled, user must use [Cancel Change] first.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://docs.midjourney.com/hc/en-us/articles/25384024738573",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://docs.midjourney.com/hc/en-us/articles/28014179406861",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Official Help Center articles (Zendesk-based at docs.midjourney.com/hc/en-us). Login methods are Discord and Google OAuth. Cancellation takes effect at billing cycle end with private images remaining private."
+  },
+  {
+    "id": "runway-gen",
+    "name": "Runway Gen-4.5",
+    "catalogCancelUrl": "https://app.runwayml.com/settings/plans",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 진입",
+        "description": "Runway 우측 상단 프로필 아이콘 클릭 후 [Settings]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 탭 선택",
+        "description": "좌측 메뉴에서 [Plans & Billing]을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 해지",
+        "description": "이용 중인 플랜 카드 우측 [Manage Plan] > [Cancel Subscription]을 누릅니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://runwayml.com/terms-of-use/"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "google",
+      "apple",
+      "email_password"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Runway App Settings",
+        "label": "Plans & Billing (app.runwayml.com/settings/plans)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Plans & Billing",
+        "label": "Manage Plan > Cancel Subscription",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Discount On Cancel Dialog",
+        "label": "Continue to cancel plan",
+        "kind": "retention"
+      },
+      {
+        "screen": "Cancellation Survey Dialog",
+        "label": "Select cancellation reason > Continue to cancel plan",
+        "kind": "survey"
+      },
+      {
+        "screen": "Final Confirmation Screen",
+        "label": "Cancel Plan",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": "Get 1 month free offer (\"Get a free month\" vs \"Continue to cancel plan\")",
+    "finalButtonLabel": "Cancel Plan",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://runwayml.com/terms-of-use/",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://app.runwayml.com/static/js/index.e61d77dc.js",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Verified directly from Runway client code bundle and Terms of Use. Subscription flow includes a retention modal offering \"Get 1 month free\" followed by a 2-step Cancellation Survey before the final \"Cancel Plan\" button."
+  },
+  {
+    "id": "v0-vercel",
+    "name": "v0 by Vercel",
+    "catalogCancelUrl": "https://v0.dev/chat/settings/billing",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정/청구 진입",
+        "description": "v0 우측 상단 프로필 > [Settings] > [Billing] 메뉴로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 항목 선택",
+        "description": "이용 중인 v0 Premium 또는 Vercel 구독 항목을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "[Cancel Subscription]을 클릭하여 차기 결제를 취소합니다."
+      }
+    ],
+    "cancelUrlStatus": 307,
+    "officialHelpUrls": [
+      "https://v0.dev/pricing"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "github",
+      "gitlab",
+      "bitbucket",
+      "email_otp",
+      "saml_sso"
+    ],
+    "loginHasPasswordField": false,
+    "steps": [
+      {
+        "screen": "v0 Billing Page (v0.app/chat/settings/billing or v0.app/settings/billing)",
+        "label": "Navigate to v0 Billing Page",
+        "kind": "nav"
+      },
+      {
+        "screen": "Plan Summary",
+        "label": "Cancel Plan",
+        "kind": "cancel_entry"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Cancel Plan",
+    "successText": null,
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "Catalog guide lists button label as [Cancel Subscription], but official v0 Pricing FAQ explicitly states clicking \"Cancel Plan\" under Plan Summary on the v0 Billing Page (https://v0.app/chat/settings/billing).",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://v0.dev/pricing",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Official FAQ from v0.dev/pricing (#06 How do I cancel my plan?): \"If you are on the v0 Free, Premium, Plus, or Business plan, follow the steps below to cancel your plan: 1. Navigate to v0 Billing Page (https://v0.app/chat/settings/billing) 2. Under Plan Summary, click Cancel Plan.\""
+  },
+  {
+    "id": "figma",
+    "name": "Figma Professional",
+    "catalogCancelUrl": "https://www.figma.com/settings",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 진입",
+        "description": "Figma 좌측 상단 프로필 드롭다운을 누르고 [Settings]를 선택합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "청구 탭 이동",
+        "description": "[Billing] 탭 또는 관리자 워크스페이스 플랜 영역으로 이동합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소",
+        "description": "Professional 플랜 우측 [Cancel plan]을 누르고 다운그레이드를 확인합니다."
+      }
+    ],
+    "cancelUrlStatus": 302,
+    "officialHelpUrls": [
+      "https://help.figma.com/hc/en-us/articles/360039829734-Cancel-a-Figma-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password",
+      "google",
+      "saml_sso"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Figma file browser sidebar",
+        "label": "Locate Professional team > Admin",
+        "kind": "nav"
+      },
+      {
+        "screen": "Admin console",
+        "label": "Settings tab",
+        "kind": "nav"
+      },
+      {
+        "screen": "Settings > Plan section",
+        "label": "Cancel plan",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Cancellation survey modal",
+        "label": "Select cancellation reason",
+        "kind": "survey"
+      },
+      {
+        "screen": "Cancellation survey modal",
+        "label": "Cancel plan",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": "Downgrade to free Starter plan with file/folder limitations",
+    "finalButtonLabel": "Cancel plan",
+    "successText": null,
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "Catalog guide says to click top-left profile dropdown > [Settings] > [Billing] > [Cancel plan]. However, Figma Professional plans are scoped to teams: the user must locate the Professional team in the file browser sidebar, click [Admin], select the [Settings] tab, and click [Cancel plan] in the Plan section.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.figma.com/hc/en-us/articles/360039829734-Cancel-a-Figma-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Official documentation explicitly outlines steps for Professional team cancellation: Admin > Settings tab > Plan > Cancel plan > select reason > Cancel plan. At billing period end, team downgrades to free Starter plan."
+  }
+]

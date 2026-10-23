@@ -1,0 +1,516 @@
+[
+  {
+    "id": "dropbox",
+    "name": "Dropbox",
+    "catalogCancelUrl": "https://www.dropbox.com/account/plan",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 요금제 이동",
+        "description": "Dropbox 우측 상단 프로필 > [설정] > [요금제(Plan)]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 취소 선택",
+        "description": "페이지 맨 아래로 스크롤하여 [요금제 취소]를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "취소 사유 및 확정",
+        "description": "해지 사유를 선택하고 [취소 계속하기]를 눌러 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 302,
+    "officialHelpUrls": [
+      "https://help.dropbox.com/plans/downgrade-dropbox-individual-plans"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password",
+      "google",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Dropbox Home (dropbox.com)",
+        "label": "Avatar (profile picture or initials) in bottom-left corner > Manage account",
+        "kind": "nav"
+      },
+      {
+        "screen": "Account Settings (dropbox.com/account/plan)",
+        "label": "Cancel plan (at bottom of page)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Cancellation Survey",
+        "label": "Select a reason for canceling",
+        "kind": "survey"
+      },
+      {
+        "screen": "Cancellation Confirmation",
+        "label": "Continue canceling or Confirm change",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Continue canceling",
+    "successText": "Dropbox Plan will not renew",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "Catalog guide mentions top-right profile > [설정] > [요금제], while updated UI navigation has avatar in bottom-left corner > [Manage account] (which opens /account/plan) > [Cancel plan] at bottom of page. Step concepts match.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.dropbox.com/plans/downgrade-dropbox-individual-plans",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Downgrades account to free Dropbox Basic at end of current billing cycle. Mobile app store purchases must be cancelled via App Store / Google Play."
+  },
+  {
+    "id": "evernote",
+    "name": "Evernote",
+    "catalogCancelUrl": "https://www.evernote.com/secure/BillingInfo.action",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 결제 정보 이동",
+        "description": "Evernote 웹 우측 상단 프로필 > [계정 정보] > [청구]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 취소 링크",
+        "description": "[구독 상태] 항목에서 [Evernote 구독 취소] 링크를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "Free 플랜 다운그레이드",
+        "description": "무료 요금제(Evernote Free)로 다운그레이드함을 확인합니다."
+      }
+    ],
+    "cancelUrlStatus": 302,
+    "officialHelpUrls": [
+      "https://help.evernote.com/hc/en-us/articles/115005949208-How-to-cancel-your-Evernote-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password",
+      "google",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Evernote Web (Account Settings)",
+        "label": "Billing (from left-hand side menu)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Billing Page",
+        "label": "Cancel your Evernote subscription (at bottom of Billing page)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Cancel Confirmation Page",
+        "label": "Continue to cancel (scroll to bottom)",
+        "kind": "retention"
+      },
+      {
+        "screen": "Reason for Cancellation",
+        "label": "Provide a reason for canceling the subscription",
+        "kind": "survey"
+      },
+      {
+        "screen": "Final Confirmation",
+        "label": "Cancel subscription",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "Reverts account to Evernote Free with maximum 50 notes quota; retains existing notes/notebooks.",
+      "continueLabel": "Continue to cancel"
+    },
+    "finalButtonLabel": "Cancel subscription",
+    "successText": "Restore button in Billing History indicates successful cancellation",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "Catalog guide mentions profile > [계정 정보] > [청구] > [Evernote 구독 취소] > Free 요금제 다운그레이드 확인. Official flow has an extra intermediate screen clicking [Continue to cancel] and survey step before [Cancel subscription]. Concepts match.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.evernote.com/hc/en-us/articles/115005949208-How-to-cancel-your-Evernote-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Subscription remains active until end of billing cycle. In legacy billing system: Account Summary > Manage subscription > Evernote Free. Apple/Google Play subscriptions must be cancelled via their respective platforms."
+  },
+  {
+    "id": "todoist",
+    "name": "Todoist",
+    "catalogCancelUrl": "https://app.todoist.com/app/settings/subscription",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 이동",
+        "description": "Todoist 우측 상단 아바타 아이콘 > [설정] > [구독] 탭으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 열기",
+        "description": "[구독 관리] 버튼을 클릭하여 결제 포털로 이동합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소",
+        "description": "결제 상세 화면에서 [플랜 취소]를 누르고 확인합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://www.todoist.com/help/account-and-billing/billing/cancel-a-todoist-subscription-08AmJLVkC"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password",
+      "google",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Todoist Home (todoist.com)",
+        "label": "Avatar at top-left > Settings",
+        "kind": "nav"
+      },
+      {
+        "screen": "Settings Modal",
+        "label": "Subscription",
+        "kind": "nav"
+      },
+      {
+        "screen": "Settings > Subscription (app.todoist.com/app/settings/subscription)",
+        "label": "Cancel plan",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Cancellation Survey",
+        "label": "Choose a reason for the cancellation",
+        "kind": "survey"
+      },
+      {
+        "screen": "Final Confirmation",
+        "label": "Cancel subscription",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "Downgrades account to Beginner plan; retains existing tasks, but active personal projects drop to 5, filters to 3, and file uploads to 5 MB.",
+      "continueLabel": "Cancel subscription"
+    },
+    "finalButtonLabel": "Cancel subscription",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "Catalog guide notes top-right avatar > [Settings] > [Subscription] > [구독 관리] (Manage subscription) > [플랜 취소]. In current direct web billing, users click avatar at top-left > Settings > Subscription > [Cancel plan] > Choose reason > [Cancel subscription]. Concepts match.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.todoist.com/help/account-and-billing/billing/cancel-a-todoist-subscription-08AmJLVkC",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Subscription tab is available on web and desktop apps, not mobile apps. If within 30-day refund window on yearly plan, users can choose immediate cancellation with refund or cancellation at end of period. App Store subscriptions must be canceled via Apple ID settings."
+  },
+  {
+    "id": "1password",
+    "name": "1Password",
+    "catalogCancelUrl": "https://my.1password.com/billing",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "청구 페이지 이동",
+        "description": "1Password 웹(my.1password.com) 로그인 후 우측 상단 계정명 > [청구]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 옵션 확인",
+        "description": "현재 이용 중인 개인 또는 가족 플랜 정보를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "[구독 취소(Cancel Subscription)]를 클릭하고 확인 버튼을 누릅니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://support.1password.com/manage-subscription/"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password_secretkey"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "1Password Web Home (my.1password.com)",
+        "label": "Billing (in the sidebar)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Billing Page (my.1password.com/billing)",
+        "label": "Cancel subscription (scroll down)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Confirmation Dialog / Instructions",
+        "label": "Follow onscreen instructions / Confirm cancellation",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "Account remains active until the end of current billing period, then account becomes frozen (read-only view/export, no editing or new items).",
+      "continueLabel": null
+    },
+    "finalButtonLabel": "Cancel subscription",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "Catalog guide states: top-right account name > [청구] > [구독 취소(Cancel Subscription)]. In current web UI, [Billing] is located directly in the sidebar menu. The button is labelled [Cancel subscription]. Concepts match.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.1password.com/manage-subscription/",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Requires email, Master Password, and 1Password Secret Key to sign in. In family or team accounts, only family organizers or users with Manage Billing permission can cancel."
+  },
+  {
+    "id": "nordvpn",
+    "name": "NordVPN",
+    "catalogCancelUrl": "https://my.nordaccount.com/billing/my-subscriptions/",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "NordAccount 접속",
+        "description": "NordAccount(my.nordaccount.com)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "청구 및 구독 확인",
+        "description": "좌측 메뉴 [Billing] > [Subscriptions] 탭으로 이동합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동 갱신 취소",
+        "description": "[Auto-Renewal] 옆 [Manage] 클릭 후 [Cancel auto-renew]를 선택합니다."
+      }
+    ],
+    "cancelUrlStatus": 302,
+    "officialHelpUrls": [
+      "https://support.nordvpn.com/hc/en-us/articles/19556844985489-How-to-cancel-auto-renewal-for-your-NordVPN-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password",
+      "google",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Nord Account Home (my.nordaccount.com)",
+        "label": "Billing (left navigation sidebar)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Billing > Subscriptions (my.nordaccount.com/billing/my-subscriptions/)",
+        "label": "Cancel (next to Auto-renewal)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Auto-renewal Cancellation Confirmation",
+        "label": "Cancel auto-renewal",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Cancel auto-renewal",
+    "successText": "You've cancelled auto-renewal",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "Catalog guide states: [Billing] > [Subscriptions] > [Auto-Renewal] 옆 [Manage] 클릭 후 [Cancel auto-renew] 선택. Current UI shows [Cancel] directly next to auto-renewal in Billing, followed by clicking [Cancel auto-renewal]. Concepts match.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.nordvpn.com/hc/en-us/articles/19556844985489-How-to-cancel-auto-renewal-for-your-NordVPN-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Cancelling auto-renewal stops subsequent billing while keeping service active until the end of the current term. Subscriptions made via App Store or Google Play must be canceled via their respective store settings."
+  },
+  {
+    "id": "notion",
+    "name": "Notion Plus",
+    "catalogCancelUrl": "https://www.notion.so/settings",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "워크스페이스 설정",
+        "description": "Notion 좌측 상단 [설정(Settings)] 메뉴를 엽니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 탭 이동",
+        "description": "워크스페이스 섹션의 [요금제(Billing & Plans)]를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "무료로 다운그레이드",
+        "description": "Plus 요금제 카드에서 [무료 플랜으로 다운그레이드]를 선택합니다."
+      }
+    ],
+    "cancelUrlStatus": 307,
+    "officialHelpUrls": [
+      "https://www.notion.com/help/upgrade-or-downgrade-your-plan"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_otp",
+      "email_password",
+      "google",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Notion Workspace (Sidebar)",
+        "label": "Settings",
+        "kind": "nav"
+      },
+      {
+        "screen": "Settings Modal",
+        "label": "Billing",
+        "kind": "nav"
+      },
+      {
+        "screen": "Billing Page",
+        "label": "Change plan",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Plan Selection",
+        "label": "Select Free Plan > Continue",
+        "kind": "retention"
+      },
+      {
+        "screen": "Feedback Survey",
+        "label": "Provide some feedback for us",
+        "kind": "survey"
+      },
+      {
+        "screen": "Final Confirmation",
+        "label": "Downgrade",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "Reverts workspace to Free Plan at the end of the current billing cycle; retains pages but team collaboration and premium Plus features are limited.",
+      "continueLabel": "Continue"
+    },
+    "finalButtonLabel": "Downgrade",
+    "successText": "You’ll receive confirmation of your downgrade, and see when your current plan ends",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "Catalog guide states: [설정(Settings)] > [요금제(Billing & Plans)] > Plus 요금제 카드에서 [무료 플랜으로 다운그레이드]. Official doc shows: Settings > Billing > [Change plan] > Select the plan (Free) > [Continue] > Provide feedback > [Downgrade]. Overall concepts match.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.notion.com/help/upgrade-or-downgrade-your-plan",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Subscriptions are billed per workspace. Downgrading to Free takes effect at the end of the billing cycle. Subscriptions purchased on mobile devices must be canceled via Apple App Store or Google Play."
+  },
+  {
+    "id": "adobe-lightroom",
+    "name": "Adobe Lightroom Mobile Premium",
+    "catalogCancelUrl": "https://account.adobe.com/plans",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Adobe 플랜 이동",
+        "description": "Adobe 계정 페이지(account.adobe.com/plans)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "Lightroom 플랜 관리",
+        "description": "Lightroom 프리미엄 플랜의 [플랜 관리] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소 완료",
+        "description": "[플랜 취소]를 선택하여 해지합니다 (스토어 결제 시 구글플레이 구독 취소)."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://helpx.adobe.com/account/individual/subscriptions-and-plans/renewals-and-cancellations/cancel-adobe-subscription.html"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password",
+      "google",
+      "apple",
+      "facebook",
+      "passkey"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Adobe Account - Plans (account.adobe.com/plans)",
+        "label": "Manage plan",
+        "kind": "nav"
+      },
+      {
+        "screen": "Plan Management Details",
+        "label": "Cancel your plan",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Plan Details Review",
+        "label": "Continue to cancel",
+        "kind": "retention"
+      },
+      {
+        "screen": "Cancellation Reason",
+        "label": "Select the reason for cancellation > Continue",
+        "kind": "survey"
+      },
+      {
+        "screen": "Cancellation Details Review",
+        "label": "Confirm cancellation",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "Shows plan details and alternative offers/plans before cancellation; access to paid apps continues until the end of current billing period.",
+      "continueLabel": "Continue to cancel"
+    },
+    "finalButtonLabel": "Confirm cancellation",
+    "successText": "Check your email for a confirmation from Adobe or verify the cancellation on your account page",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "Catalog guide lists [플랜 관리] > [플랜 취소] (with note regarding mobile store). Official Adobe flow for web-purchased plans has intermediate steps: [Manage plan] > [Cancel your plan] > [Continue to cancel] > Reason for cancellation > [Continue] > [Confirm cancellation]. For mobile in-app subscriptions, users must cancel via Google Play or Apple App Store. Concepts match.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://helpx.adobe.com/account/individual/subscriptions-and-plans/renewals-and-cancellations/cancel-adobe-subscription.html",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Direct Adobe web purchases cancel via account.adobe.com/plans. Subscriptions initiated on mobile via Apple App Store, Google Play, or Microsoft Store must be cancelled through that app store."
+  }
+]

@@ -40,3 +40,64 @@ test("getNextChargeDate 및 daysUntilCharge가 매월 및 매년 결제주기를
   assert.equal(nextYearly.getMonth(), 8); // 9월
   assert.equal(nextYearly.getDate(), 5);
 });
+
+test("2월 29일 시작 연간 구독은 윤년과 평년을 거치며 2월 28일/29일로 유지된다", () => {
+  // 2024년 2월 29일(윤년) 가입
+  const leapSub = { billingCycle: "매년", nextBillingDate: "2024-02-29" };
+
+  // 2024-01-01 기준 -> 2024년 2월 29일
+  const d2024 = getNextChargeDate(leapSub, new Date(2024, 0, 1));
+  assert.equal(d2024.getFullYear(), 2024);
+  assert.equal(d2024.getMonth(), 1); // 2월
+  assert.equal(d2024.getDate(), 29);
+
+  // 2024-03-01 기준 (평년 2025년으로 갱신) -> 2025년 2월 28일로 보정
+  const d2025 = getNextChargeDate(leapSub, new Date(2024, 2, 1));
+  assert.equal(d2025.getFullYear(), 2025);
+  assert.equal(d2025.getMonth(), 1);
+  assert.equal(d2025.getDate(), 28);
+
+  // 2025-03-01 기준 (평년 2026년으로 갱신) -> 2026년 2월 28일
+  const d2026 = getNextChargeDate(leapSub, new Date(2025, 2, 1));
+  assert.equal(d2026.getFullYear(), 2026);
+  assert.equal(d2026.getMonth(), 1);
+  assert.equal(d2026.getDate(), 28);
+
+  // 2027-03-01 기준 (윤년 2028년으로 갱신) -> 3월 1일로 밀리지 않고 2028년 2월 29일로 복원
+  const d2028 = getNextChargeDate(leapSub, new Date(2027, 2, 1));
+  assert.equal(d2028.getFullYear(), 2028);
+  assert.equal(d2028.getMonth(), 1);
+  assert.equal(d2028.getDate(), 29);
+});
+
+test("월간 무료체험 구독이 미래의 nextBillingDate를 가질 때 nextBillingDate를 우선 적용한다", () => {
+  // 2026-03-28 가입, 체험 종료 2026-04-04, dueDay 28
+  const trialSub = {
+    dueDay: 28,
+    billingCycle: "매월",
+    nextBillingDate: "2026-04-04",
+    isTrial: true,
+  };
+  const reference = new Date(2026, 2, 28); // 2026-03-28
+  const nextDate = getNextChargeDate(trialSub, reference);
+  assert.equal(nextDate.getFullYear(), 2026);
+  assert.equal(nextDate.getMonth(), 3); // 4월
+  assert.equal(nextDate.getDate(), 4);
+  assert.equal(daysUntilCharge(trialSub, reference), 7);
+});
+
+test("월간 구독의 nextBillingDate가 과거인 경우 다음 결제일로 롤포워드하며 말일 보정을 유지한다", () => {
+  const monthlySub = { dueDay: 31, billingCycle: "매월", nextBillingDate: "2026-01-31" };
+
+  // 2026-02-15 기준 -> 2026년 2월 28일
+  const dFeb = getNextChargeDate(monthlySub, new Date(2026, 1, 15));
+  assert.equal(dFeb.getFullYear(), 2026);
+  assert.equal(dFeb.getMonth(), 1);
+  assert.equal(dFeb.getDate(), 28);
+
+  // 2026-03-01 기준 -> 2026년 3월 31일로 복원
+  const dMar = getNextChargeDate(monthlySub, new Date(2026, 2, 1));
+  assert.equal(dMar.getFullYear(), 2026);
+  assert.equal(dMar.getMonth(), 2);
+  assert.equal(dMar.getDate(), 31);
+});

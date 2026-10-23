@@ -1,5 +1,5 @@
-import { serviceCatalog } from "../data/subscriptionData.js";
-import { getCancelGuide } from "../data/cancelGuides.js";
+import { getCachedCatalog, loadSubscriptionData } from "../data/catalogLoader.js";
+import { PAYMENT_CHANNEL_IDS } from "./paymentChannels.js";
 import { Browser } from "@capacitor/browser";
 import { isNativePlatform } from "./platform.js";
 import { createClient } from '@supabase/supabase-js';
@@ -17,6 +17,7 @@ export const isSupabaseConfigured = Boolean(
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
+        flowType: 'pkce',
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
@@ -57,10 +58,11 @@ export async function signOut() {
   return supabase.auth.signOut();
 }
 
-export function mapDbToSubscription(row) {
+export function mapDbToSubscription(row, catalog = null) {
   const targetName = (row.service_name || '').toLowerCase().replace(/\s+/g, '');
   const targetId = (row.service_id || row.subscription_id || '').toLowerCase();
-  const matched = serviceCatalog.find((s) => {
+  const activeCatalog = catalog || getCachedCatalog()?.serviceCatalog || [];
+  const matched = activeCatalog.find((s) => {
     const sId = (s.id || '').toLowerCase();
     const sName = (s.name || '').toLowerCase().replace(/\s+/g, '');
     return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);
@@ -79,22 +81,29 @@ export function mapDbToSubscription(row) {
     dueDay: row.due_day,
     paymentMethod: row.payment_method || '',
     cancelUrl: row.cancel_url || matched?.cancelUrl || '',
-    guideSteps: getCancelGuide(matched?.id || row.service_id).steps,
     status: row.status || 'active',
     sourceType: row.source_type || 'manual',
     subscriptionId: row.subscription_id,
     monogram: row.monogram || matched?.monogram || (row.service_name ? row.service_name.slice(0, 1).toUpperCase() : ''),
     markTone: row.mark_tone || null,
-    alertD3: Boolean(row.alert_d3),
+    alertD3: row.alert_d3 !== false,
     alertD1: Boolean(row.alert_d1),
     renewalPending: Boolean(row.renewal_pending),
+    isPinned: Boolean(row.is_pinned),
+    pinned: Boolean(row.is_pinned),
     createdAt: row.created_at,
+    updatedAt: row.updated_at || row.created_at || null,
     nextBillingDate: row.next_billing_date || null,
     renewalReviewedFor: row.renewal_reviewed_for || null,
     isTrial: row.status === 'trial',
     currency: row.currency || 'KRW',
     originalAmount: row.original_amount != null ? Number(row.original_amount) : null,
     planId: row.plan_id || null,
+    paymentChannel: PAYMENT_CHANNEL_IDS.includes(row.payment_channel) ? row.payment_channel : null,
+    memo: row.memo ?? '',
+    alertDDay: row.alert_dday != null ? Number(row.alert_dday) : undefined,
+    alertHour: row.alert_hour != null ? String(row.alert_hour).padStart(2, '0') : null,
+    alertAmpm: row.alert_ampm || null,
   };
 }
 
@@ -124,8 +133,14 @@ export function mapSubscriptionToDb(sub, userId) {
     renewal_pending: Boolean(sub.renewalPending),
     monogram: sub.monogram || '',
     mark_tone: sub.markTone || null,
+    is_pinned: Boolean(sub.isPinned || sub.pinned),
     next_billing_date: sub.nextBillingDate || null,
     renewal_reviewed_for: sub.renewalReviewedFor || null,
+    payment_channel: PAYMENT_CHANNEL_IDS.includes(sub.paymentChannel) ? sub.paymentChannel : null,
+    memo: sub.memo ?? null,
+    alert_dday: sub.alertDDay != null ? Number(sub.alertDDay) : null,
+    alert_hour: sub.alertHour != null ? Number(sub.alertHour) : null,
+    alert_ampm: (sub.alertAmpm === '오전' || sub.alertAmpm === '오후') ? sub.alertAmpm : null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -133,6 +148,7 @@ export function mapSubscriptionToDb(sub, userId) {
 export async function fetchUserSubscriptions(userId) {
   if (!supabase || !userId) return [];
   try {
+    await loadSubscriptionData().catch(() => null);
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
@@ -149,6 +165,7 @@ export async function fetchUserSubscriptions(userId) {
 export async function upsertDbSubscription(userId, sub) {
   if (!supabase || !userId) return null;
   try {
+    await loadSubscriptionData().catch(() => null);
     const row = mapSubscriptionToDb(sub, userId);
     const { data, error } = await supabase
       .from('subscriptions')

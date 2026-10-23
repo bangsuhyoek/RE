@@ -1,0 +1,812 @@
+[
+  {
+    "id": "speak",
+    "name": "Speak",
+    "catalogCancelUrl": "https://app.usespeak.com/settings/subscription",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 이동",
+        "description": "Speak 앱 우측 상단 프로필 > 톱니바퀴 [설정]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 관리 선택",
+        "description": "[멤버십 관리] 또는 [구독 관리] 메뉴를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "스토어 결제창(Google Play/App Store)에서 [구독 취소]를 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://help.speak.com/en/articles/5355569-how-can-i-cancel-the-subscription"
+    ],
+    "cancelChannel": "app_only",
+    "mobileWebOk": false,
+    "loginMethods": [
+      "email",
+      "apple",
+      "google"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Home",
+        "label": "Profile",
+        "kind": "nav"
+      },
+      {
+        "screen": "Profile",
+        "label": "Settings",
+        "kind": "nav"
+      },
+      {
+        "screen": "Settings",
+        "label": "Manage Membership",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Manage Membership",
+        "label": "Cancel Membership",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Cancel Confirmation",
+        "label": "Cancel Subscription",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Cancel Subscription",
+    "successText": null,
+    "catalogGuideMatches": false,
+    "catalogDiscrepancy": "Catalog guide states that cancellation is done via Google Play/App Store store payment screen, but official help documentation confirms cancellation depends on purchase method: store purchases cancel in store settings, while web purchases (Paddle/Stripe) must be cancelled in-app via Profile > Settings > Manage Membership > Cancel Membership > Cancel Subscription. Web portal app.usespeak.com redirects to region selector.",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://help.speak.com/en/articles/5355569-how-can-i-cancel-the-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Purchase method dictates cancel channel: App Store/Google Play in-app purchases cancel via respective app store subscription settings; web purchases cancel in Speak app (Profile > Settings > Manage Membership > Cancel Membership). Web cancelUrl redirects to region selector."
+  },
+  {
+    "id": "duolingo",
+    "name": "Duolingo Super",
+    "catalogCancelUrl": "https://www.duolingo.com/settings/super",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "설정 메뉴 이동",
+        "description": "듀오링고 우측 상단 프로필 > [설정] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "Super Duolingo 선택",
+        "description": "우측 사이드바에서 [Super Duolingo] 탭을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 관리 및 취소",
+        "description": "[구독 관리] > [구독 취소]를 누르고 확인 단계를 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://support.duolingo.com/hc/en-us/articles/115004068123-How-do-I-cancel-my-Super-Duolingo-subscription",
+      "https://www.duolingo.com/help"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_or_username",
+      "google",
+      "facebook",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Web Navbar / Profile Menu",
+        "label": "Settings",
+        "kind": "nav"
+      },
+      {
+        "screen": "Settings Sidebar",
+        "label": "Super Duolingo",
+        "kind": "nav"
+      },
+      {
+        "screen": "Super Duolingo Management",
+        "label": "Cancel Subscription",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Cancel Confirmation Modal",
+        "label": "Confirm",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Confirm",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.duolingo.com/hc/en-us/articles/115004068123-How-do-I-cancel-my-Super-Duolingo-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Users subscribing on Web cancel via Settings > Super Duolingo > Cancel Subscription > Confirm. Users subscribing via iOS App Store or Google Play Store must cancel through their respective store subscription settings."
+  },
+  {
+    "id": "ringle",
+    "name": "Ringle",
+    "catalogCancelUrl": "https://www.ringleplus.com/ko/student/landing/home",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "링글 로그인 후 [마이페이지] > [수강권/결제 관리]로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "정기구독 확인",
+        "description": "이용 중인 정기구독 수강권 내역을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "정기구독 해지 신청",
+        "description": "[정기구독 해지 신청]을 누르고 해지 확인을 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://www.ringleplus.com/ko/student/policy/terms"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email",
+      "google",
+      "apple",
+      "kakao",
+      "naver"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "마이페이지",
+        "label": "마이페이지",
+        "kind": "nav"
+      },
+      {
+        "screen": "수강권/결제 관리",
+        "label": "수강권/결제 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "정기구독 내역",
+        "label": "정기구독 해지 신청",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 신청 확인 모달",
+        "label": "해지 신청",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "해지 신청",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "user_reported",
+    "sources": [
+      {
+        "url": "https://www.ringleplus.com/ko/student/policy/terms",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://www.ringleplus.com/ko/student/auth/sign-in",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Ringle Terms of Service Section 19 specify online contract cancellation. The user flow is accessible via web student portal: 마이페이지 > 수강권/결제 관리 > 정기구독 내역 > 정기구독 해지 신청. Google Play store in-app purchases within 48h are handled via Google Play, after 48h via customer support."
+  },
+  {
+    "id": "cambly",
+    "name": "Cambly",
+    "catalogCancelUrl": "https://www.cambly.com/en/student/settings#subscription",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 설정 진입",
+        "description": "캠블리 우측 상단 프로필 > [계정 설정] > [플랜]으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "플랜 취소 링크",
+        "description": "[플랜 관리] 영역에서 [플랜 취소] 링크를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "플랜 취소 확정",
+        "description": "취소 사유를 선택하고 [플랜 취소 확정]을 누릅니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://camblyenglish.zendesk.com/hc/en-us/articles/360000305846-How-do-I-cancel-my-subscription",
+      "https://camblyenglish.zendesk.com/hc/ko/sections/360000054403-%EA%B2%B0%EC%A0%9C"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email",
+      "google",
+      "apple",
+      "facebook",
+      "wechat"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Dashboard / Top Navigation",
+        "label": "Account Settings",
+        "kind": "nav"
+      },
+      {
+        "screen": "Account Settings",
+        "label": "Subscription / Plan",
+        "kind": "nav"
+      },
+      {
+        "screen": "Plan Management",
+        "label": "Cancel Plan / 플랜 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Cancellation Survey",
+        "label": "Reason Selection",
+        "kind": "survey"
+      },
+      {
+        "screen": "Cancellation Confirmation",
+        "label": "Cancel Plan / 플랜 취소 확정",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "플랜 취소 확정",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.cambly.com/en/student/settings#subscription",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://camblyenglish.zendesk.com/hc/ko/sections/360000054403-%EA%B2%B0%EC%A0%9C",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Cambly web subscriptions are managed directly under Account Settings > Subscription (#subscription). Clicking Cancel Plan opens a reason selection flow followed by final confirmation. The cancel URL redirects to login with return redirect when unauthenticated."
+  },
+  {
+    "id": "santatoeic",
+    "name": "산타토익",
+    "catalogCancelUrl": "https://play.google.com/store/account/subscriptions",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 구독 진입",
+        "description": "Google Play 스토어 앱 실행 후 프로필 > [결제 및 정기 결제]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "정기 결제 선택",
+        "description": "[정기 결제] 목록에서 [산타 / Riiid] 항목을 선택합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "하단의 [구독 취소]를 누르고 취소 사유를 선택해 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://support.google.com/googleplay/answer/7018481?hl=ko",
+      "https://support.apple.com/ko-kr/118428"
+    ],
+    "cancelChannel": "store_only",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "google",
+      "apple",
+      "kakao"
+    ],
+    "loginHasPasswordField": null,
+    "steps": [
+      {
+        "screen": "Google Play 스토어 앱",
+        "label": "프로필 아이콘",
+        "kind": "nav"
+      },
+      {
+        "screen": "계정 메뉴",
+        "label": "결제 및 정기 결제",
+        "kind": "nav"
+      },
+      {
+        "screen": "정기 결제 목록",
+        "label": "정기 결제",
+        "kind": "nav"
+      },
+      {
+        "screen": "정기 결제 세부정보",
+        "label": "산타 / Riiid",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "구독 관리",
+        "label": "정기 결제 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 사유 선택 모달",
+        "label": "이유 선택 후 계속",
+        "kind": "survey"
+      },
+      {
+        "screen": "취소 최종 확인",
+        "label": "정기 결제 취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "정기 결제 취소",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.google.com/googleplay/answer/7018481?hl=ko",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://support.apple.com/ko-kr/118428",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "산타(Santa / Riiid) subscriptions are processed exclusively as in-app purchases via Google Play Store and Apple App Store. There is no independent web subscription cancel flow. Google Play subscription management URL (https://play.google.com/store/account/subscriptions) can be accessed on mobile or desktop web."
+  },
+  {
+    "id": "malhaeboca",
+    "name": "말해보카",
+    "catalogCancelUrl": "https://play.google.com/store/account/subscriptions",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "스토어 정기 결제",
+        "description": "Google Play 스토어 앱 > 우측 상단 프로필 > [결제 및 정기 결제]를 누릅니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "말해보카 선택",
+        "description": "[정기 결제] 목록에서 [말해보카]를 터치합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "하단 [구독 취소]를 누르고 취소 사유를 선택하여 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://support.google.com/googleplay/answer/7018481?hl=ko",
+      "https://support.apple.com/ko-kr/118428",
+      "https://epop.ai/faq",
+      "https://epop.ai/legal/termsAndConditions"
+    ],
+    "cancelChannel": "store_only",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "google",
+      "apple",
+      "kakao"
+    ],
+    "loginHasPasswordField": null,
+    "steps": [
+      {
+        "screen": "Google Play 스토어 앱",
+        "label": "프로필 아이콘",
+        "kind": "nav"
+      },
+      {
+        "screen": "계정 메뉴",
+        "label": "결제 및 정기 결제",
+        "kind": "nav"
+      },
+      {
+        "screen": "정기 결제 목록",
+        "label": "정기 결제",
+        "kind": "nav"
+      },
+      {
+        "screen": "정기 결제 세부정보",
+        "label": "말해보카",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "구독 관리",
+        "label": "정기 결제 취소",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "취소 사유 선택 모달",
+        "label": "이유 선택 후 계속",
+        "kind": "survey"
+      },
+      {
+        "screen": "취소 최종 확인",
+        "label": "정기 결제 취소",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "정기 결제 취소",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.google.com/googleplay/answer/7018481?hl=ko",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://support.apple.com/ko-kr/118428",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://epop.ai/legal/termsAndConditions",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "말해보카 (운영사 이팝소프트 epop.ai) is a mobile-first vocabulary and conversation app. All personal subscriptions are processed via in-app purchases through Google Play Store or Apple App Store. Cancellation must be performed via the respective application store subscription management interface. The cancelUrl (Google Play subscriptions) can be accessed on mobile web or desktop web."
+  },
+  {
+    "id": "class101",
+    "name": "CLASS101+",
+    "catalogCancelUrl": "https://class101.net/ko/mypage/subscription",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "클래스101 로그인 후 [마이페이지] > [구독 관리]로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 해지하기 선택",
+        "description": "현재 이용 중인 [CLASS101+] 플랜 우측 [구독 해지하기]를 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "해지 완료",
+        "description": "혜택 유지 제안을 지나 [해지 신청하기]를 최종 선택합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://class101.net/ko/mypage/subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "naver",
+      "kakao",
+      "google",
+      "apple",
+      "facebook"
+    ],
+    "loginHasPasswordField": false,
+    "steps": [
+      {
+        "screen": "마이페이지",
+        "label": "마이페이지",
+        "kind": "nav"
+      },
+      {
+        "screen": "CLASS101+ 구독 관리",
+        "label": "구독 관리",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 관리 상세",
+        "label": "구독 해지하기",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "혜택 유지 제안",
+        "label": "해지하기",
+        "kind": "retention"
+      },
+      {
+        "screen": "해지 사유 선택",
+        "label": "해지 사유 선택",
+        "kind": "survey"
+      },
+      {
+        "screen": "최종 확인",
+        "label": "해지 신청하기",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "정말 해지하시겠어요? 혜택이 남아있어요 (잔여 혜택 강조 및 유지 제안)",
+      "continueCancellingLabel": "해지하기"
+    },
+    "finalButtonLabel": "해지 신청하기",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "user_reported",
+    "sources": [
+      {
+        "url": "https://class101.net/ko/mypage/subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "CLASS101+ subscriptions can be cancelled via web at /ko/mypage/subscription or in the app under My Page > Subscription Management. The cancel process includes retention offers reminding users of remaining benefits before the final confirmation button (해지 신청하기)."
+  },
+  {
+    "id": "fastcampus",
+    "name": "패스트캠퍼스",
+    "catalogCancelUrl": "https://fastcampus.co.kr",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "내 강의실 이동",
+        "description": "패스트캠퍼스 로그인 후 [내 강의실] > [결제/구독 내역]으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 이용권 관리",
+        "description": "구독형 이용권 항목 우측 [관리] 버튼을 누릅니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 해지 신청",
+        "description": "[구독 해지 신청]을 누르고 해지 확인을 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://fastcampus.co.kr/info/policies/refund",
+      "https://day1fastcampussupport.zendesk.com/hc/ko"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email",
+      "kakao",
+      "naver",
+      "google"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "내 강의실",
+        "label": "내 강의실",
+        "kind": "nav"
+      },
+      {
+        "screen": "결제/구독 내역",
+        "label": "결제/구독 내역",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독형 이용권 관리",
+        "label": "관리",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "구독 관리 상세",
+        "label": "구독 해지 신청",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 신청 확인 모달",
+        "label": "해지 신청",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "해지 신청",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "user_reported",
+    "sources": [
+      {
+        "url": "https://fastcampus.co.kr/info/policies/refund",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://fastcampus.co.kr/account/sign-in",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "패스트캠퍼스 operates fixed-period subscription plans (패캠 구독제 / 기간제 구독형 상품). The cancellation policy is codified in official refund terms (/info/policies/refund). Online management is handled through the user dashboard: 내 강의실 > 결제/구독 내역 > 관리 > 구독 해지 신청."
+  },
+  {
+    "id": "inflearn",
+    "name": "인프런",
+    "catalogCancelUrl": "https://www.inflearn.com/my-courses",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "마이페이지 이동",
+        "description": "인프런 로그인 후 [마이페이지] > [수강 바우처/결제 내역]으로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 패스 확인",
+        "description": "이용 중인 인프런패스 또는 멤버십 항목을 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "자동결제 해지",
+        "description": "[자동결제 해지] 버튼을 누르고 확인을 마칩니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://www.inflearn.com/faq",
+      "https://www.inflearn.com/my/orders"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email",
+      "kakao",
+      "google",
+      "github",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "마이페이지",
+        "label": "마이페이지",
+        "kind": "nav"
+      },
+      {
+        "screen": "수강 바우처/결제 내역 (또는 구매 내역)",
+        "label": "수강 바우처/결제 내역",
+        "kind": "nav"
+      },
+      {
+        "screen": "구독 패스 / 멤버십 관리",
+        "label": "구독 패스 확인",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "자동결제 관리",
+        "label": "자동결제 해지",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "해지 확인 팝업",
+        "label": "해지 확인",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "해지 확인",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "user_reported",
+    "sources": [
+      {
+        "url": "https://www.inflearn.com/faq",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://www.inflearn.com/my/orders",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "인프런 operates on-demand course purchases and subscription passes (인프런패스, B2B 구독권 등). In the updated site layout, /my-courses redirects to /my/courses, and payment/subscription management is located under 마이페이지 > 구매 내역 (/my/orders) or 수강 바우처/결제 내역 where recurring billing can be cancelled via 자동결제 해지."
+  },
+  {
+    "id": "coursera",
+    "name": "Coursera Plus",
+    "catalogCancelUrl": "https://www.coursera.org/my-purchases",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "My Purchases 이동",
+        "description": "Coursera 우측 상단 프로필 > [My Purchases] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 탭 확인",
+        "description": "[Subscriptions] 탭에서 Coursera Plus 항목을 찾습니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "Cancel Subscription",
+        "description": "[Cancel Subscription]을 누르고 취소 설문을 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://www.coursera.support/s/article/209819003-Cancel-a-subscription",
+      "https://www.coursera.org/about/terms/cancellation"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email",
+      "google",
+      "facebook",
+      "apple"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Coursera Header / Profile Menu",
+        "label": "My Purchases (내 구입)",
+        "kind": "nav"
+      },
+      {
+        "screen": "My Purchases",
+        "label": "Subscriptions (구독)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Coursera Plus / Specialization Item",
+        "label": "Cancel Subscription (구독 취소)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Cancellation Survey",
+        "label": "Reason selection",
+        "kind": "survey"
+      },
+      {
+        "screen": "Confirmation Modal",
+        "label": "Cancel Subscription (구독 취소)",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Cancel Subscription",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://www.coursera.org/my-purchases",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://www.coursera.support/s/article/209819003-Cancel-a-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Coursera Plus and Specialization subscriptions purchased on the web are managed directly at https://www.coursera.org/my-purchases under the Subscriptions tab. Users click Cancel Subscription and complete the survey to confirm."
+  }
+]

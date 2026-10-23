@@ -141,7 +141,7 @@
     "plan": "디지털 유료구독",
     "amount": 9000,
     "brandColor": "#E60000",
-    "cancelUrl": "https://www.joongang.co.kr/plus",
+    "cancelUrl": "https://www.joongang.co.kr/plus/mypage/subscription",
     "aliases": [
       "중앙일보",
       "더중앙"

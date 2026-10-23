@@ -26,13 +26,17 @@ drop function if exists public.lc_register_device(text, text, integer);
 drop function if exists public.lc_resolve_device(text);
 
 -- 4. cancellation_history와 subscription_services 간의 외래키 연결 (Schema Visualizer 연결선)
-alter table public.cancellation_history 
-  drop constraint if exists cancellation_history_service_id_fkey;
-
-alter table public.cancellation_history 
-  add constraint cancellation_history_service_id_fkey 
-  foreign key (service_id) references public.subscription_services(id) 
-  on delete set null;
+do $$
+begin
+  if to_regclass('public.cancellation_history') is not null then
+    alter table public.cancellation_history 
+      drop constraint if exists cancellation_history_service_id_fkey;
+    alter table public.cancellation_history 
+      add constraint cancellation_history_service_id_fkey 
+      foreign key (service_id) references public.subscription_services(id) 
+      on delete set null;
+  end if;
+end $$;
 
 -- 5. 테이블 설명(Comment) 추가 (Schema Visualizer에서 식별 용이)
 comment on table public.subscription_services is '구독 서비스 마스터 카탈로그 (94개 순수 디지털/웹 서비스)';
@@ -41,9 +45,17 @@ comment on table public.benefits is '구독 서비스 프로모션, 제휴 무�
 comment on table public.service_benefits is '구독 서비스와 혜택 간의 M:N 매핑 (제휴/결합 다중 연결 지원)';
 comment on table public.subscriptions is '사용자가 등록한 활성/체험 구독 목록 (결제일, 결제수단, 공유분담금 등)';
 comment on table public.receipt_recognitions is '영수증 OCR 자동인식 결과 메타데이터 (보안상 원문/이미지는 미보관)';
-comment on table public.profiles is 'SubMate 사용자 프로필 및 온보딩/알림 설정';
-comment on table public.notifications is '결제일 D-3, D-1 알림 및 갱신/해지 알림 내역';
-comment on table public.cancellation_history is '사용자가 해지 완료한 구독 서비스 및 절감액 이력';
+do $$
+begin
+  if to_regclass('public.profiles') is not null then
+    comment on table public.profiles is 'SubMate 사용자 프로필 및 온보딩/알림 설정';
+  end if;
+  if to_regclass('public.notifications') is not null then
+    comment on table public.notifications is '결제일 D-3, D-1 알림 및 갱신/해지 알림 내역';
+  end if;
+  if to_regclass('public.cancellation_history') is not null then
+    comment on table public.cancellation_history is '사용자가 해지 완료한 구독 서비스 및 절감액 이력';
+  end if;
+end $$;
 
 commit;
-

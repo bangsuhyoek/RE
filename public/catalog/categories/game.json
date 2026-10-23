@@ -229,7 +229,7 @@
     "plan": "EA Play",
     "amount": 5500,
     "brandColor": "#000000",
-    "cancelUrl": "https://www.ea.com/ea-play",
+    "cancelUrl": "https://myaccount.ea.com/cp-ui/subscription/index",
     "aliases": [
       "ea플레이"
     ],

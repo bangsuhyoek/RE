@@ -141,7 +141,7 @@
     "plan": "월정액 멤버십",
     "amount": 7900,
     "brandColor": "#FC4C02",
-    "cancelUrl": "https://www.strava.com/subscribe",
+    "cancelUrl": "https://www.strava.com/settings/subscription",
     "aliases": [
       "스트라바",
       "strava"

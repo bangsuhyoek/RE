@@ -96,3 +96,61 @@ test("요금제가 비어 있어도 중복 구독 검사는 오류 없이 기본
     false
   );
 });
+
+test("체험 프로모션 절약 문구: 1회성/무료 체험 프로모션은 '월' 문구 없이 '체험 혜택'으로 표시된다", () => {
+  const resolveSavingText = (promotion) => {
+    const savingAmount = Number(promotion.saving) || 0;
+    const isAnnual = promotion.kind?.includes("연간") || promotion.category === "학생/연간";
+    const isTrial = Boolean(promotion.kind?.includes("무료") || promotion.kind?.includes("체험"));
+    if (isAnnual) {
+      return savingAmount > 0
+        ? `연 ${savingAmount.toLocaleString("ko-KR")}원 절약`
+        : (promotion.offerPrice === 0 ? "0원 무료" : null);
+    }
+    if (isTrial) {
+      return "체험 혜택";
+    }
+    if (savingAmount > 0) {
+      return `월 ${savingAmount.toLocaleString("ko-KR")}원 절약`;
+    }
+    return promotion.offerPrice === 0 ? "0원 무료" : null;
+  };
+
+  const nintendoTrial = {
+    id: "nintendo-7d-free",
+    kind: "7일 무료 체험권",
+    category: "100원/무료",
+    saving: 2000,
+    offerPrice: 0,
+  };
+  const savingText = resolveSavingText(nintendoTrial);
+  assert.equal(savingText, "체험 혜택");
+  assert.equal(savingText.includes("월"), false);
+
+  const speakTrial = {
+    id: "speak-7d-free",
+    kind: "7일 무료 체험",
+    category: "100원/무료",
+    saving: 7250,
+    offerPrice: 0,
+  };
+  assert.equal(resolveSavingText(speakTrial), "체험 혜택");
+
+  const annualPromo = {
+    id: "disney-annual-16",
+    kind: "연간 결제 16% 할인 (2개월 무료 효과)",
+    category: "학생/연간",
+    saving: 19800,
+    offerPrice: 99000,
+  };
+  assert.equal(resolveSavingText(annualPromo), "연 19,800원 절약");
+
+  const regularMonthly = {
+    id: "regular-discount",
+    kind: "첫 달 50% 할인",
+    category: "OTT",
+    saving: 5000,
+    offerPrice: 5000,
+  };
+  assert.equal(resolveSavingText(regularMonthly), "월 5,000원 절약");
+});

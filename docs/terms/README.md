@@ -9,8 +9,9 @@
 | 문서명 | 파일 경로 | 적용 대상 및 목적 |
 | :--- | :--- | :--- |
 | **서비스 이용약관** | 01_TERMS_OF_SERVICE.md | 회원 이용 계약, 구독 관리/해지 보조 서비스의 정의 및 면책 조항 |
-| **개인정보 처리방침** | 02_PRIVACY_POLICY.md | 수집 항목, 보유 기간, 클라우드(Supabase/Vercel/Google) 위탁 및 파기 규정 |
-| **앱 접근 권한 및 사전 고지서** | 03_APP_PERMISSIONS_AND_CONSENTS.md | 구글 플레이 Prominent Disclosure, 알림 접근/오버레이 권한 사전 안내 |
+| **개인정보 처리방침** | 02_PRIVACY_POLICY.md | 수집 항목, Google OAuth 단일화, Gemini 유료 등급, Supabase AES-256 저장 암호화 |
+| **앱 접근 권한 및 사전 고지서** | 03_APP_PERMISSIONS_AND_CONSENTS.md | targetSdk 36 기준 최소 권한 고지, 오버레이 제거, AI 해지 도우미 고지 |
+| **Play Data Safety 신고 명세** | PLAY_DATA_SAFETY.md | 구글 플레이 콘솔 데이터 보안 설문 제출용 데이터 유형별 공식 명세서 |
 
 ---
 
@@ -18,30 +19,38 @@
 
 ### 1. 구글 플레이스토어 심사 대비 (Google Play Console)
 - **개인정보처리방침 URL 등록**:
-  - 02_PRIVACY_POLICY.md 문서를 웹 호스팅(예: https://submate.app/privacy 또는 GitHub Pages/Notion 공개 링크)에 게시 후 Play Console의 [앱 콘텐츠 > 개인정보처리방침]에 URL 입력.
+  - `02_PRIVACY_POLICY.md` 문서를 웹 호스팅(예: https://submate.app/privacy 또는 GitHub Pages/Notion 공개 링크)에 게시 후 Play Console의 [앱 콘텐츠 > 개인정보처리방침]에 URL 입력.
 - **금융 데이터 및 알림 접근 권한 (NotificationListenerService) 선언**:
   - 구글 플레이 콘솔 내 [앱 접근 권한] 질의서에서:
     - 수집 여부: 기기 내 로컬 파싱 후 즉시 폐기 (Ephemeral On-Device Processing)
     - 공유 여부: 외부 제3자에게 전송하지 않음 (No Data Shared)
     - 암호화 여부: 기기 내 메모리에서만 처리됨
-  - 앱 내 진입 전 03_APP_PERMISSIONS_AND_CONSENTS.md의 [고지 1] 팝업이 반드시 노출되도록 구현되어 있습니다.
-- **오버레이 권한 (SYSTEM_ALERT_WINDOW)**:
-  - 구독 해지 도우미 실행 시에만 제한적으로 화면 위에 버튼을 띄우는 특수 용도(Special Use)임을 명시.
+  - 결제 경고 증빙을 계정에 보관하는 선택 기능은 [데이터 보안] 양식에서 "금융 정보 > 구매 내역"을 **수집(선택, 사용자가 삭제 가능, 전송 중 암호화)**으로 신고한다. 알림 원문은 여전히 전송하지 않는다.
+  - 생체인증(`USE_BIOMETRIC`)은 `androidx.biometric` 라이브러리가 매니페스트에 추가한다. 생체 정보는 수집하지 않으므로 데이터 보안 양식의 수집 항목에는 넣지 않는다.
+  - 앱 내 진입 전 `03_APP_PERMISSIONS_AND_CONSENTS.md`의 [고지 1] 팝업이 반드시 노출되도록 구현되어 있습니다.
+- **2026-10-19 개정 반영 (v1.3)**:
+  - **Google OAuth 단일화**: 자체 ID/비밀번호 수집을 배제하여 계정 보안을 강화.
+  - **Google Gemini API 유료 등급(Paid Services)**: 모델 학습 미사용 및 55일 내 시스템 로그 폐기 정책을 공식 적용. AI 문장 해석(`/api/agent`) 및 AI 해지 도우미(개인식별정보 마스킹) 국외 이전 고지 구체화.
+  - **오버레이 권한(`SYSTEM_ALERT_WINDOW`) 요구 제거**: 전용 인앱 해지 브라우저(`CancelBrowserActivity`)를 통해 안전한 웹뷰 기반 가이드로 전환하여 불필요한 시스템 특수 권한 제거.
+  - **온디바이스 '간단 모드'**: AI 미동의 시 외부 전송이 없는 기기 로컬 규칙 기반 간단 모드 제공.
+  - **Supabase AES-256 저장 암호화**: 데이터베이스 디스크, 백업 및 객체 스토리지 저장 암호화 공식 근거 명시.
 
 ### 2. 국내 개인정보보호법 대응
 - **선택 동의 원칙**:
-  - 알림 접근 권한, AI 영수증 분석, 마케팅 정보 수신은 모두 '선택 항목'으로 분류되어 거부하더라도 기본 수동 입력 기능을 정상 이용할 수 있습니다.
+  - 알림 접근 권한, AI 영수증 분석, AI 대화(챗봇 "꾸독"), AI 문장 해석, AI 해지 도우미, 마케팅 정보 수신은 모두 '선택 항목'으로 분류되어 거부하더라도 기본 수동 입력 및 간단 모드를 정상 이용할 수 있습니다.
 - **클라우드 및 AI 위탁 투명성**:
-  - Supabase(DB), Vercel(호스팅), Google Cloud(AI OCR)에 대한 처리 위탁 및 국외 이전을 명시하여 법적 투명성을 확보했습니다.
+  - Supabase(DB/Auth), Vercel(호스팅/API), Google LLC(Gemini API 유료 등급 / Cloud Vision)에 대한 처리 위탁 및 국외 이전(이전 항목, 국가, 목적, 보유기간, 거부 방법 등 법정 고지 항목 일체)을 명시하여 법적 투명성을 확보했습니다.
 
 ---
 
 ## 앱 내 연동 위치 권장 가이드
 
-1. **회원가입 화면 (src/components/AuthScreens.jsx)**:
-   - 가입 완료 버튼 상단에 [이용약관] 및 [개인정보 처리방침] 링크 배치
-2. **설정 화면 (src/components/HomeScreen.jsx 또는 마이페이지)**:
+1. **회원가입/로그인 화면**:
+   - Google 로그인 버튼 하단에 [이용약관] 및 [개인정보 처리방침] 링크 배치
+2. **설정 화면 (마이페이지)**:
    - "서비스 이용약관", "개인정보 처리방침", "오픈소스 라이선스" 뷰어 메뉴 제공
 3. **실시간 결제 감지 토글 (PaymentCapture)**:
-   - 권한 요청 전 03_APP_PERMISSIONS_AND_CONSENTS.md의 눈에 띄는 고지 모달 노출 후 시스템 설정 창으로 연결
+   - 권한 요청 전 `03_APP_PERMISSIONS_AND_CONSENTS.md`의 눈에 띄는 고지 모달 노출 후 시스템 설정 창으로 연결
+4. **AI 챗봇 화면 (AgentSheet 또는 챗봇 모달)**:
+   - 챗봇 첫 진입 시 일회성 동의 카드 노출 및 상단 메뉴에 [AI 데이터 전송 끄기], [대화 지우기] 제공
 

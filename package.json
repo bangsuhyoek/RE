@@ -1,11 +1,16 @@
 {
   "name": "submate-mvp",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.3",
   "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "test": "node --test tests/*.test.js",
+    "lint": "eslint .",
     "build": "vite build",
     "preview": "vite preview",
     "cap:sync": "cap sync",
@@ -14,7 +19,9 @@
     "build:apk": "node scripts/build-apk.js",
     "crawl": "node scripts/crawler/index.js",
     "crawl:promotions": "node scripts/crawler/runPromotionPipeline.js",
-    "crawl:schedule": "node scripts/crawler/scheduler.js"
+    "crawl:refunds": "node scripts/crawler/refundPolicyCheck.js",
+    "crawl:schedule": "node scripts/crawler/scheduler.js",
+    "version:android": "node scripts/sync-android-version.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
@@ -23,18 +30,22 @@
     "@capacitor/core": "^8.5.1",
     "@capacitor/local-notifications": "^8.3.1",
     "@supabase/supabase-js": "^2.116.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.20",
-    "cheerio": "^1.2.0",
     "lucide-react": "^0.468.0",
-    "postcss": "^8.4.49",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwindcss": "^3.4.16",
-    "vite": "^6.0.1"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.1",
-    "playwright-core": "1.63.0"
+    "@eslint/js": "^10.0.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "cheerio": "^1.2.0",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "playwright-core": "1.63.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
+    "vite": "^6.0.1"
   }
 }

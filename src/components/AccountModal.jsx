@@ -1,14 +1,218 @@
 import { useEffect, useState } from "react";
-import { LogOut, Check, X, AlertCircle, ChevronRight, ImagePlus, RotateCcw } from "lucide-react";
+import { LogOut, Check, X, AlertCircle, FileText, Download, Trash2, AlertTriangle } from "lucide-react";
 import { BottomSheet, Button } from "./ui";
+import { readEvidenceCases } from "../lib/storage";
+import { deleteAllEvidence, grantEvidenceConsent, readEvidenceConsent, revokeEvidenceConsent } from "../lib/evidenceStore";
+import { grantDifficultyConsent, readDifficultyConsent, revokeDifficultyConsent } from "../lib/cancelDifficulty";
+import { supabase } from "../lib/supabase";
+import { requestAccountDeletion, clearDeviceData } from "../lib/accountClient";
+import { exportUserData } from "../lib/dataExport";
 import {
-  DEFAULT_CHARACTER_SRC,
-  applyPendingCharacter,
-  discardPendingCharacter,
-  getCharacterAsset,
-  pickCharacterPng,
-  resetCharacterAsset,
-} from "../lib/characterAsset";
+  getCaptureSourceSettings,
+  setCaptureSourceSettings,
+  readCaptureSourceSettingsLocal,
+  readPaymentCaptureConsent,
+  setPaymentCaptureConsent,
+  revokePaymentCaptureConsent,
+} from "../lib/paymentCapture";
+import { PaymentCaptureDisclosureModal } from "./capture/PaymentCaptureDisclosureModal";
+
+/**
+ * 결제 알림 수집 출처 설정.
+ * 문자·메신저·이메일 앱은 사용자가 직접 켤 때만 수집하며, 기본값은 모두 꺼짐이다.
+ */
+function CaptureSourceSettings({ onToast }) {
+  const [settings, setSettings] = useState(() => readCaptureSourceSettingsLocal());
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getCaptureSourceSettings()
+      .then((next) => {
+        if (active) setSettings(next);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const toggle = async (key) => {
+    if (busy) return;
+    setBusy(true);
+    const next = { ...settings, [key]: !settings[key] };
+    const result = await setCaptureSourceSettings(next);
+    setBusy(false);
+    if (!result?.success) {
+      onToast?.("수집 출처 설정을 저장하지 못했어요. 다시 시도해 주세요.");
+      return;
+    }
+    setSettings(next);
+    onToast?.(
+      next[key]
+        ? "이 앱의 알림에서 결제 내역을 찾아볼게요. 알림 원문은 기기 밖으로 나가지 않아요."
+        : "이 앱의 알림은 더 이상 읽지 않아요."
+    );
+  };
+
+  const rows = [
+    { key: "messaging", label: "문자(SMS) 앱", hint: "카드 승인 문자를 결제로 인식" },
+    { key: "messenger", label: "메신저(카카오톡)", hint: "알림톡 결제 안내를 결제로 인식" },
+    { key: "email", label: "이메일 앱", hint: "영수증·인보이스 메일 알림을 결제로 인식" },
+  ];
+
+  return (
+    <div className="mt-5 rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs" data-testid="account-capture-source-settings">
+      <div className="flex items-center gap-2">
+        <span className="text-[13px] font-bold text-[#191F28]">알림 수집 범위</span>
+        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">선택</span>
+      </div>
+      <p className="mt-1 text-[11px] leading-relaxed text-[#8B95A1]">
+        카드사·은행·간편결제·앱스토어 알림은 기본으로 확인해요. 아래 앱들은 직접 켤 때만 알림에서
+        결제 내역을 찾고, 원문은 저장하거나 전송하지 않아요.
+      </p>
+      <ul className="mt-3 space-y-2">
+        {rows.map((row) => (
+          <li key={row.key} className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <span className="block text-[12px] font-semibold text-[#191F28]">{row.label}</span>
+              <span className="block text-[10.5px] text-[#8B95A1]">{row.hint}</span>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={Boolean(settings[row.key])}
+              aria-label={`${row.label} 알림 수집`}
+              disabled={busy}
+              onClick={() => toggle(row.key)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                settings[row.key] ? "bg-emerald-600" : "bg-[#E5E8EB]"
+              } ${busy ? "opacity-60" : ""}`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
+                  settings[row.key] ? "left-[22px]" : "left-0.5"
+                }`}
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** 결제 경고 증빙의 계정 보관 동의와 삭제 */
+function EvidenceSettings({ userId, onToast }) {
+  const [consented, setConsented] = useState(() => Boolean(readEvidenceConsent(userId)));
+  const [count, setCount] = useState(() => Object.keys(readEvidenceCases()).length);
+  const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const toggle = async () => {
+    setBusy(true);
+    if (consented) {
+      const ok = await revokeEvidenceConsent(userId);
+      if (ok) setConsented(false);
+      onToast?.(ok ? "계정 보관을 끄고 서버의 증빙을 지웠어요. 이 기기 기록은 남아 있어요." : "서버 증빙을 지우지 못했어요. 다시 시도해 주세요.");
+    } else {
+      await grantEvidenceConsent(userId);
+      setConsented(true);
+      onToast?.("증빙을 계정에 보관해요. 만든 날부터 1년 뒤 자동으로 지워져요.");
+    }
+    setBusy(false);
+  };
+
+  const removeAll = async () => {
+    setBusy(true);
+    const ok = await deleteAllEvidence(userId);
+    setBusy(false);
+    setConfirmDelete(false);
+    if (ok) setCount(0);
+    onToast?.(ok ? "증빙 기록을 모두 지웠어요." : "서버 증빙을 지우지 못했어요. 다시 시도해 주세요.");
+  };
+
+  return (
+    <div className="mt-5 rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs" data-testid="account-evidence-settings">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <strong className="flex items-center gap-1.5 text-[13px] font-bold text-[#191F28]"><FileText size={14} /> 결제 증빙 기록</strong>
+          <span className="mt-0.5 block text-[11px] leading-relaxed text-[#8B95A1]">
+            요금 인상·유료 전환·해지 후 결제 증빙 {count}건 · {userId ? (consented ? "계정에 보관 중(1년 뒤 자동 삭제)" : "이 기기에만 저장") : "이 기기에만 저장"}
+          </span>
+        </div>
+        {userId && (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={consented}
+            aria-label="증빙 계정 보관"
+            disabled={busy}
+            onClick={toggle}
+            className={"relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 " + (consented ? "bg-[#3182F6]" : "bg-[#D1D6DB]")}
+          >
+            <span className={"absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform " + (consented ? "translate-x-[22px]" : "translate-x-0.5")} />
+          </button>
+        )}
+      </div>
+      {count > 0 && (
+        confirmDelete ? (
+          <div className="mt-3 flex gap-2">
+            <Button size="compact" variant="secondary" className="flex-1" onClick={() => setConfirmDelete(false)} disabled={busy}>취소</Button>
+            <Button size="compact" className="flex-1 !bg-[#F04452]" onClick={removeAll} disabled={busy}>모두 지우기</Button>
+          </div>
+        ) : (
+          <button type="button" onClick={() => setConfirmDelete(true)} className="mt-2 text-[11px] font-semibold text-[#F04452]">증빙 모두 지우기</button>
+        )
+      )}
+    </div>
+  );
+}
+
+
+/** 해지 난이도 및 다크패턴 익명 공유 동의 설정 */
+function DifficultySettings({ userId, onToast }) {
+  const [consented, setConsented] = useState(() => Boolean(readDifficultyConsent(userId)));
+  const [busy, setBusy] = useState(false);
+
+  const toggle = () => {
+    setBusy(true);
+    if (consented) {
+      revokeDifficultyConsent(userId);
+      setConsented(false);
+      onToast?.("해지 난이도 익명 공유를 껐어요.");
+    } else {
+      grantDifficultyConsent(userId);
+      setConsented(true);
+      onToast?.("해지 경험을 익명으로 공유해요. 개인 식별 정보는 전혀 남기지 않아요.");
+    }
+    setBusy(false);
+  };
+
+  if (!userId) return null;
+
+  return (
+    <div className="mt-3 flex items-center justify-between rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs" data-testid="account-difficulty-settings">
+      <div className="min-w-0 pr-3">
+        <strong className="block text-[13px] font-bold text-[#191F28]">해지 난이도 익명 공유</strong>
+        <span className="mt-0.5 block text-[11px] leading-relaxed text-[#8B95A1]">
+          해지 시 겪은 절차와 다크패턴 경험을 식별자 없이 통계로만 익명 공유해요.
+        </span>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={consented}
+        aria-label="해지 난이도 익명 공유"
+        disabled={busy}
+        onClick={toggle}
+        className={"relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 " + (consented ? "bg-[#3182F6]" : "bg-[#D1D6DB]")}
+      >
+        <span className={"absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform " + (consented ? "translate-x-[22px]" : "translate-x-0.5")} />
+      </button>
+    </div>
+  );
+}
 
 function GoogleIcon({ className = "h-4 w-4 shrink-0" }) {
   return (
@@ -35,6 +239,8 @@ function GoogleIcon({ className = "h-4 w-4 shrink-0" }) {
 
 export function AccountModal({
   profile,
+  userId = null,
+  onToast,
   onClose,
   onUpdateNickname,
   onLogout,
@@ -45,27 +251,36 @@ export function AccountModal({
   const [nicknameInput, setNicknameInput] = useState(currentNickname);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [characterOpen, setCharacterOpen] = useState(false);
-  const [characterAsset, setCharacterAsset] = useState({
-    mode: "DEFAULT",
-    hasCustom: false,
-    src: DEFAULT_CHARACTER_SRC,
-  });
-  const [pendingCharacter, setPendingCharacter] = useState(null);
-  const [characterError, setCharacterError] = useState("");
-  const [characterBusy, setCharacterBusy] = useState(false);
+  const [showDisclosureModal, setShowDisclosureModal] = useState(false);
+  const [captureConsented, setCaptureConsented] = useState(() => readPaymentCaptureConsent(null, userId));
+
+  const handleOpenCaptureSettings = () => {
+    if (readPaymentCaptureConsent(null, userId)) {
+      onRequestPaymentCapture?.();
+    } else {
+      setShowDisclosureModal(true);
+    }
+  };
+
+  const handleConfirmDisclosure = () => {
+    setPaymentCaptureConsent(true, null, userId);
+    setCaptureConsented(true);
+    setShowDisclosureModal(false);
+    onRequestPaymentCapture?.();
+  };
+
+  const handleCancelDisclosure = () => {
+    setShowDisclosureModal(false);
+    onToast?.("결제 자동 감지 동의가 취소되었습니다. 수동 등록은 언제든지 이용하실 수 있어요.");
+  };
+
+  const handleRevokeCaptureConsent = () => {
+    revokePaymentCaptureConsent(null, userId);
+    setCaptureConsented(false);
+    onToast?.("결제 자동 감지 동의를 철회했습니다.");
+  };
 
   const isGoogle = profile?.provider === "Google";
-
-  useEffect(() => {
-    let active = true;
-    getCharacterAsset().then((asset) => {
-      if (active) setCharacterAsset(asset);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const handleNicknameChange = (e) => {
     setNicknameInput(e.target.value);
@@ -94,74 +309,13 @@ export function AccountModal({
   const isValidNickname = /^[가-힣a-zA-Z0-9\s]{2,12}$/.test(nicknameInput.trim());
   const canSave = isValidNickname && nicknameInput.trim() !== currentNickname;
 
-  const handlePickCharacter = async () => {
-    setCharacterBusy(true);
-    setCharacterError("");
-    const result = await pickCharacterPng();
-    setCharacterBusy(false);
-    if (result?.status === "READY") {
-      setPendingCharacter(result);
-      return;
-    }
-    if (result?.status && result.status !== "CANCELLED") {
-      setCharacterError(result.message || "이미지를 불러오지 못했어요. 다시 시도해주세요.");
-    }
-  };
-
-  const handleApplyCharacter = async () => {
-    setCharacterBusy(true);
-    setCharacterError("");
-    const result = await applyPendingCharacter();
-    setCharacterBusy(false);
-    if (result?.status === "APPLIED") {
-      setCharacterAsset(result);
-      setPendingCharacter(null);
-      setCharacterOpen(false);
-      return;
-    }
-    setCharacterError(result?.message || "이미지를 적용하지 못했어요. 다시 시도해주세요.");
-  };
-
-  const handleResetCharacter = async () => {
-    setCharacterBusy(true);
-    setCharacterError("");
-    const result = await resetCharacterAsset();
-    setCharacterBusy(false);
-    if (result?.status === "RESET") {
-      setCharacterAsset(result);
-      setPendingCharacter(null);
-      setCharacterOpen(false);
-      return;
-    }
-    setCharacterError(result?.message || "기본 캐릭터로 되돌리지 못했어요.");
-  };
-
-  const closeCharacterPanel = async () => {
-    if (pendingCharacter) await discardPendingCharacter();
-    setPendingCharacter(null);
-    setCharacterError("");
-    setCharacterOpen(false);
-  };
-
-  const handleAccountClose = () => {
-    if (pendingCharacter) discardPendingCharacter();
-    setPendingCharacter(null);
-    onClose();
-  };
-
-  const previewFallback = (event) => {
-    if (event.currentTarget.getAttribute("data-fallback") === "1") return;
-    event.currentTarget.setAttribute("data-fallback", "1");
-    event.currentTarget.src = DEFAULT_CHARACTER_SRC;
-  };
-
   return (
-    <BottomSheet onClose={handleAccountClose} label="계정 설정">
+    <BottomSheet onClose={onClose} label="계정 설정">
       <div className="flex items-center justify-between pb-3 border-b border-[#F2F4F6]">
         <h2 className="text-[18px] font-bold tracking-tight text-[#191F28]">내 계정 관리</h2>
         <button
           type="button"
-          onClick={handleAccountClose}
+          onClick={onClose}
           className="grid h-8 w-8 place-items-center rounded-full text-[#8B95A1] hover:bg-[#F2F4F6] hover:text-[#191F28] transition-colors"
           aria-label="닫기"
         >
@@ -178,7 +332,7 @@ export function AccountModal({
           <div className="flex items-center gap-2">
             <strong className="text-[16px] font-bold text-[#191F28] truncate">{currentNickname}</strong>
             <span className="rounded-md bg-[#EEF2F6] px-1.5 py-0.5 text-[10px] font-semibold text-[#4E5968]">
-              {isGoogle ? "Google" : "꾸독"}
+              {isGoogle ? "Google" : "게스트"}
             </span>
           </div>
           <p className="mt-0.5 text-[12px] text-[#8B95A1] flex items-center gap-1 truncate">
@@ -188,144 +342,12 @@ export function AccountModal({
                 <span className="truncate">{profile?.email || "Google 계정 연동됨"}</span>
               </>
             ) : (
-              <span>꾸독 정식 회원</span>
+              <span>체험 게스트 모드</span>
             )}
           </p>
+
         </div>
       </div>
-
-      {/* 캐릭터 설정: 기존 설정 행과 같은 밀도로 유지 */}
-      <button
-        type="button"
-        onClick={() => {
-          setCharacterError("");
-          setPendingCharacter(null);
-          setCharacterOpen(true);
-        }}
-        className="mt-3 flex min-h-[56px] w-full items-center justify-between rounded-2xl border border-[#E5E8EB] bg-white px-3.5 py-2.5 text-left shadow-2xs transition-colors hover:bg-[#F9FAFB] active:bg-[#F2F4F6]"
-      >
-        <span className="text-[13px] font-bold text-[#191F28]">캐릭터</span>
-        <span className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-[#F2F4F6] p-1">
-            <img
-              src={characterAsset.src || DEFAULT_CHARACTER_SRC}
-              onError={previewFallback}
-              alt="현재 캐릭터"
-              className="h-full w-full object-contain"
-            />
-          </span>
-          <span className="text-[12px] font-semibold text-[#6B7684]">변경</span>
-          <ChevronRight size={14} className="text-[#B0B8C1]" />
-        </span>
-      </button>
-
-      {characterOpen && (
-        <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/20 px-4 pb-[max(18px,env(safe-area-inset-bottom,0px))] sm:items-center sm:pb-0">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="캐릭터 이미지 변경"
-            className="w-full max-w-[340px] rounded-[22px] border border-[#E5E8EB] bg-white p-4 shadow-2xl"
-          >
-            <div className="flex items-center justify-between">
-              <strong className="text-[15px] font-bold text-[#191F28]">캐릭터 변경</strong>
-              <button
-                type="button"
-                onClick={closeCharacterPanel}
-                className="grid h-8 w-8 place-items-center rounded-full text-[#8B95A1] hover:bg-[#F2F4F6]"
-                aria-label="캐릭터 변경 닫기"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="mt-3 flex items-center justify-center gap-3">
-              <div className="text-center">
-                <span className="mx-auto grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-[#F2F4F6] p-1.5">
-                  <img
-                    src={characterAsset.src || DEFAULT_CHARACTER_SRC}
-                    onError={previewFallback}
-                    alt="현재 캐릭터 미리보기"
-                    className="h-full w-full object-contain"
-                  />
-                </span>
-                <span className="mt-1 block text-[10px] font-medium text-[#8B95A1]">현재</span>
-              </div>
-
-              {pendingCharacter && (
-                <>
-                  <ChevronRight size={15} className="text-[#B0B8C1]" />
-                  <div className="text-center">
-                    <span className="mx-auto grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-[#F2F4F6] p-1.5 ring-1 ring-[#3182F6]/20">
-                      <img
-                        src={pendingCharacter.previewSrc}
-                        onError={previewFallback}
-                        alt="새 캐릭터 미리보기"
-                        className="h-full w-full object-contain"
-                      />
-                    </span>
-                    <span className="mt-1 block text-[10px] font-medium text-[#3182F6]">새 이미지</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={handlePickCharacter}
-              disabled={characterBusy}
-              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] px-3 py-2.5 text-[12px] font-bold text-[#333D4B] transition-colors hover:bg-[#F2F4F6] disabled:opacity-50"
-            >
-              <ImagePlus size={15} />
-              PNG 이미지 선택
-            </button>
-
-            <p className="mt-2 text-center text-[10.5px] leading-4 text-[#8B95A1]">
-              투명 배경 PNG를 권장해요.
-            </p>
-
-            {characterError && (
-              <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-red-50 px-2.5 py-2 text-[11px] leading-4 text-[#E11D48]">
-                <AlertCircle size={13} className="mt-0.5 shrink-0" />
-                {characterError}
-              </p>
-            )}
-
-            {pendingCharacter ? (
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={closeCharacterPanel}
-                  disabled={characterBusy}
-                  className="rounded-xl border border-[#E5E8EB] px-3 py-2.5 text-[12px] font-bold text-[#4E5968] disabled:opacity-50"
-                >
-                  취소
-                </button>
-                <button
-                  type="button"
-                  onClick={handleApplyCharacter}
-                  disabled={characterBusy}
-                  className="rounded-xl bg-[#191F28] px-3 py-2.5 text-[12px] font-bold text-white disabled:opacity-50"
-                >
-                  적용
-                </button>
-              </div>
-            ) : (
-              characterAsset.hasCustom && (
-                <button
-                  type="button"
-                  onClick={handleResetCharacter}
-                  disabled={characterBusy}
-                  className="mt-3 flex w-full items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-semibold text-[#6B7684] hover:text-[#191F28] disabled:opacity-50"
-                >
-                  <RotateCcw size={13} />
-                  기본 캐릭터로 되돌리기
-                </button>
-              )
-            )}
-          </div>
-        </div>
-      )}
 
       {/* 닉네임 변경 블록 */}
       <div className="mt-5 rounded-2xl border border-[#E5E8EB] p-4 bg-white shadow-2xs">
@@ -400,11 +422,20 @@ export function AccountModal({
                 체험
               </Button>
             )}
+            {captureConsented && (
+              <button
+                type="button"
+                onClick={handleRevokeCaptureConsent}
+                className="text-[11px] text-[#8B95A1] hover:text-[#F04452] underline underline-offset-2 px-1"
+              >
+                동의 철회
+              </button>
+            )}
             {onRequestPaymentCapture && (
               <Button
                 size="compact"
                 className="!py-1.5 !px-2.5 !text-[11px] !bg-emerald-600 !text-white hover:!bg-emerald-700 cursor-pointer"
-                onClick={onRequestPaymentCapture}
+                onClick={handleOpenCaptureSettings}
               >
                 설정
               </Button>
@@ -413,20 +444,218 @@ export function AccountModal({
         </div>
       </div>
 
+      <EvidenceSettings userId={userId} onToast={onToast} />
+
+      <CaptureSourceSettings onToast={onToast} />
+
+      <DifficultySettings userId={userId} onToast={onToast} />
+
+      {/* 데이터 내보내기 (JSON 백업) */}
+      <DataExportSection userId={userId} profile={profile} onToast={onToast} />
+
+      {/* 회원 탈퇴 (데이터 영구 파기 및 로컬 정리) */}
+      <AccountDeletionSection
+        userId={userId}
+        onToast={onToast}
+        onClose={onClose}
+        onLogout={onLogout}
+      />
+
       {/* 로그아웃 블록 */}
       <div className="mt-6 pt-2">
         <Button
           variant="secondary"
           className="w-full flex items-center justify-center gap-2 text-[#E11D48] hover:bg-red-50 hover:border-red-200 border-[#E5E8EB] py-3 text-[14px]"
           onClick={() => {
-            handleAccountClose();
-            onLogout();
+            onClose?.();
+            onLogout?.();
           }}
         >
           <LogOut size={16} />
           <span>로그아웃</span>
         </Button>
       </div>
+
+      <PaymentCaptureDisclosureModal
+        isOpen={showDisclosureModal}
+        onConfirm={handleConfirmDisclosure}
+        onCancel={handleCancelDisclosure}
+      />
     </BottomSheet>
+  );
+}
+
+/** 데이터 내보내기 구역 (JSON 내보내기, 게스트/회원 모두 지원) */
+function DataExportSection({ userId, profile, onToast }) {
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const res = await exportUserData({ userId, profile });
+      if (res?.ok) {
+        onToast?.("데이터를 JSON 파일로 내보냈어요.");
+      } else {
+        onToast?.("데이터 내보내기에 실패했어요. 다시 시도해 주세요.");
+      }
+    } catch {
+      onToast?.("데이터 내보내기에 실패했어요. 다시 시도해 주세요.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs" data-testid="account-export-section">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 pr-2">
+          <strong className="flex items-center gap-1.5 text-[13px] font-bold text-[#191F28]">
+            <Download size={14} /> 데이터 내보내기
+          </strong>
+          <span className="mt-0.5 block text-[11px] leading-relaxed text-[#8B95A1]">
+            구독 목록, 해지 기록, 증빙 요약 및 동의 내역을 JSON 파일로 백업해요.
+          </span>
+        </div>
+        <Button
+          size="compact"
+          variant="secondary"
+          disabled={exporting}
+          onClick={handleExport}
+          className="shrink-0 text-[12px] font-semibold"
+          data-testid="account-export-button"
+        >
+          {exporting ? "생성 중..." : "내보내기"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/** 회원 탈퇴 구역 (지워지는 항목 설명, '탈퇴' 확인 입력, 진행/실패 표시, 로컬 정리 후 로그아웃) */
+function AccountDeletionSection({ userId, onToast, onClose, onLogout }) {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmInput, setConfirmInput] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const isConfirmed = confirmInput.trim() === "탈퇴";
+
+  const handleDelete = async () => {
+    if (!isConfirmed || deleting) return;
+    setDeleting(true);
+    setErrorMsg("");
+
+    try {
+      if (userId) {
+        // 로그인 회원인 경우 서버 계정 및 원격 데이터 삭제
+        const sessionRes = await supabase?.auth?.getSession?.();
+        const token = sessionRes?.data?.session?.access_token;
+        if (!token) {
+          throw new Error("인증 세션이 만료되었습니다. 다시 로그인 후 시도해 주세요.");
+        }
+        await requestAccountDeletion({ token, confirmation: "탈퇴" });
+      }
+
+      // 기기 로컬 데이터 영구 삭제
+      clearDeviceData();
+
+      onToast?.("회원 탈퇴 및 모든 데이터 삭제가 완료되었어요.");
+      onClose?.();
+      onLogout?.();
+    } catch (err) {
+      console.error("탈퇴 처리 실패:", err?.code || "FAILED");
+      setErrorMsg(err.message || "탈퇴 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 rounded-2xl border border-red-100 bg-red-50/40 p-4 shadow-2xs" data-testid="account-deletion-section">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <strong className="flex items-center gap-1.5 text-[13px] font-bold text-[#F04452]">
+            <Trash2 size={14} /> {userId ? "회원 탈퇴" : "로컬 데이터 초기화 및 탈퇴"}
+          </strong>
+          <span className="mt-0.5 block text-[11px] leading-relaxed text-[#8B95A1]">
+            계정과 연동된 모든 구독·증빙·승인 데이터가 즉시 영구 삭제됩니다.
+          </span>
+        </div>
+        {!showConfirm && (
+          <button
+            type="button"
+            onClick={() => setShowConfirm(true)}
+            className="shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-bold text-[#F04452] hover:bg-red-100/60 transition-colors"
+          >
+            탈퇴하기
+          </button>
+        )}
+      </div>
+
+      {showConfirm && (
+        <div className="mt-3 border-t border-red-100 pt-3">
+          <div className="rounded-xl bg-white p-3 border border-red-100 text-[11px] text-[#4E5968] leading-relaxed">
+            <p className="font-bold text-[#F04452] flex items-center gap-1 mb-1">
+              <AlertTriangle size={13} /> 삭제되는 항목 안내
+            </p>
+            <ul className="list-disc pl-4 space-y-0.5 text-[#6B7684]">
+              <li>등록된 모든 활성 및 과거 구독 목록</li>
+              <li>결제 증빙 및 영수증 자동 인식 내역</li>
+              <li>AI 에이전트 승인 요청 및 자동 허용(위임) 기록</li>
+              <li>기기에 보관된 캐시 및 환경 설정</li>
+            </ul>
+            <p className="mt-2 text-[10px] text-[#8B95A1]">
+              * 탈퇴 후에는 모든 데이터가 영구 파기되며 절대 복구할 수 없습니다.
+            </p>
+          </div>
+
+          <div className="mt-3">
+            <label className="block text-[11px] font-medium text-[#4E5968] mb-1">
+              계속하려면 <strong className="text-[#F04452]">'탈퇴'</strong>를 입력해 주세요.
+            </label>
+            <input
+              type="text"
+              value={confirmInput}
+              onChange={(e) => setConfirmInput(e.target.value)}
+              placeholder="탈퇴"
+              disabled={deleting}
+              className="w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-[#F04452] placeholder:text-[#A1A1AA]"
+              data-testid="account-delete-input"
+            />
+          </div>
+
+          {errorMsg && (
+            <p className="mt-2 flex items-center gap-1 text-[11px] font-medium text-[#F04452]">
+              <AlertCircle size={13} />
+              {errorMsg}
+            </p>
+          )}
+
+          <div className="mt-3 flex gap-2">
+            <Button
+              size="compact"
+              variant="secondary"
+              disabled={deleting}
+              onClick={() => {
+                setShowConfirm(false);
+                setConfirmInput("");
+                setErrorMsg("");
+              }}
+              className="flex-1 text-[12px]"
+            >
+              취소
+            </Button>
+            <Button
+              size="compact"
+              disabled={!isConfirmed || deleting}
+              onClick={handleDelete}
+              className="flex-1 !bg-[#F04452] text-white text-[12px] disabled:opacity-40"
+              data-testid="account-delete-button"
+            >
+              {deleting ? "탈퇴 처리 중..." : "영구 탈퇴"}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,19 +1,26 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { createMockSubscriptions } from "../data/subscriptionData";
 import {
   generateSubscriptionAlerts,
   createTestNotification,
   getStoredNotifications,
   saveStoredNotifications,
+  NOTIFICATION_STORAGE_KEY,
   requestNotificationPermission,
   initAndroidNotificationChannel,
   sendAppNotification,
   scheduleSubscriptionNotifications,
+  takeDueCancelReminders,
+  sendBrowserNotification,
 } from "../lib/notifications";
+import { Capacitor } from "@capacitor/core";
 import { readHash } from "./useNavigation";
 
 export function useNotificationManager({ subscriptions = [] } = {}) {
   const [notifications, setNotifications] = useState(() => {
+    if (typeof window !== "undefined" && window.localStorage?.getItem(NOTIFICATION_STORAGE_KEY) !== null) {
+      const stored = getStoredNotifications();
+      if (Array.isArray(stored)) return stored;
+    }
     const stored = getStoredNotifications();
     if (stored.length > 0) return stored;
     return subscriptions.length > 0 ? generateSubscriptionAlerts(subscriptions) : [];
@@ -37,7 +44,7 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
   }, []);
 
   useEffect(() => {
-    if (notifications.length > 0) {
+    if (Array.isArray(notifications)) {
       saveStoredNotifications(notifications);
     }
   }, [notifications]);
@@ -57,6 +64,24 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
     scheduleSubscriptionNotifications(subscriptions).catch(() => {});
   }, [subscriptions]);
 
+  // 해지 다시 알림이 시각을 지나면 알림 센터에 넣는다. 웹은 예약 알림이 없어 열려 있는 동안 브라우저 알림도 보낸다.
+  useEffect(() => {
+    const collect = () => {
+      const due = takeDueCancelReminders();
+      if (due.length === 0) return;
+      if (!Capacitor.isNativePlatform()) {
+        due.forEach((item) => sendBrowserNotification(item.title, { body: item.message }));
+      }
+      setNotifications((current) => {
+        const existingIds = new Set(current.map((n) => n.id));
+        return [...due.filter((n) => !existingIds.has(n.id)), ...current];
+      });
+    };
+    collect();
+    const timer = window.setInterval(collect, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.read).length,
     [notifications]
@@ -70,7 +95,11 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
     }
     const alertItem = createTestNotification(sub, "auto");
     setNotifications((current) => [alertItem, ...current]);
-    sendAppNotification(alertItem.title, { body: alertItem.message });
+    // 알림을 누르면 이 구독의 갱신 승인 카드가 열리도록 구독 id와 종류를 함께 보낸다.
+    sendAppNotification(alertItem.title, {
+      body: alertItem.message,
+      extra: { subscriptionId: alertItem.subscriptionId, type: alertItem.type },
+    });
     notify?.(`${alertItem.badge} 푸시 알림을 발송했어요.`);
   }, [subscriptions]);
 
@@ -112,6 +141,7 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
 
   const clearAll = useCallback(() => {
     setNotifications([]);
+    saveStoredNotifications([]);
   }, []);
 
   return {

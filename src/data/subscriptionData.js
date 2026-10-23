@@ -1,9 +1,3 @@
-const dayAfterToday = () => {
-  const now = new Date();
-  const lastDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  return Math.min(now.getDate() + 1, lastDate);
-};
-
 export const serviceCatalog = [
   {
     "id": "chatgpt",
@@ -32,7 +26,7 @@ export const serviceCatalog = [
     "dueDay": 5,
     "paymentMethod": "KB국민카드 • 8831",
     "cancelUrl": "https://chatgpt.com/#settings/Subscription",
-    "lastUpdated": "2026-09-30T10:07:01.273Z",
+    "lastUpdated": "2026-10-18T16:39:02.240Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -151,7 +145,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://app.runwayml.com/settings/plans",
+    "cancelUrl": "https://app.runwayml.com/settings/billing",
     "lastUpdated": "2026-09-15T11:20:41.789Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -181,7 +175,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://v0.dev/chat/settings/billing",
+    "cancelUrl": "https://v0.app/chat/settings/billing",
     "lastUpdated": "2026-09-15T11:20:42.248Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -391,7 +385,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://www.cursor.com/settings",
+    "cancelUrl": "https://cursor.com/dashboard/billing",
     "lastUpdated": "2026-09-15T11:20:42.793Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -661,7 +655,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://support.apple.com/ko-kr/HT207594",
+    "cancelUrl": "https://support.apple.com/ko-kr/108318",
     "lastUpdated": "2026-09-15T11:20:42.317Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -892,7 +886,7 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "신한카드 • 4412",
     "cancelUrl": "https://www.netflix.com/cancelplan",
-    "lastUpdated": "2026-09-30T10:06:59.499Z",
+    "lastUpdated": "2026-10-18T16:39:01.091Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -932,7 +926,7 @@ export const serviceCatalog = [
     "dueDay": 22,
     "paymentMethod": "카카오페이",
     "cancelUrl": "https://www.youtube.com/paid_memberships",
-    "lastUpdated": "2026-09-30T10:06:59.841Z",
+    "lastUpdated": "2026-10-18T16:39:01.419Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -982,7 +976,7 @@ export const serviceCatalog = [
     "dueDay": 10,
     "paymentMethod": "네이버페이",
     "cancelUrl": "https://www.tving.com/my/pass",
-    "lastUpdated": "2026-09-30T10:07:01.036Z",
+    "lastUpdated": "2026-10-18T16:39:02.089Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -1032,7 +1026,7 @@ export const serviceCatalog = [
     "dueDay": 18,
     "paymentMethod": "삼성카드 • 3701",
     "cancelUrl": "https://www.disneyplus.com/ko-kr/account",
-    "lastUpdated": "2026-09-30T10:07:00.432Z",
+    "lastUpdated": "2026-10-18T16:39:01.733Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -1241,7 +1235,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://tv.apple.com/settings",
+    "cancelUrl": "https://support.apple.com/ko-kr/118428",
     "lastUpdated": "2026-09-15T11:20:42.987Z",
     "parseStatus": "FALLBACK_APPLIED"
   },
@@ -1492,7 +1486,7 @@ export const serviceCatalog = [
     "dueDay": 15,
     "paymentMethod": "토스페이",
     "cancelUrl": "https://www.spotify.com/kr-ko/account/overview/",
-    "lastUpdated": "2026-09-30T10:07:00.321Z",
+    "lastUpdated": "2026-10-18T16:39:01.660Z",
     "parseStatus": "PARSED_SUCCESS"
   },
   {
@@ -1571,7 +1565,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://www.genie.co.kr/my/myTicket",
+    "cancelUrl": "https://pay.genie.co.kr/cancel/myProductCancel",
     "lastUpdated": "2026-09-15T11:20:43.168Z",
     "parseStatus": "PARSED_SUCCESS"
   },
@@ -1871,7 +1865,7 @@ export const serviceCatalog = [
     ],
     "dueDay": 15,
     "paymentMethod": "신용카드",
-    "cancelUrl": "https://my.tidal.com/account/subscription",
+    "cancelUrl": "https://account.tidal.com/subscription",
     "lastUpdated": "2026-09-15T11:20:43.493Z",
     "parseStatus": "CRAWL_FAILED"
   },
@@ -2651,14 +2645,14 @@ export const serviceCatalog = [
     "monogram": "네",
     "category": "쇼핑",
     "plan": "월간 이용권",
-    "amount": 4000,
+    "amount": 4900,
     "brandColor": "#03C75A",
     "brandBg": "#EEF2FF",
     "brandText": "#03C75A",
     "availablePlans": [
       {
         "plan": "월간 이용권",
-        "amount": 4000
+        "amount": 4900
       },
       {
         "plan": "스탠다드",
@@ -2712,7 +2706,7 @@ export const serviceCatalog = [
     "plans": [
       {
         "name": "월간 이용권",
-        "amount": 4000,
+        "amount": 4900,
         "billingCycle": "매월",
         "quality": "HD"
       },
@@ -2913,7 +2907,8 @@ export const serviceCatalog = [
     "paymentMethod": "신용카드",
     "cancelUrl": "https://www.coupang.com/np/membership/benefit",
     "lastUpdated": "2026-09-30T10:06:59.994Z",
-    "parseStatus": "CRAWL_FAILED"
+    "parseStatus": "CRAWL_FAILED",
+    "lastCheckedAt": "2026-10-18T16:39:01.492Z"
   },
   {
     "id": "nintendo-online",
@@ -3314,6 +3309,135 @@ export const serviceCatalog = [
     "cancelUrl": "https://account.adobe.com/plans",
     "lastUpdated": "2026-09-15T11:20:44.826Z",
     "parseStatus": "FALLBACK_APPLIED"
+  },
+  {
+    "id": "kakao-emoticon",
+    "name": "카카오 이모티콘 플러스",
+    "monogram": "K",
+    "category": "생활/모빌리티",
+    "plan": "정기구독",
+    "amount": 3900,
+    "brandColor": "#3C1E1E",
+    "brandBg": "#FFF9D6",
+    "brandText": "#3C1E1E",
+    "availablePlans": [
+      {
+        "plan": "정기구독",
+        "amount": 3900
+      }
+    ],
+    "plans": [
+      {
+        "name": "정기구독",
+        "amount": 3900,
+        "billingCycle": "매월"
+      }
+    ],
+    "billingCycle": "매월",
+    "dueDay": 15,
+    "paymentMethod": "신용카드",
+    "cancelUrl": "https://my.kakao.com/",
+    "lastUpdated": "2026-10-04T00:00:00.000Z",
+    "parseStatus": "PARSED_SUCCESS"
+  },
+  {
+    "id": "kurly",
+    "name": "컬리패스",
+    "monogram": "K",
+    "category": "쇼핑",
+    "plan": "컬리패스 월정액",
+    "amount": 4500,
+    "brandColor": "#5F0080",
+    "brandBg": "#F5EDF8",
+    "brandText": "#5F0080",
+    "availablePlans": [
+      {
+        "plan": "컬리패스 월정액",
+        "amount": 4500
+      }
+    ],
+    "plans": [
+      {
+        "name": "컬리패스 월정액",
+        "amount": 4500,
+        "billingCycle": "매월"
+      }
+    ],
+    "billingCycle": "매월",
+    "dueDay": 15,
+    "paymentMethod": "신용카드",
+    "cancelUrl": "",
+    "lastUpdated": "2026-10-04T00:00:00.000Z",
+    "parseStatus": "PARSED_SUCCESS"
+  },
+  {
+    "id": "shinsegae-universe",
+    "name": "신세계 유니버스 클럽",
+    "monogram": "S",
+    "category": "쇼핑",
+    "plan": "연간 멤버십",
+    "amount": 30000,
+    "brandColor": "#E4002B",
+    "brandBg": "#FDEBEE",
+    "brandText": "#E4002B",
+    "availablePlans": [
+      {
+        "plan": "연간 멤버십",
+        "amount": 30000
+      }
+    ],
+    "plans": [
+      {
+        "name": "연간 멤버십",
+        "amount": 30000,
+        "billingCycle": "매년"
+      }
+    ],
+    "billingCycle": "매년",
+    "dueDay": 15,
+    "paymentMethod": "신용카드",
+    "cancelUrl": "https://www.ssg.com/myssg/main.ssg",
+    "lastUpdated": "2026-10-04T00:00:00.000Z",
+    "parseStatus": "PARSED_SUCCESS"
+  },
+  {
+    "id": "t-universe",
+    "name": "T우주 우주패스",
+    "monogram": "T",
+    "category": "생활/모빌리티",
+    "plan": "우주패스 all",
+    "amount": 9900,
+    "brandColor": "#3617CE",
+    "brandBg": "#EEEBFC",
+    "brandText": "#3617CE",
+    "availablePlans": [
+      {
+        "plan": "우주패스 all",
+        "amount": 9900
+      },
+      {
+        "plan": "우주패스 life",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "우주패스 all",
+        "amount": 9900,
+        "billingCycle": "매월"
+      },
+      {
+        "name": "우주패스 life",
+        "amount": 9900,
+        "billingCycle": "매월"
+      }
+    ],
+    "billingCycle": "매월",
+    "dueDay": 15,
+    "paymentMethod": "신용카드",
+    "cancelUrl": "https://m.sktuniverse.co.kr/",
+    "lastUpdated": "2026-10-04T00:00:00.000Z",
+    "parseStatus": "PARSED_SUCCESS"
   }
 ];
 
@@ -3397,92 +3521,48 @@ export const createMockSubscriptions = () =>
 
 export const promotionCatalog = [
   {
-    "id": "youtube-1m-free",
+    "id": "nintendo-7d-free",
     "category": "100원/무료",
-    "kind": "1개월 무료 체험",
-    "title": "YouTube Premium",
-    "subtitle": "₩0에 1개월 무료 체험",
-    "description": "광고 없는 감상, 백그라운드 재생, YouTube Music 무료 이용 혜택.",
-    "saving": 14900,
-    "originalPrice": 14900,
+    "kind": "7일 무료 체험권",
+    "title": "Nintendo Switch Online",
+    "subtitle": "스위치 온라인 대전 7일 무료",
+    "description": "닌텐도 공식 페이지에서 스위치 온라인 대전 및 클래식 게임 7일 무료 이용권 증정.",
+    "saving": 2000,
+    "originalPrice": 20000,
     "offerPrice": 0,
-    "dday": 30,
+    "dday": 7,
     "sourceServiceIds": [
-      "youtube"
+      "nintendo-online"
     ],
-    "link": "https://www.youtube.com/premium",
-    "monogram": "Y",
+    "link": "https://www.nintendo.com/kr/nintendo-switch-online/",
+    "monogram": "N",
+    "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
+    "benefitPeriod": "가입 후 첫 7일간",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)",
-    "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
-    "id": "millie-1plus1",
+    "id": "duolingo-14d-free",
     "category": "100원/무료",
-    "kind": "둘째 달 무료 (1+1)",
-    "title": "밀리의 서재",
-    "subtitle": "첫 달 구독하면 둘째 달 무료!",
-    "description": "밀리 10주년 기념 1+1 생일 이벤트! 첫 달 시작 시 둘째 달 이용권 증정.",
-    "saving": 9900,
+    "kind": "1주 무료 체험",
+    "title": "Duolingo Super",
+    "subtitle": "하트 무제한 슈퍼 듀오링고 1주 무료",
+    "description": "광고 없는 어학 학습과 하트 무제한 충전, 맞춤 복습 기능을 1주간 무료로 이용하세요.",
+    "saving": 2475,
     "originalPrice": 9900,
     "offerPrice": 0,
     "dday": 7,
     "sourceServiceIds": [
-      "millie"
+      "duolingo"
     ],
-    "link": "https://www.millie.co.kr/",
-    "monogram": "M",
-    "verifiedStatus": "LIVE_CONFIRMED",
-    "campaignPeriod": "상시 진행 (신규 회원 한정)",
-    "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
-  },
-  {
-    "id": "genie-110won",
-    "category": "100원/무료",
-    "kind": "다음 달 110원 특가",
-    "title": "Genie Music (지니)",
-    "subtitle": "스마트 음악감상 2회차 110원",
-    "description": "지니뮤직 스마트 음악감상 1회차 정상가 결제 시 다음 달 단돈 110원 파격 혜택.",
-    "saving": 8290,
-    "originalPrice": 8400,
-    "offerPrice": 110,
-    "dday": 5,
-    "sourceServiceIds": [
-      "genie"
-    ],
-    "link": "https://pay.genie.co.kr/buy/recommend",
-    "monogram": "G",
-    "verifiedStatus": "LIVE_CONFIRMED",
-    "campaignPeriod": "상시 진행 (2회차 결제 특가)",
-    "benefitPeriod": "정기결제 2회차 (1개월간)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
-  },
-  {
-    "id": "appletv-7d-free",
-    "category": "100원/무료",
-    "kind": "7일 무료 체험 (기기 구매 시 3개월)",
-    "title": "Apple TV+",
-    "subtitle": "애플 오리지널 7일 무료",
-    "description": "애플 오리지널 시리즈를 7일간 무료 체험하세요. 새 Apple 기기 구입 시 3개월 무료.",
-    "saving": 6500,
-    "originalPrice": 6500,
-    "offerPrice": 0,
-    "dday": 7,
-    "sourceServiceIds": [
-      "appletv"
-    ],
-    "link": "https://tv.apple.com",
-    "monogram": "TV",
-    "verifiedStatus": "LIVE_CONFIRMED",
+    "link": "https://www.duolingo.com",
+    "monogram": "D",
     "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
-    "benefitPeriod": "가입 후 첫 7일간",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "benefitPeriod": "가입 후 첫 1주간",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "naverplus-netflix",
@@ -3504,8 +3584,8 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
     "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "naver-spotify-link",
@@ -3527,8 +3607,8 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
     "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "disney-bundle-37",
@@ -3551,8 +3631,30 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (통합 번들 요금제)",
     "benefitPeriod": "번들 요금제 유지 기간 상시",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "skt-universe-youtube",
+    "category": "통신사/결합",
+    "kind": "우주패스 유튜브 결합 (월 5,000원 할인)",
+    "title": "우주패스 X YouTube Premium",
+    "subtitle": "유튜브 프리미엄 + 편의점/투썸 혜택",
+    "description": "월 9,900원 우주패스 life 가입 시 유튜브 프리미엄을 정가(14,900원) 대비 5,000원 할인된 금액에 이용.",
+    "saving": 5000,
+    "originalPrice": 14900,
+    "offerPrice": 9900,
+    "dday": 10,
+    "sourceServiceIds": [
+      "youtube"
+    ],
+    "link": "https://sktmembership.tworld.co.kr/mps/pc-bff/benefitbrand/detail.do?brandId=5140",
+    "monogram": "SKT",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "adobe-student-66",
@@ -3573,30 +3675,52 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
-    "id": "github-student-pack",
+    "id": "notion-student-free",
     "category": "학생/연간",
-    "kind": "학생 Copilot 100% 무료 제공",
-    "title": "GitHub Student Pack",
-    "subtitle": "GitHub Copilot 무료 이용",
-    "description": "학생 인증 시 GitHub Pro 및 AI 코딩 도구 GitHub Copilot(월 14,000원 상당)을 전액 무료 제공.",
+    "kind": "학생·교육자 Plus 플랜 100% 무료",
+    "title": "Notion Plus",
+    "subtitle": "학교 웹메일 인증 시 Plus 0원",
+    "description": "대학교 웹메일 인증 시 월 14,000원 상당의 Notion Plus 플랜을 무료로 업그레이드.",
     "saving": 14000,
     "originalPrice": 14000,
     "offerPrice": 0,
     "dday": 365,
     "sourceServiceIds": [
-      "github-copilot"
+      "notion"
     ],
-    "link": "https://education.github.com/pack",
-    "monogram": "GH",
-    "verifiedStatus": "LIVE_CONFIRMED",
+    "link": "https://www.notion.com/product/notion-for-education",
+    "monogram": "N",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "figma-edu-free",
+    "category": "학생/연간",
+    "kind": "교육자·학생 Professional 100% 무료",
+    "title": "Figma Professional",
+    "subtitle": "Figma Professional 전액 무료",
+    "description": "디자인 전공 및 학생/교사 인증 시 월 21,000원 상당의 Figma Professional 플랜 무료 제공.",
+    "saving": 21000,
+    "originalPrice": 21000,
+    "offerPrice": 0,
+    "dday": 365,
+    "sourceServiceIds": [
+      "figma"
+    ],
+    "link": "https://www.figma.com/education/",
+    "monogram": "F",
+    "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
+    "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED"
   },
   {
     "id": "jetbrains-student-free",
@@ -3617,8 +3741,8 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-09-28T17:32:46.388Z",
-    "lastVerifiedAt": "2026-09-28T17:32:46.388Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "disney-annual-16",
@@ -3636,11 +3760,55 @@ export const promotionCatalog = [
     ],
     "link": "https://www.disneyplus.com/ko-kr",
     "monogram": "D",
-    "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
     "benefitPeriod": "결제일로부터 1년 (12개월)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastCheckedAt": "2026-10-18T16:39:04.674Z",
+    "lastVerifiedAt": "2026-10-18T16:39:04.674Z",
+    "verifiedStatus": "LIVE_CONFIRMED"
+  },
+  {
+    "id": "wavve-annual-16",
+    "category": "학생/연간",
+    "kind": "연간 이용권 16% 할인 (2개월 무료)",
+    "title": "Wavve",
+    "subtitle": "1년 결제 시 2개월 요금 무료",
+    "description": "스탠다드 연간 이용권 결제 시 2개월 요금을 아끼고 지상파 및 VOD 무제한 시청.",
+    "saving": 21800,
+    "originalPrice": 130800,
+    "offerPrice": 109000,
+    "dday": 365,
+    "sourceServiceIds": [
+      "wavve"
+    ],
+    "link": "https://www.wavve.com/voucher/index.html",
+    "monogram": "W",
+    "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
+    "benefitPeriod": "결제일로부터 1년 (12개월)",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "nintendo-family-plan",
+    "category": "학생/연간",
+    "kind": "패밀리 플랜 결합 (최대 8인 공유)",
+    "title": "Nintendo Switch Online 패밀리",
+    "subtitle": "8인 결합 시 1인당 연 4,740원",
+    "description": "연 37,900원 패밀리 플랜을 친구/가족 8명이 공유하면 1인당 월 395원으로 스위치 온라인 이용. (80% 절약)",
+    "saving": 15260,
+    "originalPrice": 20000,
+    "offerPrice": 4740,
+    "dday": 365,
+    "sourceServiceIds": [
+      "nintendo-online"
+    ],
+    "link": "https://www.nintendo.com/kr/nintendo-switch-online/",
+    "monogram": "N",
+    "campaignPeriod": "상시 진행 (신규 회원 한정)",
+    "benefitPeriod": "가입 후 첫 1개월",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "adobe-new-user-25",
@@ -3661,8 +3829,8 @@ export const promotionCatalog = [
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "youtube-lite-43",
@@ -3680,11 +3848,11 @@ export const promotionCatalog = [
     ],
     "link": "https://www.youtube.com/premium",
     "monogram": "Y",
-    "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED"
   },
   {
     "id": "midjourney-promo",
@@ -3704,9 +3872,9 @@ export const promotionCatalog = [
     "monogram": "M",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "canva-promo",
@@ -3726,31 +3894,9 @@ export const promotionCatalog = [
     "monogram": "C",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
-  },
-  {
-    "id": "framer-promo",
-    "title": "Framer Pro",
-    "subtitle": "Free 플랜 무료 사이트 호스팅 (0원)",
-    "kind": "Free 플랜 무료 사이트 호스팅 (0원)",
-    "category": "SaaS",
-    "description": "서브도메인 무료 배포로 구독료 대체",
-    "saving": 29873,
-    "originalPrice": 29873,
-    "offerPrice": 0,
-    "dday": 30,
-    "sourceServiceIds": [
-      "framer"
-    ],
-    "link": "https://www.framer.com",
-    "monogram": "F",
-    "benefitPeriod": "상시 진행 (공식 검증 완료)",
-    "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "github-copilot-promo",
@@ -3770,9 +3916,9 @@ export const promotionCatalog = [
     "monogram": "G",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "slack-pro-promo",
@@ -3792,31 +3938,9 @@ export const promotionCatalog = [
     "monogram": "S",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
-  },
-  {
-    "id": "zoom-pro-promo",
-    "title": "Zoom Workplace Pro",
-    "subtitle": "Basic 플랜 40분 화상회의 무료 (0원)",
-    "kind": "Basic 플랜 40분 화상회의 무료 (0원)",
-    "category": "SaaS",
-    "description": "40분 미팅 무제한 무료 생성",
-    "saving": 19000,
-    "originalPrice": 19000,
-    "offerPrice": 0,
-    "dday": 30,
-    "sourceServiceIds": [
-      "zoom-pro"
-    ],
-    "link": "https://zoom.us/pricing",
-    "monogram": "Z",
-    "benefitPeriod": "상시 진행 (공식 검증 완료)",
-    "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
-    "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ms365-promo",
@@ -3836,9 +3960,9 @@ export const promotionCatalog = [
     "monogram": "M",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "evernote-promo",
@@ -3858,9 +3982,9 @@ export const promotionCatalog = [
     "monogram": "E",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "1password-promo",
@@ -3880,9 +4004,9 @@ export const promotionCatalog = [
     "monogram": "1",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "youtube-promo",
@@ -3902,9 +4026,9 @@ export const promotionCatalog = [
     "monogram": "Y",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "appletv-promo",
@@ -3920,13 +4044,35 @@ export const promotionCatalog = [
     "sourceServiceIds": [
       "appletv"
     ],
-    "link": "https://support.apple.com",
+    "link": "https://www.apple.com/kr/apple-tv-plus/",
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "spotify-promo",
+    "title": "Spotify",
+    "subtitle": "개인 요금제 1개월 ₩0 무료 체험",
+    "kind": "개인 요금제 1개월 ₩0 무료 체험",
+    "category": "음악",
+    "description": "프리미엄 개인 요금제 첫 1개월 무료 체험 (이후 월 11,990원)",
+    "saving": 11990,
+    "originalPrice": 11990,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "spotify"
+    ],
+    "link": "https://www.spotify.com/kr-ko/premium/",
+    "monogram": "S",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "genie-promo",
@@ -3942,13 +4088,13 @@ export const promotionCatalog = [
     "sourceServiceIds": [
       "genie"
     ],
-    "link": "https://www.genie.co.kr",
+    "link": "https://pay.genie.co.kr/buy/recommend",
     "monogram": "G",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "applemusic-promo",
@@ -3964,13 +4110,13 @@ export const promotionCatalog = [
     "sourceServiceIds": [
       "applemusic"
     ],
-    "link": "https://support.apple.com",
+    "link": "https://www.apple.com/kr/apple-music/",
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ytmusic-promo",
@@ -3990,9 +4136,9 @@ export const promotionCatalog = [
     "monogram": "Y",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "millie-promo",
@@ -4012,9 +4158,75 @@ export const promotionCatalog = [
     "monogram": "밀",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "ridiselect-promo",
+    "title": "리디셀렉트",
+    "subtitle": "리디셀렉트 첫 구독 시 4,900P 증정",
+    "kind": "첫 구독 시 4,900 포인트 증정",
+    "category": "도서/웹툰",
+    "description": "신간/베스트셀러 첫 구독 시 4,900 리디포인트 증정 (체험 혜택)",
+    "saving": 4900,
+    "originalPrice": 4900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "ridiselect"
+    ],
+    "link": "https://select.ridibooks.com",
+    "monogram": "리",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "welaaa-promo",
+    "title": "윌라 오디오북",
+    "subtitle": "윌라 2주 0원 무료 체험",
+    "kind": "윌라 2주 무료 체험",
+    "category": "음악",
+    "description": "전문 성우 오디오북 첫 2주 무료 듣기",
+    "saving": 6250,
+    "originalPrice": 12500,
+    "offerPrice": 0,
+    "dday": 14,
+    "sourceServiceIds": [
+      "welaaa"
+    ],
+    "link": "https://www.welaaa.com",
+    "monogram": "윌",
+    "benefitPeriod": "가입 후 첫 2주간",
+    "campaignPeriod": "상시 진행 (인증 프로모션)",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "the-joongang-plus-promo",
+    "title": "더중앙플러스",
+    "subtitle": "디지털 유료 구독 첫 1개월 67% 특가",
+    "kind": "첫 1개월 67% 할인 (월 4,900원)",
+    "category": "도서/웹툰",
+    "description": "중앙일보 유료 디지털 구독 첫 1개월 4,900원 (정가 15,000원 대비 67% 할인), 구독 유지 시 11개월간 40% 할인가(월 9,000원) 적용",
+    "saving": 10100,
+    "originalPrice": 15000,
+    "offerPrice": 4900,
+    "dday": 30,
+    "sourceServiceIds": [
+      "the-joongang-plus"
+    ],
+    "link": "https://www.joongang.co.kr/purchase/main",
+    "monogram": "더",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "nyt-digital-promo",
@@ -4023,20 +4235,42 @@ export const promotionCatalog = [
     "kind": "All Access 첫해 주 $0.50 특가 (월 약 2,600원)",
     "category": "도서/웹툰",
     "description": "주 0.5달러 특가 적용",
-    "saving": 23400,
+    "saving": 3400,
     "originalPrice": 6000,
     "offerPrice": 2600,
     "dday": 30,
     "sourceServiceIds": [
       "nyt-digital"
     ],
-    "link": "https://www.nytimes.com",
+    "link": "https://www.nytimes.com/subscription/all-access",
     "monogram": "T",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "wsj-digital-promo",
+    "title": "The Wall Street Journal",
+    "subtitle": "Wall Street Journal 첫해 월 $4 특가",
+    "kind": "Wall Street Journal 첫해 월 $4 특가",
+    "category": "도서/웹툰",
+    "description": "글로벌 경제지 첫해 대폭 할인",
+    "saving": 6500,
+    "originalPrice": 12000,
+    "offerPrice": 5500,
+    "dday": 30,
+    "sourceServiceIds": [
+      "wsj-digital"
+    ],
+    "link": "https://subscribe.wsj.com/",
+    "monogram": "T",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "ft-digital-promo",
@@ -4056,9 +4290,9 @@ export const promotionCatalog = [
     "monogram": "F",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "audible-promo",
@@ -4078,9 +4312,9 @@ export const promotionCatalog = [
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "scribd-promo",
@@ -4100,9 +4334,75 @@ export const promotionCatalog = [
     "monogram": "S",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "naverplus-promo",
+    "title": "네이버플러스 멤버십",
+    "subtitle": "첫 달 4,900원 웰컴 쿠폰 (첫 달 0원)",
+    "kind": "첫 달 4,900원 웰컴 쿠폰 (첫 달 0원)",
+    "category": "쇼핑",
+    "description": "가입 즉시 첫 달 구독료 100% 면제",
+    "saving": 4900,
+    "originalPrice": 4900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "naverplus"
+    ],
+    "link": "https://nid.naver.com/membership",
+    "monogram": "네",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "yogipass-promo",
+    "title": "요기패스X",
+    "subtitle": "요기패스X 첫 달 무료 + 네이버 연동 0원",
+    "kind": "요기패스X 첫 달 무료 + 네이버 연동 0원",
+    "category": "쇼핑",
+    "description": "첫 달 0원 또는 네이버 멤버십 연동 시 무료",
+    "saving": 2900,
+    "originalPrice": 2900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "yogipass"
+    ],
+    "link": "https://www.yogiyo.co.kr",
+    "monogram": "요",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "ps-plus-promo",
+    "title": "PlayStation Plus 디럭스",
+    "subtitle": "12개월 결제 시 32% 요금 절약 (연 171,000원)",
+    "kind": "12개월 플랜 171,000원 (32% 할인)",
+    "category": "게임/엔터",
+    "description": "PlayStation Plus 디럭스 12개월 결제 시 1개월 결제 대비 32% 요금 절약 (연 171,000원)",
+    "saving": 6750,
+    "originalPrice": 21000,
+    "offerPrice": 14250,
+    "dday": 30,
+    "sourceServiceIds": [
+      "ps-plus"
+    ],
+    "link": "https://store.playstation.com",
+    "monogram": "P",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
     "id": "apple-arcade-promo",
@@ -4118,35 +4418,57 @@ export const promotionCatalog = [
     "sourceServiceIds": [
       "apple-arcade"
     ],
-    "link": "https://support.apple.com/billing",
+    "link": "https://www.apple.com/kr/apple-arcade/",
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   },
   {
-    "id": "naver-mybox-promo",
-    "title": "네이버 MYBOX",
-    "subtitle": "기본 30GB 영구 0원 무료 제공",
-    "kind": "기본 30GB 영구 0원 무료 제공",
-    "category": "생활/모빌리티",
-    "description": "네이버 계정 기본 30GB 무료 클라우드",
-    "saving": 1650,
-    "originalPrice": 1650,
-    "offerPrice": 0,
+    "id": "ea-play-promo",
+    "title": "EA Play",
+    "subtitle": "연간 결제 시 36% 요금 절약 (연 54,000원)",
+    "kind": "연간 결제 시 36% 요금 절약 (연 54,000원)",
+    "category": "게임/엔터",
+    "description": "EA Play 연간 결제 시 월 7,000원 대비 36% 절약 (연 54,000원, 월 환산 4,500원)",
+    "saving": 2500,
+    "originalPrice": 7000,
+    "offerPrice": 4500,
     "dday": 30,
     "sourceServiceIds": [
-      "naver-mybox"
+      "ea-play"
     ],
-    "link": "https://mybox.naver.com",
-    "monogram": "네",
+    "link": "https://www.ea.com",
+    "monogram": "E",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-09-28T17:28:02.172Z",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-09-28T17:28:02.172Z"
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+  },
+  {
+    "id": "wow-subscription-promo",
+    "title": "World of Warcraft 정액제",
+    "subtitle": "6개월 특가 결제 시 1년에 ₩61,600 절약",
+    "kind": "6개월 특가 1년에 ₩61,600 절약",
+    "category": "게임/엔터",
+    "description": "월드 오브 워크래프트 6개월 특가 플랜 결제로 연간 ₩61,600 절약",
+    "saving": 5133,
+    "originalPrice": 19800,
+    "offerPrice": 14667,
+    "dday": 30,
+    "sourceServiceIds": [
+      "wow-subscription"
+    ],
+    "link": "https://kr.shop.battle.net/ko-kr/product/world-of-warcraft-subscription",
+    "monogram": "W",
+    "benefitPeriod": "상시 진행 (공식 검증 완료)",
+    "campaignPeriod": "상시 진행 (인증 프로모션)",
+    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
   }
 ];
 

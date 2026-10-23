@@ -1168,12 +1168,68 @@ const GUIDES = {
   fromm: storeBilledGuide("fromm"),
   malhaeboca: storeBilledGuide("말해보카"),
   "burnfit-pro": storeBilledGuide("번핏"),
+  // 2026-10-04 공식 고객센터 원문으로 확인
+  "kakao-emoticon": {
+    checkedAt: "2026-10-04",
+    sources: [
+      "https://cs.kakao.com/helps_html/1073199050",
+      "https://cs.kakao.com/helps_html/1073198521",
+      "https://cs.kakao.com/helps_html/1073203542",
+    ],
+    cancelUrl: "https://my.kakao.com/",
+    steps: [
+      { title: "My 구독 로그인", description: "웹 브라우저에서 my.kakao.com에 카카오계정으로 로그인하세요." },
+      { title: "구독 정보", description: "[구독 정보]에서 이모티콘 플러스를 고르고 [해지하기]를 누르세요." },
+      { title: "해지 유형 선택", description: "종료 혜택을 확인하고 해지 이유를 고른 뒤 [해지 예약] 또는 [바로 해지]를 직접 선택하세요." },
+    ],
+    notes: [
+      "해지 예약은 다음 정기결제일까지 쓸 수 있고, 바로 해지는 즉시 끝나며 남은 기간만큼 일할 환불돼요.",
+      "첫 유료결제 후 7일 안에 이모티콘을 보내지 않았다면 바로 해지 시 전액 환불돼요.",
+      "해지가 끝나면 메일과 카카오톡 알림이 와요.",
+      "카카오톡 앱 안(Google Play·App Store)에서 결제했다면 결제한 스토어에서 해지해야 해요.",
+      "문의: 카카오 고객센터 1577-3754(2번 My 구독).",
+    ],
+    altRoutes: ["googlePlay", "appStore"],
+  },
+  "shinsegae-universe": {
+    checkedAt: "2026-10-04",
+    sources: ["https://www.ssg.com/customer/faqKeywordList.ssg?keyword=%ED%95%B4%EC%A7%80"],
+    cancelUrl: "https://www.ssg.com/myssg/main.ssg",
+    steps: [
+      { title: "MY SSG", description: "SSG.COM에 로그인하고 [MY SSG]를 여세요." },
+      { title: "클럽 관리", description: "[신세계 유니버스 클럽 관리] → [신세계 유니버스 클럽 해지하기]로 가세요." },
+      { title: "해지 선택", description: "[해지 예약] 또는 [즉시 해지]를 직접 선택하세요." },
+    ],
+    notes: [
+      "유료 가입 후 즉시 해지하면 SSG머니 혜택을 쓴 만큼 월할 차감한 뒤 환불돼요.",
+      "가입비 환불은 결제한 카드사 기준 3~4일 걸리고, 명의자 본인만 요청할 수 있어요.",
+    ],
+  },
+  "t-universe": {
+    checkedAt: "2026-10-04",
+    sources: [
+      "https://m.tworld.co.kr/product/callplan?prod_id=NA00008100",
+      "https://cdn.sktuniverse.co.kr/FOBO/COM/TRCNFLTW/TUniverse_agree.pdf",
+    ],
+    cancelUrl: "https://m.sktuniverse.co.kr/",
+    steps: [
+      { title: "T 우주 로그인", description: "T 우주 앱이나 웹(m.sktuniverse.co.kr)에 로그인하세요." },
+      { title: "구독 관리", description: "[구독 관리]에서 우주패스 상품을 고르세요." },
+      { title: "해지", description: "해지 메뉴를 누르고 안내를 끝까지 진행하세요." },
+    ],
+    notes: [
+      "다음 결제를 막으려면 결제 예정일 전날까지 해지하세요(T 우주 이용약관 제16조).",
+      "휴대폰 회선을 해지해도 T 우주 상품은 따로 해지해야 해요.",
+    ],
+  },
 };
 
 // 공식 자료로 단계를 확인하지 못한 서비스의 공식 안내 링크.
 const HELP_LINKS = {
   // 2026-10-01에 직접 열어 확인한 공식 해지 도움말 또는 공식 고객센터.
   "kurly-pass": "https://www.kurly.com/board/faq",
+  // 컬리패스는 2023-08-01 판매 종료(기존 가입자는 혜택 유지). 해지 경로를 공식 원문으로 확인하지 못해 고객센터로 안내한다.
+  kurly: "https://www.kurly.com/board/faq",
   spotvnow: "https://www.spotvnow.co.kr/customer/faq",
   flo: "https://www.music-flo.com/help/faq/3/1",
   "wsj-digital": "https://customercenter.wsj.com/help/article?topic=Policies&title=Cancellation%20%26%20Refund%20Policy",
@@ -1243,7 +1299,7 @@ export function getCancelGuide(serviceId, { name = "", cancelUrl = "" } = {}) {
     notes,
     altRoutes,
     sources,
-    checkedAt: CHECKED_AT,
+    checkedAt: guide.checkedAt || CHECKED_AT,
     cancelUrl: guide.cancelUrl || cancelUrl || "",
     helpUrl: sources[0],
     helpLabel: "공식 도움말",

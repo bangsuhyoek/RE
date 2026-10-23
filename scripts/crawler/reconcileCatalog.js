@@ -16,7 +16,12 @@ export function reconcileCatalog(previousState, outcomes) {
     const bucket = { ACTIVE: 'active', EXPIRED: 'archive', SUSPICIOUS: 'review' }[result.status];
     if (!bucket) throw new Error('Unknown result status');
     // Never allow incoming scraped fields to overwrite trusted verification history.
-    const { verification, verifiedPeriod, lastVerifiedAt, softDegradedSince, status, ...scraped } = promotion;
+    const scraped = { ...promotion };
+    delete scraped.verification;
+    delete scraped.verifiedPeriod;
+    delete scraped.lastVerifiedAt;
+    delete scraped.softDegradedSince;
+    delete scraped.status;
     const record = { ...prior.get(promotion.id), ...scraped, ...result };
     if (result.isSoftDegraded) {
       const old = prior.get(promotion.id);

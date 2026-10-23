@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, BellRing, Check, ChevronRight, Sparkles, X, Trash2, Send } from "lucide-react";
+import { Bell, BellRing, ChevronRight, Sparkles, X, Trash2, Send } from "lucide-react";
 import { BottomSheet, Button, ServiceMark } from "./ui";
-import { formatWon } from "../lib/dates";
 
 function getNotificationBadgeStyle(badge = "") {
   const b = badge.toUpperCase();
@@ -198,9 +197,6 @@ export function NotificationCenterModal({
   onTriggerTest,
   notificationPermission,
   onRequestPermission,
-  onTestPaymentDetection,
-  onRequestPaymentCapture,
-  onOpenTerms,
 }) {
   return (
     <BottomSheet onClose={onClose} label="꾸독 알림 센터">

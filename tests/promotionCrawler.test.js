@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { parseTerms, parseClaim, matchClaim, extractDeadline, extractMonthlyPrices } from "../scripts/crawler/promotions/offerExtractor.js";
 import { getPromotionSource } from "../scripts/crawler/promotions/sources.js";
-import { classifyPage, PageState } from "../scripts/crawler/promotions/pageFetcher.js";
+import { classifyPage, extractStructuredMetadataText, PageState } from "../scripts/crawler/promotions/pageFetcher.js";
+import { verifyEvidenceQuote, validateUpdatedOffer, extractOfferWithAi } from "../scripts/crawler/promotions/aiExtractor.js";
 import { verifyPromotion, applyResult, planCatalogUpdate, Verdict } from "../scripts/crawler/runPromotionPipeline.js";
 
 const NOW = Date.parse("2026-09-29T00:00:00+09:00");
@@ -196,3 +197,242 @@ test("planCatalogUpdate: 절반 넘게 지워질 상황이면 점검 실패로 �
   assert.throws(() => planCatalogUpdate(items, byId, at), /--force-prune/);
   assert.equal(planCatalogUpdate(items, byId, at, { forcePrune: true }).kept.length, 0);
 });
+
+test("extractStructuredMetadataText는 OG 메타와 JSON-LD에서 프로모션 문구를 추출한다", () => {
+  const html = `
+    <html>
+      <head>
+        <meta property="og:title" content="Spotify Premium 특별 혜택" />
+        <meta property="og:description" content="신규 가입 시 2개월 0원 무료 체험" />
+        <script type="application/ld+json">
+          {"@type":"Offer","description":"이후 월 10,900원 정기 결제"}
+        </script>
+      </head>
+      <body><div id="root"></div></body>
+    </html>
+  `;
+  const metaText = extractStructuredMetadataText(html);
+  assert.match(metaText, /2개월 0원 무료 체험/);
+  assert.match(metaText, /10,900원/);
+});
+
+test("applyResult: 일시적 접속 실패(UNREACHABLE) 시 최근 확인 시각이 48시간 이내면 유예(softDegradedSince)로 LIVE_CONFIRMED를 유지한다", () => {
+  const checkedAt = "2026-09-29T12:00:00.000Z";
+  const recentItem = {
+    id: "recent-promo",
+    verifiedStatus: "LIVE_CONFIRMED",
+    lastVerifiedAt: "2026-09-28T18:00:00.000Z", // 18시간 전
+  };
+  const degraded = applyResult(recentItem, { verdict: Verdict.UNREACHABLE }, checkedAt);
+  assert.equal(degraded.verifiedStatus, "LIVE_CONFIRMED");
+  assert.equal(degraded.softDegradedSince, checkedAt);
+
+  // 다시 CONFIRMED 되면 softDegradedSince가 해제되어야 함
+  const recovered = applyResult(degraded, { verdict: Verdict.CONFIRMED }, "2026-09-29T15:00:00.000Z");
+  assert.equal(recovered.verifiedStatus, "LIVE_CONFIRMED");
+  assert.equal("softDegradedSince" in recovered, false);
+});
+
+test("applyResult: 48시간 유예 기간은 첫 실패(softDegradedSince)가 아니라 lastVerifiedAt을 기준으로 산정된다", () => {
+  const baseTime = "2026-09-20T00:00:00.000Z"; // T
+  const item = {
+    id: "grace-promo",
+    verifiedStatus: "LIVE_CONFIRMED",
+    lastVerifiedAt: baseTime,
+    softDegradedSince: "2026-09-21T16:00:00.000Z", // T + 40h
+  };
+
+  // T + 47h: lastVerifiedAt 기준 47h (<= 48h) 이므로 LIVE_CONFIRMED 유지, softDegradedSince는 T+40h 유지
+  const t47 = applyResult(item, { verdict: Verdict.UNREACHABLE }, "2026-09-21T23:00:00.000Z");
+  assert.equal(t47.verifiedStatus, "LIVE_CONFIRMED");
+  assert.equal(t47.softDegradedSince, "2026-09-21T16:00:00.000Z");
+
+  // T + 50h: lastVerifiedAt 기준 50h (> 48h) 이므로 LIVE_CONFIRMED 탈락 및 softDegradedSince 제거
+  const t50 = applyResult(item, { verdict: Verdict.UNREACHABLE }, "2026-09-22T02:00:00.000Z");
+  assert.notEqual(t50.verifiedStatus, "LIVE_CONFIRMED");
+  assert.equal("softDegradedSince" in t50, false);
+});
+
+test("verifyEvidenceQuote 및 validateUpdatedOffer는 원문 인용구 일치 및 가격 안전 조건을 검증한다", () => {
+  const pageText = "지금 시작하세요. 첫 1개월 동안 ₩0에 이용 가능하며 이후 월 14,900원이 결제됩니다.";
+  assert.equal(verifyEvidenceQuote(pageText, "첫 1개월 동안 ₩0에 이용 가능"), true);
+  assert.equal(verifyEvidenceQuote(pageText, "3개월 무료 체험 제공"), false);
+
+  const basePromo = { id: "yt", originalPrice: 14900, offerPrice: 0 };
+  const validOffer = validateUpdatedOffer(
+    {
+      isActive: true,
+      kind: "1개월 0원 무료 체험",
+      subtitle: "첫 1개월 0원 무료",
+      offerPrice: 0,
+      originalPrice: 14900,
+      benefitPeriod: "가입 후 첫 1개월",
+      deadline: "2026-12-31",
+    },
+    basePromo,
+    { now: NOW }
+  );
+  assert.equal(validOffer.valid, true);
+  assert.equal(validOffer.offer.saving, 14900);
+
+  const unsafePrice = validateUpdatedOffer(
+    {
+      isActive: true,
+      kind: "요금 인상",
+      offerPrice: 15900,
+      originalPrice: 14900,
+    },
+    basePromo,
+    { now: NOW }
+  );
+  assert.equal(unsafePrice.valid, false);
+});
+
+test("extractOfferWithAi는 원문 인용구가 페이지에 실제로 존재할 때만 변경된 혜택을 승인한다", async () => {
+  const promotion = {
+    id: "spotify-promo",
+    title: "Spotify",
+    kind: "3개월 0원 무료 체험",
+    subtitle: "3개월 무료",
+    originalPrice: 11990,
+    offerPrice: 0,
+  };
+  const pageText = "Spotify Premium\n₩0에 1개월 동안 Premium 개인 요금제를 이용해 보세요.\n이후에는 ₩11,990/월이 부과됩니다." + LONG_FILLER;
+
+  const mockFetchValid = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: JSON.stringify({
+                  isActive: true,
+                  kind: "1개월 0원 무료 체험",
+                  subtitle: "₩0에 1개월 무료 체험",
+                  offerPrice: 0,
+                  originalPrice: 11990,
+                  benefitPeriod: "가입 후 1개월",
+                  deadline: null,
+                  evidenceQuote: "₩0에 1개월 동안 Premium 개인 요금제를 이용해 보세요.",
+                }),
+              },
+            ],
+          },
+        },
+      ],
+    }),
+  });
+
+  const okResult = await extractOfferWithAi(promotion, pageText, {
+    apiKey: "test-key",
+    fetchImpl: mockFetchValid,
+    now: NOW,
+  });
+  assert.equal(okResult.confirmed, true);
+  assert.equal(okResult.updatedOffer.kind, "1개월 0원 무료 체험");
+  assert.equal(okResult.updatedOffer.saving, 11990);
+
+  // 환각 인용구(원문에 없는 문장)를 반환하면 기각해야 함
+  const mockFetchHallucinated = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: JSON.stringify({
+                  isActive: true,
+                  kind: "6개월 무료 체험",
+                  subtitle: "6개월 무료",
+                  offerPrice: 0,
+                  originalPrice: 11990,
+                  evidenceQuote: "이 문장은 실제 페이지에 전혀 존재하지 않는 환각 문장입니다.",
+                }),
+              },
+            ],
+          },
+        },
+      ],
+    }),
+  });
+
+  const rejected = await extractOfferWithAi(promotion, pageText, {
+    apiKey: "test-key",
+    fetchImpl: mockFetchHallucinated,
+    now: NOW,
+  });
+  assert.equal(rejected.confirmed, false);
+  assert.equal(rejected.reason, "EVIDENCE_QUOTE_NOT_IN_PAGE");
+});
+
+test("verifyPromotion 및 planCatalogUpdate: AI 하이브리드 추출 성공 시 자동 업데이트하고, 미확인 변경은 review 큐로 분리하며 free_tier는 라이브에서 제외한다", async () => {
+  const promotion = {
+    id: "test-spotify",
+    title: "Spotify",
+    kind: "3개월 0원 무료 체험",
+    subtitle: "3개월 무료",
+    link: "https://www.spotify.com/kr-ko/premium/",
+    originalPrice: 11990,
+    offerPrice: 0,
+    saving: 11990,
+    campaignPeriod: "상시 진행",
+    verifiedStatus: "LIVE_CONFIRMED",
+  };
+
+  const aiExtract = async () => ({
+    confirmed: true,
+    basis: "ai_hybrid",
+    evidenceQuote: "₩0에 1개월 동안 Premium 개인 요금제를 이용해 보세요.",
+    updatedOffer: {
+      kind: "1개월 0원 무료 체험",
+      subtitle: "₩0에 1개월 무료 체험",
+      offerPrice: 0,
+      originalPrice: 11990,
+      saving: 11990,
+      benefitPeriod: "가입 후 1개월",
+    },
+  });
+
+  const result = await verifyPromotion(promotion, {
+    loadPage: fakeLoader({ [promotion.link]: spotifyPage }),
+    aiExtract,
+    now: NOW,
+  });
+  assert.equal(result.verdict, Verdict.CONFIRMED);
+  assert.equal(result.autoUpdated, true);
+  assert.equal(result.updatedOffer.kind, "1개월 0원 무료 체험");
+
+  const at = "2026-09-29T00:00:00.000Z";
+  const masterItems = [
+    promotion,
+    { id: "free-plan", title: "Free Plan", isFreeTier: true, verifiedStatus: "LIVE_CONFIRMED" },
+    { id: "changed-needs-review", title: "Review Me", kind: "기존 혜택", verifiedStatus: "LIVE_CONFIRMED" },
+  ];
+  const byId = new Map([
+    [promotion.id, result],
+    ["free-plan", { id: "free-plan", verdict: Verdict.CONFIRMED }],
+    [
+      "changed-needs-review",
+      {
+        id: "changed-needs-review",
+        verdict: Verdict.CHANGED,
+        reason: "페이지의 혜택 조건이 카탈로그와 다름",
+        pageSays: { url: "https://example.com", text: ["새로운 조건 문구"] },
+      },
+    ],
+  ]);
+
+  const plan = planCatalogUpdate(masterItems, byId, at);
+  assert.equal(plan.kept.length, 1);
+  assert.equal(plan.kept[0].id, "test-spotify");
+  assert.equal(plan.kept[0].kind, "1개월 0원 무료 체험");
+  assert.equal(plan.kept[0].autoUpdatedAt, at);
+  assert.equal(plan.review.length, 1);
+  assert.equal(plan.review[0].id, "changed-needs-review");
+});
+

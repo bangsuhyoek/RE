@@ -1,13 +1,13 @@
 import { parseReceiptText } from "./_lib/receiptParser.js";
-
-export const config = {
-  api: {
-    bodyParser: { sizeLimit: "12mb" },
-  },
-};
+import { verifySupabaseAuth } from "./_lib/auth.js";
+import { consumeRateLimit } from "./_lib/rateLimit.js";
+import { callGemini, getCandidateModels } from "./_lib/gemini.js";
+import { applyCors } from "./_lib/cors.js";
 
 const allowedMimeTypes = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 3 * 1024 * 1024; // 원본 약 3MB 한도 (Vercel 4.5MB 본문 한도 전 방어)
+const MAX_RAW_BODY_BYTES = 4.2 * 1024 * 1024;
+const MAX_PASTED_TEXT_LENGTH = 20_000;
 
 const send = (response, status, payload) => {
   response.status(status).json(payload);
@@ -15,114 +15,19 @@ const send = (response, status, payload) => {
 
 const readBody = (request) => {
   if (typeof request.body === "string") return JSON.parse(request.body);
-  return request.body || {};
-};
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const isHighDemandOrOverloaded = (status, message = "") => {
-  const lower = String(message).toLowerCase();
-  return (
-    status === 503 ||
-    status === 429 ||
-    status === 500 ||
-    lower.includes("high demand") ||
-    lower.includes("spikes in demand") ||
-    lower.includes("overloaded") ||
-    lower.includes("quota") ||
-    lower.includes("resource_exhausted") ||
-    lower.includes("unavailable")
-  );
-};
-
-const callSingleGeminiModel = async ({ model, imageBase64, mimeType, apiKey, signal }) => {
-  const url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(apiKey);
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            {
-              inlineData: {
-                mimeType: mimeType || "image/jpeg",
-                data: imageBase64,
-              },
-            },
-            {
-              text: "영수증 또는 결제 내역 이미지의 모든 텍스트를 보이는 그대로 정확히 추출(OCR)해주세요. 요약이나 설명 없이 텍스트 원문만 줄바꿈하여 출력하세요.",
-            },
-          ],
-        },
-      ],
-    }),
-    signal,
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok || payload.error) {
-    const status = response.status || 500;
-    const message = payload.error?.message || ("Gemini OCR 호출 실패 (" + status + ")");
-    const error = new Error(message);
-    error.status = status;
-    throw error;
-  }
-  const candidate = payload.candidates?.[0]?.content?.parts?.find((part) => part.text);
-  return candidate?.text || "";
-};
-
-const callGeminiVision = async ({ imageBase64, mimeType, apiKey }) => {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 28_000);
-  const defaultModel = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
-  const candidateModels = Array.from(new Set([
-    defaultModel,
-    "gemini-3.5-flash-lite",
-    "gemini-3.5-flash",
-    "gemini-flash-latest",
-    "gemini-2.5-flash",
-    "gemini-3.6-flash",
-  ].filter(Boolean)));
-
-  let lastError = null;
-  try {
-    for (const model of candidateModels) {
-      try {
-        return await callSingleGeminiModel({
-          model,
-          imageBase64,
-          mimeType,
-          apiKey,
-          signal: controller.signal,
-        });
-      } catch (err) {
-        lastError = err;
-        if (controller.signal.aborted) throw err;
-        const lower = String(err.message || "").toLowerCase();
-        if (err.status === 401 || (err.status === 403 && lower.includes("api_key_invalid"))) {
-          throw err;
-        }
-        await sleep(500);
-      }
-    }
-    if (lastError && isHighDemandOrOverloaded(lastError.status, lastError.message)) {
-      const err = new Error("AI 모델 서비스에 일시적인 트래픽이 몰려 지연되고 있습니다. 잠시 후 다시 시도해 주시거나 결제 문자로 입력해 주세요.");
-      err.isHighDemand = true;
-      throw err;
-    }
-    throw lastError || new Error("Gemini OCR 호출에 실패했습니다.");
-  } finally {
-    clearTimeout(timer);
-  }
+  return request.body;
 };
 
 const callGoogleVision = async ({ imageBase64, apiKey }) => {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 25_000);
+  const timer = setTimeout(() => controller.abort(), 20_000);
   try {
-    const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${encodeURIComponent(apiKey)}`, {
+    const response = await fetch("https://vision.googleapis.com/v1/images:annotate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+      },
       body: JSON.stringify({
         requests: [{
           image: { content: imageBase64 },
@@ -144,10 +49,7 @@ const callGoogleVision = async ({ imageBase64, apiKey }) => {
 };
 
 export default async function handler(request, response) {
-  // Support Cross-Origin Requests from mobile Capacitor apps (e.g. capacitor://localhost, http://localhost)
-  response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  applyCors(request, response);
 
   if (request.method === "OPTIONS") {
     if (typeof response.status === "function") {
@@ -162,15 +64,85 @@ export default async function handler(request, response) {
     return send(response, 405, { ok: false, code: "METHOD_NOT_ALLOWED", message: "POST 요청만 지원합니다." });
   }
 
+  // Raw body size guard before JSON processing
+  if (typeof request.body === "string" && Buffer.byteLength(request.body, "utf8") > MAX_RAW_BODY_BYTES) {
+    return send(response, 413, { ok: false, code: "IMAGE_TOO_LARGE", message: "요청 크기가 제한을 초과했습니다." });
+  }
+
+  // 1. Supabase 인증 확인 (토큰 로깅 금지) - 로컬 개발 미들웨어(dev-only)는 미인증 허용
+  let userId;
+  const authHeader = request.headers?.authorization || request.headers?.Authorization;
+  if (!request.__isLocalDev) {
+    try {
+      userId = await verifySupabaseAuth(authHeader);
+    } catch (err) {
+      if (err.code === "AGENT_AUTH_NOT_CONFIGURED") {
+        return send(response, 503, {
+          ok: false,
+          code: "AGENT_AUTH_NOT_CONFIGURED",
+          message: "인증 서버 환경변수가 설정되지 않았습니다.",
+        });
+      }
+      return send(response, 401, {
+        ok: false,
+        code: "AUTH_REQUIRED",
+        message: "인증이 필요합니다.",
+      });
+    }
+
+    if (!userId) {
+      return send(response, 401, {
+        ok: false,
+        code: "AUTH_REQUIRED",
+        message: "인증이 필요합니다.",
+      });
+    }
+  }
+
   let body;
   try {
     body = readBody(request);
   } catch {
     return send(response, 400, { ok: false, code: "INVALID_JSON", message: "요청 형식이 올바르지 않습니다." });
   }
+  if (!body || typeof body !== "object") {
+    return send(response, 400, { ok: false, code: "INVALID_JSON", message: "요청 형식이 올바르지 않습니다." });
+  }
 
-  const pastedText = String(body.text || "").trim();
+  const rawText = String(body.text ?? "");
+  if (rawText.length > MAX_PASTED_TEXT_LENGTH) {
+    return send(response, 413, { ok: false, code: "TEXT_TOO_LARGE", message: "텍스트는 20,000자 이하만 사용할 수 있습니다." });
+  }
+
+  const pastedText = rawText.trim();
   if (pastedText) {
+    if (!request.__isLocalDev) {
+      const rateLimitResult = await consumeRateLimit({
+        userId,
+        bearerToken: authHeader,
+        endpoint: "ocr",
+        checkGlobal: false,
+      });
+
+      if (rateLimitResult.failClosed) {
+        response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+        return send(response, 503, {
+          ok: false,
+          code: "RATE_LIMIT_UNAVAILABLE",
+          message: "일시적으로 사용량 확인이 불가능합니다. 잠시 후 다시 시도해 주세요.",
+        });
+      }
+
+      if (!rateLimitResult.allowed) {
+        response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+        return send(response, 429, {
+          ok: false,
+          code: "RATE_LIMITED",
+          message: "요청 한도를 초과했습니다. 잠시 후 다시 시도해 주세요.",
+        });
+      }
+    }
+
     const parsed = parseReceiptText(pastedText);
     return send(response, parsed.ok ? 200 : 422, parsed);
   }
@@ -186,7 +158,7 @@ export default async function handler(request, response) {
 
   const estimatedBytes = Math.ceil(imageBase64.length * 0.75);
   if (estimatedBytes > MAX_IMAGE_BYTES) {
-    return send(response, 413, { ok: false, code: "IMAGE_TOO_LARGE", message: "이미지는 8MB 이하만 사용할 수 있습니다." });
+    return send(response, 413, { ok: false, code: "IMAGE_TOO_LARGE", message: "이미지는 3MB 이하만 사용할 수 있습니다." });
   }
 
   const geminiKey = process.env.GEMINI_API_KEY;
@@ -195,12 +167,69 @@ export default async function handler(request, response) {
     return send(response, 503, { ok: false, code: "OCR_NOT_CONFIGURED", message: "OCR 환경변수가 설정되지 않았습니다." });
   }
 
+  // 2. DB 기반 원자적 할당량 및 전역 호출 상한 확인 (fail-closed)
+  if (!request.__isLocalDev) {
+    const rateLimitResult = await consumeRateLimit({
+      userId,
+      bearerToken: authHeader,
+      endpoint: "ocr",
+      checkGlobal: true,
+    });
+
+    if (rateLimitResult.failClosed) {
+      response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+      return send(response, 503, {
+        ok: false,
+        code: "RATE_LIMIT_UNAVAILABLE",
+        message: "일시적으로 사용량 확인이 불가능합니다. 잠시 후 다시 시도해 주세요.",
+      });
+    }
+
+    if (!rateLimitResult.allowed) {
+      response.setHeader("Retry-After", String(rateLimitResult.retryAfterSeconds || 60));
+      return send(response, 429, {
+        ok: false,
+        code: "RATE_LIMITED",
+        message: "요청 한도를 초과했습니다. 잠시 후 다시 시도해 주세요.",
+      });
+    }
+  }
+
   try {
     const normalizedMimeType = mimeType === "image/jpg" ? "image/jpeg" : mimeType;
     let rawText = "";
     if (geminiKey) {
       try {
-        rawText = await callGeminiVision({ imageBase64, mimeType: normalizedMimeType, apiKey: geminiKey });
+        const candidateModels = Array.from(new Set([
+          process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
+          ...getCandidateModels("ocr"),
+        ]));
+
+        rawText = await callGemini({
+          contents: [
+            {
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: normalizedMimeType,
+                    data: imageBase64,
+                  },
+                },
+                {
+                  text: "영수증 또는 결제 내역 이미지의 모든 텍스트를 보이는 그대로 정확히 추출(OCR)해주세요. 요약이나 설명 없이 텍스트 원문만 줄바꿈하여 출력하세요.",
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            maxOutputTokens: 2048,
+          },
+          candidateModels,
+          apiKey: geminiKey,
+          overallTimeoutMs: 25_000,
+          attemptTimeoutMs: 8_000,
+          maxAttempts: 3,
+        });
       } catch (geminiError) {
         if (visionKey && !geminiError.name?.includes("Abort")) {
           rawText = await callGoogleVision({ imageBase64, apiKey: visionKey });
@@ -220,7 +249,8 @@ export default async function handler(request, response) {
       code: timedOut ? "OCR_TIMEOUT" : "OCR_PROVIDER_ERROR",
       message: timedOut
         ? "이미지 인식 시간이 초과되었습니다. 다시 시도해 주세요."
-        : (error?.message || "이미지 인식 서비스에 연결하지 못했습니다."),
+        : (error?.isHighDemand ? "AI 모델 서비스에 일시적인 트래픽이 몰려 지연되고 있습니다. 잠시 후 다시 시도해 주시거나 결제 문자로 입력해 주세요." : "이미지 인식 서비스에 연결하지 못했어요. 잠시 후 다시 시도해 주세요."),
     });
   }
 }
+

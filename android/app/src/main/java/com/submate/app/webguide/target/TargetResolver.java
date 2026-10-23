@@ -5,6 +5,7 @@ import android.webkit.WebView;
 
 import com.submate.app.webguide.WebSecurityPolicy;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -47,6 +48,17 @@ public final class TargetResolver {
             put(target, "hrefContains", spec.getHrefContains());
             put(target, "dataName", spec.getDataAttributeName());
             put(target, "dataValue", spec.getDataAttributeValue());
+            if (spec.getTextMatches() != null && !spec.getTextMatches().isEmpty()) {
+                JSONArray arr = new JSONArray();
+                for (String tm : spec.getTextMatches()) {
+                    if (tm != null && !tm.trim().isEmpty()) {
+                        arr.put(tm.trim());
+                    }
+                }
+                if (arr.length() > 0) {
+                    target.put("textMatches", arr);
+                }
+            }
         } catch (Exception e) {
             callback.onResolved(new TargetResolution(
                     TargetResolutionStatus.ERROR, null, 0, "", "", "", "spec_serialization_failed"));
@@ -92,6 +104,10 @@ public final class TargetResolver {
                         TargetResolutionStatus.ERROR, null, 0, "", "", "", "result_parse_failed"));
             }
         });
+    }
+
+    public static String getInjectedScriptForTesting(String targetJson) {
+        return buildScript(targetJson == null ? "{}" : targetJson);
     }
 
     public void resolveBySelectors(WebView webView, List<String> orderedSelectors, Callback callback) {
@@ -162,6 +178,9 @@ public final class TargetResolver {
                 "if(spec.className){try{addAll(document.getElementsByClassName(spec.className),'class');}catch(e){}}" +
                 "var clickables=document.querySelectorAll('a,button,[role=\"button\"],[role=\"link\"],[onclick],[tabindex],input[type=\"button\"],input[type=\"submit\"]');" +
                 "if(spec.text){for(var i=0;i<clickables.length;i++){if(norm(clickables[i].innerText||clickables[i].textContent)===norm(spec.text))push(clickables[i],'text');}}" +
+                "var textMatchesList=(spec.textMatches&&Array.isArray(spec.textMatches))?spec.textMatches:(spec.textMatch?[spec.textMatch]:[]);" +
+                "var hasTextMatch=function(t){if(!t)return false;var nl=norm(t).toLowerCase();for(var m=0;m<textMatchesList.length;m++){if(textMatchesList[m]&&nl.indexOf(norm(textMatchesList[m]).toLowerCase())>=0)return true;}return false;};" +
+                "if(textMatchesList.length>0){for(var i=0;i<clickables.length;i++){if(hasTextMatch(clickables[i].innerText||clickables[i].textContent))push(clickables[i],'textMatch');}}" +
                 "if(spec.ariaLabel){var aria=document.querySelectorAll('[aria-label]');for(var i=0;i<aria.length;i++){if(norm(aria[i].getAttribute('aria-label'))===norm(spec.ariaLabel))push(aria[i],'aria-label');}}" +
                 "if(spec.role){var roles=document.querySelectorAll('[role]');for(var i=0;i<roles.length;i++){if(norm(roles[i].getAttribute('role'))===norm(spec.role))push(roles[i],'role');}}" +
                 "if(spec.hrefContains){var links=document.querySelectorAll('a[href]');for(var i=0;i<links.length;i++){if((links[i].getAttribute('href')||'').indexOf(spec.hrefContains)>=0)push(links[i],'href');}}" +
@@ -170,12 +189,14 @@ public final class TargetResolver {
                 "var all=document.querySelectorAll('body *');" +
                 "for(var i=0;i<all.length;i++){if(norm(all[i].textContent)===norm(spec.text)){var c=all[i].closest('a,button,[role=\"button\"],[role=\"link\"],[onclick],[tabindex]');push(c||all[i],'text-descendant');}}" +
                 "}" +
+                "if(pool.length===0&&textMatchesList.length>0){var all=document.querySelectorAll('body *');for(var i=0;i<all.length;i++){if(hasTextMatch(all[i].textContent)){var c=all[i].closest('a,button,[role=\"button\"],[role=\"link\"],[onclick],[tabindex]');push(c||all[i],'textMatch-descendant');}}}" +
                 "var matches=[];" +
                 "var matchAll=function(el){" +
                 "if(spec.selector){try{if(!el.matches(spec.selector))return false;}catch(e){return false;}}" +
                 "if(spec.id&&el.id!==spec.id)return false;" +
                 "if(spec.className&&!el.classList.contains(spec.className))return false;" +
                 "if(spec.text&&norm(el.innerText||el.textContent)!==norm(spec.text))return false;" +
+                "if(textMatchesList.length>0&&!hasTextMatch(el.innerText||el.textContent))return false;" +
                 "if(spec.ariaLabel&&norm(el.getAttribute('aria-label'))!==norm(spec.ariaLabel))return false;" +
                 "if(spec.role&&norm(el.getAttribute('role'))!==norm(spec.role))return false;" +
                 "if(spec.hrefContains&&String(el.getAttribute('href')||'').indexOf(spec.hrefContains)<0)return false;" +
@@ -183,6 +204,12 @@ public final class TargetResolver {
                 "return true;};" +
                 "for(var i=0;i<pool.length;i++){var el=pool[i].el;if(!matchAll(el))continue;var r=el.getBoundingClientRect();var s=window.getComputedStyle(el);if(!r||r.width<=0||r.height<=0||s.display==='none'||s.visibility==='hidden'||parseFloat(s.opacity||'1')===0)continue;matches.push({el:el,reason:pool[i].reason,rect:r});}" +
                 "if(matches.length===0)return JSON.stringify({status:'NOT_FOUND',candidateCount:0});" +
+                "if(matches.length>1){" +
+                "var filtered=[];" +
+                "for(var i=0;i<matches.length;i++){var keep=true;for(var j=0;j<matches.length;j++){if(i!==j&&matches[i].el.contains(matches[j].el)){keep=false;break;}}if(keep)filtered.push(matches[i]);}" +
+                "if(filtered.length>0)matches=filtered;" +
+                "if(matches.length>1&&textMatchesList.length>0){var exact=[];var targetLower=norm(textMatchesList[0]).toLowerCase();for(var k=0;k<matches.length;k++){if(norm(matches[k].el.innerText||matches[k].el.textContent).toLowerCase()===targetLower)exact.push(matches[k]);}if(exact.length===1)matches=exact;}" +
+                "}" +
                 "var vw=window.innerWidth||document.documentElement.clientWidth||0;var vh=window.innerHeight||document.documentElement.clientHeight||0;" +
                 "var visible=[];for(var i=0;i<matches.length;i++){var r=matches[i].rect;if(r.right>0&&r.bottom>0&&r.left<vw&&r.top<vh)visible.push(matches[i]);}" +
                 "var chosen=null;" +
@@ -192,7 +219,7 @@ public final class TargetResolver {
                 "else{return JSON.stringify({status:'AMBIGUOUS',candidateCount:matches.length});}" +
                 "var r=chosen.rect;var el=chosen.el;var desc=el.tagName.toLowerCase();if(el.id)desc+='#'+el.id;if(el.classList&&el.classList.length)desc+='.'+Array.prototype.slice.call(el.classList,0,2).join('.');" +
                 "var isVisible=(r.right>0&&r.bottom>0&&r.left<vw&&r.top<vh);" +
-                "if(isVisible){var cx=Math.max(0,Math.min(vw-1,r.left+r.width/2));var cy=Math.max(0,Math.min(vh-1,r.top+r.height/2));var hit=document.elementFromPoint(cx,cy);if(hit&&hit!==el&&!el.contains(hit)){return JSON.stringify({status:'ERROR',candidateCount:matches.length,error:'target_occluded',matchedText:norm(el.innerText||el.textContent).slice(0,80),matchedSelector:chosen.reason,element:desc});}}" +
+                "if(isVisible){var cx=Math.max(0,Math.min(vw-1,r.left+r.width/2));var cy=Math.max(0,Math.min(vh-1,r.top+r.height/2));var hit=document.elementFromPoint(cx,cy);if(hit&&hit!==el&&!el.contains(hit)&&!hit.contains(el)){return JSON.stringify({status:'ERROR',candidateCount:matches.length,error:'target_occluded',matchedText:norm(el.innerText||el.textContent).slice(0,80),matchedSelector:chosen.reason,element:desc});}}" +
                 "return JSON.stringify({status:isVisible?'FOUND_VISIBLE':'FOUND_OFFSCREEN',candidateCount:matches.length,left:r.left,top:r.top,width:r.width,height:r.height,vw:vw,vh:vh,matchedText:norm(el.innerText||el.textContent).slice(0,80),matchedSelector:chosen.reason,element:desc});" +
                 "}catch(e){return JSON.stringify({status:'ERROR',candidateCount:0,error:String(e&&e.message?e.message:e).slice(0,120)});}" +
                 "})()";

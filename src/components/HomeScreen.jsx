@@ -8,11 +8,13 @@ import {
   Bell,
   BellOff,
   User,
+  X,
 } from "lucide-react";
-import { Button, SubscriptionCard, ServiceMark } from "./ui";
+import { Button, SubscriptionCard } from "./ui";
 import { daysUntilCharge, formatWon } from "../lib/dates";
+import { calculateMonthlyTotal, calculateYearlyTotal } from "../lib/subscriptionAgent";
 
-function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile }) {
+function EmptyState({ onAdd, onScan, onOpenDiscovery, onLogout, onOpenAccount, profile }) {
   return (
     <section className="flex min-h-[calc(100dvh-9rem)] min-h-[calc(100vh-9rem)] flex-col items-center justify-center px-4 sm:px-5 text-center">
       <span className="grid h-16 w-16 place-items-center rounded-full bg-[#F2F4F6] text-[#6B7684] border border-[#E5E8EB]">
@@ -23,6 +25,11 @@ function EmptyState({ onAdd, onScan, onLogout, onOpenAccount, profile }) {
       <div className="mt-8 w-full space-y-3">
         <Button size="large" fullWidth onClick={onAdd} prefixIcon={<ReceiptText size={18} />}>첫 구독 서비스 등록하기</Button>
         <Button size="large" fullWidth variant="secondary" onClick={onScan} prefixIcon={<ScanLine size={18} />}>AI 결제인식 (문자·영수증 스캔)</Button>
+        {onOpenDiscovery && (
+          <Button size="large" fullWidth variant="secondary" onClick={onOpenDiscovery} prefixIcon={<Sparkles size={18} />}>
+            숨은 구독 한 번에 찾기 (설치앱·명세서 스캔)
+          </Button>
+        )}
       </div>
       <div className="mt-8 flex items-center gap-2.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] px-4 py-3.5 text-left shadow-2xs">
         <Sparkles size={18} className="shrink-0 text-[#FF6F0F]" />
@@ -160,6 +167,12 @@ function VisualPromoCarousel({ promotions, onOpenPromotion }) {
             style={{ minHeight: "108px" }}
             role="button"
             tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onOpenPromotion?.(s.promo);
+              }
+            }}
             aria-label={`${s.tag} - ${s.title}`}
           >
             <div className="flex-1 pr-2 min-w-0">
@@ -199,6 +212,7 @@ export function HomeScreen({
   subscriptions,
   promotions = [],
   profile,
+  unreadCount = 0,
   notificationDenied,
   onOpenSubscription,
   onShowAll,
@@ -206,29 +220,33 @@ export function HomeScreen({
   onExplorePromotions,
   onAdd,
   onScan,
+  onOpenDiscovery,
   onToggleNotificationPermission,
   onOpenNotificationCenter,
   onOpenTerms,
   onLogout,
   onOpenAccount,
+  onOpenAgent,
+  careSlot = null,
+  agentInsight = null,
+  onOpenAgentInsight,
+  onDismissInsight,
 }) {
   const [annual, setAnnual] = useState(false);
 
   const monthly = useMemo(() => {
-    return subscriptions.reduce((sum, sub) => {
-      const amt = sub.billingCycle === "매년" ? Math.round(sub.amount / 12) : sub.amount;
-      return sum + amt;
-    }, 0);
+    return calculateMonthlyTotal(subscriptions);
   }, [subscriptions]);
 
   const yearly = useMemo(() => {
-    return subscriptions.reduce((sum, sub) => {
-      const amt = sub.billingCycle === "매년" ? sub.amount : sub.amount * 12;
-      return sum + amt;
-    }, 0);
+    return calculateYearlyTotal(subscriptions);
   }, [subscriptions]);
 
   const displayAmount = annual ? yearly : monthly;
+
+  const activeSubscriptionsCount = useMemo(() => {
+    return subscriptions.filter((sub) => sub && sub.status !== "cancelled").length;
+  }, [subscriptions]);
 
   // 결제 예정순 정렬 (무료체험 최우선 -> 사용자 지정 고정(강조) -> 빠른 결제일 순)
   const sortedSubscriptions = useMemo(() => {
@@ -248,14 +266,19 @@ export function HomeScreen({
   }, [subscriptions]);
 
   if (subscriptions.length === 0) {
+    // 마지막 구독을 해지해도 해지 확인 카드는 계속 보여야 한다.
     return (
-      <EmptyState
-        onAdd={onAdd}
-        onScan={onScan || onAdd}
-        onLogout={onLogout}
-        onOpenAccount={onOpenAccount}
-        profile={profile}
-      />
+      <>
+        {careSlot && <div className="px-4 sm:px-5">{careSlot}</div>}
+        <EmptyState
+          onAdd={onAdd}
+          onScan={onScan || onAdd}
+          onOpenDiscovery={onOpenDiscovery}
+          onLogout={onLogout}
+          onOpenAccount={onOpenAccount}
+          profile={profile}
+        />
+      </>
     );
   }
 
@@ -279,7 +302,9 @@ export function HomeScreen({
             aria-label="알림 센터 열기"
           >
             <Bell size={20} />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+            )}
           </button>
           {onOpenAccount && (
             <button
@@ -298,6 +323,12 @@ export function HomeScreen({
       <div className="pt-6 pb-4 flex items-end justify-between">
         <div
           onClick={() => setAnnual((v) => !v)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setAnnual((v) => !v);
+            }
+          }}
           className="cursor-pointer group"
           role="button"
           tabIndex={0}
@@ -320,7 +351,7 @@ export function HomeScreen({
           </span>
           <div className="mt-1 leading-none">
             <span className="text-[26px] font-black text-black tracking-tight">
-              {subscriptions.length}
+              {activeSubscriptionsCount}
             </span>
             <span className="text-[15px] font-bold text-gray-600 ml-0.5">
               개
@@ -329,7 +360,81 @@ export function HomeScreen({
         </div>
       </div>
 
+      {/* 꾸독 에이전트 선제적 인사이트 카드 */}
+      {agentInsight && (
+        <div
+          className="mt-2.5 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/90 via-white to-indigo-50/60 p-4 shadow-sm transition-all"
+          role="region"
+          aria-label="꾸독 인사이트"
+        >
+          <div className="flex items-start justify-between gap-2.5">
+            <div className="flex items-center gap-2">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#3182F6] text-white shadow-2xs">
+                <Sparkles size={13} />
+              </span>
+              <span className="text-[12px] font-bold text-[#3182F6]">꾸독</span>
+              {agentInsight.priority === "high" && (
+                <span className="rounded-md bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-600">
+                  중요
+                </span>
+              )}
+            </div>
+            {onDismissInsight && (
+              <button
+                type="button"
+                onClick={() => onDismissInsight(agentInsight.id)}
+                className="grid h-6 w-6 place-items-center rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-colors"
+                aria-label="인사이트 닫기"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="mt-2 min-w-0">
+            <strong className="block text-[14px] font-bold text-[#191F28] leading-snug">
+              {agentInsight.title}
+            </strong>
+            <p className="mt-1 text-[13px] leading-relaxed text-[#4E5968]">
+              {agentInsight.message}
+            </p>
+          </div>
+
+          {onOpenAgentInsight && (
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => onOpenAgentInsight(agentInsight)}
+                className="flex items-center gap-1.5 rounded-xl bg-[#191F28] px-3.5 py-2 text-[12.5px] font-bold text-white shadow-xs transition-all active:scale-95 hover:bg-black"
+                aria-label="꾸독과 대화하기"
+              >
+                대화하기
+                <ChevronRight size={14} className="text-white/70" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 알림 권한 꺼짐 안내 (필요 시 노출) */}
+      {onOpenAgent && (
+        <button
+          type="button"
+          onClick={onOpenAgent}
+          className="mt-1 flex w-full items-center gap-3 rounded-2xl bg-[#191F28] px-4 py-3.5 text-left shadow-sm transition-all active:scale-[0.98]"
+          aria-label="꾸독에게 시키기"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-white">
+            <Sparkles size={17} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <strong className="block text-[14px] font-bold text-white">꾸독에게 시키기</strong>
+            <span className="block truncate text-[12px] font-medium text-white/60">"넷플릭스 해지하고 환불 받아줘"</span>
+          </span>
+          <ChevronRight size={18} className="shrink-0 text-white/50" />
+        </button>
+      )}
+
       {notificationDenied && (
         <button
           type="button"
@@ -352,20 +457,34 @@ export function HomeScreen({
       )}
 
       {/* 3. 내 구독 파트 (피로도 제로: 편안한 16px 굵기와 넉넉한 20px+ 여백) */}
+      {careSlot}
+
       <section className="mt-5">
         <div className="flex items-center justify-between pb-3 border-b border-gray-100/80">
           <h2 className="text-[16px] font-bold text-[#191F28] tracking-tight">
             구독 관리
           </h2>
-          {subscriptions.length > 5 && onShowAll && (
-            <button
-              type="button"
-              onClick={onShowAll}
-              className="text-[12px] font-medium text-gray-400 hover:text-black flex items-center transition-colors cursor-pointer"
-            >
-              전체보기 <ChevronRight size={13} />
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {onOpenDiscovery && (
+              <button
+                type="button"
+                onClick={onOpenDiscovery}
+                className="inline-flex items-center gap-1 rounded-lg bg-[#EAF2ED] px-2.5 py-1 text-[11.5px] font-bold text-[#153D2E] hover:bg-[#dce9e1] transition-colors cursor-pointer"
+              >
+                <Sparkles size={12} />
+                숨은 구독 찾기
+              </button>
+            )}
+            {subscriptions.length > 5 && onShowAll && (
+              <button
+                type="button"
+                onClick={onShowAll}
+                className="text-[12px] font-medium text-gray-400 hover:text-black flex items-center transition-colors cursor-pointer"
+              >
+                전체보기 <ChevronRight size={13} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 구독 리스트: 기존과 같은 단일 리스트 구성, 서비스 간 여백 py-5(20px) 넉넉한 확장 + 대형 로고 */}

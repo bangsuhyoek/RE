@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { IconButton, ServiceMark } from "./ui";
 import { formatKoreanMonth, formatWon, getCalendarDays, getLastDate } from "../lib/dates";
+import { buildDuesByDay } from "../lib/calendarDues";
 
 export function CalendarScreen({ subscriptions, onOpen }) {
   const [date, setDate] = useState(() => new Date());
@@ -14,24 +15,7 @@ export function CalendarScreen({ subscriptions, onOpen }) {
   const clampedDay = Math.min(selectedDay, lastDay);
 
   const duesByDay = useMemo(() => {
-    const map = new Map();
-    for (const sub of subscriptions) {
-      if (sub.billingCycle === "매년") {
-        const chargeMonth = sub.nextBillingDate
-          ? new Date(sub.nextBillingDate).getMonth()
-          : sub.createdAt
-          ? new Date(sub.createdAt).getMonth()
-          : null;
-        if (chargeMonth !== null && chargeMonth !== month) {
-          continue;
-        }
-      }
-      const day = Math.min(sub.dueDay, lastDay);
-      const list = map.get(day) || [];
-      list.push(sub);
-      map.set(day, list);
-    }
-    return map;
+    return buildDuesByDay(subscriptions, month, lastDay);
   }, [lastDay, subscriptions, month]);
 
   const selectedDues = duesByDay.get(clampedDay) || [];

@@ -1,8 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <queries>
+        <package android:name="com.kakaopay.app" />
+        <package android:name="com.nhn.android.search" />
+        <package android:name="viva.republica.toss" />
+        <package android:name="com.nhnent.payapp" />
+        <package android:name="com.sktelecom.minit" />
+        <package android:name="com.ktshow.cs" />
+        <package android:name="com.lguplus.mobile.cs" />
+        <!-- 기기 내 설치된 구독형 앱 1초 스캔 대상 (QUERY_ALL_PACKAGES 권한 없이 안전 조회) -->
+        <package android:name="com.netflix.mediaclient" />
+        <package android:name="com.google.android.youtube" />
+        <package android:name="com.google.android.apps.youtube.music" />
+        <package android:name="net.cj.cjhv.gs.tving" />
+        <package android:name="com.disney.disneyplus" />
+        <package android:name="kr.co.captv.pooqV2" />
+        <package android:name="com.frograms.wplay" />
+        <package android:name="com.coupang.mobile" />
+        <package android:name="com.coupang.mobile.play" />
+        <package android:name="com.spotify.music" />
+        <package android:name="com.iloen.melon" />
+        <package android:name="com.ktmusic.geniemusic" />
+        <package android:name="skplanet.musicmate" />
+        <package android:name="kr.co.millie.millieshelf" />
+        <package android:name="com.initialcoms.ridi" />
+        <package android:name="com.influential.viall" />
+        <package android:name="com.openai.chatgpt" />
+        <package android:name="com.anthropic.claude" />
+        <package android:name="ai.perplexity.app.android" />
+        <package android:name="notion.id" />
+        <package android:name="com.canva.editor" />
+        <package android:name="com.duolingo" />
+        <package android:name="com.sampleapp" />
+        <package android:name="com.fineapp.yogiyo" />
+        <package android:name="com.Kurly.m2" />
+        <package android:name="com.microsoft.office.officehubrow" />
+        <package android:name="com.adobe.lrmobile" />
+        <package android:name="com.evernote" />
+        <package android:name="com.agilebits.onepassword" />
+    </queries>
 
     <application
         android:allowBackup="false"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -28,6 +70,18 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="submate" />
             </intent-filter>
+
+            <!-- 다른 앱의 '공유'로 결제 문자나 영수증 캡처를 받아 구독 등록에 쓴다. 권한은 필요 없다. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
         </activity>
 
         <activity
@@ -49,15 +103,6 @@
         </provider>
 
         <service
-            android:name=".OverlayGuideService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Floating cancel guide overlay" />
-        </service>
-        <service
             android:name=".payment.PaymentNotificationListener"
             android:label="SubMate 결제 감지 서비스"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
@@ -72,8 +117,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 예약 알림은 부정확 알람(allowWhileIdle)만 쓴다. 플러그인이 넣는 정확한 알람 권한은 빼서
+         '알람 및 리마인더' 설정 항목과 권한 요청 화면이 생기지 않게 한다. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 </manifest>

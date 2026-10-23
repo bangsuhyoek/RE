@@ -1,11 +1,43 @@
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { daysUntilCharge, formatWon, getNextChargeDate } from "./dates.js";
+import { daysUntilCharge, formatWon, getNextChargeDate, toLocalDateKey } from "./dates.js";
 import { readStoredValue, writeStoredValue, storageKeys } from "./storage.js";
+import { formatKoreanDateTime } from "./businessDays.js";
+import { buildCareNotifications } from "./careFeed.js";
 
 export const NOTIFICATION_STORAGE_KEY = "submate-mvp:notifications";
 export const NOTIFICATION_SETTINGS_KEY = "submate-mvp:notification-settings";
 export const DEFAULT_NOTIFICATION_DURATION = 2500; // 사용자 피드백 반영: 2~3초 내 빠른 자동 사라짐 (2.5초)
+export const CANCEL_REMINDER_TYPE = "cancel_reminder";
+
+/**
+ * 예약 알림 필드. 오전 9시 안내라 분 단위 정확도는 필요 없으므로 부정확 알람을 쓴다.
+ * - isExactNotification: false — 기본값(true)이면 Android 12+에서 정확한 알람 권한이 없을 때
+ *   플러그인이 예약할 때마다 시스템 '알람 및 리마인더' 설정 화면을 연다(앱 실행마다 재예약됨).
+ * - allowWhileIdle: true — 없으면 기기를 깨우지 않는 AlarmManager.set(RTC)이 되어
+ *   절전(Doze) 중에는 화면을 켤 때까지 밀린다. 켜면 setAndAllowWhileIdle로 최대 1시간 안에 울린다.
+ */
+export function scheduledAt(at) {
+  return { schedule: { at, allowWhileIdle: true }, isExactNotification: false };
+}
+
+// 부정확 알람은 예정 시각보다 최대 1시간(절전 중에는 더) 늦게 온다. 그 사이 다시 예약하면서 대기 알림을
+// 모두 지우면, 시각이 지났지만 아직 오지 않은 알림이 사라진다. 이런 알림은 곧바로 다시 건다.
+export const OVERDUE_REARM_WINDOW_MS = 2 * 60 * 60 * 1000;
+
+/** 대기 중 알림 가운데 시각이 지났지만 아직 오지 않았고, 구독이 남아 있는 것을 고른다. */
+export function selectOverdueToRearm(pendingNotifications = [], subscriptions = [], now = new Date()) {
+  const liveIds = new Set(
+    subscriptions.filter((sub) => sub.status !== "cancelled").map((sub) => String(sub.subscriptionId || sub.id))
+  );
+  return pendingNotifications.filter((notification) => {
+    const at = new Date(notification?.schedule?.at).getTime();
+    if (!Number.isFinite(at)) return false;
+    const overdueMs = now.getTime() - at;
+    if (overdueMs < 0 || overdueMs > OVERDUE_REARM_WINDOW_MS) return false;
+    return liveIds.has(String(notification?.extra?.subscriptionId));
+  });
+}
 
 export function getStoredNotifications() {
   return readStoredValue(NOTIFICATION_STORAGE_KEY, []);
@@ -15,6 +47,17 @@ export function saveStoredNotifications(list) {
   writeStoredValue(NOTIFICATION_STORAGE_KEY, list);
 }
 
+/** 12시간제 오전/오후 및 시간 문자열을 24시간제 정수(0~23)로 변환 */
+export function parseAlertTimeTo24Hours(ampm = "오전", hour = "09") {
+  let h = Number(hour) || 9;
+  if (ampm === "오후") {
+    if (h < 12) h += 12;
+  } else if (ampm === "오전") {
+    if (h === 12) h = 0;
+  }
+  return h;
+}
+
 /**
  * Generate alert items for subscriptions based on D-3, D-1, and TODAY rules
  */
@@ -22,13 +65,21 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
   const alerts = [];
 
   for (const sub of subscriptions) {
+    if (sub.status === "cancelled") continue;
+    if (sub.alertEnabled === false) continue;
     const days = daysUntilCharge(sub, referenceDate);
     const isTrial = Boolean(sub.isTrial || sub.status === "trial");
+    const subId = sub.subscriptionId || sub.id;
+    const nextCharge = getNextChargeDate(sub, referenceDate);
+    const cycleKey = nextCharge ? toLocalDateKey(nextCharge) : toLocalDateKey(referenceDate);
+    const hasAlertDDay = sub.alertDDay !== undefined && sub.alertDDay !== null;
+    const targetDDay = hasAlertDDay ? Number(sub.alertDDay) : null;
 
     // D-1 Alert
-    if (days === 1 && sub.alertD1) {
+    const shouldAlertD1 = hasAlertDDay ? targetDDay === 1 : (isTrial || sub.alertD1);
+    if (days === 1 && shouldAlertD1) {
       alerts.push({
-        id: `alert-${sub.subscriptionId}-d1`,
+        id: `alert-${subId}-${cycleKey}-d1`,
         subscriptionId: sub.subscriptionId,
         serviceName: sub.name,
         amount: sub.amount,
@@ -50,9 +101,10 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
     }
 
     // D-3 Alert
-    if (days === 3 && sub.alertD3) {
+    const shouldAlertD3 = hasAlertDDay ? targetDDay === 3 : (sub.alertD3 !== false);
+    if (days === 3 && shouldAlertD3) {
       alerts.push({
-        id: `alert-${sub.subscriptionId}-d3`,
+        id: `alert-${subId}-${cycleKey}-d3`,
         subscriptionId: sub.subscriptionId,
         serviceName: sub.name,
         amount: sub.amount,
@@ -69,10 +121,34 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
       });
     }
 
+    // Custom D-day Alert when targetDDay is not 1 and not 3 (e.g. D-2, D-5)
+    if (hasAlertDDay && targetDDay !== 1 && targetDDay !== 3 && days === targetDDay) {
+      alerts.push({
+        id: `alert-${subId}-${cycleKey}-d${targetDDay}`,
+        subscriptionId: sub.subscriptionId,
+        serviceName: sub.name,
+        amount: sub.amount,
+        plan: sub.plan,
+        monogram: sub.monogram || sub.name?.slice(0, 1) || "S",
+        category: sub.category || "기타",
+        type: isTrial ? `trial_d${targetDDay}` : `billing_d${targetDDay}`,
+        badge: isTrial ? `TRIAL D-${targetDDay}` : `D-${targetDDay}`,
+        title: isTrial
+          ? `[체험 만료 D-${targetDDay}] ${sub.name} 무료체험 종료`
+          : `[결제 D-${targetDDay}] ${sub.name} 결제 예정`,
+        message: isTrial
+          ? `${targetDDay}일 뒤 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
+          : `${targetDDay}일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
+        timestamp: new Date().toISOString(),
+        daysUntil: targetDDay,
+        read: false,
+      });
+    }
+
     // TODAY Alert
     if (days === 0) {
       alerts.push({
-        id: `alert-${sub.subscriptionId}-today`,
+        id: `alert-${subId}-${cycleKey}-today`,
         subscriptionId: sub.subscriptionId,
         serviceName: sub.name,
         amount: sub.amount,
@@ -243,7 +319,7 @@ export async function sendAppNotification(title, options = {}) {
             title,
             body: options.body || options.message || "",
             channelId: "submate-billing-channel",
-            schedule: options.at ? { at: options.at } : undefined,
+            ...(options.at ? scheduledAt(options.at) : {}),
             extra: options.extra || {},
           },
         ],
@@ -267,68 +343,230 @@ function stringHashCode(str) {
   return hash;
 }
 
+// 해지 다시 알림: 어카운트인포처럼 정해진 시간에만 해지되는 곳을 이용시간 밖에 눌렀을 때, 다음 해지 가능 시각에 알린다.
+export function readCancelReminders() {
+  const list = readStoredValue(storageKeys.cancelReminders, []);
+  return Array.isArray(list) ? list : [];
+}
+
+function cancelReminderNotification(reminder) {
+  return {
+    id: Math.abs(stringHashCode(reminder.id)) % 100000000,
+    title: reminder.title || `[해지 가능] ${reminder.serviceName} 지금 해지할 수 있어요`,
+    body: reminder.body || `${reminder.routeLabel || "해지"} 이용시간이 시작됐어요. 눌러서 해지를 이어가세요.`,
+    channelId: "submate-billing-channel",
+    ...scheduledAt(new Date(reminder.at)),
+    extra: { subscriptionId: reminder.subscriptionId, type: CANCEL_REMINDER_TYPE },
+  };
+}
+
+// title/body/badge를 넘기면 어카운트인포 이용시간 문구 대신 그 문구로 알린다(결제일 전날·갱신 7일 전 알림 등).
+export async function addCancelReminder({ subscription, at, routeLabel = "어카운트인포", title, body, badge }) {
+  const subscriptionId = subscription.subscriptionId || subscription.id;
+  const reminder = {
+    id: `cancel-reminder-${subscriptionId}-${new Date(at).getTime()}`,
+    subscriptionId,
+    serviceName: subscription.name,
+    routeLabel,
+    at: new Date(at).toISOString(),
+    ...(title ? { title } : {}),
+    ...(body ? { body } : {}),
+    ...(badge ? { badge } : {}),
+  };
+  // 같은 구독의 다시 알림은 하나만 둔다.
+  const others = readCancelReminders().filter((item) => item.subscriptionId !== subscriptionId);
+  writeStoredValue(storageKeys.cancelReminders, [...others, reminder]);
+
+  let scheduled = false;
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const perm = await LocalNotifications.checkPermissions();
+      if (perm.display !== "granted") {
+        const requested = await LocalNotifications.requestPermissions();
+        if (requested.display !== "granted") return { reminder, scheduled: false };
+      }
+      await LocalNotifications.schedule({ notifications: [cancelReminderNotification(reminder)] });
+      scheduled = true;
+    } catch (err) {
+      console.warn("cancel reminder schedule error:", err);
+    }
+  }
+  return { reminder, scheduled };
+}
+
+// 시각이 지난 다시 알림을 꺼내 알림 센터 항목으로 바꾸고 저장소에서 지운다.
+export function takeDueCancelReminders(now = new Date()) {
+  const list = readCancelReminders();
+  const due = list.filter((item) => new Date(item.at) <= now);
+  if (due.length === 0) return [];
+  writeStoredValue(storageKeys.cancelReminders, list.filter((item) => new Date(item.at) > now));
+  return due.map((item) => ({
+    id: item.id,
+    subscriptionId: item.subscriptionId,
+    serviceName: item.serviceName,
+    monogram: item.serviceName?.slice(0, 1) || "S",
+    type: CANCEL_REMINDER_TYPE,
+    badge: item.badge || "해지 가능",
+    title: item.title || `[해지 가능] ${item.serviceName} 지금 해지할 수 있어요`,
+    message: item.body || `${formatKoreanDateTime(new Date(item.at))}부터 ${item.routeLabel || "해지"} 이용시간이에요.`,
+    timestamp: item.at,
+    read: false,
+  }));
+}
+
 /**
  * 향후 30~60일간의 결제 사전 알림(D-3, D-1)을 네이티브 로컬 알림 큐에 배치 스케줄링
  */
-export async function scheduleSubscriptionNotifications(subscriptions = []) {
+export async function scheduleSubscriptionNotifications(subscriptions = [], now = new Date()) {
   if (!Capacitor.isNativePlatform()) return false;
   try {
     const perm = await LocalNotifications.checkPermissions();
     if (perm.display !== "granted") return false;
 
     const pending = await LocalNotifications.getPending();
+    const overdue = selectOverdueToRearm(pending?.notifications || [], subscriptions, now);
     if (pending?.notifications?.length > 0) {
       await LocalNotifications.cancel({ notifications: pending.notifications });
     }
 
     const scheduledList = [];
-    const now = new Date();
 
     for (const sub of subscriptions) {
       if (sub.status === "cancelled") continue;
+      if (sub.alertEnabled === false) continue;
       const isTrial = Boolean(sub.isTrial || sub.status === "trial");
+      const subKey = sub.subscriptionId || sub.id;
 
-      // D-3 예약 (오전 9시)
-      if (sub.alertD3 !== false) {
-        const nextCharge = getNextChargeDate(sub, now);
-        const d3Date = new Date(nextCharge);
-        d3Date.setDate(d3Date.getDate() - 3);
-        d3Date.setHours(9, 0, 0, 0);
-
-        if (d3Date > now) {
-          const notifId = Math.abs(stringHashCode(`${sub.subscriptionId || sub.id}-d3-${d3Date.getMonth()}`));
-          scheduledList.push({
-            id: notifId % 100000000,
-            title: `[결제 D-3] ${sub.name} 결제 예정`,
-            body: `3일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
-            channelId: "submate-billing-channel",
-            schedule: { at: d3Date },
-            extra: { subscriptionId: sub.subscriptionId || sub.id, type: "billing_d3" },
-          });
+      // 향후 2회차 결제일 계산 (무료체험은 단발성 전환이므로 1회차만 예약)
+      const chargeDates = [];
+      const firstCharge = getNextChargeDate(sub, now);
+      if (firstCharge) {
+        chargeDates.push(firstCharge);
+        if (!isTrial) {
+          const nextCycleRef = new Date(firstCharge.getFullYear(), firstCharge.getMonth(), firstCharge.getDate() + 1);
+          const secondCharge = getNextChargeDate(sub, nextCycleRef);
+          if (secondCharge && secondCharge > firstCharge) {
+            chargeDates.push(secondCharge);
+          }
         }
       }
 
-      // D-1 예약 (오전 9시)
-      if (sub.alertD1) {
-        const nextCharge = getNextChargeDate(sub, now);
-        const d1Date = new Date(nextCharge);
-        d1Date.setDate(d1Date.getDate() - 1);
-        d1Date.setHours(9, 0, 0, 0);
+      const hasAlertDDay = sub.alertDDay !== undefined && sub.alertDDay !== null;
+      const targetHour = parseAlertTimeTo24Hours(sub.alertAmpm, sub.alertHour);
 
-        if (d1Date > now) {
-          const notifId = Math.abs(stringHashCode(`${sub.subscriptionId || sub.id}-d1-${d1Date.getMonth()}`));
-          scheduledList.push({
-            id: notifId % 100000000,
-            title: isTrial ? `[체험 만료 D-1] ${sub.name} 무료체험 종료` : `[결제 D-1] ${sub.name} 결제 예정`,
-            body: isTrial
-              ? `내일 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
-              : `내일 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
-            channelId: "submate-billing-channel",
-            schedule: { at: d1Date },
-            extra: { subscriptionId: sub.subscriptionId || sub.id, type: isTrial ? "trial_d1" : "billing_d1" },
-          });
+      for (let cycleIndex = 0; cycleIndex < chargeDates.length; cycleIndex++) {
+        const chargeDate = chargeDates[cycleIndex];
+        const cycleKey = toLocalDateKey(chargeDate);
+
+        if (hasAlertDDay) {
+          const dday = Number(sub.alertDDay);
+          const alertDate = new Date(chargeDate);
+          alertDate.setDate(alertDate.getDate() - dday);
+          alertDate.setHours(targetHour, 0, 0, 0);
+
+          if (alertDate > now) {
+            const notifId = Math.abs(stringHashCode(`${subKey}-${cycleKey}-d${dday}`));
+            const type = isTrial ? `trial_d${dday}` : `billing_d${dday}`;
+            const title = isTrial
+              ? (dday === 1 ? `[체험 만료 D-1] ${sub.name} 무료체험 종료` : `[체험 만료 D-${dday}] ${sub.name} 무료체험 종료`)
+              : (dday === 1 ? `[결제 D-1] ${sub.name} 결제 예정` : `[결제 D-${dday}] ${sub.name} 결제 예정`);
+            const body = isTrial
+              ? (dday === 1
+                  ? `내일 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
+                  : `${dday}일 뒤 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`)
+              : (dday === 1
+                  ? `내일 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`
+                  : `${dday}일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`);
+
+            scheduledList.push({
+              id: notifId % 100000000,
+              title,
+              body,
+              channelId: "submate-billing-channel",
+              ...scheduledAt(alertDate),
+              extra: { subscriptionId: subKey, cycle: cycleIndex + 1, type },
+            });
+          }
+        } else {
+          // D-3 예약 (기본 시각)
+          if (sub.alertD3 !== false) {
+            const d3Date = new Date(chargeDate);
+            d3Date.setDate(d3Date.getDate() - 3);
+            d3Date.setHours(targetHour, 0, 0, 0);
+
+            if (d3Date > now) {
+              const notifId = Math.abs(stringHashCode(`${subKey}-${cycleKey}-d3`));
+              scheduledList.push({
+                id: notifId % 100000000,
+                title: `[결제 D-3] ${sub.name} 결제 예정`,
+                body: `3일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
+                channelId: "submate-billing-channel",
+                ...scheduledAt(d3Date),
+                extra: { subscriptionId: subKey, cycle: cycleIndex + 1, type: "billing_d3" },
+              });
+            }
+          }
+
+          // D-1 예약 (기본 시각)
+          if (isTrial || sub.alertD1) {
+            const d1Date = new Date(chargeDate);
+            d1Date.setDate(d1Date.getDate() - 1);
+            d1Date.setHours(targetHour, 0, 0, 0);
+
+            if (d1Date > now) {
+              const notifId = Math.abs(stringHashCode(`${subKey}-${cycleKey}-d1`));
+              scheduledList.push({
+                id: notifId % 100000000,
+                title: isTrial ? `[체험 만료 D-1] ${sub.name} 무료체험 종료` : `[결제 D-1] ${sub.name} 결제 예정`,
+                body: isTrial
+                  ? `내일 ${sub.name} 무료체험이 종료되고 ${formatWon(sub.amount)}이 결제됩니다.`
+                  : `내일 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
+                channelId: "submate-billing-channel",
+                ...scheduledAt(d1Date),
+                extra: { subscriptionId: subKey, cycle: cycleIndex + 1, type: isTrial ? "trial_d1" : "billing_d1" },
+              });
+            }
+          }
         }
       }
+    }
+
+    // 위에서 대기 알림을 모두 지웠으므로 아직 오지 않은 해지 다시 알림을 다시 건다.
+    for (const reminder of readCancelReminders()) {
+      if (new Date(reminder.at) > now) scheduledList.push(cancelReminderNotification(reminder));
+    }
+
+    // 오늘 챙길 일: 해지 확인, 무료체험 D-2, 정산일, 구독 순환 알림
+    const careList = buildCareNotifications({
+      subscriptions,
+      cancelHistory: readStoredValue(storageKeys.cancelHistory, []),
+      rotation: readStoredValue(storageKeys.rotationPlan, null),
+      now,
+    });
+    for (const item of careList) {
+      scheduledList.push({
+        // 결제 사전 알림(1억 미만)과 겹치지 않게 1억부터 쓴다.
+        id: 100000000 + (Math.abs(stringHashCode(item.key)) % 100000000),
+        title: item.title,
+        body: item.body,
+        channelId: "submate-billing-channel",
+        ...scheduledAt(item.at),
+        extra: { subscriptionId: item.subscriptionId, type: item.type },
+      });
+    }
+
+    // 시각이 지났지만 아직 오지 않은 알림은 5초 뒤로 다시 건다(같은 id가 새로 잡혀 있으면 그쪽을 쓴다).
+    const rearmAt = new Date(now.getTime() + 5000);
+    for (const notification of overdue) {
+      if (scheduledList.some((item) => item.id === notification.id)) continue;
+      scheduledList.push({
+        id: notification.id,
+        title: notification.title,
+        body: notification.body,
+        channelId: "submate-billing-channel",
+        ...scheduledAt(rearmAt),
+        extra: notification.extra || {},
+      });
     }
 
     if (scheduledList.length > 0) {
@@ -341,3 +579,60 @@ export async function scheduleSubscriptionNotifications(subscriptions = []) {
   }
 }
 
+
+
+// ============================================================================
+// Agent Proactive Insight Notification Support
+// ============================================================================
+export const AGENT_INSIGHT_NOTIFICATION_TYPE = "agent_insight";
+export const AGENT_INSIGHT_LAST_NOTIFIED_KEY = "submate-mvp:agent-insights:last-notified-date";
+
+/**
+ * Schedule or send at most one local notification per KST day for the top high-priority insight.
+ * Dedupe by insight id and KST day key.
+ * Uses ID range 200,000,000 ~ 299,999,999 (billing alert is <100M, care is 100M~200M).
+ */
+export async function scheduleAgentInsightNotification(insight, now = new Date()) {
+  if (!insight || insight.priority !== "high") return false;
+  if (!Capacitor.isNativePlatform()) return false;
+
+  try {
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display !== "granted") return false;
+
+    // Check if already notified today in KST
+    const todayKey = toLocalDateKey(now);
+    const lastNotified = readStoredValue(AGENT_INSIGHT_LAST_NOTIFIED_KEY, null);
+    if (lastNotified && (lastNotified.dateKey === todayKey || lastNotified.insightId === insight.id)) {
+      return false;
+    }
+
+    const notifId = 200000000 + (Math.abs(stringHashCode(insight.id)) % 100000000);
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: notifId,
+          title: "꾸독",
+          body: insight.message || insight.title || "",
+          channelId: "submate-billing-channel",
+          extra: {
+            insightId: insight.id,
+            subscriptionId: insight.subscriptionId || null,
+            type: AGENT_INSIGHT_NOTIFICATION_TYPE,
+            insight,
+          },
+        },
+      ],
+    });
+
+    writeStoredValue(AGENT_INSIGHT_LAST_NOTIFIED_KEY, {
+      dateKey: todayKey,
+      insightId: insight.id,
+      timestamp: now.toISOString(),
+    });
+    return true;
+  } catch (err) {
+    console.warn("scheduleAgentInsightNotification error:", err);
+    return false;
+  }
+}

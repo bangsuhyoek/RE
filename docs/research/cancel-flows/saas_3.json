@@ -1,0 +1,532 @@
+[
+  {
+    "id": "deepl-pro",
+    "name": "DeepL Pro",
+    "catalogCancelUrl": "https://www.deepl.com/your-account",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 페이지 이동",
+        "description": "DeepL 우측 상단 프로필 > [내 계정(Account)]으로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 탭 확인",
+        "description": "[구독(Subscription)] 탭에서 현재 Pro 플랜 정보를 확인합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소 완료",
+        "description": "화면 하단의 [구독 취소(Cancel subscription)] 링크를 클릭하여 확정합니다."
+      }
+    ],
+    "cancelUrlStatus": 200,
+    "officialHelpUrls": [
+      "https://support.deepl.com/hc/ko/articles/360020723719",
+      "https://support.deepl.com/hc/en-us/articles/360020723719-Cancel-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password",
+      "google",
+      "apple",
+      "sso"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Account",
+        "label": "Subscription (�l��)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Subscription",
+        "label": "Cancel subscription (�l�� ����)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Confirmation",
+        "label": "Cancel subscription (�l�� ����)",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": null,
+    "finalButtonLabel": "Cancel subscription (�l�� ����)",
+    "successText": "�t���( (canceled)",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.deepl.com/hc/ko/articles/360020723719",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://support.deepl.com/hc/en-us/articles/360020723719-Cancel-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Direct web subscriptions are cancelled via Account > Subscription > Cancel subscription. App Store or partner purchases must be cancelled through respective platforms."
+  },
+  {
+    "id": "grammarly",
+    "name": "Grammarly",
+    "catalogCancelUrl": "https://account.grammarly.com/subscription",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "계정 페이지 진입",
+        "description": "Grammarly 계정 설정(account.grammarly.com)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "구독 메뉴 선택",
+        "description": "좌측 사이드바에서 [Subscription] 메뉴를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "화면 하단 [Cancel Subscription]을 누르고 설문 단계를 지나 취소를 확정합니다."
+      }
+    ],
+    "cancelUrlStatus": 302,
+    "officialHelpUrls": [
+      "https://support.grammarly.com/hc/en-us/articles/115000090172-How-do-I-cancel-my-subscription"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password",
+      "google",
+      "apple",
+      "facebook"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Left Sidebar",
+        "label": "Account",
+        "kind": "nav"
+      },
+      {
+        "screen": "Account Menu",
+        "label": "Subscription",
+        "kind": "nav"
+      },
+      {
+        "screen": "Subscription Page",
+        "label": "Cancel Subscription",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Confirmation Modal",
+        "label": "Continue",
+        "kind": "retention"
+      },
+      {
+        "screen": "Reason Selection Modal",
+        "label": "Cancel Subscription",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "Prompts to continue with subscription before survey",
+      "continueCancellingLabel": "Continue"
+    },
+    "finalButtonLabel": "Cancel Subscription",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.grammarly.com/hc/en-us/articles/115000090172-How-do-I-cancel-my-subscription",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Official help states mobile users can cancel directly at account.grammarly.com. Flow: Account -> Subscription -> Cancel Subscription -> Continue -> Reason -> Cancel Subscription."
+  },
+  {
+    "id": "slack-pro",
+    "name": "Slack Pro",
+    "catalogCancelUrl": "https://slack.com/admin/billing",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "관리자 청구 진입",
+        "description": "워크스페이스 이름 클릭 > [도구 및 설정] > [청구] 메뉴로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "요금제 수정 선택",
+        "description": "청구 개요 화면에서 [요금제 수정] 버튼을 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "무료로 다운그레이드",
+        "description": "[무료 버전으로 다운그레이드]를 선택하여 다음 갱신을 취소합니다."
+      }
+    ],
+    "cancelUrlStatus": 403,
+    "officialHelpUrls": [
+      "https://slack.com/help/articles/48764458651795-Change-or-cancel-your-paid-Slack-plan"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": false,
+    "loginMethods": [
+      "email_magic_link",
+      "google",
+      "apple",
+      "sso"
+    ],
+    "loginHasPasswordField": false,
+    "steps": [
+      {
+        "screen": "Desktop Sidebar",
+        "label": "Admin (�ĭl �\u000f �$�\u0015 / �\u0000��)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Menu",
+        "label": "Manage billing (̭�l / ̭�l �\u0000��)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Overview Tab",
+        "label": "Change plan details (Ɣ�\b�\u001c �8���\u0015�� ����)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Plan Selection",
+        "label": "Downgrade to Free (�4�� ���\u0004�<� ��ƴ���\b�t��)",
+        "kind": "retention"
+      },
+      {
+        "screen": "Schedule Choice",
+        "label": "Continue to Checkout (���\u001c� ����)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Review Downgrade Details",
+        "label": "Downgrade Slack (Slack ��ƴ���\b�t��)",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "Prompts option to downgrade to Free immediately or at renewal date with loss of paid features notice",
+      "continueCancellingLabel": "Continue to Checkout"
+    },
+    "finalButtonLabel": "Downgrade Slack",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "Catalog guide calls the button [Ɣ�\b�\u001c �\u0018�\u0015] and [�4�� ���\u0004�<� ��ƴ���\b�t��], whereas official help specifies: Overview > [Change plan details] > [Downgrade to Free] > [Continue to Checkout] > [Downgrade Slack]. Also, Slack requires desktop web/app (mobile web cannot manage billing).",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://slack.com/help/articles/48764458651795-Change-or-cancel-your-paid-Slack-plan",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Requires Workspace Owner or billing admin. Desktop only (official doc explicitly states: \"From your desktop, click Admin in the sidebar\"). Free downgrade applies either immediately or on renewal date."
+  },
+  {
+    "id": "zoom-pro",
+    "name": "Zoom Workplace Pro",
+    "catalogCancelUrl": "https://zoom.us/billing",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "청구 관리 진입",
+        "description": "Zoom 웹 포털 로그인 후 좌측 [계정 관리] > [청구] 메뉴로 이동합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "현재 요금제 관리",
+        "description": "[현재 요금제] 탭에서 Workplace Pro 옆 [요금제 관리]를 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "구독 취소",
+        "description": "[구독 취소]를 선택하고 사유를 선택한 뒤 취소를 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 302,
+    "officialHelpUrls": [
+      "https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0067341"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password",
+      "google",
+      "apple",
+      "facebook",
+      "sso"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Navigation Sidebar",
+        "label": "Account Management (���\u0015 �\u0000��) > Billing (̭�l)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Current Plans Tab",
+        "label": "Manage Plan (Ɣ�\b�\u001c �\u0000��)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Action Menu",
+        "label": "Cancel Subscription (�l�� ����)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Retention Screen",
+        "label": "Cancel Subscription (�l�� ���� ����)",
+        "kind": "retention"
+      },
+      {
+        "screen": "Cancellation Survey",
+        "label": "Confirm Cancellation (���� �U�x)",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "Offers alternative options or discounts / downgrade prompts before survey",
+      "continueCancellingLabel": "Cancel Subscription"
+    },
+    "finalButtonLabel": "Confirm Cancellation",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0067341",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Direct web flow: sign in to Zoom web portal > Account Management > Billing > Current Plans > Manage Plan > Cancel Subscription. Subscriptions purchased via App Store/Google Play must be cancelled through Apple/Google."
+  },
+  {
+    "id": "ms365",
+    "name": "Microsoft 365",
+    "catalogCancelUrl": "https://account.microsoft.com/services",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "서비스 및 구독 이동",
+        "description": "Microsoft 계정(account.microsoft.com/services)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "Microsoft 365 관리",
+        "description": "구독 항목 우측의 [관리] 버튼을 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "반복 청구 끄기/취소",
+        "description": "[구독 취소] 또는 [반복 청구 끄기]를 선택하여 해지 절차를 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 302,
+    "officialHelpUrls": [
+      "https://support.microsoft.com/en-us/account-billing/cancel-a-microsoft-365-subscription-46e2634c-c64b-4c65-94b9-2cc9c960e91b",
+      "https://support.microsoft.com/ko-kr/account-billing/cancel-a-microsoft-365-subscription-46e2634c-c64b-4c65-94b9-2cc9c960e91b"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "email_password",
+      "phone",
+      "passkey",
+      "github"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Services & Subscriptions",
+        "label": "Manage (�\u0000��)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Subscription Management",
+        "label": "Cancel subscription (�l�� ����) / Upgrade or Cancel (�ŭ��\b�t�� �\u0010�� ����)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Please Review Page",
+        "label": "I do not want my subscription (�l���D ���X�� �Jµ�Ȳ�)",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "Presents Please Review section with alternative cheaper plans and loss of cloud storage (reverting to 5GB) warning",
+      "continueCancellingLabel": "I do not want my subscription"
+    },
+    "finalButtonLabel": "I do not want my subscription",
+    "successText": null,
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "Catalog mentions [�l�� ����] �\u0010�� [�\u0018�� ̭�l �D�0]. In official flow, if recurring billing is already off it shows [Turn on recurring billing], otherwise [Cancel subscription] (or [Upgrade or Cancel]) leads to Please Review screen where the final confirm button is [I do not want my subscription] vs [I want to keep my benefits].",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.microsoft.com/en-us/account-billing/cancel-a-microsoft-365-subscription-46e2634c-c64b-4c65-94b9-2cc9c960e91b",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Direct purchase cancellations revert storage to 5GB. Subscriptions from Google Play or Apple App Store must be managed through their stores."
+  },
+  {
+    "id": "google-one",
+    "name": "Google One",
+    "catalogCancelUrl": "https://one.google.com/settings",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Google One 설정",
+        "description": "Google One 웹(one.google.com/settings)에 로그인합니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "멤버십 취소 선택",
+        "description": "[멤버십 취소] 메뉴 항목을 찾아 클릭합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "취소 확정",
+        "description": "용량 만료 안내 팝업에서 [멤버십 취소]를 최종 확인합니다."
+      }
+    ],
+    "cancelUrlStatus": 302,
+    "officialHelpUrls": [
+      "https://support.google.com/googleone/answer/9056360?hl=ko",
+      "https://support.google.com/googleone/answer/9056360?hl=en"
+    ],
+    "cancelChannel": "web",
+    "mobileWebOk": true,
+    "loginMethods": [
+      "google_oauth",
+      "passkey",
+      "password",
+      "2fa"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Settings (�$�\u0015)",
+        "label": "Cancel membership (�d���� ����)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Confirmation Modal (�U�x �\u001d��)",
+        "label": "Cancel membership (�d���� ����)",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "Prompts option to decrease storage instead of cancelling, warns about storage quota reverting to 15GB",
+      "continueCancellingLabel": "Cancel membership (�d���� ����)"
+    },
+    "finalButtonLabel": "Cancel membership (�d���� ����)",
+    "successText": "�l���t �����\u0018�Ȳ䲔 �U�x �T���� (confirmation that your subscription is cancelled)",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": null,
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.google.com/googleone/answer/9056360?hl=ko",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://support.google.com/googleone/answer/9056360?hl=en",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "On web: one.google.com/settings -> Settings > Cancel membership -> Confirm: Cancel membership. Subscriptions purchased via App Store on iOS must be cancelled via Apple ID subscriptions."
+  },
+  {
+    "id": "icloud",
+    "name": "Apple iCloud+",
+    "catalogCancelUrl": "https://support.apple.com/ko-kr/HT207594",
+    "catalogGuideSteps": [
+      {
+        "stepNumber": 1,
+        "title": "Apple 계정 설정",
+        "description": "iPhone [설정] > 맨 위 [내 이름] > [iCloud] 메뉴로 들어갑니다."
+      },
+      {
+        "stepNumber": 2,
+        "title": "저장 공간 관리",
+        "description": "[계정 저장 공간 관리] 또는 [요금제 관리]를 터치합니다."
+      },
+      {
+        "stepNumber": 3,
+        "title": "다운그레이드 선택",
+        "description": "[다운그레이드 옵션]에서 무료 [5GB]를 선택하고 완료합니다."
+      }
+    ],
+    "cancelUrlStatus": 301,
+    "officialHelpUrls": [
+      "https://support.apple.com/ko-kr/108318",
+      "https://support.apple.com/en-us/108318"
+    ],
+    "cancelChannel": "app_only",
+    "mobileWebOk": false,
+    "loginMethods": [
+      "apple_id",
+      "passkey",
+      "password",
+      "device_passcode"
+    ],
+    "loginHasPasswordField": true,
+    "steps": [
+      {
+        "screen": "Settings App (�$�\u0015)",
+        "label": "User Name (��Ʃǐ �t��)",
+        "kind": "nav"
+      },
+      {
+        "screen": "Apple Account",
+        "label": "Subscriptions (�l��) or iCloud",
+        "kind": "nav"
+      },
+      {
+        "screen": "iCloud+ / Storage Management",
+        "label": "Cancel Subscription (�l�� ����) or Downgrade Options (��ƴ���\b�t�� �5�X)",
+        "kind": "cancel_entry"
+      },
+      {
+        "screen": "Password Prompt (�T�8 ǅ�%)",
+        "label": "Apple Account Password",
+        "kind": "nav"
+      },
+      {
+        "screen": "Plan Selection / Warning",
+        "label": "Free 5GB / Done (�D��) or Cancel Subscription",
+        "kind": "final_confirm"
+      }
+    ],
+    "retention": {
+      "offers": "Shows warning that iCloud storage may not be enough to sync all data, offers lower tier plans",
+      "continueCancellingLabel": "Cancel Subscription / Done"
+    },
+    "finalButtonLabel": "Cancel Subscription / Done (�D��)",
+    "successText": "�ȸƴ Ɣ�\b�\u001c �\u0006 �\f���� ̴�l ��� (blue check next to your new plan)",
+    "catalogGuideMatches": true,
+    "catalogDiscrepancy": "In iOS 18.4+, path is Settings > User Name > Subscriptions > iCloud+ > Cancel Subscription (or See All Plans to downgrade). In iOS 18-18.3: Settings > User Name > iCloud > Manage Plan > Downgrade Options > 5GB Free > Done. Catalog reflects iOS 17/18 downgrade flow. Also, cannot be cancelled via web browser; must be done on Apple device (iOS/iPadOS/macOS/Windows PC iCloud app).",
+    "confidence": "official_doc",
+    "sources": [
+      {
+        "url": "https://support.apple.com/ko-kr/108318",
+        "checkedOn": "2026-10-18"
+      },
+      {
+        "url": "https://support.apple.com/en-us/108318",
+        "checkedOn": "2026-10-18"
+      }
+    ],
+    "notes": "Device settings only (app_only / system settings). Cannot cancel on web (icloud.com does not support cancelling iCloud+ subscriptions). Apple support article HT207594 redirects (301) to article 108318."
+  }
+]

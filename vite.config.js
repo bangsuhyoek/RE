@@ -10,8 +10,15 @@ export default defineConfig(({ mode }) => {
   if (env.GEMINI_API_KEY) {
     process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
   }
+  if (env.SUPABASE_URL || env.VITE_SUPABASE_URL) {
+    process.env.SUPABASE_URL = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+    process.env.VITE_SUPABASE_URL = env.VITE_SUPABASE_URL || env.SUPABASE_URL;
+  }
+  if (env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY) {
+    process.env.SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
+    process.env.VITE_SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY;
+  }
 
-  const geminiKey = env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || "";
   const geminiModel = env.VITE_GEMINI_MODEL || env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
   return {
@@ -21,7 +28,6 @@ export default defineConfig(({ mode }) => {
       port: 3000,
     },
     define: {
-      "import.meta.env.VITE_GEMINI_API_KEY": JSON.stringify(geminiKey),
       "import.meta.env.VITE_GEMINI_MODEL": JSON.stringify(geminiModel),
     },
     build: {

@@ -1,7 +1,7 @@
 package com.submate.app.webguide.services.naver;
 
 import com.submate.app.webguide.state.PageState;
-import com.submate.app.webguide.target.CharacterPlacement;
+import com.submate.app.webguide.target.PointerPlacement;
 import com.submate.app.webguide.target.GuideInteractionType;
 import com.submate.app.webguide.target.GuideStep;
 import com.submate.app.webguide.target.GuideTargetSpec;
@@ -35,7 +35,7 @@ public final class NaverMonthlyCancelRoute {
                         STEP_COMPLETE, state,
                         "정기결제 해지 완료 상태입니다.",
                         null, GuideInteractionType.COMPLETE,
-                        CharacterPlacement.AUTO, 12, "",
+                        PointerPlacement.AUTO, 12, "",
                         TargetVerificationStatus.LIVE_UNVERIFIED);
             default:
                 return null;
@@ -51,7 +51,7 @@ public final class NaverMonthlyCancelRoute {
         GuideTargetSpec target = NaverMonthlyCancelLiveBindings.targetFor(stepId);
         return new GuideStep(
                 stepId, state, instruction, target,
-                GuideInteractionType.TAP, CharacterPlacement.AUTO, 12,
+                GuideInteractionType.TAP, PointerPlacement.AUTO, 12,
                 nextStepId, NaverMonthlyCancelLiveBindings.statusFor(stepId));
     }
 }

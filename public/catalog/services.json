@@ -121,7 +121,7 @@
     "plan": "Standard Plan",
     "amount": 20000,
     "brandColor": "#000000",
-    "cancelUrl": "https://app.runwayml.com/settings/plans",
+    "cancelUrl": "https://app.runwayml.com/settings/billing",
     "aliases": [
       "런웨이",
       "영상ai",
@@ -150,7 +150,7 @@
     "plan": "Premium",
     "amount": 27000,
     "brandColor": "#000000",
-    "cancelUrl": "https://v0.dev/chat/settings/billing",
+    "cancelUrl": "https://v0.app/chat/settings/billing",
     "aliases": [
       "브이제로",
       "v0"
@@ -320,7 +320,7 @@
     "plan": "Pro Plan",
     "amount": 27000,
     "brandColor": "#000000",
-    "cancelUrl": "https://www.cursor.com/settings",
+    "cancelUrl": "https://cursor.com/dashboard/billing",
     "aliases": [
       "커서",
       "cursor",
@@ -349,7 +349,7 @@
     "plan": "Individual",
     "amount": 14000,
     "brandColor": "#181717",
-    "cancelUrl": "https://github.com/login?return_to=%2Fsettings%2Fbilling",
+    "cancelUrl": "https://github.com/settings/billing",
     "aliases": [
       "코파일럿",
       "깃허브코파일럿"
@@ -405,7 +405,7 @@
     "plan": "Starter",
     "amount": 12000,
     "brandColor": "#0F2B46",
-    "cancelUrl": "https://www.deepl.com/your-account",
+    "cancelUrl": "https://www.deepl.com/pro-account/subscription",
     "aliases": [
       "딥엘",
       "deepl"
@@ -576,7 +576,7 @@
     "plan": "50GB 플랜",
     "amount": 1100,
     "brandColor": "#0070C9",
-    "cancelUrl": "https://support.apple.com/ko-kr/HT207594",
+    "cancelUrl": "https://support.apple.com/ko-kr/108318",
     "aliases": [
       "아이클라우드",
       "icloud"
@@ -1000,7 +1000,7 @@
     "plan": "베이직",
     "amount": 9900,
     "brandColor": "#816BFF",
-    "cancelUrl": "https://laftel.net/setting",
+    "cancelUrl": "https://laftel.net/mypage",
     "aliases": [
       "라프텔",
       "애니메이션"
@@ -1028,7 +1028,7 @@
     "plan": "Apple TV+",
     "amount": 6500,
     "brandColor": "#000000",
-    "cancelUrl": "https://tv.apple.com/settings",
+    "cancelUrl": "https://support.apple.com/ko-kr/118428",
     "aliases": [
       "애플티비",
       "애플tv"
@@ -1168,7 +1168,7 @@
     "plan": "MUBI 월정액",
     "amount": 12900,
     "brandColor": "#051A26",
-    "cancelUrl": "https://mubi.com/login",
+    "cancelUrl": "https://mubi.com/settings/subscription",
     "aliases": [
       "뮤비",
       "독립영화"
@@ -1196,7 +1196,7 @@
     "plan": "Monthly Pass",
     "amount": 25000,
     "brandColor": "#F8F8F8",
-    "cancelUrl": "https://www.dazn.com/ko-KR/account",
+    "cancelUrl": "https://my.dazn.com/myaccount/subscription",
     "aliases": [
       "다존",
       "dazn"
@@ -1224,7 +1224,7 @@
     "plan": "스트리밍 클럽",
     "amount": 8900,
     "brandColor": "#00CD3C",
-    "cancelUrl": "https://member.melon.com",
+    "cancelUrl": "https://member.melon.com/pay/myservice/index.htm",
     "aliases": [
       "멜론",
       "melon"
@@ -1280,7 +1280,7 @@
     "plan": "스마트 음악감상",
     "amount": 8400,
     "brandColor": "#0093FF",
-    "cancelUrl": "https://www.genie.co.kr/my",
+    "cancelUrl": "https://pay.genie.co.kr/cancel/myProductCancel",
     "aliases": [
       "지니",
       "지니뮤직"
@@ -1336,7 +1336,7 @@
     "plan": "모바일 무제한",
     "amount": 7900,
     "brandColor": "#E60000",
-    "cancelUrl": "https://music.bugs.co.kr",
+    "cancelUrl": "https://secure.bugs.co.kr/my/ticket",
     "aliases": [
       "벅스",
       "bugs"
@@ -1449,7 +1449,7 @@
     "plan": "HiFi Plus",
     "amount": 14000,
     "brandColor": "#000000",
-    "cancelUrl": "https://my.tidal.com/account/subscription",
+    "cancelUrl": "https://account.tidal.com/subscription",
     "aliases": [
       "타이달",
       "tidal"
@@ -1591,7 +1591,7 @@
     "plan": "무제한 스트리밍",
     "amount": 11900,
     "brandColor": "#FF6633",
-    "cancelUrl": "https://www.storytel.com/kr/login",
+    "cancelUrl": "https://www.storytel.com/kr/ko/my-pages/subscription",
     "aliases": [
       "스토리텔",
       "storytel"
@@ -1703,7 +1703,7 @@
     "plan": "디지털 유료구독",
     "amount": 9000,
     "brandColor": "#E60000",
-    "cancelUrl": "https://www.joongang.co.kr/plus",
+    "cancelUrl": "https://www.joongang.co.kr/plus/mypage/subscription",
     "aliases": [
       "중앙일보",
       "더중앙"
@@ -1956,7 +1956,7 @@
     "plan": "정기구독 플랜",
     "amount": 159000,
     "brandColor": "#2D3748",
-    "cancelUrl": "https://www.ringleplus.com/ko/student/landing/home",
+    "cancelUrl": "https://www.ringleplus.com/ko/student/mypage",
     "aliases": [
       "링글",
       "ringle"
@@ -2012,7 +2012,7 @@
     "plan": "AI 무제한패스",
     "amount": 29000,
     "brandColor": "#E02128",
-    "cancelUrl": "https://play.google.com/store/account/subscriptions",
+    "cancelUrl": "https://www.santatoeic.com/mypage",
     "aliases": [
       "산타토익"
     ],
@@ -2094,7 +2094,7 @@
     "plan": "올인원 구독권",
     "amount": 39000,
     "brandColor": "#F44336",
-    "cancelUrl": "https://fastcampus.co.kr",
+    "cancelUrl": "https://fastcampus.co.kr/my/subscriptions",
     "aliases": [
       "패스트캠퍼스",
       "패캠"
@@ -2122,7 +2122,7 @@
     "plan": "인프런패스",
     "amount": 29000,
     "brandColor": "#1DC078",
-    "cancelUrl": "https://www.inflearn.com/my-courses",
+    "cancelUrl": "https://www.inflearn.com/my-page/orders",
     "aliases": [
       "인프런",
       "inflearn"
@@ -2291,7 +2291,7 @@
     "plan": "와우 멤버십",
     "amount": 7890,
     "brandColor": "#0073E6",
-    "cancelUrl": "https://loyalty.coupang.com/loyalty/sign-up/home",
+    "cancelUrl": "https://www.coupang.com/np/membership/benefit",
     "aliases": [
       "쿠팡",
       "와우",
@@ -2458,7 +2458,7 @@
     "plan": "EA Play",
     "amount": 5500,
     "brandColor": "#000000",
-    "cancelUrl": "https://www.ea.com/ea-play",
+    "cancelUrl": "https://myaccount.ea.com/cp-ui/subscription/index",
     "aliases": [
       "ea플레이"
     ],
@@ -2598,7 +2598,7 @@
     "plan": "월정액 멤버십",
     "amount": 7900,
     "brandColor": "#FC4C02",
-    "cancelUrl": "https://www.strava.com/subscribe",
+    "cancelUrl": "https://www.strava.com/settings/subscription",
     "aliases": [
       "스트라바",
       "strava"

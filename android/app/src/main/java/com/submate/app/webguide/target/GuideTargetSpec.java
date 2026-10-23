@@ -1,5 +1,9 @@
 package com.submate.app.webguide.target;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public final class GuideTargetSpec {
     private final String selector;
     private final String elementId;
@@ -10,6 +14,7 @@ public final class GuideTargetSpec {
     private final String hrefContains;
     private final String dataAttributeName;
     private final String dataAttributeValue;
+    private final List<String> textMatches;
 
     public GuideTargetSpec(
             String selector,
@@ -22,6 +27,21 @@ public final class GuideTargetSpec {
             String dataAttributeName,
             String dataAttributeValue
     ) {
+        this(selector, elementId, className, text, ariaLabel, role, hrefContains, dataAttributeName, dataAttributeValue, Collections.emptyList());
+    }
+
+    public GuideTargetSpec(
+            String selector,
+            String elementId,
+            String className,
+            String text,
+            String ariaLabel,
+            String role,
+            String hrefContains,
+            String dataAttributeName,
+            String dataAttributeValue,
+            List<String> textMatches
+    ) {
         this.selector = clean(selector);
         this.elementId = clean(elementId);
         this.className = clean(className);
@@ -31,10 +51,29 @@ public final class GuideTargetSpec {
         this.hrefContains = clean(hrefContains);
         this.dataAttributeName = clean(dataAttributeName);
         this.dataAttributeValue = clean(dataAttributeValue);
+        this.textMatches = new ArrayList<>();
+        if (textMatches != null) {
+            for (String tm : textMatches) {
+                if (tm != null && !tm.trim().isEmpty()) {
+                    this.textMatches.add(tm.trim());
+                }
+            }
+        }
+    }
+
+    public GuideTargetSpec(String selector, String textMatch) {
+        this(selector, null, null, null, null, null, null, null, null,
+                textMatch != null && !textMatch.trim().isEmpty()
+                        ? Collections.singletonList(textMatch.trim())
+                        : Collections.emptyList());
+    }
+
+    public GuideTargetSpec(String selector, List<String> textMatches) {
+        this(selector, null, null, null, null, null, null, null, null, textMatches);
     }
 
     public static GuideTargetSpec forText(String text) {
-        return new GuideTargetSpec(null, null, null, text, null, null, null, null, null);
+        return new GuideTargetSpec(null, null, null, text, null, null, null, null, null, Collections.emptyList());
     }
 
     private static String clean(String value) {
@@ -52,4 +91,5 @@ public final class GuideTargetSpec {
     public String getHrefContains() { return hrefContains; }
     public String getDataAttributeName() { return dataAttributeName; }
     public String getDataAttributeValue() { return dataAttributeValue; }
+    public List<String> getTextMatches() { return Collections.unmodifiableList(textMatches); }
 }

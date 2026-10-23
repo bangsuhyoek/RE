@@ -1,12 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 import {
   ChevronLeft,
   Pencil,
   Sparkles,
-  AlertTriangle,
-  Clock,
-  ExternalLink,
+  CalendarPlus,
 } from "lucide-react";
 import {
   BottomSheet,
@@ -16,7 +14,21 @@ import {
   ToggleSwitch,
   PaymentMethodTriggerField,
 } from "./ui";
+import { DifficultySurvey } from "./DifficultySurvey";
+import { CancelProofCapture } from "./CancelProofCapture";
+import { getCachedCatalog, loadSubscriptionData } from "../data/catalogLoader";
+import { getCancelPolicy } from "../data/cancelPolicies";
+import { getCancelTimingAdvice } from "../lib/cancelTiming";
+import { createCancelSession } from "../lib/cancelDifficulty";
+import { hasMoneyRelevantWarning } from "../lib/cancelBrowser";
+import { expectedChargeAfterCancel } from "../lib/cancelVerification";
 import { formatWon } from "../lib/dates";
+import { toMonthlyAmount, toAnnualAmount } from "../lib/subscriptionMath";
+import { resolvePaymentChannel, shouldAutoOpenServicePage } from "../lib/cancelRoutes";
+import { getRailCancelPlan } from "../lib/railCancel";
+import { addBillingToCalendar } from "../lib/calendarExport";
+import { buildSettlementRequest } from "../lib/settlement";
+import { shareText } from "../lib/shareText";
 
 /**
  * 프리미엄 iOS/쿠퍼티노 스타일 스크롤 휠 드럼롤 컬럼
@@ -50,6 +62,7 @@ function ScrollWheelColumn({ items, value, onChange }) {
     if (index !== -1 && containerRef.current) {
       containerRef.current.scrollTop = index * itemHeight;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ��ũ�� �� �巳�� �ʱ� ����Ʈ �� ���� ��ġ ����ȭ ����
   }, []);
 
   return (
@@ -181,14 +194,17 @@ function NotificationTimeScrollPickerModal({
 }
 
 export function SubscriptionDetailScreen({
+  catalog = null,
   subscription,
   subscriptions = [],
   onUpdate,
   onStartCancel,
+  onToast,
   onBack,
   onDelete,
   promotion,
   highlightCancel,
+  userId = null,
 }) {
   const [editing, setEditing] = useState(false);
   const [celebrateSheetOpen, setCelebrateSheetOpen] = useState(false);
@@ -202,7 +218,69 @@ export function SubscriptionDetailScreen({
     dueDay: subscription?.dueDay || 1,
     paymentMethod: subscription?.paymentMethod || "신한카드 ****4521",
     memo: subscription?.memo || "",
+    nextBillingDate: subscription?.nextBillingDate || "",
   }));
+
+  useEffect(() => {
+    if (!subscription) return;
+    setDraft({
+      plan: subscription.plan || "기본 플랜",
+      amount: subscription.amount || 0,
+      billingCycle: subscription.billingCycle || "매월",
+      category: subscription.category || "엔터테인먼트",
+      dueDay: subscription.dueDay || 1,
+      paymentMethod: subscription.paymentMethod || "신한카드 ****4521",
+      memo: subscription.memo || "",
+      nextBillingDate: subscription.nextBillingDate || "",
+    });
+    setEditing(false);
+    setEditError("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- ���� ��ü �ĺ��ڰ� �ٲ� ���� draft�� �����ϰ� ������� ���� ���� ������ ������
+  }, [subscription?.subscriptionId, subscription?.id]);
+
+  // 훅은 아래 조기 return 보다 먼저, 매 렌더에서 같은 순서로 호출되어야 한다.
+  const [asyncCatalog, setAsyncCatalog] = useState(() => getCachedCatalog()?.serviceCatalog || []);
+  useEffect(() => {
+    if (asyncCatalog.length === 0) {
+      loadSubscriptionData().then((mod) => {
+        if (mod?.serviceCatalog) setAsyncCatalog(mod.serviceCatalog);
+      });
+    }
+  }, [asyncCatalog.length]);
+  const activeCatalog = catalog || asyncCatalog;
+
+  const canonicalServiceId = useMemo(() => {
+    if (!subscription) return null;
+    const targetName = (subscription.name || "").toLowerCase().replace(/\s+/g, "");
+    const targetId = (subscription.serviceId || subscription.id || "").toLowerCase();
+    const matched = activeCatalog.find((s) => {
+      const sId = (s.id || "").toLowerCase();
+      const sName = (s.name || "").toLowerCase().replace(/\s+/g, "");
+      return sId === targetId || sName === targetName || targetId.includes(sId) || targetName.includes(sName);
+    });
+    return matched?.id || subscription.serviceId || subscription.id;
+  }, [subscription, activeCatalog]);
+
+  const policy = useMemo(() => (subscription ? getCancelPolicy(canonicalServiceId) : null), [subscription, canonicalServiceId]);
+  const paymentChannel = useMemo(() => (subscription ? resolvePaymentChannel(subscription) : null), [subscription]);
+  const timingAdvice = useMemo(
+    () => (subscription ? getCancelTimingAdvice({ subscription: { ...subscription, paymentChannel }, policy }) : null),
+    [subscription, paymentChannel, policy]
+  );
+  const railPlan = useMemo(
+    () => (subscription ? getRailCancelPlan({ subscription, channel: paymentChannel }) : null),
+    [subscription, paymentChannel]
+  );
+  const expectedNextWatchDate = useMemo(() => {
+    if (!subscription) return null;
+    const next = expectedChargeAfterCancel(subscription, new Date());
+    return next ? (next.getMonth() + 1) + "월 " + next.getDate() + "일" : null;
+  }, [subscription]);
+
+  const detailCancelSessionRef = useRef(null);
+  if (subscription && (!detailCancelSessionRef.current || detailCancelSessionRef.current.serviceId !== canonicalServiceId)) {
+    detailCancelSessionRef.current = createCancelSession({ serviceId: canonicalServiceId, stepsTotal: 1 });
+  }
 
   if (!subscription) {
     return (
@@ -217,25 +295,45 @@ export function SubscriptionDetailScreen({
   const save = () => {
     setEditError("");
     const amount = Number(draft.amount);
-    const dueDay = Math.max(1, Math.min(31, Number(draft.dueDay)));
-    if (!Number.isFinite(amount) || amount <= 0) {
+    if (!Number.isFinite(amount) || amount < 0) {
       setEditError("결제 금액을 올바르게 입력해 주세요.");
       return;
     }
-    if (!Number.isFinite(dueDay) || dueDay < 1 || dueDay > 31) {
-      setEditError("결제일을 1~31일 사이로 입력해 주세요.");
-      return;
+
+    let dueDay;
+    let nextBillingDate = null;
+
+    if (draft.billingCycle === "매년") {
+      if (!draft.nextBillingDate) {
+        setEditError("갱신일을 선택해 주세요.");
+        return;
+      }
+      const parsedDay = Number(String(draft.nextBillingDate).split("-")[2]);
+      if (!Number.isFinite(parsedDay) || parsedDay < 1 || parsedDay > 31) {
+        setEditError("올바른 갱신일을 입력해 주세요.");
+        return;
+      }
+      dueDay = parsedDay;
+      nextBillingDate = draft.nextBillingDate;
+    } else {
+      dueDay = Math.max(1, Math.min(31, Number(draft.dueDay)));
+      if (!Number.isFinite(dueDay) || dueDay < 1 || dueDay > 31) {
+        setEditError("결제일을 1~31일 사이로 입력해 주세요.");
+        return;
+      }
     }
-    onUpdate(subscription.subscriptionId, { ...draft, amount, dueDay });
+    onUpdate(subscription.subscriptionId, { ...draft, amount, dueDay, nextBillingDate });
     setEditing(false);
   };
 
   const monogram = subscription.monogram || subscription.name?.slice(0, 1) || "S";
-  const monthlyAmount = subscription.billingCycle === "매년" ? Math.round(subscription.amount / 12) : subscription.amount;
-  const annualAmount = subscription.billingCycle === "매년" ? subscription.amount : subscription.amount * 12;
+  const monthlyAmount = toMonthlyAmount(subscription);
+  const annualAmount = toAnnualAmount(subscription);
+
+  const isMoneyWarning = hasMoneyRelevantWarning(timingAdvice);
 
   // 알림 시간 설정 파라미터 (스크롤 피커와 연동)
-  const alertEnabled = subscription.alertEnabled !== undefined ? Boolean(subscription.alertEnabled) : Boolean(subscription.alertD3 || subscription.alertD1 || true);
+  const alertEnabled = subscription.alertEnabled !== undefined ? Boolean(subscription.alertEnabled) : (subscription.alertD3 !== false || subscription.alertD1 !== false);
   const alertDDay = subscription.alertDDay !== undefined ? subscription.alertDDay : (subscription.alertD1 ? 1 : 3);
   const alertAmpm = subscription.alertAmpm || "오전";
   const alertHour = subscription.alertHour || "09";
@@ -401,6 +499,49 @@ export function SubscriptionDetailScreen({
             />
           </section>
 
+          {/* 4-3. 결제일을 내 캘린더에 넣기 (캘린더 권한 없이 캘린더 앱 일정 화면을 채워 연다) */}
+          {subscription.sharingEnabled && Number(subscription.shareCount) > 1 && (
+            <section className="flex items-center justify-between gap-3 py-1 mt-6">
+              <div className="min-w-0">
+                <h2 className="text-[16px] font-bold text-black tracking-tight">정산 요청 보내기</h2>
+                <span className="text-[13px] text-gray-400 block mt-0.5">
+                  {subscription.shareCount}명이 나눠 내요. 1인 {formatWon(buildSettlementRequest(subscription).perPerson)} 요청 문구를 보내요.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const request = buildSettlementRequest(subscription);
+                  const result = await shareText({ title: request.title, text: request.message });
+                  if (result.method === "clipboard") onToast?.("정산 요청 문구를 복사했어요. 단톡방에 붙여 넣어 보내세요.");
+                }}
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-[13px] font-bold text-gray-800 active:scale-95 transition-transform"
+              >
+                보내기
+              </button>
+            </section>
+          )}
+
+          <section className="flex items-center justify-between gap-3 py-1 mt-6">
+            <div className="min-w-0">
+              <h2 className="text-[16px] font-bold text-black tracking-tight">내 캘린더에 결제일 추가</h2>
+              <span className="text-[13px] text-gray-400 block mt-0.5">
+                {Capacitor.isNativePlatform() ? "캘린더 앱에서 저장을 누르면 결제일이 반복 일정으로 들어가요." : "일정 파일(.ics)을 받아 쓰는 캘린더에 추가해요."}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                const result = await addBillingToCalendar(subscription);
+                if (!result.ok) onToast?.(result.code === "NO_CALENDAR_APP" ? "캘린더 앱을 찾지 못했어요." : "캘린더를 열지 못했어요.");
+                else if (result.method === "ics") onToast?.("일정 파일을 받았어요. 열어서 캘린더에 추가해 주세요.");
+              }}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-[13px] font-bold text-gray-800 active:scale-95 transition-transform"
+            >
+              <CalendarPlus size={15} /> 추가
+            </button>
+          </section>
+
           <div className="h-px bg-gray-100/80 my-8" />
 
           {/* 5. 하단 2-트랙 해지 CTA 버튼 */}
@@ -408,16 +549,20 @@ export function SubscriptionDetailScreen({
             <button
               type="button"
               onClick={() => {
-                if (subscription.cancelUrl && !Capacitor.isNativePlatform()) {
+                // Google Play·App Store·카드 자동납부·2단계 결제 경로 차단 및 금전적 불이익 경고 구독은 해지 안내를 먼저 보여준다.
+                const hasRailPlan = Boolean(railPlan);
+                const isNative = Capacitor.isNativePlatform();
+                const autoOpen = !isNative && shouldAutoOpenServicePage(subscription) && !hasRailPlan && !isMoneyWarning;
+                if (autoOpen && subscription.cancelUrl) {
                   window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
                 }
-                onStartCancel(subscription.subscriptionId, promotion, { autoOpen: true });
+                onStartCancel(subscription.subscriptionId, promotion, { autoOpen });
               }}
               className={`w-full rounded-2xl bg-[#111827] text-white font-bold py-4 text-[16px] text-center active:scale-[0.98] transition-all shadow-sm cursor-pointer hover:bg-black ${
                 highlightCancel ? "ring-2 ring-blue-500 ring-offset-2 animate-pulse" : ""
               }`}
             >
-              웹사이트에서 해지하기
+              해지하기
             </button>
             <button
               type="button"
@@ -452,17 +597,29 @@ export function SubscriptionDetailScreen({
                   onChange={(e) => setDraft((v) => ({ ...v, amount: e.target.value }))}
                 />
               </label>
-              <label className="block text-[12px] font-semibold text-gray-500">
-                결제일 (1~31일)
-                <input
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
-                  type="number"
-                  min="1"
-                  max="31"
-                  value={draft.dueDay}
-                  onChange={(e) => setDraft((v) => ({ ...v, dueDay: e.target.value }))}
-                />
-              </label>
+              {draft.billingCycle === "매년" ? (
+                <label className="block text-[12px] font-semibold text-gray-500">
+                  갱신일
+                  <input
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
+                    type="date"
+                    value={draft.nextBillingDate || ""}
+                    onChange={(e) => setDraft((v) => ({ ...v, nextBillingDate: e.target.value }))}
+                  />
+                </label>
+              ) : (
+                <label className="block text-[12px] font-semibold text-gray-500">
+                  결제일 (1~31일)
+                  <input
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
+                    type="number"
+                    min="1"
+                    max="31"
+                    value={draft.dueDay}
+                    onChange={(e) => setDraft((v) => ({ ...v, dueDay: e.target.value }))}
+                  />
+                </label>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <label className="block text-[12px] font-semibold text-gray-500">
@@ -544,8 +701,36 @@ export function SubscriptionDetailScreen({
               </span>
             </div>
             <p className="mt-3 text-[13px] text-gray-500 leading-relaxed max-w-[280px]">
-              공식 웹사이트에서 해지를 마치셨다면 목록에서 제거하여 지출 현황을 최신화하세요.
+              {expectedNextWatchDate
+                ? `다음 결제 예정일(${expectedNextWatchDate}) 이후 재결제가 없는지 꾸독이 자동으로 지켜볼게요.`
+                : "공식 웹사이트에서 해지를 마치셨다면 목록에서 제거하여 지출 현황을 최신화하세요."}
             </p>
+
+            <details className="mt-4 w-full rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-3 text-left">
+              <summary className="cursor-pointer list-none text-center text-[12px] font-semibold text-[#6B7684] hover:text-[#333D4B]">
+                해지 완료 화면 저장하기
+              </summary>
+              <div className="mt-3 border-t border-[#E5E8EB] pt-3">
+                <CancelProofCapture
+                  record={{
+                    serviceId: canonicalServiceId,
+                    recordId: subscription.subscriptionId || subscription.id,
+                    subscriptionId: subscription.subscriptionId || subscription.id,
+                    serviceName: subscription.name,
+                    amount: subscription.amount,
+                    cancelledAt: new Date().toISOString(),
+                  }}
+                />
+                {userId && (
+                  <DifficultySurvey
+                    serviceId={canonicalServiceId}
+                    session={detailCancelSessionRef.current}
+                    userId={userId}
+                  />
+                )}
+              </div>
+            </details>
+
             <div className="mt-6 w-full space-y-2.5">
               <button
                 type="button"

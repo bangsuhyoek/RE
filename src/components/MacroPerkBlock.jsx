@@ -1,4 +1,3 @@
-import React from "react";
 import { ChevronRight } from "lucide-react";
 import { ServiceMark } from "./ui";
 
@@ -34,15 +33,22 @@ export function MacroPerkBlock({
   solutionTitle = "네이버 멤버십 연동으로 매월 구독료 0원 전환",
   description = "이미 결제 중인 네이버플러스 멤버십을 유지하는 동안, 디지털 콘텐츠 혜택으로 넷플릭스를 추가 비용 없이 무료 시청할 수 있어요.",
   savingText = null,
-  offerPriceText = null,
   isDirectMatch = false,
   badgeText = null,
   onAction,
   className = "",
 }) {
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onAction?.();
+    }
+  };
+
   return (
     <article
       onClick={onAction}
+      onKeyDown={handleKeyDown}
       className={`group flex w-full items-center justify-between gap-5 sm:gap-7 py-5 sm:py-6 px-2 sm:px-3.5 transition-colors hover:bg-[#F9FAFB] rounded-2xl cursor-pointer select-none ${className}`}
       role="button"
       tabIndex={0}

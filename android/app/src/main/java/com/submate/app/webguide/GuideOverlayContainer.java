@@ -11,31 +11,34 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.submate.app.R;
-import com.submate.app.character.CharacterAssetManager;
 import com.submate.app.webguide.services.naver.NaverMembershipGuide;
 import com.submate.app.webguide.state.GuideState;
 import com.submate.app.webguide.state.PageState;
-import com.submate.app.webguide.target.CharacterPlacement;
 import com.submate.app.webguide.target.GuideStep;
+import com.submate.app.webguide.target.PointerPlacement;
 import com.submate.app.webguide.target.TargetRect;
 import com.submate.app.webguide.target.TargetResolutionStatus;
 
 public class GuideOverlayContainer extends FrameLayout {
     private static final String TAG = "KkudokWebGuideTarget";
-    private ImageView characterView;
     private LinearLayout bubbleCard;
     private TextView messageView;
     private TextView restoreButton;
     private View targetOutline;
     private TextView pointerView;
+    private TextView highlightLabel;
     private PageState pageState = PageState.UNSUPPORTED_PAGE;
     private GuideState guideState = GuideState.HIDDEN;
     private RectF activeTargetRect;
+    private GuideStep activeStep;
+    private GuideState preMinimizedGuideState;
+    private RectF preMinimizedTargetRect;
+    private GuideStep preMinimizedStep;
+    private boolean userMinimized = false;
+    private boolean bubbleEnabled = true;
     private long presentationGeneration = 0L;
 
     public GuideOverlayContainer(Context context) {
@@ -57,7 +60,6 @@ public class GuideOverlayContainer extends FrameLayout {
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_AUTO);
 
         buildTargetScaffold();
-        buildCharacter();
         buildBubble();
         buildRestoreButton();
         hideGuide();
@@ -84,23 +86,22 @@ public class GuideOverlayContainer extends FrameLayout {
         pointerView.setFocusable(false);
         pointerView.setVisibility(GONE);
         addView(pointerView, new FrameLayout.LayoutParams(dp(40), dp(40)));
-    }
 
-    private void buildCharacter() {
-        characterView = new ImageView(getContext());
-        CharacterAssetManager.applyToImageView(getContext(), characterView);
-        characterView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        characterView.setAdjustViewBounds(false);
-        characterView.setContentDescription("꾸독 안내 캐릭터");
-        characterView.setElevation(dp(5));
-        characterView.setOnClickListener(v -> {
-            if (guideState == GuideState.MINIMIZED) {
-                restoreGuide();
-            } else if (bubbleCard != null) {
-                bubbleCard.setVisibility(bubbleCard.getVisibility() == VISIBLE ? GONE : VISIBLE);
-            }
-        });
-        addView(characterView, defaultCharacterParams());
+        highlightLabel = new TextView(getContext());
+        highlightLabel.setText("직접 눌러 주세요");
+        highlightLabel.setTextSize(11);
+        highlightLabel.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        highlightLabel.setTextColor(Color.WHITE);
+        highlightLabel.setGravity(Gravity.CENTER);
+        highlightLabel.setPadding(dp(8), dp(3), dp(8), dp(3));
+        GradientDrawable labelBg = new GradientDrawable();
+        labelBg.setColor(Color.rgb(235, 87, 87));
+        labelBg.setCornerRadius(dp(6));
+        highlightLabel.setBackground(labelBg);
+        highlightLabel.setClickable(false);
+        highlightLabel.setFocusable(false);
+        highlightLabel.setVisibility(GONE);
+        addView(highlightLabel, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
     private void buildBubble() {
@@ -129,14 +130,14 @@ public class GuideOverlayContainer extends FrameLayout {
         topRow.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         TextView minimize = actionText("접기");
-        minimize.setContentDescription("꾸독 캐릭터 최소화");
+        minimize.setContentDescription("안내 최소화");
         minimize.setOnClickListener(v -> minimizeGuide());
         topRow.addView(minimize, new LinearLayout.LayoutParams(dp(48), dp(32)));
 
         TextView closeBubble = actionText("×");
         closeBubble.setTextSize(20);
         closeBubble.setContentDescription("말풍선 닫기");
-        closeBubble.setOnClickListener(v -> bubbleCard.setVisibility(GONE));
+        closeBubble.setOnClickListener(v -> minimizeGuide());
         topRow.addView(closeBubble, new LinearLayout.LayoutParams(dp(40), dp(32)));
         bubbleCard.addView(topRow, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -154,12 +155,12 @@ public class GuideOverlayContainer extends FrameLayout {
 
     private void buildRestoreButton() {
         restoreButton = new TextView(getContext());
-        restoreButton.setText("꾸");
-        restoreButton.setTextSize(13);
+        restoreButton.setText("안내");
+        restoreButton.setTextSize(12);
         restoreButton.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         restoreButton.setTextColor(Color.WHITE);
         restoreButton.setGravity(Gravity.CENTER);
-        restoreButton.setContentDescription("꾸독 캐릭터 다시 열기");
+        restoreButton.setContentDescription("안내 다시 열기");
         restoreButton.setClickable(true);
         restoreButton.setFocusable(true);
         restoreButton.setElevation(dp(6));
@@ -191,8 +192,58 @@ public class GuideOverlayContainer extends FrameLayout {
     public void onPageLoading() {
         presentationGeneration++;
         activeTargetRect = null;
+        activeStep = null;
+        preMinimizedGuideState = null;
+        preMinimizedTargetRect = null;
+        preMinimizedStep = null;
         hideTargetHighlight();
-        setVisibility(GONE);
+        if (!bubbleEnabled) {
+            if (bubbleCard != null) bubbleCard.setVisibility(GONE);
+            if (restoreButton != null) restoreButton.setVisibility(GONE);
+            setVisibility(GONE);
+        } else if (userMinimized) {
+            if (bubbleCard != null) bubbleCard.setVisibility(GONE);
+            if (restoreButton != null) restoreButton.setVisibility(VISIBLE);
+        } else {
+            setVisibility(GONE);
+        }
+    }
+
+    public void setBubbleEnabled(boolean enabled) {
+        this.bubbleEnabled = enabled;
+        if (!enabled) {
+            if (bubbleCard != null) bubbleCard.setVisibility(GONE);
+            if (restoreButton != null) restoreButton.setVisibility(GONE);
+        }
+    }
+
+    public void setUserMinimized(boolean minimized) {
+        this.userMinimized = minimized;
+        if (minimized) {
+            if (bubbleCard != null) bubbleCard.setVisibility(GONE);
+            if (restoreButton != null && getVisibility() == VISIBLE) {
+                restoreButton.setVisibility(VISIBLE);
+            }
+        }
+    }
+
+    public boolean isUserMinimized() {
+        return userMinimized;
+    }
+
+    private void applyBubbleVisibility() {
+        if (!bubbleEnabled) {
+            if (bubbleCard != null) bubbleCard.setVisibility(GONE);
+            if (restoreButton != null) restoreButton.setVisibility(GONE);
+            return;
+        }
+        if (userMinimized) {
+            bubbleCard.setVisibility(GONE);
+            restoreButton.setVisibility(VISIBLE);
+        } else {
+            restoreButton.setVisibility(GONE);
+            bubbleCard.setVisibility(VISIBLE);
+        }
     }
 
     public void updatePageState(PageState newPageState) {
@@ -201,7 +252,6 @@ public class GuideOverlayContainer extends FrameLayout {
         guideState = NaverMembershipGuide.guideStateFor(pageState);
         activeTargetRect = null;
         hideTargetHighlight();
-        resetCharacterDefaultPosition();
         resetBubbleDefaultPosition();
 
         if (guideState == GuideState.HIDDEN) {
@@ -211,29 +261,20 @@ public class GuideOverlayContainer extends FrameLayout {
 
         messageView.setText(NaverMembershipGuide.messageFor(pageState));
         setVisibility(VISIBLE);
-        restoreButton.setVisibility(GONE);
-        characterView.setVisibility(VISIBLE);
-        bubbleCard.setVisibility(VISIBLE);
-        characterView.setAlpha(pageState == PageState.LOGIN ? 0.92f : 1.0f);
-        characterView.animate().cancel();
-        characterView.setScaleX(0.94f);
-        characterView.setScaleY(0.94f);
-        characterView.setAlpha(0f);
-        characterView.animate().alpha(pageState == PageState.LOGIN ? 0.92f : 1f)
-                .scaleX(1f).scaleY(1f).setDuration(220).start();
+        if (userMinimized) {
+            guideState = GuideState.MINIMIZED;
+        }
+        applyBubbleVisibility();
     }
 
     public void showNeedsLiveVerification(GuideStep step) {
         presentationGeneration++;
         activeTargetRect = null;
         hideTargetHighlight();
-        resetCharacterDefaultPosition();
         resetBubbleDefaultPosition();
-        guideState = GuideState.NEEDS_LIVE_VERIFICATION;
+        guideState = userMinimized ? GuideState.MINIMIZED : GuideState.NEEDS_LIVE_VERIFICATION;
         setVisibility(VISIBLE);
-        restoreButton.setVisibility(GONE);
-        characterView.setVisibility(VISIBLE);
-        bubbleCard.setVisibility(VISIBLE);
+        applyBubbleVisibility();
         String instruction = step == null ? "" : step.getInstruction();
         messageView.setText(
                 "실제 NAVER 가입자 화면 검증이 필요한 단계예요. "
@@ -245,13 +286,10 @@ public class GuideOverlayContainer extends FrameLayout {
         presentationGeneration++;
         activeTargetRect = null;
         hideTargetHighlight();
-        resetCharacterDefaultPosition();
         resetBubbleDefaultPosition();
-        guideState = GuideState.TALKING;
+        guideState = userMinimized ? GuideState.MINIMIZED : GuideState.TALKING;
         setVisibility(VISIBLE);
-        restoreButton.setVisibility(GONE);
-        characterView.setVisibility(VISIBLE);
-        bubbleCard.setVisibility(VISIBLE);
+        applyBubbleVisibility();
         messageView.setText(message == null ? "" : message);
     }
 
@@ -263,23 +301,21 @@ public class GuideOverlayContainer extends FrameLayout {
         }
 
         activeTargetRect = new RectF(rect);
-        guideState = GuideState.TALKING;
+        guideState = userMinimized ? GuideState.MINIMIZED : GuideState.TALKING;
         setVisibility(VISIBLE);
-        restoreButton.setVisibility(GONE);
-        characterView.setVisibility(VISIBLE);
-        bubbleCard.setVisibility(VISIBLE);
+        applyBubbleVisibility();
         messageView.setText(step.getInstruction());
 
-        characterView.setClickable(false);
-        characterView.setFocusable(false);
-        showTargetHighlight(rect);
+        activeStep = step;
+        showTargetHighlight(rect, step);
         post(() -> {
             if (expectedPresentationGeneration != presentationGeneration || activeTargetRect == null) return;
-            CharacterPlacement actual = placeCharacterNearTarget(
+            PointerPlacement actual = choosePointerPlacement(
                     rect, step.getPreferredPlacement(), step.getOffsetDp());
             placePointer(rect, actual);
-            placeBubbleAwayFromTarget(rect);
-            RectF characterRect = rectFor(characterView);
+            if (!userMinimized) {
+                placeBubbleAwayFromTarget(rect);
+            }
             FrameLayout.LayoutParams outlineParams =
                     (FrameLayout.LayoutParams) targetOutline.getLayoutParams();
             RectF highlightRect = new RectF(
@@ -290,7 +326,6 @@ public class GuideOverlayContainer extends FrameLayout {
             Log.d(TAG,
                     "stepId=" + step.getStepId()
                             + " placement=" + actual
-                            + " characterRect=" + characterRect
                             + " highlightRect=" + highlightRect);
         });
     }
@@ -299,7 +334,6 @@ public class GuideOverlayContainer extends FrameLayout {
         presentationGeneration++;
         activeTargetRect = null;
         hideTargetHighlight();
-        resetCharacterDefaultPosition();
         resetBubbleDefaultPosition();
 
         if (step == null) return;
@@ -316,9 +350,8 @@ public class GuideOverlayContainer extends FrameLayout {
         }
 
         setVisibility(VISIBLE);
-        characterView.setVisibility(VISIBLE);
-        bubbleCard.setVisibility(VISIBLE);
-        restoreButton.setVisibility(GONE);
+        guideState = userMinimized ? GuideState.MINIMIZED : GuideState.TALKING;
+        applyBubbleVisibility();
         messageView.setText(message);
     }
 
@@ -332,15 +365,38 @@ public class GuideOverlayContainer extends FrameLayout {
 
     private void minimizeGuide() {
         presentationGeneration++;
+        userMinimized = true;
         if (guideState == GuideState.HIDDEN) return;
+        preMinimizedGuideState = guideState;
+        preMinimizedTargetRect = activeTargetRect != null ? new RectF(activeTargetRect) : null;
+        preMinimizedStep = activeStep;
         guideState = GuideState.MINIMIZED;
         bubbleCard.setVisibility(GONE);
-        characterView.setVisibility(GONE);
         restoreButton.setVisibility(VISIBLE);
-        hideTargetHighlight();
     }
 
     private void restoreGuide() {
+        userMinimized = false;
+        GuideState targetState = preMinimizedGuideState;
+        RectF targetRect = preMinimizedTargetRect;
+        GuideStep targetStep = preMinimizedStep;
+        preMinimizedGuideState = null;
+        preMinimizedTargetRect = null;
+        preMinimizedStep = null;
+
+        if (targetState != null && targetState != GuideState.HIDDEN) {
+            guideState = targetState;
+            setVisibility(VISIBLE);
+            restoreButton.setVisibility(GONE);
+            bubbleCard.setVisibility(VISIBLE);
+            if (targetRect != null) {
+                activeTargetRect = targetRect;
+                activeStep = targetStep;
+                showTargetHighlight(targetRect, targetStep);
+            }
+            return;
+        }
+
         GuideState resolved = NaverMembershipGuide.guideStateFor(pageState);
         if (resolved == GuideState.HIDDEN) {
             hideGuide();
@@ -349,7 +405,6 @@ public class GuideOverlayContainer extends FrameLayout {
         guideState = resolved;
         setVisibility(VISIBLE);
         restoreButton.setVisibility(GONE);
-        characterView.setVisibility(VISIBLE);
         bubbleCard.setVisibility(VISIBLE);
     }
 
@@ -357,17 +412,37 @@ public class GuideOverlayContainer extends FrameLayout {
         presentationGeneration++;
         guideState = GuideState.HIDDEN;
         activeTargetRect = null;
+        activeStep = null;
+        preMinimizedGuideState = null;
+        preMinimizedTargetRect = null;
+        preMinimizedStep = null;
         setVisibility(GONE);
-        if (characterView != null) characterView.setVisibility(GONE);
         if (bubbleCard != null) bubbleCard.setVisibility(GONE);
         if (restoreButton != null) restoreButton.setVisibility(GONE);
         hideTargetHighlight();
     }
 
     public void showTargetHighlight(RectF rect) {
+        showTargetHighlight(rect, null);
+    }
+
+    public void showTargetHighlight(RectF rect, GuideStep step) {
         if (rect == null || getVisibility() != VISIBLE) {
             hideTargetHighlight();
             return;
+        }
+
+        boolean isFinal = step != null && step.isUserMustTap();
+        int strokeWidth = isFinal ? dp(4) : dp(3);
+        int strokeColor = isFinal ? Color.rgb(235, 87, 87) : Color.rgb(91, 111, 214);
+
+        GradientDrawable outline = new GradientDrawable();
+        outline.setColor(Color.TRANSPARENT);
+        outline.setCornerRadius(dp(12));
+        outline.setStroke(strokeWidth, strokeColor);
+        targetOutline.setBackground(outline);
+        if (pointerView != null) {
+            pointerView.setTextColor(strokeColor);
         }
 
         int inset = dp(4);
@@ -384,95 +459,79 @@ public class GuideOverlayContainer extends FrameLayout {
         outlineParams.topMargin = Math.round(top);
         targetOutline.setLayoutParams(outlineParams);
         targetOutline.setVisibility(VISIBLE);
+
+        if (isFinal && highlightLabel != null) {
+            highlightLabel.setVisibility(VISIBLE);
+            int labelH = dp(24);
+            float labelTop = top - labelH - dp(4);
+            if (labelTop < dp(4)) {
+                labelTop = bottom + dp(4);
+            }
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.gravity = Gravity.TOP | Gravity.START;
+            lp.leftMargin = Math.round(clamp(rect.centerX() - dp(45), dp(8), Math.max(dp(8), getWidth() - dp(100))));
+            lp.topMargin = Math.round(clamp(labelTop, dp(4), Math.max(dp(4), getHeight() - dp(30))));
+            highlightLabel.setLayoutParams(lp);
+        } else if (highlightLabel != null) {
+            highlightLabel.setVisibility(GONE);
+        }
     }
 
     public void hideTargetHighlight() {
         if (targetOutline != null) targetOutline.setVisibility(GONE);
         if (pointerView != null) pointerView.setVisibility(GONE);
+        if (highlightLabel != null) highlightLabel.setVisibility(GONE);
     }
 
-    private CharacterPlacement placeCharacterNearTarget(
+    private PointerPlacement choosePointerPlacement(
             RectF rect,
-            CharacterPlacement preferred,
+            PointerPlacement preferred,
             int offsetDp
     ) {
         int width = getWidth();
         int height = getHeight();
-        int charW = dp(88);
-        int charH = dp(76);
+        int pointerSize = dp(40);
         int edge = dp(8);
         int gap = dp(Math.max(4, offsetDp));
 
-        CharacterPlacement chosen = choosePlacement(rect, preferred, width, height, charW, charH, edge, gap);
-        float x;
-        float y;
-
-        switch (chosen) {
-            case LEFT:
-                x = rect.left - gap - charW;
-                y = rect.centerY() - charH / 2f;
-                break;
-            case RIGHT:
-                x = rect.right + gap;
-                y = rect.centerY() - charH / 2f;
-                break;
-            case TOP:
-                x = rect.centerX() - charW / 2f;
-                y = rect.top - gap - charH;
-                break;
-            case BOTTOM:
-            default:
-                x = rect.centerX() - charW / 2f;
-                y = rect.bottom + gap;
-                break;
-        }
-
-        x = clamp(x, edge, Math.max(edge, width - charW - edge));
-        y = clamp(y, edge, Math.max(edge, height - charH - edge));
-
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(charW, charH, Gravity.TOP | Gravity.START);
-        params.leftMargin = Math.round(x);
-        params.topMargin = Math.round(y);
-        characterView.setLayoutParams(params);
-        characterView.setClickable(false);
-        characterView.setFocusable(false);
-        return chosen;
+        return choosePlacement(rect, preferred, width, height, pointerSize, pointerSize, edge, gap);
     }
 
-    private CharacterPlacement choosePlacement(
+    private PointerPlacement choosePlacement(
             RectF rect,
-            CharacterPlacement preferred,
+            PointerPlacement preferred,
             int width,
             int height,
-            int charW,
-            int charH,
+            int ptrW,
+            int ptrH,
             int edge,
             int gap
     ) {
-        if (preferred != null && preferred != CharacterPlacement.AUTO
-                && fits(preferred, rect, width, height, charW, charH, edge, gap)) {
+        if (preferred != null && preferred != PointerPlacement.AUTO
+                && fits(preferred, rect, width, height, ptrW, ptrH, edge, gap)) {
             return preferred;
         }
 
-        CharacterPlacement[] options = {
-                CharacterPlacement.LEFT,
-                CharacterPlacement.RIGHT,
-                CharacterPlacement.TOP,
-                CharacterPlacement.BOTTOM
+        PointerPlacement[] options = {
+                PointerPlacement.LEFT,
+                PointerPlacement.RIGHT,
+                PointerPlacement.TOP,
+                PointerPlacement.BOTTOM
         };
-        CharacterPlacement best = CharacterPlacement.BOTTOM;
+        PointerPlacement best = PointerPlacement.BOTTOM;
         float bestSpace = -1;
 
-        for (CharacterPlacement option : options) {
+        for (PointerPlacement option : options) {
             float space = availableSpace(option, rect, width, height, edge);
-            if (fits(option, rect, width, height, charW, charH, edge, gap) && space > bestSpace) {
+            if (fits(option, rect, width, height, ptrW, ptrH, edge, gap) && space > bestSpace) {
                 best = option;
                 bestSpace = space;
             }
         }
 
         if (bestSpace >= 0) return best;
-        for (CharacterPlacement option : options) {
+        for (PointerPlacement option : options) {
             float space = availableSpace(option, rect, width, height, edge);
             if (space > bestSpace) {
                 best = option;
@@ -483,30 +542,30 @@ public class GuideOverlayContainer extends FrameLayout {
     }
 
     private boolean fits(
-            CharacterPlacement placement,
+            PointerPlacement placement,
             RectF rect,
             int width,
             int height,
-            int charW,
-            int charH,
+            int ptrW,
+            int ptrH,
             int edge,
             int gap
     ) {
         switch (placement) {
             case LEFT:
-                return rect.left - gap - charW >= edge;
+                return rect.left - gap - ptrW >= edge;
             case RIGHT:
-                return rect.right + gap + charW <= width - edge;
+                return rect.right + gap + ptrW <= width - edge;
             case TOP:
-                return rect.top - gap - charH >= edge;
+                return rect.top - gap - ptrH >= edge;
             case BOTTOM:
-                return rect.bottom + gap + charH <= height - edge;
+                return rect.bottom + gap + ptrH <= height - edge;
             default:
                 return false;
         }
     }
 
-    private float availableSpace(CharacterPlacement placement, RectF rect, int width, int height, int edge) {
+    private float availableSpace(PointerPlacement placement, RectF rect, int width, int height, int edge) {
         switch (placement) {
             case LEFT: return rect.left - edge;
             case RIGHT: return width - edge - rect.right;
@@ -516,11 +575,11 @@ public class GuideOverlayContainer extends FrameLayout {
         }
     }
 
-    private void placePointer(RectF rect, CharacterPlacement characterPlacement) {
+    private void placePointer(RectF rect, PointerPlacement placement) {
         int size = dp(40);
         float x;
         float y;
-        switch (characterPlacement) {
+        switch (placement) {
             case LEFT:
                 pointerView.setText("→");
                 x = rect.left - size;
@@ -558,7 +617,6 @@ public class GuideOverlayContainer extends FrameLayout {
         int bubbleH = bubbleCard.getMeasuredHeight() > 0 ? bubbleCard.getMeasuredHeight() : dp(112);
         int edge = dp(12);
 
-        RectF character = rectFor(characterView);
         RectF expandedTarget = new RectF(
                 target.left - dp(8), target.top - dp(8),
                 target.right + dp(8), target.bottom + dp(8));
@@ -572,7 +630,7 @@ public class GuideOverlayContainer extends FrameLayout {
 
         RectF chosen = candidates[0];
         for (RectF candidate : candidates) {
-            if (!RectF.intersects(candidate, expandedTarget) && !RectF.intersects(candidate, character)) {
+            if (!RectF.intersects(candidate, expandedTarget)) {
                 chosen = candidate;
                 break;
             }
@@ -585,40 +643,16 @@ public class GuideOverlayContainer extends FrameLayout {
         bubbleCard.setLayoutParams(params);
     }
 
-    private RectF rectFor(View view) {
-        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
-        return new RectF(
-                params.leftMargin,
-                params.topMargin,
-                params.leftMargin + view.getWidth(),
-                params.topMargin + view.getHeight()
-        );
-    }
-
-    private void resetCharacterDefaultPosition() {
-        if (characterView == null) return;
-        characterView.setLayoutParams(defaultCharacterParams());
-        characterView.setClickable(true);
-        characterView.setFocusable(true);
-    }
-
     private void resetBubbleDefaultPosition() {
         if (bubbleCard == null) return;
         bubbleCard.setLayoutParams(defaultBubbleParams());
-    }
-
-    private FrameLayout.LayoutParams defaultCharacterParams() {
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(88), dp(76), Gravity.BOTTOM | Gravity.END);
-        params.rightMargin = dp(16);
-        params.bottomMargin = dp(20);
-        return params;
     }
 
     private FrameLayout.LayoutParams defaultBubbleParams() {
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 dp(258), ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.END);
         params.rightMargin = dp(16);
-        params.bottomMargin = dp(108);
+        params.bottomMargin = dp(24);
         return params;
     }
 
