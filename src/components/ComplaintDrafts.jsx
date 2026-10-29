@@ -145,21 +145,21 @@ export function ComplaintDrafts({ caseInfo, proof = null, refund = null, onToast
   };
 
   return (
-    <div className="mt-3.5 rounded-2xl border border-[#E5E8EB] bg-white p-3.5 text-left shadow-xs">
-      <div className="flex items-center justify-between pb-2 border-b border-[#F2F4F6]">
+    <div className="mt-3.5 rounded-2xl border border-gray-200 bg-white p-3.5 text-left shadow-xs">
+      <div className="flex items-center justify-between pb-2 border-b border-gray-100">
         <div className="flex items-center gap-1.5">
-          <ShieldAlert size={16} className="text-[#F04452]" />
-          <strong className="text-[13px] font-bold text-[#191F28]">해지 후 결제 사후 대응 초안</strong>
+          <ShieldAlert size={16} className="text-[#D22030]" />
+          <strong className="text-[13px] font-bold text-ink">해지 후 결제 사후 대응 초안</strong>
         </div>
         {proof?.imageDataUrl && (
-          <span className="rounded-md bg-[#E8F3FF] px-2 py-0.5 text-[10px] font-bold text-[#3182F6]">
+          <span className="rounded-md bg-brand-soft px-2 py-0.5 text-[10px] font-bold text-brand-ink">
             해지 캡처 증빙 보유
           </span>
         )}
       </div>
 
       {/* 탭 버튼 */}
-      <div className="mt-2.5 flex rounded-xl bg-[#F2F4F6] p-1 text-[12px] font-bold">
+      <div className="mt-2.5 flex rounded-xl bg-gray-100 p-1 text-[12px] font-bold">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -168,8 +168,8 @@ export function ComplaintDrafts({ caseInfo, proof = null, refund = null, onToast
             className={
               "flex-1 rounded-lg py-1.5 text-center transition " +
               (activeTab === tab.id
-                ? "bg-white text-[#191F28] shadow-xs"
-                : "text-[#8B95A1] hover:text-[#4E5968]")
+                ? "bg-white text-ink shadow-xs"
+                : "text-ink-tertiary hover:text-ink-secondary")
             }
           >
             {tab.label}
@@ -180,8 +180,8 @@ export function ComplaintDrafts({ caseInfo, proof = null, refund = null, onToast
       {/* 환불 탭 전용 언어 선택 */}
       {activeTab === "refund" && (
         <div className="mt-2 flex items-center justify-between px-1">
-          <span className="text-[11px] font-medium text-[#6B7684]">{currentTitle}</span>
-          <div className="flex rounded-lg bg-[#F2F4F6] p-0.5 text-[11px] font-bold">
+          <span className="text-[11px] font-medium text-ink-muted">{currentTitle}</span>
+          <div className="flex rounded-lg bg-gray-100 p-0.5 text-[11px] font-bold">
             {["ko", "en"].map((code) => (
               <button
                 key={code}
@@ -190,8 +190,8 @@ export function ComplaintDrafts({ caseInfo, proof = null, refund = null, onToast
                 className={
                   "rounded-md px-2 py-0.5 " +
                   (lang === code
-                    ? "bg-white text-[#191F28] shadow-xs"
-                    : "text-[#8B95A1]")
+                    ? "bg-white text-ink shadow-xs"
+                    : "text-ink-tertiary")
                 }
               >
                 {code.toUpperCase()}
@@ -207,7 +207,7 @@ export function ComplaintDrafts({ caseInfo, proof = null, refund = null, onToast
           readOnly
           value={currentContent}
           rows={7}
-          className="w-full rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] p-3 text-[12px] leading-relaxed text-[#333D4B] font-mono focus:outline-hidden resize-none select-all"
+          className="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 text-[12px] leading-relaxed text-gray-800 font-mono focus:outline-hidden resize-none select-all"
         />
       </div>
 
@@ -237,8 +237,8 @@ export function ComplaintDrafts({ caseInfo, proof = null, refund = null, onToast
 
       {/* 안내 및 팁 */}
       {currentTips.length > 0 && (
-        <div className="mt-2.5 rounded-xl bg-[#F9FAFB] p-2.5 text-[11px] text-[#6B7684]">
-          <div className="flex items-center gap-1 font-semibold text-[#4E5968]">
+        <div className="mt-2.5 rounded-xl bg-gray-50 p-2.5 text-[11px] text-ink-muted">
+          <div className="flex items-center gap-1 font-semibold text-ink-secondary">
             <Info size={12} />
             <span>작성 및 제출 팁</span>
           </div>
@@ -251,7 +251,7 @@ export function ComplaintDrafts({ caseInfo, proof = null, refund = null, onToast
       )}
 
       {/* 필수 면책 안내 */}
-      <p className="mt-2 text-center text-[11px] text-[#8B95A1]">
+      <p className="mt-2 text-center text-[11px] text-ink-tertiary">
         꾸독은 제출을 대리하지 않아요. 위 내용을 복사하여 해당 기관이나 서비스에 직접 접수해 주세요.
       </p>
     </div>

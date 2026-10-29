@@ -40,25 +40,25 @@ export class ErrorBoundary extends Component {
     return (
       <div className="app-shell grid min-h-screen place-items-center px-6" role="alert">
         <div className="w-full max-w-[360px] text-center">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#F4F7F5] text-[26px]" aria-hidden="true">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-soft text-[26px]" aria-hidden="true">
             !
           </div>
-          <h1 className="mt-4 text-[19px] font-extrabold tracking-tight text-[#111315]">화면을 불러오지 못했어요</h1>
-          <p className="mt-2 text-[13.5px] leading-relaxed text-[#6B7684]">
+          <h1 className="mt-4 text-[20px] font-extrabold tracking-tight text-ink">화면을 불러오지 못했어요</h1>
+          <p className="mt-2 text-[14px] leading-relaxed text-ink-muted">
             일시적인 문제일 수 있어요. 다시 시도하거나 홈으로 이동해 주세요.
           </p>
           <div className="mt-6 grid gap-2">
             <button
               type="button"
               onClick={this.handleRetry}
-              className="min-h-[48px] rounded-2xl bg-[#153D2E] px-5 text-[15px] font-bold text-white active:scale-[0.99]"
+              className="min-h-[48px] rounded-2xl bg-brand px-5 text-[15px] font-bold text-white active:scale-[0.99]"
             >
               다시 시도
             </button>
             <button
               type="button"
               onClick={this.handleGoHome}
-              className="min-h-[48px] rounded-2xl border border-[#DDE2DF] bg-white px-5 text-[15px] font-bold text-[#252A28]"
+              className="min-h-[48px] rounded-2xl border border-gray-200 bg-white px-5 text-[15px] font-bold text-ink"
             >
               홈으로
             </button>

@@ -634,7 +634,7 @@ export function getStepVisualMeta({
   return {
     preset: false,
     brandLabel: serviceName || "서비스",
-    brandColor: "#3182F6",
+    brandColor: "#191F28",
     screen: (serviceName || "서비스") + " (" + stepNumber + "/" + totalSteps + "단계)",
     action: actionText,
     note: isFinal ? "직접 누르기" : "화면 안내 따라가기",

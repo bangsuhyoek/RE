@@ -38,7 +38,7 @@ export function CancelAlternativesCard({
   };
 
   return (
-    <div className="mt-4 rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-3.5 transition-all">
+    <div className="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-3.5 transition-all">
       {/* 헤더: 기본 1줄 요약 접힘 상태 + chevron 토글 */}
       <button
         type="button"
@@ -47,20 +47,20 @@ export function CancelAlternativesCard({
         className="flex w-full items-center justify-between text-left cursor-pointer"
       >
         <div className="flex items-center gap-1.5 min-w-0">
-          <span className="text-[13px] font-bold text-[#333D4B]">
+          <span className="text-[13px] font-bold text-gray-800">
             {hasOptions
               ? `해지 대신 더 저렴하게 쓰는 방법 ${options.length}가지`
               : "구독 순환으로 비용을 아끼는 방법"}
           </span>
         </div>
-        <div className="shrink-0 text-[#8B95A1] pl-2">
+        <div className="shrink-0 text-ink-tertiary pl-2">
           {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
       </button>
 
       {/* 펼침 영역 */}
       {isExpanded && (
-        <div className="mt-3 border-t border-[#E5E8EB] pt-3 space-y-3">
+        <div className="mt-3 border-t border-gray-200 pt-3 space-y-3">
           {/* 대안 목록 */}
           {hasOptions && (
             <ul className="space-y-2.5">
@@ -71,14 +71,14 @@ export function CancelAlternativesCard({
                 return (
                   <li
                     key={idx}
-                    className="rounded-xl border border-[#E5E8EB] bg-white p-3 shadow-2xs"
+                    className="rounded-xl border border-gray-200 bg-white p-3 shadow-2xs"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <h4 className="text-[13px] font-bold text-[#191F28] leading-snug">
+                        <h4 className="text-[13px] font-bold text-ink leading-snug">
                           {option.title}
                         </h4>
-                        <p className="mt-0.5 text-[12px] font-semibold text-[#3182F6]">
+                        <p className="mt-0.5 text-[12px] font-semibold text-brand-ink">
                           {hasPrice ? (
                             <>
                               월 {formatWon(option.monthlyPrice)}
@@ -89,11 +89,11 @@ export function CancelAlternativesCard({
                               )}
                             </>
                           ) : (
-                            <span className="text-[#6B7684]">요금 없이 일시 정지/공유</span>
+                            <span className="text-ink-muted">요금 없이 일시 정지/공유</span>
                           )}
                         </p>
                         {option.note && (
-                          <p className="mt-1 text-[12px] leading-relaxed text-[#6B7684]">
+                          <p className="mt-1 text-[12px] leading-relaxed text-ink-muted">
                             {option.note}
                           </p>
                         )}
@@ -103,7 +103,7 @@ export function CancelAlternativesCard({
                         <button
                           type="button"
                           onClick={() => handleOpenLink(option.sourceUrl)}
-                          className="shrink-0 flex items-center gap-1 rounded-lg border border-[#E5E8EB] bg-[#F9FAFB] px-2 py-1 text-[11px] font-medium text-[#4E5968] hover:bg-[#F2F4F6] cursor-pointer"
+                          className="shrink-0 flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] font-medium text-ink-secondary hover:bg-gray-100 cursor-pointer"
                         >
                           <span>공식 안내</span>
                           <ExternalLink size={11} />
@@ -118,21 +118,21 @@ export function CancelAlternativesCard({
 
           {/* 구독 순환(Rotation) 연동 버튼 */}
           {rotationEligible && (
-            <div className="rounded-xl border border-[#D6E4FF] bg-[#F2F8FF] p-3">
+            <div className="rounded-xl border border-brand-line bg-brand-soft p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-bold text-[#1B64DA] flex items-center gap-1">
+                  <p className="text-[13px] font-bold text-brand-ink flex items-center gap-1">
                     <RefreshCw size={14} className="shrink-0" />
                     구독 순환 계획에 넣기
                   </p>
-                  <p className="mt-0.5 text-[12px] text-[#357AE8] leading-relaxed">
+                  <p className="mt-0.5 text-[12px] text-brand-ink leading-relaxed">
                     같은 분야 구독과 한 달씩 번갈아 가며 보면 매달 구독료를 크게 아낄 수 있어요.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={onOpenRotation}
-                  className="shrink-0 rounded-xl bg-[#1B64DA] px-3 py-1.5 text-[12px] font-bold text-white shadow-2xs hover:bg-[#1554B8] active:scale-95 transition-all cursor-pointer"
+                  className="shrink-0 rounded-xl bg-brand px-3 py-1.5 text-[12px] font-bold text-white shadow-2xs hover:bg-brand-hover active:scale-95 transition-all cursor-pointer"
                 >
                   순환 계획에 넣기
                 </button>
@@ -141,7 +141,7 @@ export function CancelAlternativesCard({
           )}
 
           {/* 하단 각주 (Footnote) */}
-          <p className="text-[11px] leading-relaxed text-[#8B95A1] pt-1">
+          <p className="text-[11px] leading-relaxed text-ink-tertiary pt-1">
             {latestCheckedAt} 기준 공식 요금이에요. 해지를 막으려는 안내가 아니에요.
           </p>
         </div>

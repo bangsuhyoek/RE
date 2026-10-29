@@ -37,7 +37,7 @@ export const serviceCatalog = [
     "plan": "Claude Pro",
     "amount": 29000,
     "brandColor": "#CC785C",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#CC785C",
     "availablePlans": [
       {
@@ -67,7 +67,7 @@ export const serviceCatalog = [
     "plan": "Perplexity Pro",
     "amount": 27000,
     "brandColor": "#1FB8CD",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#1FB8CD",
     "availablePlans": [
       {
@@ -97,7 +97,7 @@ export const serviceCatalog = [
     "plan": "Basic Plan",
     "amount": 14000,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -127,7 +127,7 @@ export const serviceCatalog = [
     "plan": "Standard Plan",
     "amount": 20000,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -157,7 +157,7 @@ export const serviceCatalog = [
     "plan": "Premium",
     "amount": 27000,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -187,7 +187,7 @@ export const serviceCatalog = [
     "plan": "Professional",
     "amount": 21000,
     "brandColor": "#F24E1E",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#F24E1E",
     "availablePlans": [
       {
@@ -217,7 +217,7 @@ export const serviceCatalog = [
     "plan": "Canva Pro",
     "amount": 12900,
     "brandColor": "#00C4CC",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#00C4CC",
     "availablePlans": [
       {
@@ -307,7 +307,7 @@ export const serviceCatalog = [
     "plan": "Pro",
     "amount": 27000,
     "brandColor": "#0055FF",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#0055FF",
     "availablePlans": [
       {
@@ -337,7 +337,7 @@ export const serviceCatalog = [
     "plan": "CMS Plan",
     "amount": 32000,
     "brandColor": "#4353FF",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#4353FF",
     "availablePlans": [
       {
@@ -367,7 +367,7 @@ export const serviceCatalog = [
     "plan": "Pro Plan",
     "amount": 27000,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -397,7 +397,7 @@ export const serviceCatalog = [
     "plan": "Individual",
     "amount": 14000,
     "brandColor": "#181717",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#181717",
     "availablePlans": [
       {
@@ -427,7 +427,7 @@ export const serviceCatalog = [
     "plan": "All Products",
     "amount": 37000,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -457,7 +457,7 @@ export const serviceCatalog = [
     "plan": "Starter",
     "amount": 12000,
     "brandColor": "#0F2B46",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#0F2B46",
     "availablePlans": [
       {
@@ -487,7 +487,7 @@ export const serviceCatalog = [
     "plan": "Premium",
     "amount": 16000,
     "brandColor": "#15C39A",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#15C39A",
     "availablePlans": [
       {
@@ -517,7 +517,7 @@ export const serviceCatalog = [
     "plan": "Pro",
     "amount": 11000,
     "brandColor": "#4A154B",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#4A154B",
     "availablePlans": [
       {
@@ -547,7 +547,7 @@ export const serviceCatalog = [
     "plan": "Pro Plan",
     "amount": 19000,
     "brandColor": "#0B5CFF",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#0B5CFF",
     "availablePlans": [
       {
@@ -577,7 +577,7 @@ export const serviceCatalog = [
     "plan": "Personal",
     "amount": 8900,
     "brandColor": "#D83B01",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#D83B01",
     "availablePlans": [
       {
@@ -607,7 +607,7 @@ export const serviceCatalog = [
     "plan": "100GB 플랜",
     "amount": 2400,
     "brandColor": "#4285F4",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#4285F4",
     "availablePlans": [
       {
@@ -637,7 +637,7 @@ export const serviceCatalog = [
     "plan": "50GB 플랜",
     "amount": 1100,
     "brandColor": "#0070C9",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#0070C9",
     "availablePlans": [
       {
@@ -667,7 +667,7 @@ export const serviceCatalog = [
     "plan": "Plus 2TB",
     "amount": 15000,
     "brandColor": "#0061FF",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#0061FF",
     "availablePlans": [
       {
@@ -697,7 +697,7 @@ export const serviceCatalog = [
     "plan": "Personal",
     "amount": 11900,
     "brandColor": "#00A82D",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#00A82D",
     "availablePlans": [
       {
@@ -727,7 +727,7 @@ export const serviceCatalog = [
     "plan": "Pro",
     "amount": 5500,
     "brandColor": "#E44332",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#E44332",
     "availablePlans": [
       {
@@ -757,7 +757,7 @@ export const serviceCatalog = [
     "plan": "Individual",
     "amount": 4500,
     "brandColor": "#0094F5",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#0094F5",
     "availablePlans": [
       {
@@ -787,7 +787,7 @@ export const serviceCatalog = [
     "plan": "Plus (2년 월환산)",
     "amount": 5900,
     "brandColor": "#4687FF",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#4687FF",
     "availablePlans": [
       {
@@ -817,7 +817,7 @@ export const serviceCatalog = [
     "plan": "Plus Plan",
     "amount": 14000,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -1037,7 +1037,7 @@ export const serviceCatalog = [
     "plan": "스탠다드",
     "amount": 10900,
     "brandColor": "#1A56EB",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#1A56EB",
     "availablePlans": [
       {
@@ -1077,7 +1077,7 @@ export const serviceCatalog = [
     "plan": "프리미엄",
     "amount": 1000,
     "brandColor": "#FF0558",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FF0558",
     "availablePlans": [
       {
@@ -1137,7 +1137,7 @@ export const serviceCatalog = [
     "plan": "와우 회원 무료",
     "amount": 5000,
     "brandColor": "#0073E6",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#0073E6",
     "availablePlans": [
       {
@@ -1187,7 +1187,7 @@ export const serviceCatalog = [
     "plan": "베이직",
     "amount": 9900,
     "brandColor": "#816BFF",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#816BFF",
     "availablePlans": [
       {
@@ -1217,7 +1217,7 @@ export const serviceCatalog = [
     "plan": "Apple TV+",
     "amount": 6500,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -1247,7 +1247,7 @@ export const serviceCatalog = [
     "plan": "Prime Video",
     "amount": 7900,
     "brandColor": "#00A8E1",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#00A8E1",
     "availablePlans": [
       {
@@ -1277,7 +1277,7 @@ export const serviceCatalog = [
     "plan": "프리미엄",
     "amount": 19900,
     "brandColor": "#191919",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#191919",
     "availablePlans": [
       {
@@ -1307,7 +1307,7 @@ export const serviceCatalog = [
     "plan": "글로벌 멤버십",
     "amount": 25000,
     "brandColor": "#08E6B2",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#08E6B2",
     "availablePlans": [
       {
@@ -1337,7 +1337,7 @@ export const serviceCatalog = [
     "plan": "Mega Fan",
     "amount": 8900,
     "brandColor": "#F47521",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#F47521",
     "availablePlans": [
       {
@@ -1367,7 +1367,7 @@ export const serviceCatalog = [
     "plan": "MUBI 월정액",
     "amount": 12900,
     "brandColor": "#051A26",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#051A26",
     "availablePlans": [
       {
@@ -1397,7 +1397,7 @@ export const serviceCatalog = [
     "plan": "Monthly Pass",
     "amount": 25000,
     "brandColor": "#F8F8F8",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#F8F8F8",
     "availablePlans": [
       {
@@ -1427,7 +1427,7 @@ export const serviceCatalog = [
     "plan": "스트리밍 클럽",
     "amount": 8900,
     "brandColor": "#00CD3C",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#00CD3C",
     "availablePlans": [
       {
@@ -1497,7 +1497,7 @@ export const serviceCatalog = [
     "plan": "스마트 음악감상",
     "amount": 3600,
     "brandColor": "#0093FF",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#0093FF",
     "availablePlans": [
       {
@@ -1577,7 +1577,7 @@ export const serviceCatalog = [
     "plan": "올인원 무제한",
     "amount": 7900,
     "brandColor": "#3F3FFF",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#3F3FFF",
     "availablePlans": [
       {
@@ -1607,7 +1607,7 @@ export const serviceCatalog = [
     "plan": "모바일 무제한",
     "amount": 3300,
     "brandColor": "#E60000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#E60000",
     "availablePlans": [
       {
@@ -1757,7 +1757,7 @@ export const serviceCatalog = [
     "plan": "무제한 듣기",
     "amount": 8500,
     "brandColor": "#FF0055",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FF0055",
     "availablePlans": [
       {
@@ -1787,7 +1787,7 @@ export const serviceCatalog = [
     "plan": "개인 멤버십",
     "amount": 8900,
     "brandColor": "#FA233B",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FA233B",
     "availablePlans": [
       {
@@ -1817,7 +1817,7 @@ export const serviceCatalog = [
     "plan": "Music Premium",
     "amount": 11990,
     "brandColor": "#FF0000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FF0000",
     "availablePlans": [
       {
@@ -1847,7 +1847,7 @@ export const serviceCatalog = [
     "plan": "HiFi Plus",
     "amount": 14000,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -1877,7 +1877,7 @@ export const serviceCatalog = [
     "plan": "1인권",
     "amount": 4500,
     "brandColor": "#FF3366",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FF3366",
     "availablePlans": [
       {
@@ -1907,7 +1907,7 @@ export const serviceCatalog = [
     "plan": "1인 메시지권",
     "amount": 4500,
     "brandColor": "#7B2CBF",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#7B2CBF",
     "availablePlans": [
       {
@@ -1937,7 +1937,7 @@ export const serviceCatalog = [
     "plan": "팟빵 프리미엄",
     "amount": 9900,
     "brandColor": "#E61B48",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#E61B48",
     "availablePlans": [
       {
@@ -2007,7 +2007,7 @@ export const serviceCatalog = [
     "plan": "리디셀렉트 월정액",
     "amount": 4900,
     "brandColor": "#1F8CE6",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#1F8CE6",
     "availablePlans": [
       {
@@ -2037,7 +2037,7 @@ export const serviceCatalog = [
     "plan": "오디오북 무제한",
     "amount": 12500,
     "brandColor": "#00E277",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#00E277",
     "availablePlans": [
       {
@@ -2077,7 +2077,7 @@ export const serviceCatalog = [
     "plan": "무제한 스트리밍",
     "amount": 11900,
     "brandColor": "#FF6633",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FF6633",
     "availablePlans": [
       {
@@ -2107,7 +2107,7 @@ export const serviceCatalog = [
     "plan": "월간 멤버십",
     "amount": 4900,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -2137,7 +2137,7 @@ export const serviceCatalog = [
     "plan": "디지털 유료구독",
     "amount": 9000,
     "brandColor": "#E60000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#E60000",
     "availablePlans": [
       {
@@ -2167,7 +2167,7 @@ export const serviceCatalog = [
     "plan": "All Access",
     "amount": 6000,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -2197,7 +2197,7 @@ export const serviceCatalog = [
     "plan": "Digital Access",
     "amount": 12000,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -2227,7 +2227,7 @@ export const serviceCatalog = [
     "plan": "Standard Digital",
     "amount": 45000,
     "brandColor": "#FFF1E5",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FFF1E5",
     "availablePlans": [
       {
@@ -2257,7 +2257,7 @@ export const serviceCatalog = [
     "plan": "Digital Access",
     "amount": 29000,
     "brandColor": "#E3120B",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#E3120B",
     "availablePlans": [
       {
@@ -2287,7 +2287,7 @@ export const serviceCatalog = [
     "plan": "Audible Plus",
     "amount": 11000,
     "brandColor": "#FF9900",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FF9900",
     "availablePlans": [
       {
@@ -2317,7 +2317,7 @@ export const serviceCatalog = [
     "plan": "Monthly Pass",
     "amount": 13000,
     "brandColor": "#1E7B85",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#1E7B85",
     "availablePlans": [
       {
@@ -2347,7 +2347,7 @@ export const serviceCatalog = [
     "plan": "프리미엄 연간 (월환산)",
     "amount": 29000,
     "brandColor": "#0055FF",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#0055FF",
     "availablePlans": [
       {
@@ -2377,7 +2377,7 @@ export const serviceCatalog = [
     "plan": "Super Duolingo",
     "amount": 9900,
     "brandColor": "#58CC02",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#58CC02",
     "availablePlans": [
       {
@@ -2407,7 +2407,7 @@ export const serviceCatalog = [
     "plan": "정기구독 플랜",
     "amount": 159000,
     "brandColor": "#2D3748",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#2D3748",
     "availablePlans": [
       {
@@ -2437,7 +2437,7 @@ export const serviceCatalog = [
     "plan": "주 3회 30분",
     "amount": 129000,
     "brandColor": "#FFC800",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FFC800",
     "availablePlans": [
       {
@@ -2467,7 +2467,7 @@ export const serviceCatalog = [
     "plan": "AI 무제한패스",
     "amount": 29000,
     "brandColor": "#E02128",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#E02128",
     "availablePlans": [
       {
@@ -2497,7 +2497,7 @@ export const serviceCatalog = [
     "plan": "연간 프리미엄 (월환산)",
     "amount": 8900,
     "brandColor": "#FFCC00",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FFCC00",
     "availablePlans": [
       {
@@ -2527,7 +2527,7 @@ export const serviceCatalog = [
     "plan": "연간 구독 (월환산)",
     "amount": 18900,
     "brandColor": "#FF5600",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FF5600",
     "availablePlans": [
       {
@@ -2557,7 +2557,7 @@ export const serviceCatalog = [
     "plan": "올인원 구독권",
     "amount": 39000,
     "brandColor": "#F44336",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#F44336",
     "availablePlans": [
       {
@@ -2587,7 +2587,7 @@ export const serviceCatalog = [
     "plan": "인프런패스",
     "amount": 29000,
     "brandColor": "#1DC078",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#1DC078",
     "availablePlans": [
       {
@@ -2617,7 +2617,7 @@ export const serviceCatalog = [
     "plan": "Coursera Plus",
     "amount": 69000,
     "brandColor": "#0056D2",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#0056D2",
     "availablePlans": [
       {
@@ -2647,7 +2647,7 @@ export const serviceCatalog = [
     "plan": "월간 이용권",
     "amount": 4900,
     "brandColor": "#03C75A",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#03C75A",
     "availablePlans": [
       {
@@ -2797,7 +2797,7 @@ export const serviceCatalog = [
     "plan": "배민클럽 월정액",
     "amount": 3990,
     "brandColor": "#2AC1BC",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#2AC1BC",
     "availablePlans": [
       {
@@ -2827,7 +2827,7 @@ export const serviceCatalog = [
     "plan": "요기패스X",
     "amount": 2900,
     "brandColor": "#FA0050",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FA0050",
     "availablePlans": [
       {
@@ -2857,7 +2857,7 @@ export const serviceCatalog = [
     "plan": "컬리패스 월정액",
     "amount": 4500,
     "brandColor": "#5F0080",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#5F0080",
     "availablePlans": [
       {
@@ -2918,7 +2918,7 @@ export const serviceCatalog = [
     "plan": "개인 플랜 12개월 (월환산)",
     "amount": 20000,
     "brandColor": "#E60012",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#E60012",
     "availablePlans": [
       {
@@ -2948,7 +2948,7 @@ export const serviceCatalog = [
     "plan": "에센셜",
     "amount": 7500,
     "brandColor": "#003791",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#003791",
     "availablePlans": [
       {
@@ -2978,7 +2978,7 @@ export const serviceCatalog = [
     "plan": "Ultimate",
     "amount": 13500,
     "brandColor": "#107C10",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#107C10",
     "availablePlans": [
       {
@@ -3018,7 +3018,7 @@ export const serviceCatalog = [
     "plan": "월정액",
     "amount": 6500,
     "brandColor": "#FA233B",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FA233B",
     "availablePlans": [
       {
@@ -3048,7 +3048,7 @@ export const serviceCatalog = [
     "plan": "월정액",
     "amount": 6500,
     "brandColor": "#4285F4",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#4285F4",
     "availablePlans": [
       {
@@ -3078,7 +3078,7 @@ export const serviceCatalog = [
     "plan": "EA Play",
     "amount": 5500,
     "brandColor": "#000000",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#000000",
     "availablePlans": [
       {
@@ -3108,7 +3108,7 @@ export const serviceCatalog = [
     "plan": "30일 이용권",
     "amount": 19800,
     "brandColor": "#C59B27",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#C59B27",
     "availablePlans": [
       {
@@ -3138,7 +3138,7 @@ export const serviceCatalog = [
     "plan": "100GB 드라이브",
     "amount": 990,
     "brandColor": "#FEE500",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FEE500",
     "availablePlans": [
       {
@@ -3168,7 +3168,7 @@ export const serviceCatalog = [
     "plan": "이모티콘 무제한",
     "amount": 3900,
     "brandColor": "#FEE500",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FEE500",
     "availablePlans": [
       {
@@ -3198,7 +3198,7 @@ export const serviceCatalog = [
     "plan": "80GB 월정액",
     "amount": 1650,
     "brandColor": "#03C75A",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#03C75A",
     "availablePlans": [
       {
@@ -3228,7 +3228,7 @@ export const serviceCatalog = [
     "plan": "월정액 멤버십",
     "amount": 7900,
     "brandColor": "#FC4C02",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FC4C02",
     "availablePlans": [
       {
@@ -3258,7 +3258,7 @@ export const serviceCatalog = [
     "plan": "월간 프로",
     "amount": 4900,
     "brandColor": "#FF5252",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#FF5252",
     "availablePlans": [
       {
@@ -3288,7 +3288,7 @@ export const serviceCatalog = [
     "plan": "모바일 프리미엄",
     "amount": 5500,
     "brandColor": "#31A8FF",
-    "brandBg": "#EEF2FF",
+    "brandBg": "#F2F4F6",
     "brandText": "#31A8FF",
     "availablePlans": [
       {

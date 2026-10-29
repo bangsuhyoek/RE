@@ -7,7 +7,6 @@ import {
   FileSpreadsheet,
   LoaderCircle,
   Smartphone,
-  Sparkles,
   X,
 } from "lucide-react";
 import { Browser } from "@capacitor/browser";
@@ -43,7 +42,7 @@ function DiscoveryItemCard({ item, checked, billingCycle, cycleEdited, onToggle,
     <div
       className={
         "rounded-2xl border transition-all " +
-        (checked ? "border-[#153D2E] bg-[#F4F7F5]" : "border-[#E7EAE8] bg-white")
+        (checked ? "border-brand bg-brand-soft" : "border-gray-200 bg-white")
       }
     >
       <button
@@ -60,33 +59,33 @@ function DiscoveryItemCard({ item, checked, billingCycle, cycleEdited, onToggle,
           />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <strong className="text-[14px] font-bold text-[#111315]">
+              <strong className="text-[14px] font-bold text-ink">
                 {item.name}
               </strong>
               {badges}
             </div>
-            <p className="mt-0.5 text-[12px] text-[#6B7684]">{detail}</p>
+            <p className="mt-0.5 text-[12px] text-ink-muted">{detail}</p>
           </div>
         </div>
         <span
           className={
             "grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-all " +
             (checked
-              ? "border-[#153D2E] bg-[#153D2E] text-white"
-              : "border-[#DDE2DF] bg-white")
+              ? "border-brand bg-brand text-white"
+              : "border-gray-200 bg-white")
           }
         >
           {checked && <Check size={13} strokeWidth={3} />}
         </span>
       </button>
       <div className="flex items-center justify-between gap-2 px-3.5 pb-3 pl-[66px]">
-        <span className={"text-[11.5px] font-semibold " + (needsCheck ? "text-amber-700" : "text-[#6B7684]")}>
+        <span className={"text-[12px] font-semibold " + (needsCheck ? "text-amber-700" : "text-ink-muted")}>
           {needsCheck ? "결제 주기를 확인해 주세요" : "결제 주기"}
         </span>
         <div
           role="radiogroup"
           aria-label={item.name + " 결제 주기"}
-          className="inline-flex rounded-lg border border-[#E7EAE8] bg-white p-0.5"
+          className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5"
         >
           {CYCLE_OPTIONS.map((option) => (
             <button
@@ -96,8 +95,8 @@ function DiscoveryItemCard({ item, checked, billingCycle, cycleEdited, onToggle,
               aria-checked={billingCycle === option.value}
               onClick={() => onCycleChange(option.value)}
               className={
-                "rounded-md px-2.5 py-1 text-[11.5px] font-bold transition-colors " +
-                (billingCycle === option.value ? "bg-[#153D2E] text-white" : "text-[#6B7684] hover:text-[#111315]")
+                "rounded-md px-2.5 py-1 text-[12px] font-bold transition-colors " +
+                (billingCycle === option.value ? "bg-brand text-white" : "text-ink-muted hover:text-ink")
               }
             >
               {option.label}
@@ -300,20 +299,19 @@ export function SubscriptionDiscoveryModal({
     <BottomSheet onClose={onClose} label="숨은 구독 한 번에 찾기">
       <div className="flex max-h-[82vh] flex-col">
         {/* 헤더 */}
-        <div className="flex items-center justify-between border-b border-[#E7EAE8] pb-3.5">
+        <div className="flex items-center justify-between border-b border-gray-200 pb-3.5">
           <div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#EAF2ED] px-2.5 py-0.5 text-[11px] font-bold text-[#153D2E]">
-              <Sparkles size={12} />
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-bold text-brand-ink">
               비용 0원 온디바이스 스캐너
             </span>
-            <h2 className="mt-1 text-[19px] font-extrabold tracking-tight text-[#111315]">
+            <h2 className="mt-1 text-[20px] font-extrabold tracking-tight text-ink">
               숨은 구독 한 번에 찾기
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="grid h-9 w-9 place-items-center rounded-full text-[#7E8782] hover:bg-[#F7F8F6] hover:text-[#111315]"
+            className="grid h-9 w-9 place-items-center rounded-full text-[#7E8782] hover:bg-gray-50 hover:text-ink"
             aria-label="닫기"
           >
             <X size={20} />
@@ -321,7 +319,7 @@ export function SubscriptionDiscoveryModal({
         </div>
 
         {/* 3가지 무료 탐지 방식 탭 */}
-        <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-xl bg-[#F4F7F5] p-1">
+        <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-xl bg-brand-soft p-1">
           <button
             type="button"
             onClick={() => {
@@ -333,8 +331,8 @@ export function SubscriptionDiscoveryModal({
             className={
               "rounded-lg py-2 text-[12px] font-bold transition-all " +
               (activeTab === "device"
-                ? "bg-white text-[#153D2E] shadow-2xs"
-                : "text-[#6B7684] hover:text-[#111315]")
+                ? "bg-white text-brand-ink shadow-2xs"
+                : "text-ink-muted hover:text-ink")
             }
           >
             1. 설치앱·알림 스캔
@@ -350,8 +348,8 @@ export function SubscriptionDiscoveryModal({
             className={
               "rounded-lg py-2 text-[12px] font-bold transition-all " +
               (activeTab === "statement"
-                ? "bg-white text-[#153D2E] shadow-2xs"
-                : "text-[#6B7684] hover:text-[#111315]")
+                ? "bg-white text-brand-ink shadow-2xs"
+                : "text-ink-muted hover:text-ink")
             }
           >
             2. 명세서·문자 분석
@@ -362,8 +360,8 @@ export function SubscriptionDiscoveryModal({
             className={
               "rounded-lg py-2 text-[12px] font-bold transition-all " +
               (activeTab === "hubs"
-                ? "bg-white text-[#153D2E] shadow-2xs"
-                : "text-[#6B7684] hover:text-[#111315]")
+                ? "bg-white text-brand-ink shadow-2xs"
+                : "text-ink-muted hover:text-ink")
             }
           >
             3. 5대 결제허브
@@ -375,8 +373,8 @@ export function SubscriptionDiscoveryModal({
           {/* 탭 1: 기기 내 설치된 구독 앱 + 상태바 알림 스캔 */}
           {activeTab === "device" && (
             <div>
-              <div className="rounded-2xl bg-[#F4F7F5] p-3.5 text-[12.5px] leading-relaxed text-[#4E5968]">
-                <strong className="font-bold text-[#153D2E]">
+              <div className="rounded-2xl bg-brand-soft p-3.5 text-[13px] leading-relaxed text-ink-secondary">
+                <strong className="font-bold text-brand-ink">
                   휴대폰에 설치된 구독 앱과 상태바의 결제·영수증 알림
                 </strong>
                 을 기기 안에서 즉시 스캔합니다. 외부 서버 전송이나 비용 없이 1초 만에 찾아요.
@@ -384,30 +382,30 @@ export function SubscriptionDiscoveryModal({
 
               {deviceLoading ? (
                 <div className="py-12 text-center">
-                  <LoaderCircle size={26} className="mx-auto animate-spin text-[#153D2E]" />
-                  <p className="mt-2.5 text-[13px] font-semibold text-[#6B7684]">
+                  <LoaderCircle size={26} className="mx-auto animate-spin text-brand-ink" />
+                  <p className="mt-2.5 text-[13px] font-semibold text-ink-muted">
                     설치된 구독 앱과 알림을 확인하고 있어요...
                   </p>
                 </div>
               ) : deviceItems.length === 0 ? (
                 <div className="py-8 text-center">
-                  <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#F4F7F5] text-[#6B7684]">
+                  <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-brand-soft text-ink-muted">
                     <Smartphone size={22} />
                   </div>
-                  <p className="mt-3 text-[14px] font-bold text-[#111315]">
+                  <p className="mt-3 text-[14px] font-bold text-ink">
                     {isNativePlatform()
                       ? "새로 발견된 구독 앱이나 활성 알림이 없어요"
                       : "안드로이드 앱에서 실행하면 설치된 구독 앱을 1초 만에 찾아드려요"}
                   </p>
-                  <p className="mt-1 text-[12px] text-[#6B7684]">
+                  <p className="mt-1 text-[12px] text-ink-muted">
                     아래 버튼으로 스캔 결과를 미리 체험하거나 [2. 명세서·문자 분석] 탭을 이용해 보세요.
                   </p>
                   <button
                     type="button"
                     onClick={() => runDeviceScan(true)}
-                    className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-[#153D2E]/30 bg-[#EAF2ED] px-4 py-2.5 text-[12.5px] font-bold text-[#153D2E]"
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-brand/30 bg-brand-soft px-4 py-2.5 text-[13px] font-bold text-brand-ink"
                   >
-                    <Sparkles size={14} />
+                    <Smartphone size={14} />
                     설치된 구독 앱 스캔 시뮬레이션 보기
                   </button>
                 </div>
@@ -427,7 +425,7 @@ export function SubscriptionDiscoveryModal({
                         detail={item.plan + " · " + describeAmount(item)}
                         badges={
                           <>
-                            <span className="rounded-md bg-[#EAF2ED] px-1.5 py-0.5 text-[10px] font-bold text-[#153D2E]">
+                            <span className="rounded-md bg-brand-soft px-1.5 py-0.5 text-[10px] font-bold text-brand-ink">
                               {item.sourceBadge}
                             </span>
                             {item.alreadyRegistered && (
@@ -448,13 +446,13 @@ export function SubscriptionDiscoveryModal({
           {/* 탭 2: 명세서·결제내역(CSV/TXT/문자 묶음) 일괄 분석 */}
           {activeTab === "statement" && (
             <div>
-              <div className="rounded-2xl bg-[#F4F7F5] p-3.5 text-[12.5px] leading-relaxed text-[#4E5968]">
+              <div className="rounded-2xl bg-brand-soft p-3.5 text-[13px] leading-relaxed text-ink-secondary">
                 카드사·토스·카카오페이·문자 보관함에서 복사한{" "}
-                <strong className="font-bold text-[#153D2E]">
+                <strong className="font-bold text-brand-ink">
                   결제 내역 여러 줄이나 명세서 파일(.csv, .txt)
                 </strong>
                 을 넣으면 일반 쇼핑은 걸러내고{" "}
-                <strong className="font-bold text-[#153D2E]">
+                <strong className="font-bold text-brand-ink">
                   정기구독·구글플레이 숨은 결제·반복 결제
                 </strong>
                 만 골라냅니다.
@@ -472,7 +470,7 @@ export function SubscriptionDiscoveryModal({
                 <button
                   type="button"
                   onClick={handlePasteClipboard}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#DDE2DF] bg-white px-3 py-2 text-[12px] font-bold text-[#252A28] hover:bg-[#F7F8F6]"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-[12px] font-bold text-ink hover:bg-gray-50"
                 >
                   <ClipboardPaste size={14} />
                   클립보드 붙여넣기
@@ -480,7 +478,7 @@ export function SubscriptionDiscoveryModal({
                 <button
                   type="button"
                   onClick={() => textFileInputRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#DDE2DF] bg-white px-3 py-2 text-[12px] font-bold text-[#252A28] hover:bg-[#F7F8F6]"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-[12px] font-bold text-ink hover:bg-gray-50"
                 >
                   <FileSpreadsheet size={14} />
                   CSV · 텍스트 파일 열기
@@ -491,9 +489,8 @@ export function SubscriptionDiscoveryModal({
                     setStatementText(SAMPLE_STATEMENT_TEXT);
                     runStatementAnalysis(SAMPLE_STATEMENT_TEXT);
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#153D2E]/25 bg-[#EAF2ED] px-3 py-2 text-[12px] font-bold text-[#153D2E]"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-brand/25 bg-brand-soft px-3 py-2 text-[12px] font-bold text-brand-ink"
                 >
-                  <Sparkles size={14} />
                   예시 내역으로 테스트
                 </button>
               </div>
@@ -506,12 +503,12 @@ export function SubscriptionDiscoveryModal({
                   runStatementAnalysis(e.target.value);
                 }}
                 placeholder="여기에 결제 승인 문자 여러 건이나 카드사/토스/네이버페이 결제내역을 붙여넣어 보세요. (예: 구글플레이 14,900원, 넷플릭스 17,000원 등)"
-                className="mt-2.5 w-full rounded-2xl border border-[#DDE2DF] bg-white p-3.5 text-[13px] leading-relaxed text-[#111315] outline-none focus:border-[#153D2E]"
+                className="mt-2.5 w-full rounded-2xl border border-gray-200 bg-white p-3.5 text-[13px] leading-relaxed text-ink outline-none focus:border-brand"
               />
 
               {statementItems.length > 0 && (
                 <div className="mt-3 space-y-2">
-                  <p className="text-[12px] font-bold text-[#153D2E]">
+                  <p className="text-[12px] font-bold text-brand-ink">
                     발견된 정기구독 {statementItems.length}건
                   </p>
                   {statementItems.map((item) => {
@@ -528,7 +525,7 @@ export function SubscriptionDiscoveryModal({
                         detail={item.plan + " · " + describeAmount(item) + " · " + item.paymentMethod}
                         badges={
                           <>
-                            <span className="rounded-md bg-[#EAF2ED] px-1.5 py-0.5 text-[10px] font-bold text-[#153D2E]">
+                            <span className="rounded-md bg-brand-soft px-1.5 py-0.5 text-[10px] font-bold text-brand-ink">
                               {item.reason}
                             </span>
                             {item.isTrial && (
@@ -549,36 +546,36 @@ export function SubscriptionDiscoveryModal({
           {/* 탭 3: 한국 사용자 5대 결제 허브 원클릭 조회 */}
           {activeTab === "hubs" && (
             <div className="space-y-2.5">
-              <div className="rounded-2xl bg-[#F4F7F5] p-3.5 text-[12.5px] leading-relaxed text-[#4E5968]">
-                카드 명세서에 <strong className="font-bold text-[#153D2E]">구글플레이·애플·네이버페이·통신비</strong>로만 찍혀서 어떤 구독인지 모르겠다면 아래 5대 허브를 눌러 숨은 정기결제를 바로 확인하세요.
+              <div className="rounded-2xl bg-brand-soft p-3.5 text-[13px] leading-relaxed text-ink-secondary">
+                카드 명세서에 <strong className="font-bold text-brand-ink">구글플레이·애플·네이버페이·통신비</strong>로만 찍혀서 어떤 구독인지 모르겠다면 아래 5대 허브를 눌러 숨은 정기결제를 바로 확인하세요.
               </div>
               {SUBSCRIPTION_HUBS.map((hub) => (
                 <div
                   key={hub.id}
-                  className="rounded-2xl border border-[#E7EAE8] bg-white p-4 shadow-2xs"
+                  className="rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <strong className="text-[14.5px] font-bold text-[#111315]">
+                        <strong className="text-[15px] font-bold text-ink">
                           {hub.name}
                         </strong>
-                        <span className="rounded-full bg-[#EAF2ED] px-2 py-0.5 text-[10.5px] font-bold text-[#153D2E]">
+                        <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">
                           {hub.badge}
                         </span>
                       </div>
-                      <p className="mt-1 text-[12.5px] leading-relaxed text-[#4E5968]">
+                      <p className="mt-1 text-[13px] leading-relaxed text-ink-secondary">
                         {hub.description}
                       </p>
-                      <p className="mt-1.5 text-[11.5px] font-medium text-[#2C6049]">
-                        💡 {hub.tip}
+                      <p className="mt-1.5 text-[12px] font-medium text-brand-ink">
+                        {hub.tip}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleOpenHub(hub)}
                       disabled={Boolean(crawlingHubId)}
-                      className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-[#153D2E] px-3 py-2 text-[12px] font-bold text-white disabled:opacity-50"
+                      className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-brand px-3 py-2 text-[12px] font-bold text-white disabled:opacity-50"
                     >
                       {crawlingHubId === hub.id ? (
                         <LoaderCircle size={13} className="animate-spin" />
@@ -598,12 +595,12 @@ export function SubscriptionDiscoveryModal({
 
         {/* 하단 일괄 추가 버튼 */}
         {activeTab !== "hubs" && (
-          <div className="border-t border-[#E7EAE8] pt-3">
+          <div className="border-t border-gray-200 pt-3">
             <button
               type="button"
               disabled={selectedItems.length === 0}
               onClick={handleBatchAdd}
-              className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[#153D2E] px-5 text-[15px] font-bold text-white transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#DDE2DF] disabled:text-[#8B95A1]"
+              className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-brand px-5 text-[15px] font-bold text-white transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-ink-tertiary"
             >
               <CheckCircle2 size={18} />
               {selectedItems.length > 0

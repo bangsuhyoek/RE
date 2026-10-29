@@ -77,7 +77,7 @@ export function DifficultyBadge({ serviceId, className = "" }) {
 
   const getTone = (s) => {
     if (s < 30) return { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800", badge: "bg-emerald-100 text-emerald-900" };
-    if (s < 55) return { bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-800", badge: "bg-blue-100 text-blue-900" };
+    if (s < 55) return { bg: "bg-eucalyptus-sage-50", border: "border-eucalyptus-sage-300", text: "text-eucalyptus-sage-800", badge: "bg-eucalyptus-sage-100 text-eucalyptus-sage-900" };
     if (s < 75) return { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-800", badge: "bg-amber-100 text-amber-900" };
     return { bg: "bg-red-50", border: "border-red-200", text: "text-red-800", badge: "bg-red-100 text-red-900" };
   };
@@ -91,10 +91,10 @@ export function DifficultyBadge({ serviceId, className = "" }) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
-          <span className="text-[12px] font-bold text-[#191F28]">
+          <span className="text-[12px] font-bold text-ink">
             해지 난이도: <span className={`font-extrabold ${tone.text}`}>{label}</span>
           </span>
-          <span className="text-[11px] text-[#6B7684]">
+          <span className="text-[11px] text-ink-muted">
             ({score}점 · {reportCount}명 참여)
           </span>
         </div>
@@ -105,7 +105,7 @@ export function DifficultyBadge({ serviceId, className = "" }) {
           {topTraits.map((t) => (
             <span
               key={t.label}
-              className={`rounded-md px-2 py-0.5 text-[10.5px] font-semibold ${tone.badge}`}
+              className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${tone.badge}`}
             >
               {t.label}
             </span>

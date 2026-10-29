@@ -49,7 +49,7 @@ export function RailCancelCard({ plan, platform = "web", onOpenUrl, onOpenApp, o
   const openUrl = activeRail ? getRailOpenUrl(activeRail, platform) : "";
 
   return (
-    <div className="rounded-2xl border border-[#E5E8EB] bg-white p-4 space-y-4 shadow-sm text-left">
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-4 shadow-sm text-left">
       {/* Amber Warning Banner */}
       <div className="rounded-xl bg-[#FFF8E6] border border-[#FFE7B3] p-3 flex items-start gap-2.5">
         <AlertTriangle className="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" />
@@ -66,7 +66,7 @@ export function RailCancelCard({ plan, platform = "web", onOpenUrl, onOpenApp, o
       {/* Carrier Selection if unknown carrier */}
       {carrierOptions && (
         <div className="space-y-2">
-          <p className="text-[12px] font-medium text-[#4E5968]">이용 중인 통신사를 선택해 주세요:</p>
+          <p className="text-[12px] font-medium text-ink-secondary">이용 중인 통신사를 선택해 주세요:</p>
           <div className="grid grid-cols-3 gap-2">
             {carrierOptions.map((opt) => {
               const isSelected = activeRail?.id === opt.id;
@@ -78,8 +78,8 @@ export function RailCancelCard({ plan, platform = "web", onOpenUrl, onOpenApp, o
                   className={
                     "rounded-xl border p-2.5 text-center text-[12px] font-medium transition-colors " +
                     (isSelected
-                      ? "border-[#1B64DA] bg-[#E8F3FF] text-[#1B64DA] font-bold"
-                      : "border-[#E5E8EB] bg-[#F9FAFB] hover:bg-[#F2F4F6] active:bg-[#E5E8EB] text-[#333D4B]")
+                      ? "border-brand bg-brand-soft text-brand-ink font-bold"
+                      : "border-gray-200 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-800")
                   }
                 >
                   {opt.name.replace(/\s*\(.*$/, "")}
@@ -91,16 +91,16 @@ export function RailCancelCard({ plan, platform = "web", onOpenUrl, onOpenApp, o
       )}
 
       {/* Step 1: Payment Rail Block */}
-      <div className="rounded-xl bg-[#F9FAFB] p-3.5 border border-[#F2F4F6] space-y-3">
+      <div className="rounded-xl bg-gray-50 p-3.5 border border-gray-100 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1B64DA] text-[11px] font-bold text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white">
               1
             </span>
-            <h4 className="text-[13px] font-bold text-[#191F28]">{displayTitle}</h4>
+            <h4 className="text-[13px] font-bold text-ink">{displayTitle}</h4>
           </div>
           {activeRail && (
-            <span className="rounded-full bg-[#E8F3FF] px-2 py-0.5 text-[11px] font-semibold text-[#1B64DA]">
+            <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-brand-ink">
               {activeRail.name}
             </span>
           )}
@@ -108,16 +108,16 @@ export function RailCancelCard({ plan, platform = "web", onOpenUrl, onOpenApp, o
 
         <ol className="space-y-1.5 pl-1">
           {displaySteps.map((step, idx) => (
-            <li key={idx} className="flex items-start gap-2 text-[12px] text-[#4E5968] leading-relaxed">
-              <span className="text-[#8B95A1] font-mono text-[11px] shrink-0 mt-0.5">{idx + 1}.</span>
+            <li key={idx} className="flex items-start gap-2 text-[12px] text-ink-secondary leading-relaxed">
+              <span className="text-ink-tertiary font-mono text-[11px] shrink-0 mt-0.5">{idx + 1}.</span>
               <span>{step}</span>
             </li>
           ))}
         </ol>
 
         {displayEffect && (
-          <div className="rounded-lg bg-white p-2.5 border border-[#E5E8EB] text-[11px] text-[#6B7684] leading-relaxed">
-            💡 {displayEffect}
+          <div className="rounded-lg bg-white p-2.5 border border-gray-200 text-[11px] text-ink-muted leading-relaxed">
+            {displayEffect}
           </div>
         )}
 
@@ -159,18 +159,18 @@ export function RailCancelCard({ plan, platform = "web", onOpenUrl, onOpenApp, o
       </div>
 
       {/* Step 2: Contract Cancellation at Service */}
-      <div className="rounded-xl bg-[#F9FAFB] p-3.5 border border-[#F2F4F6] space-y-3">
+      <div className="rounded-xl bg-gray-50 p-3.5 border border-gray-100 space-y-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#333D4B] text-[11px] font-bold text-white">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-800 text-[11px] font-bold text-white">
             2
           </span>
-          <h4 className="text-[13px] font-bold text-[#191F28]">{contractStep?.title || "2단계: 계약 해지"}</h4>
+          <h4 className="text-[13px] font-bold text-ink">{contractStep?.title || "2단계: 계약 해지"}</h4>
         </div>
 
         <ol className="space-y-1.5 pl-1">
           {contractStep?.steps?.map((step, idx) => (
-            <li key={idx} className="flex items-start gap-2 text-[12px] text-[#4E5968] leading-relaxed">
-              <span className="text-[#8B95A1] font-mono text-[11px] shrink-0 mt-0.5">{idx + 1}.</span>
+            <li key={idx} className="flex items-start gap-2 text-[12px] text-ink-secondary leading-relaxed">
+              <span className="text-ink-tertiary font-mono text-[11px] shrink-0 mt-0.5">{idx + 1}.</span>
               <span>{step}</span>
             </li>
           ))}
@@ -193,14 +193,14 @@ export function RailCancelCard({ plan, platform = "web", onOpenUrl, onOpenApp, o
             서비스 해지 페이지 바로가기
           </Button>
         ) : (
-          <div className="rounded-lg bg-white p-2.5 border border-[#E5E8EB] text-[11px] text-[#6B7684]">
+          <div className="rounded-lg bg-white p-2.5 border border-gray-200 text-[11px] text-ink-muted">
             해지 페이지 링크가 등록되어 있지 않아요. 해당 서비스 앱 또는 공식 웹사이트에서 해지를 진행해 주세요.
           </div>
         )}
       </div>
 
       {/* Footnote */}
-      <p className="text-[11px] text-[#8B95A1] text-right">
+      <p className="text-[11px] text-ink-tertiary text-right">
         {(plan.checkedAt || "2026-10-16") + " 기준 안내예요. 앱 화면은 바뀔 수 있어요."}
       </p>
     </div>

@@ -91,13 +91,13 @@ export function DifficultySurvey({ serviceId, session, userId, onDone }) {
   // 미동의 상태: 1줄 참여 권유 프롬프트
   if (!consented) {
     return (
-      <div className="mt-4 w-full rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-3.5 text-left">
+      <div className="mt-4 w-full rounded-2xl border border-gray-200 bg-gray-50 p-3.5 text-left">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[12px] font-bold text-[#191F28]">
+            <p className="text-[12px] font-bold text-ink">
               해지 과정이 어떠셨나요?
             </p>
-            <p className="mt-0.5 text-[11px] text-[#8B95A1]">
+            <p className="mt-0.5 text-[11px] text-ink-tertiary">
               익명으로 경험을 나누고 다크패턴 지수 작성에 참여해보세요.
             </p>
           </div>
@@ -115,13 +115,13 @@ export function DifficultySurvey({ serviceId, session, userId, onDone }) {
   }
 
   return (
-    <div className="mt-4 w-full rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs text-left" data-testid="difficulty-survey">
-      <div className="flex items-start justify-between gap-2 border-b border-[#F2F4F6] pb-2.5">
+    <div className="mt-4 w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs text-left" data-testid="difficulty-survey">
+      <div className="flex items-start justify-between gap-2 border-b border-gray-100 pb-2.5">
         <div>
-          <strong className="text-[13px] font-bold text-[#191F28]">
+          <strong className="text-[13px] font-bold text-ink">
             해지 경험 익명 제보
           </strong>
-          <p className="mt-0.5 text-[11px] text-[#3182F6] font-medium flex items-center gap-1">
+          <p className="mt-0.5 text-[11px] text-brand-ink font-medium flex items-center gap-1">
             <ShieldCheck size={13} />
             익명으로 저장돼요. 누가 보냈는지 남기지 않아요.
           </p>
@@ -130,7 +130,7 @@ export function DifficultySurvey({ serviceId, session, userId, onDone }) {
           <button
             type="button"
             onClick={onDone}
-            className="text-[#8B95A1] hover:text-[#191F28] p-1"
+            className="text-ink-tertiary hover:text-ink p-1"
             aria-label="건너뛰기"
           >
             <X size={15} />
@@ -148,40 +148,40 @@ export function DifficultySurvey({ serviceId, session, userId, onDone }) {
 
       {/* 빠른 토글 질문들 */}
       <div className="mt-3 space-y-2">
-        <label className="flex items-center justify-between rounded-xl border border-[#F2F4F6] bg-[#F9FAFB] px-3 py-2 cursor-pointer transition-colors hover:bg-[#F2F4F6]">
-          <span className="text-[12px] font-medium text-[#333D4B]">전화로만 해지됐나요?</span>
+        <label className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 cursor-pointer transition-colors hover:bg-gray-100">
+          <span className="text-[12px] font-medium text-gray-800">전화로만 해지됐나요?</span>
           <input
             type="checkbox"
             checked={phoneOnly}
             onChange={(e) => setPhoneOnly(e.target.checked)}
-            className="h-4 w-4 rounded accent-[#191F28]"
+            className="h-4 w-4 rounded accent-gray-900"
           />
         </label>
-        <label className="flex items-center justify-between rounded-xl border border-[#F2F4F6] bg-[#F9FAFB] px-3 py-2 cursor-pointer transition-colors hover:bg-[#F2F4F6]">
-          <span className="text-[12px] font-medium text-[#333D4B]">해지 메뉴를 찾기 어려웠나요?</span>
+        <label className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 cursor-pointer transition-colors hover:bg-gray-100">
+          <span className="text-[12px] font-medium text-gray-800">해지 메뉴를 찾기 어려웠나요?</span>
           <input
             type="checkbox"
             checked={hiddenMenu}
             onChange={(e) => setHiddenMenu(e.target.checked)}
-            className="h-4 w-4 rounded accent-[#191F28]"
+            className="h-4 w-4 rounded accent-gray-900"
           />
         </label>
-        <label className="flex items-center justify-between rounded-xl border border-[#F2F4F6] bg-[#F9FAFB] px-3 py-2 cursor-pointer transition-colors hover:bg-[#F2F4F6]">
-          <span className="text-[12px] font-medium text-[#333D4B]">할인 제안이나 만류 화면이 나왔나요?</span>
+        <label className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 cursor-pointer transition-colors hover:bg-gray-100">
+          <span className="text-[12px] font-medium text-gray-800">할인 제안이나 만류 화면이 나왔나요?</span>
           <input
             type="checkbox"
             checked={retentionOffer}
             onChange={(e) => setRetentionOffer(e.target.checked)}
-            className="h-4 w-4 rounded accent-[#191F28]"
+            className="h-4 w-4 rounded accent-gray-900"
           />
         </label>
-        <label className="flex items-center justify-between rounded-xl border border-[#F2F4F6] bg-[#F9FAFB] px-3 py-2 cursor-pointer transition-colors hover:bg-[#F2F4F6]">
-          <span className="text-[12px] font-medium text-[#333D4B]">설문이나 상담원 채팅을 강제했나요?</span>
+        <label className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 cursor-pointer transition-colors hover:bg-gray-100">
+          <span className="text-[12px] font-medium text-gray-800">설문이나 상담원 채팅을 강제했나요?</span>
           <input
             type="checkbox"
             checked={forcedSurvey}
             onChange={(e) => setForcedSurvey(e.target.checked)}
-            className="h-4 w-4 rounded accent-[#191F28]"
+            className="h-4 w-4 rounded accent-gray-900"
           />
         </label>
       </div>
@@ -189,8 +189,8 @@ export function DifficultySurvey({ serviceId, session, userId, onDone }) {
       {/* 체감 난이도 (1-5) */}
       <div className="mt-3">
         <div className="flex items-center justify-between">
-          <span className="text-[12px] font-bold text-[#4E5968]">체감 난이도</span>
-          <span className="text-[11px] font-semibold text-[#3182F6]">
+          <span className="text-[12px] font-bold text-ink-secondary">체감 난이도</span>
+          <span className="text-[11px] font-semibold text-brand-ink">
             {difficulty === 1 && "매우 쉬움 (1)"}
             {difficulty === 2 && "쉬움 (2)"}
             {difficulty === 3 && "보통 (3)"}
@@ -207,8 +207,8 @@ export function DifficultySurvey({ serviceId, session, userId, onDone }) {
               className={
                 "flex-1 rounded-xl py-1.5 text-[12px] font-bold transition-all " +
                 (difficulty === val
-                  ? "bg-[#191F28] text-white shadow-xs"
-                  : "bg-[#F2F4F6] text-[#6B7684] hover:bg-[#E5E8EB]")
+                  ? "bg-gray-900 text-white shadow-xs"
+                  : "bg-gray-100 text-ink-muted hover:bg-gray-200")
               }
             >
               {val}
@@ -219,7 +219,7 @@ export function DifficultySurvey({ serviceId, session, userId, onDone }) {
 
       {/* 해지 결과 */}
       <div className="mt-3">
-        <span className="text-[12px] font-bold text-[#4E5968]">해지 결과</span>
+        <span className="text-[12px] font-bold text-ink-secondary">해지 결과</span>
         <div className="mt-1.5 grid grid-cols-2 gap-2">
           <button
             type="button"
@@ -227,8 +227,8 @@ export function DifficultySurvey({ serviceId, session, userId, onDone }) {
             className={
               "rounded-xl py-2 text-[12px] font-bold transition-all " +
               (outcome === "cancelled"
-                ? "border-2 border-[#191F28] bg-white text-[#191F28]"
-                : "border border-[#E5E8EB] bg-[#F9FAFB] text-[#6B7684]")
+                ? "border-2 border-gray-900 bg-white text-ink"
+                : "border border-gray-200 bg-gray-50 text-ink-muted")
             }
           >
             해지 완료
@@ -239,8 +239,8 @@ export function DifficultySurvey({ serviceId, session, userId, onDone }) {
             className={
               "rounded-xl py-2 text-[12px] font-bold transition-all " +
               (outcome === "gave_up"
-                ? "border-2 border-[#F04452] bg-white text-[#F04452]"
-                : "border border-[#E5E8EB] bg-[#F9FAFB] text-[#6B7684]")
+                ? "border-2 border-[#D22030] bg-white text-[#D22030]"
+                : "border border-gray-200 bg-gray-50 text-ink-muted")
             }
           >
             중도 포기

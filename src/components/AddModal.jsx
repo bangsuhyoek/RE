@@ -89,6 +89,13 @@ export function AddModal({
     setPersonalAmount,
   ] = useState("");
 
+  // 필수 항목 오류 테두리는 사용자가 그 칸을 건드렸거나 저장을 눌렀을 때만 보여준다.
+  const [touched, setTouched] = useState({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const markTouched = useCallback((key) => {
+    setTouched((current) => (current[key] ? current : { ...current, [key]: true }));
+  }, []);
+
   useEffect(() => {
     if (!initialData) return;
 
@@ -399,6 +406,8 @@ export function AddModal({
 
   const handleToggleManualEntry = useCallback((next) => {
     setManualEntryOpen(next);
+    setTouched({});
+    setSubmitAttempted(false);
 
     if (next) {
       setForm(
@@ -416,11 +425,27 @@ export function AddModal({
   }, [catalog]);
 
   const saveSubscription = useCallback(() => {
+    setSubmitAttempted(true);
+
+    if (scanning) return;
+
+    // 비어 있는 첫 필수 항목으로 스크롤하고 포커스를 옮긴다.
+    const revealField = (key) => {
+      requestAnimationFrame(() => {
+        const field = document.querySelector(`[data-add-field="${key}"]`);
+        if (!field) return;
+        field.scrollIntoView({ block: "center", behavior: "smooth" });
+        const target = field.querySelector("input, button[aria-haspopup]") || field;
+        target.focus({ preventScroll: true });
+      });
+    };
+
     if (!validService) {
       setError(
         "서비스명을 확인해 주세요."
       );
       setIsEditing(true);
+      revealField("service");
       return;
     }
 
@@ -429,6 +454,7 @@ export function AddModal({
         "결제 금액을 확인해 주세요."
       );
       setIsEditing(true);
+      revealField("amount");
       return;
     }
 
@@ -437,6 +463,7 @@ export function AddModal({
         "결제 일정을 확인해 주세요."
       );
       setIsEditing(true);
+      revealField("schedule");
       return;
     }
 
@@ -557,6 +584,7 @@ export function AddModal({
       setIsEditing(true);
     }
   }, [
+    scanning,
     validService,
     validAmount,
     validSchedule,
@@ -633,12 +661,14 @@ export function AddModal({
   }, [updateForm]);
 
   const handleDueDayChange = useCallback((value) => {
+    markTouched("schedule");
     updateForm("dueDay", value);
-  }, [updateForm]);
+  }, [markTouched, updateForm]);
 
   const handleNextBillingDateChange = useCallback((value) => {
+    markTouched("schedule");
     updateForm("nextBillingDate", value);
-  }, [updateForm]);
+  }, [markTouched, updateForm]);
 
   const handlePaymentMethodChange = useCallback((value) => {
     updateForm("paymentMethod", value);
@@ -654,14 +684,21 @@ export function AddModal({
     setCustomServiceInputOpen(false);
   }, []);
 
+  // 인식 결과 검토 화면은 이미 채워진 값을 확인하는 단계라 빠진 항목을 바로 표시한다.
+  const revealAll = reviewMode || submitAttempted;
+  const showErrors = useMemo(() => ({
+    service: (revealAll || Boolean(touched.service)) && !validService,
+    amount: (revealAll || Boolean(touched.amount)) && !validAmount,
+    schedule: (revealAll || Boolean(touched.schedule)) && !validSchedule,
+  }), [revealAll, touched, validService, validAmount, validSchedule]);
+
   const editFieldsElement = (
     <SubscriptionEditForm
       form={form}
       matchedService={matchedService}
       catalog={catalog}
-      validService={validService}
-      validAmount={validAmount}
-      validSchedule={validSchedule}
+      showErrors={showErrors}
+      onFieldBlur={markTouched}
       isServicePickerOpen={isServicePickerOpen}
       customServiceInputOpen={customServiceInputOpen}
       onOpenServicePicker={handleOpenServicePicker}
@@ -698,16 +735,16 @@ export function AddModal({
       onClose={onClose}
       label={title}
     >
-      <div className="flex min-h-full flex-col">
+      <div className="flex min-h-full flex-col [&_input]:scroll-mb-36 [&_select]:scroll-mb-36 [&_button]:scroll-mb-36">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-[20px] font-bold tracking-[-0.02em] text-[#111315]">
+          <h2 className="text-[20px] font-bold tracking-[-0.02em] text-ink">
             {title}
           </h2>
 
           <button
             type="button"
             onClick={onClose}
-            className="grid h-9 w-9 place-items-center rounded-full text-[#7E8782] transition-colors hover:bg-[#F7F8F6] hover:text-[#111315]"
+            className="-mr-2 grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-tertiary transition-colors hover:bg-gray-100 hover:text-ink"
             aria-label="닫기"
           >
             <X size={20} />
@@ -715,7 +752,7 @@ export function AddModal({
         </div>
 
         {error && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-[#FFF4F2] px-3.5 py-3 text-[12px] leading-5 text-[#B42318]">
+          <div role="alert" className="mt-4 flex items-start gap-2 rounded-xl bg-danger-soft px-3.5 py-3 text-[14px] leading-5 text-danger">
             <AlertTriangle
               size={16}
               className="mt-0.5 shrink-0"
@@ -762,20 +799,24 @@ export function AddModal({
 
         {(reviewMode ||
           manualEntryOpen) && (
-          <div className="sticky bottom-0 z-10 -mx-4 mt-auto bg-gradient-to-t from-white via-white to-white/80 px-4 pb-1 pt-4 sm:-mx-5 sm:px-5">
+          <div className="sticky -bottom-2 z-10 -mx-5 -mb-2 mt-auto bg-white px-5 pb-3 pt-3">
             <button
               type="button"
-              disabled={!canSave}
+              aria-disabled={!canSave}
               onClick={
                 saveSubscription
               }
-              className="min-h-[54px] w-full rounded-2xl bg-[#153D2E] px-5 text-[15px] font-bold text-white shadow-sm transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#DDE2DF] disabled:text-[#8B95A1]"
+              className={`min-h-[52px] w-full rounded-[14px] px-5 text-[16px] font-semibold tracking-tight transition-colors ${
+                canSave
+                  ? "bg-brand text-white hover:bg-brand-hover active:bg-brand-pressed"
+                  : "bg-gray-100 text-ink-subtle"
+              }`}
             >
               내 구독에 추가
             </button>
 
             {!canSave && (
-              <p className="mt-2 text-center text-[11px] text-[#8B95A1]">
+              <p className="mt-2 text-center text-[13px] text-ink-tertiary">
                 서비스명 · 금액 · 결제 일정을 확인해 주세요.
               </p>
             )}
@@ -785,3 +826,4 @@ export function AddModal({
     </BottomSheet>
   );
 }
+

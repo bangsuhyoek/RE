@@ -2,14 +2,15 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
-import { Bell, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { AuthLogin } from "./components/AuthScreens";
 import { SplashScreen, LandingScreen } from "./components/LandingScreen";
 import { requestPaymentCapturePermission, simulatePaymentDetection, gatedRequestPaymentCapturePermission, setPaymentCaptureConsent } from "./lib/paymentCapture";
 import { PaymentCaptureDisclosureModal } from "./components/capture/PaymentCaptureDisclosureModal";
 import { isNativePlatform } from "./lib/platform";
 import { HomeScreen } from "./components/HomeScreen";
-import { AppHeader, BottomNavigation, Toast } from "./components/ui";
+import { AgentEntryPill, AppHeader, BottomNavigation, NotificationBellButton, Toast } from "./components/ui";
+import { closeOpenSelectSheet } from "./components/SelectSheet";
 import { SyncStatusIndicator } from "./components/SyncStatusIndicator";
 import { loadSubscriptionData } from "./data/catalogLoader";
 import {
@@ -70,7 +71,7 @@ const SubscriptionListScreen = lazyNamed(() => import("./components/Subscription
 function ScreenFallback() {
   return (
     <div className="grid min-h-[60vh] place-items-center" role="status" aria-label="화면을 불러오는 중">
-      <LoaderCircle size={26} className="animate-spin text-[#153D2E]" />
+      <LoaderCircle size={26} className="animate-spin text-brand-ink" />
     </div>
   );
 }
@@ -78,8 +79,8 @@ function ScreenFallback() {
 function SheetFallback() {
   return (
     <div className="sheet-backdrop fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" role="status" aria-label="불러오는 중">
-      <div className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto grid h-44 w-full max-w-full place-items-center rounded-t-[24px] border-t border-[#F2F4F6] bg-white shadow-[0_-8px_32px_rgba(0,0,0,0.12)] sm:max-w-[440px]">
-        <LoaderCircle size={26} className="animate-spin text-[#153D2E]" />
+      <div className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto grid h-44 w-full max-w-full place-items-center rounded-t-[24px] border-t border-gray-100 bg-white shadow-[0_-8px_32px_rgba(0,0,0,0.12)] sm:max-w-[440px]">
+        <LoaderCircle size={26} className="animate-spin text-brand-ink" />
       </div>
     </div>
   );
@@ -244,7 +245,7 @@ function AppContent({ onAccountToast, onUserScopeChange }) {
             title: "[신한카드] 결제승인",
             body: "넷플릭스 17,000원(일시불) 정상승인",
           });
-          notify("⚡ 넷플릭스 17,000원 결제 알림이 발송되었습니다!");
+          notify("넷플릭스 17,000원 결제 알림이 발송되었습니다!");
         } else {
           detectedPaymentHandlerRef.current?.({
             name: "Netflix",
@@ -259,7 +260,7 @@ function AppContent({ onAccountToast, onUserScopeChange }) {
             autoDetected: true,
             detectedAt: new Date().toISOString(),
           });
-          notify("⚡ 넷플릭스 17,000원 결제가 감지되었습니다! (체험 시뮬레이션)");
+          notify("넷플릭스 17,000원 결제가 감지되었습니다! (체험 시뮬레이션)");
         }
       }
     : undefined;
@@ -735,7 +736,9 @@ function AppContent({ onAccountToast, onUserScopeChange }) {
 
   // Hardware back button handler: keep latest state in a ref so listener is registered once on mount.
   const handleBackButton = useCallback(() => {
-    if (paymentCaptureDisclosureOpen) {
+    if (closeOpenSelectSheet()) {
+      // 선택 시트(정렬·상태 등)는 항상 가장 위에 뜨므로 먼저 닫는다.
+    } else if (paymentCaptureDisclosureOpen) {
       setPaymentCaptureDisclosureOpen(false);
     } else if (termsOpen) {
       setTermsOpen(false);
@@ -1026,17 +1029,14 @@ function AppContent({ onAccountToast, onUserScopeChange }) {
     content = (
       <HomeScreen
         subscriptions={subscriptions}
-        promotions={livePromotions}
+        savedAmount={savedAmount}
         unreadCount={unreadCount}
         profile={profile}
         notificationDenied={profile?.notificationsAllowed === false}
         onOpenSubscription={(id) => navigate("detail", id)}
         onShowAll={() => navigate("subscriptions")}
-        onOpenPromotion={handlePromotion}
-        onExplorePromotions={() => navigate("promotions")}
+        onShowCancelled={() => navigate("subscriptions")}
         onAdd={() => { setAddInitialMode("manual"); setAddOpen(true); }}
-        onScan={() => { setAddInitialMode("ai"); setAddOpen(true); }}
-        onOpenDiscovery={() => setDiscoveryOpen(true)}
         onStartOnboarding={() => navigate("onboarding")}
         onToggleNotificationPermission={() =>
           handleTogglePermissionFromHome(
@@ -1056,6 +1056,9 @@ function AppContent({ onAccountToast, onUserScopeChange }) {
         agentInsight={agentInsight}
         onOpenAgentInsight={handleOpenAgentInsight}
         onDismissInsight={dismissAgentInsight}
+        careItems={care.items}
+        careHasRotation={Boolean(care.rotation)}
+        onOpenRotation={() => setRotationOpen(true)}
         careSlot={
           <CareSection
             items={care.items}
@@ -1165,25 +1168,16 @@ function AppContent({ onAccountToast, onUserScopeChange }) {
       {hasAppChrome && screen.route !== "home" && screen.route !== "detail" && (
         <AppHeader
           title={pageTitle}
+          large={screen.route === "promotions"}
           onBack={screen.route === "detail" ? () => {
             setHighlightCancelId(null);
             navigate("subscriptions");
           } : undefined}
           rightSlot={
-            <button
-              type="button"
-              onClick={() => setNotificationCenterOpen(true)}
-              className="relative grid h-9 w-9 place-items-center rounded-lg text-[#71717A] hover:bg-[#F4F4F5] hover:text-black transition-colors"
-              aria-label="알림 센터 열기"
-            >
-              <Bell size={20} />
-              {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-                </span>
-              )}
-            </button>
+            <>
+              <AgentEntryPill onClick={() => setAgentOpen(true)} />
+              <NotificationBellButton onClick={() => setNotificationCenterOpen(true)} unreadCount={unreadCount} />
+            </>
           }
         />
       )}

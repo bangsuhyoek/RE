@@ -22,7 +22,7 @@ export function RenewalSheet({ subscription, onKeep, onCancel, onClose }) {
       </div>
 
       {/* 결제 정보 요약 카드 */}
-      <div className="mt-4 rounded-2xl bg-[#F9FAFB] border border-[#E5E8EB] p-3.5 flex items-center justify-between">
+      <div className="mt-4 rounded-2xl bg-gray-50 border border-gray-200 p-3.5 flex items-center justify-between">
         <div className="min-w-0 pr-2">
           <div className="text-[14px] font-bold text-fg-primary truncate">{subscription.name}</div>
           <div className="text-[12px] text-fg-muted truncate">{subscription.plan}</div>
@@ -33,14 +33,14 @@ export function RenewalSheet({ subscription, onKeep, onCancel, onClose }) {
         </div>
       </div>
 
-      <p className="mt-3.5 text-[13px] leading-relaxed text-[#71717A]">
-        <strong className="font-semibold text-black">{subscription.name}</strong>은 지난 결제일이 지났어요. 계속 이용했다면 다음 달에도 알림을 보내드릴게요.
+      <p className="mt-3.5 text-[13px] leading-relaxed text-ink-muted">
+        <strong className="font-semibold text-ink">{subscription.name}</strong>은 지난 결제일이 지났어요. 계속 이용했다면 다음 달에도 알림을 보내드릴게요.
       </p>
       <div className="mt-5 grid grid-cols-2 gap-3">
         <Button
           variant="secondary"
           size="large"
-          className="border border-[#E5E8EB] text-[#E03838] hover:bg-[#FFF5F5] active:bg-[#FFEBEB]"
+          className="border border-gray-200 text-[#E03838] hover:bg-[#FFF5F5] active:bg-[#FFEBEB]"
           onClick={onCancel}
         >
           해지했어요

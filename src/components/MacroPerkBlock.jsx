@@ -49,7 +49,7 @@ export function MacroPerkBlock({
     <article
       onClick={onAction}
       onKeyDown={handleKeyDown}
-      className={`group flex w-full items-center justify-between gap-5 sm:gap-7 py-5 sm:py-6 px-2 sm:px-3.5 transition-colors hover:bg-[#F9FAFB] rounded-2xl cursor-pointer select-none ${className}`}
+      className={`group flex w-full items-center justify-between gap-5 sm:gap-7 py-5 sm:py-6 px-2 sm:px-3.5 transition-colors hover:bg-gray-50 rounded-2xl cursor-pointer select-none ${className}`}
       role="button"
       tabIndex={0}
     >
@@ -66,14 +66,14 @@ export function MacroPerkBlock({
       <div className="min-w-0 flex-1 flex flex-col justify-center pr-1 sm:pr-2">
         {/* 서비스명 및 뱃지 */}
         <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="text-[18px] sm:text-[19px] font-bold tracking-tight text-[#191F28] leading-snug">
+          <h3 className="text-[18px] sm:text-[20px] font-bold tracking-tight text-ink leading-snug">
             {serviceName}
           </h3>
           {badgeText && (
             <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
               isDirectMatch
-                ? "bg-blue-50 text-[#3182F6]"
-                : "bg-gray-100 text-[#6B7684]"
+                ? "bg-brand-soft text-brand-ink"
+                : "bg-gray-100 text-ink-muted"
             }`}>
               {badgeText}
             </span>
@@ -82,7 +82,7 @@ export function MacroPerkBlock({
 
         {/* 통일된 핵심 가치: 솔루션 타이틀 & 정량적 절약 금액 배지 */}
         <div className="mt-1.5 flex items-baseline gap-2 flex-wrap">
-          <span className="text-[15.5px] sm:text-[16px] font-extrabold tracking-tight text-[#3182F6] leading-[1.45]">
+          <span className="text-[16px] sm:text-[16px] font-extrabold tracking-tight text-brand-ink leading-[1.45]">
             {solutionTitle}
           </span>
           {savingText && (
@@ -93,14 +93,14 @@ export function MacroPerkBlock({
         </div>
 
         {/* 상세 설명 가이드 (한 줄 요약) */}
-        <p className="mt-1 sm:mt-1.5 text-[13px] sm:text-[13.5px] leading-[1.5] text-[#6B7684] truncate">
+        <p className="mt-1 sm:mt-1.5 text-[13px] sm:text-[14px] leading-[1.5] text-ink-muted truncate">
           {description}
         </p>
       </div>
 
       {/* 3. 우측: 원형 바로가기 쉐브론 버튼 */}
       <div className="shrink-0 pl-1 sm:pl-2">
-        <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#F2F4F6] text-[#4E5968] transition-all group-hover:bg-[#FF6F0F] group-hover:text-white">
+        <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gray-100 text-ink-secondary transition-all group-hover:bg-[#FF6F0F] group-hover:text-white">
           <ChevronRight size={22} className="stroke-[2.5]" />
         </div>
       </div>

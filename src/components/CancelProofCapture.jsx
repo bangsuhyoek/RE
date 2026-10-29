@@ -72,12 +72,12 @@ export function CancelProofCapture({ record, onSaved }) {
 
   if (saved) {
     return (
-      <div className="mt-4 w-full rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-4 text-left">
+      <div className="mt-4 w-full rounded-2xl border border-gray-200 bg-gray-50 p-4 text-left">
         <div className="flex items-center gap-2 text-[13px] font-bold text-[#20C997]">
           <ShieldCheck size={18} />
           <span>해지 증빙이 안전하게 저장되었어요</span>
         </div>
-        <p className="mt-1 text-[12px] leading-relaxed text-[#6B7684]">
+        <p className="mt-1 text-[12px] leading-relaxed text-ink-muted">
           해지 일시({timeFormatted})와 캡처 기록은 휴대폰(기기)에만 보관되며, 서버로 전송되지 않아요. 혹시 나중에 결제되면 언제든 증빙서류로 꺼내 쓸 수 있어요.
         </p>
       </div>
@@ -85,29 +85,29 @@ export function CancelProofCapture({ record, onSaved }) {
   }
 
   return (
-    <div className="mt-4 w-full rounded-2xl border border-[#E5E8EB] bg-white p-4 text-left shadow-xs">
+    <div className="mt-4 w-full rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-xs">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <ShieldCheck size={16} className="text-[#3182F6]" />
-          <h3 className="text-[14px] font-bold text-[#191F28]">해지 증명 남겨두기</h3>
+          <ShieldCheck size={16} className="text-brand-ink" />
+          <h3 className="text-[14px] font-bold text-ink">해지 증명 남겨두기</h3>
         </div>
-        <span className="text-[11px] font-medium text-[#8B95A1]">기기 전용 보관</span>
+        <span className="text-[11px] font-medium text-ink-tertiary">기기 전용 보관</span>
       </div>
 
-      <p className="mt-1 text-[12px] leading-relaxed text-[#6B7684]">
+      <p className="mt-1 text-[12px] leading-relaxed text-ink-muted">
         해지 후 나중에 다시 결제되는 피해를 막기 위해 해지 완료 시각과 완료 화면을 기기에만 저장해 두세요.
       </p>
 
       {/* 해지 기록 시간 정보 */}
-      <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#F2F4F6] px-3 py-2 text-[12px] text-[#4E5968]">
-        <Clock size={14} className="shrink-0 text-[#8B95A1]" />
-        <span>해지 완료 시각: <strong className="text-[#191F28]">{timeFormatted}</strong></span>
+      <div className="mt-3 flex items-center gap-2 rounded-xl bg-gray-100 px-3 py-2 text-[12px] text-ink-secondary">
+        <Clock size={14} className="shrink-0 text-ink-tertiary" />
+        <span>해지 완료 시각: <strong className="text-ink">{timeFormatted}</strong></span>
       </div>
 
       {/* 이미지 첨부 영역 */}
       <div className="mt-3">
         {imagePreview ? (
-          <div className="relative mt-2 overflow-hidden rounded-xl border border-[#E5E8EB] bg-[#F9FAFB]">
+          <div className="relative mt-2 overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
             <img
               src={imagePreview}
               alt="해지 완료 캡처 미리보기"
@@ -123,8 +123,8 @@ export function CancelProofCapture({ record, onSaved }) {
             </button>
           </div>
         ) : (
-          <label className="mt-2 flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#D1D6DB] bg-[#F9FAFB] p-3.5 text-[12px] font-semibold text-[#4E5968] hover:bg-[#F2F4F6] transition">
-            <Camera size={16} className="text-[#8B95A1]" />
+          <label className="mt-2 flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-3.5 text-[12px] font-semibold text-ink-secondary hover:bg-gray-100 transition">
+            <Camera size={16} className="text-ink-tertiary" />
             <span>해지 완료 화면 첨부 (선택)</span>
             <input
               type="file"
@@ -138,7 +138,7 @@ export function CancelProofCapture({ record, onSaved }) {
 
       {/* 오류 메시지 */}
       {error && (
-        <p className="mt-2 text-[11px] font-medium text-[#F04452]">{error}</p>
+        <p className="mt-2 text-[11px] font-medium text-[#D22030]">{error}</p>
       )}
 
       {/* 저장 버튼 */}
@@ -153,7 +153,7 @@ export function CancelProofCapture({ record, onSaved }) {
         >
           {saving ? "저장하는 중..." : "해지 증명 저장하기"}
         </Button>
-        <p className="mt-1.5 text-center text-[11px] text-[#8B95A1]">
+        <p className="mt-1.5 text-center text-[11px] text-ink-tertiary">
           첨부한 사진은 어디에도 업로드되지 않고 내 폰에만 남아요.
         </p>
       </div>

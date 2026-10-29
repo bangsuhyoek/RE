@@ -41,7 +41,7 @@ export function PaymentIcon({ method, brand, size = 16, className = "" }) {
       <span
         style={{ width: w, height: size }}
         className={cx(
-          "inline-flex items-center justify-center rounded-[3px] bg-white border border-[#E5E8EB] p-0.5 shrink-0 overflow-hidden shadow-2xs",
+          "inline-flex items-center justify-center rounded-[3px] bg-white border border-gray-200 p-0.5 shrink-0 overflow-hidden shadow-2xs",
           className
         )}
       >
@@ -58,7 +58,7 @@ export function PaymentIcon({ method, brand, size = 16, className = "" }) {
     <span
       style={{ width: w, height: size }}
       className={cx(
-        "inline-flex items-center justify-center rounded-[3px] border border-dashed border-[#D1D6DB] bg-[#F8F9FA] shrink-0 text-[#8B95A1] text-[10px] font-bold select-none",
+        "inline-flex items-center justify-center rounded-[3px] border border-dashed border-gray-300 bg-[#F8F9FA] shrink-0 text-ink-tertiary text-[10px] font-bold select-none",
         className
       )}
     >
@@ -102,7 +102,7 @@ export function BrandCircleIcon({ brand, size = 48, className = "" }) {
     <div
       style={{ width: size, height: size }}
       className={cx(
-        "grid place-items-center rounded-2xl bg-[#F7F8F9] border border-[#E5E8EB] p-1 shrink-0 shadow-2xs overflow-hidden transition-transform group-hover:scale-105",
+        "grid place-items-center rounded-2xl bg-gray-50 border border-gray-200 p-1 shrink-0 shadow-2xs overflow-hidden transition-transform group-hover:scale-105",
         className
       )}
     >
@@ -189,25 +189,25 @@ export function PaymentMethodPickerModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#F2F4F6] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <div className="flex items-center gap-2">
             {isCustom && (
               <button
                 type="button"
                 onClick={() => setIsCustom(false)}
-                className="grid h-8 w-8 place-items-center rounded-full text-[#4E5968] hover:bg-[#F2F4F6] active:scale-95 transition-all -ml-1.5"
+                className="grid h-8 w-8 place-items-center rounded-full text-ink-secondary hover:bg-gray-100 active:scale-95 transition-all -ml-1.5"
               >
                 <ArrowLeft size={18} />
               </button>
             )}
-            <h3 className="text-[17px] font-bold text-[#191F28]">
+            <h3 className="text-[17px] font-bold text-ink">
               {isCustom ? "직접 입력" : "결제 수단 기록"}
             </h3>
           </div>
           <button
             type="button"
             onClick={resetAndClose}
-            className="grid h-8 w-8 place-items-center rounded-full text-[#8B95A1] hover:bg-[#F2F4F6] active:scale-95 transition-all"
+            className="grid h-8 w-8 place-items-center rounded-full text-ink-tertiary hover:bg-gray-100 active:scale-95 transition-all"
           >
             <X size={18} />
           </button>
@@ -215,20 +215,20 @@ export function PaymentMethodPickerModal({
 
         {/* Tab Header (Toss Style Segment) */}
         {!isCustom && (
-          <div className="flex border-b border-[#F2F4F6] px-5 pt-1">
+          <div className="flex border-b border-gray-100 px-5 pt-1">
             <button
               type="button"
               onClick={() => setTab("card")}
               className={cx(
                 "flex-1 pb-3 pt-2 text-[14px] font-bold transition-all relative",
                 tab === "card"
-                  ? "text-[#153D2E]"
-                  : "text-[#8B95A1] hover:text-[#4E5968]"
+                  ? "text-brand-ink"
+                  : "text-ink-tertiary hover:text-ink-secondary"
               )}
             >
               카드사
               {tab === "card" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#153D2E] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand rounded-full" />
               )}
             </button>
             <button
@@ -237,13 +237,13 @@ export function PaymentMethodPickerModal({
               className={cx(
                 "flex-1 pb-3 pt-2 text-[14px] font-bold transition-all relative",
                 tab === "simple"
-                  ? "text-[#153D2E]"
-                  : "text-[#8B95A1] hover:text-[#4E5968]"
+                  ? "text-brand-ink"
+                  : "text-ink-tertiary hover:text-ink-secondary"
               )}
             >
               간편결제 · 계좌
               {tab === "simple" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#153D2E] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand rounded-full" />
               )}
             </button>
           </div>
@@ -252,7 +252,7 @@ export function PaymentMethodPickerModal({
         {/* Modal Body: 3-column Toss-style Financial Grid */}
         <div className="flex-1 overflow-y-auto no-scrollbar px-5 py-4">
           {!isCustom && (
-            <p className="mb-4 rounded-xl bg-[#F4F7F5] px-3.5 py-3 text-[12px] leading-5 text-[#6B7684]">
+            <p className="mb-4 rounded-xl bg-brand-soft px-3.5 py-3 text-[12px] leading-5 text-ink-muted">
               실제 결제나 카드 연결 없이, 구독료가 어디에서 나가는지만 기록해요.
             </p>
           )}
@@ -267,12 +267,12 @@ export function PaymentMethodPickerModal({
                       key={item.id}
                       type="button"
                       onClick={() => handleSelect(item.name)}
-                      className="group flex flex-col items-center justify-center p-2.5 rounded-2xl hover:bg-[#F9FAFB] active:scale-95 transition-all relative"
+                      className="group flex flex-col items-center justify-center p-2.5 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all relative"
                     >
                       <div className="relative">
                         <BrandCircleIcon brand={item.id} size={48} />
                         {isSelected && (
-                          <span className="absolute -top-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-[#153D2E] text-white ring-2 ring-white">
+                          <span className="absolute -top-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-brand text-white ring-2 ring-white">
                             <Check size={12} strokeWidth={3} />
                           </span>
                         )}
@@ -280,7 +280,7 @@ export function PaymentMethodPickerModal({
                       <span
                         className={cx(
                           "mt-2 text-[13px] tracking-tight truncate max-w-[90px] text-center",
-                          isSelected ? "font-bold text-[#153D2E]" : "font-medium text-[#333D4B] group-hover:text-[#153D2E]"
+                          isSelected ? "font-bold text-brand-ink" : "font-medium text-gray-800 group-hover:text-brand-ink"
                         )}
                       >
                         {item.shortName || item.name}
@@ -291,11 +291,11 @@ export function PaymentMethodPickerModal({
               </div>
 
              {/* Bottom Actions */}
-             <div className="pt-3 border-t border-[#F2F4F6] flex flex-col gap-2">
+             <div className="pt-3 border-t border-gray-100 flex flex-col gap-2">
                <button
                  type="button"
                  onClick={() => setIsCustom(true)}
-                 className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] py-2.5 text-[13px] font-semibold text-[#4E5968] hover:bg-white hover:border-[#B0B8C1] active:scale-[0.99] transition-all"
+                 className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 py-2.5 text-[13px] font-semibold text-ink-secondary hover:bg-white hover:border-gray-400 active:scale-[0.99] transition-all"
                >
                  <Plus size={14} />
                  <span>직접 입력하기</span>
@@ -305,7 +305,7 @@ export function PaymentMethodPickerModal({
          ) : (
             <div className="py-2 space-y-4">
               <div>
-                <label className="block text-[13px] font-semibold text-[#191F28] mb-1.5">
+                <label className="block text-[13px] font-semibold text-ink mb-1.5">
                   결제 수단 명칭
                 </label>
                 <input
@@ -314,7 +314,7 @@ export function PaymentMethodPickerModal({
                   value={customText}
                   onChange={(e) => setCustomText(e.target.value)}
                   placeholder="예: 법인카드, 외환카드, 계좌이체"
-                  className="w-full rounded-xl border border-[#D1D6DB] px-3.5 py-3 text-[14px] text-[#191F28] outline-none focus:border-[#153D2E] transition-colors"
+                  className="w-full rounded-xl border border-gray-300 px-3.5 py-3 text-[14px] text-ink outline-none focus:border-brand transition-colors"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -322,7 +322,7 @@ export function PaymentMethodPickerModal({
                     }
                   }}
                 />
-                <p className="mt-1.5 text-[12px] text-[#8B95A1]">
+                <p className="mt-1.5 text-[12px] text-ink-tertiary">
                   이용 중인 결제수단을 자유롭게 입력하세요.
                 </p>
               </div>
@@ -331,7 +331,7 @@ export function PaymentMethodPickerModal({
                 type="button"
                 onClick={handleFinishCustom}
                 disabled={!customText.trim()}
-                className="w-full rounded-xl bg-[#153D2E] py-3 text-[14px] font-semibold text-white shadow-sm hover:bg-[#0F3024] active:scale-[0.99] disabled:opacity-50 transition-all"
+                className="w-full rounded-xl bg-brand py-3 text-[14px] font-semibold text-white shadow-sm hover:bg-[#0F3024] active:scale-[0.99] disabled:opacity-50 transition-all"
               >
                 적용하기
               </button>
@@ -358,10 +358,10 @@ export function PaymentMethodTriggerField({
   return (
     <div className={className}>
       {info.isRegistered ? (
-        <div className="flex items-center justify-between rounded-xl border border-[#E5E8EB] bg-[#F7F8F9] px-3.5 py-2.5 transition-colors">
+        <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 transition-colors">
           <div className="flex items-center gap-2.5 min-w-0">
             <PaymentIcon method={value} size={16} />
-            <span className="truncate text-[14px] font-semibold text-[#191F28]">
+            <span className="truncate text-[14px] font-semibold text-ink">
               {info.fullLabel}
             </span>
           </div>
@@ -369,14 +369,14 @@ export function PaymentMethodTriggerField({
             <button
               type="button"
               onClick={() => setIsOpen(true)}
-              className="rounded-lg border border-[#D1D6DB] bg-white px-2.5 py-1 text-[12px] font-medium text-[#4E5968] hover:bg-[#F2F4F6] active:scale-95 transition-all shadow-2xs"
+              className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-[12px] font-medium text-ink-secondary hover:bg-gray-100 active:scale-95 transition-all shadow-2xs"
             >
               변경
             </button>
             <button
               type="button"
               onClick={() => onChange("")}
-              className="p-1 text-[#8B95A1] hover:text-[#191F28] transition-colors"
+              className="p-1 text-ink-tertiary hover:text-ink transition-colors"
               title="결제수단 삭제"
               aria-label="결제수단 삭제"
             >
@@ -388,21 +388,21 @@ export function PaymentMethodTriggerField({
        <button
          type="button"
          onClick={() => setIsOpen(true)}
-          className={`flex w-full items-center justify-between rounded-xl border border-dashed px-3.5 py-2.5 text-left transition-all hover:bg-[#F9FAFB] active:scale-[0.99] ${
+          className={`flex w-full items-center justify-between rounded-xl border border-dashed px-3.5 py-2.5 text-left transition-all hover:bg-gray-50 active:scale-[0.99] ${
             error
               ? "border-[#FF4D4D] bg-[#FFF5F5] hover:border-[#FF4D4D]"
-              : "border-[#D1D6DB] bg-white hover:border-[#191F28]"
+              : "border-gray-300 bg-white hover:border-gray-900"
           }`}
         >
-          <div className="flex items-center gap-2.5 text-[#8B95A1]">
-            <div className="grid h-6 w-6 place-items-center rounded-lg bg-[#F2F4F6] text-[#4E5968]">
+          <div className="flex items-center gap-2.5 text-ink-tertiary">
+            <div className="grid h-6 w-6 place-items-center rounded-lg bg-gray-100 text-ink-secondary">
               <Plus size={14} />
             </div>
-            <span className={`text-[13px] font-medium ${error ? "text-[#FF4D4D]" : "text-[#2C6049]"}`}>
+            <span className={`text-[13px] font-medium ${error ? "text-[#FF4D4D]" : "text-brand-ink"}`}>
               어디에서 결제되는지 기록하기
             </span>
           </div>
-          <ChevronRight size={16} className={error ? "text-[#FF4D4D]" : "text-[#B0B8C1]"} />
+          <ChevronRight size={16} className={error ? "text-[#FF4D4D]" : "text-ink-subtle"} />
         </button>
       )}
 

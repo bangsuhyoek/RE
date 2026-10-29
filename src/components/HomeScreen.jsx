@@ -1,226 +1,164 @@
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState } from "react";
+import { BellOff, ChevronRight, ListChecks, MessageCircle, TrendingDown } from "lucide-react";
 import {
-  ChevronRight,
-  Inbox,
-  ReceiptText,
-  ScanLine,
-  Sparkles,
-  Bell,
-  BellOff,
-  User,
-  X,
-} from "lucide-react";
-import { Button, SubscriptionCard } from "./ui";
-import { daysUntilCharge, formatWon } from "../lib/dates";
-import { calculateMonthlyTotal, calculateYearlyTotal } from "../lib/subscriptionAgent";
+  Button,
+  DDayText,
+  ListRow,
+  MainHeader,
+  SectionBand,
+  SectionHeader,
+  ServiceLogo,
+  getSubscriptionDisplayAmount,
+} from "./ui";
+import { daysUntilCharge, getNextChargeDate } from "../lib/dates";
+import { calculateMonthlyTotal } from "../lib/subscriptionAgent";
+import { calculateMonthlyProgress } from "../lib/monthlyProgress";
 
-function EmptyState({ onAdd, onScan, onOpenDiscovery, onLogout, onOpenAccount, profile }) {
+const UPCOMING_LIMIT = 5;
+// 해지 확인이 아직 끝나지 않은 항목. 홈 첫 줄은 이 건수를 "해지 확인 중 N건"으로 보여 준다.
+const CANCEL_IN_PROGRESS = new Set(["cancel_watching", "cancel_ask"]);
+
+function formatWonText(amount) {
+  return Number(amount || 0).toLocaleString("ko-KR") + "원";
+}
+
+function formatMonthDay(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+  return date.getMonth() + 1 + "월 " + date.getDate() + "일";
+}
+
+function subscriptionKey(subscription) {
+  return subscription.subscriptionId || subscription.id;
+}
+
+// 챙길 일 항목에서 로고와 이름을 찾는다. 해지한 구독은 목록에 없으므로 기록(record)의 정보도 쓴다.
+function careItemService(item, subscriptions) {
+  const record = item.record || null;
+  const subId = item.subscriptionId || record?.subscriptionId;
+  const matched = subId ? subscriptions.find((sub) => subscriptionKey(sub) === subId) : null;
+  return {
+    serviceId: matched?.serviceId || matched?.id || record?.serviceId || record?.id || null,
+    name: item.serviceName || record?.name || matched?.name || "",
+    image: matched?.image || null,
+  };
+}
+
+function ChevronIcon({ open = false }) {
   return (
-    <section className="flex min-h-[calc(100dvh-9rem)] min-h-[calc(100vh-9rem)] flex-col items-center justify-center px-4 sm:px-5 text-center">
-      <span className="grid h-16 w-16 place-items-center rounded-full bg-[#F2F4F6] text-[#6B7684] border border-[#E5E8EB]">
-        <Inbox size={28} strokeWidth={1.75} />
-      </span>
-      <h1 className="mt-6 text-[22px] font-bold tracking-tight text-[#191F28]">등록된 구독 서비스가 없습니다</h1>
-      <p className="mt-2 max-w-[280px] text-[14px] leading-relaxed text-[#6B7684]">하단의 + 버튼이나 아래 버튼으로 구독을 추가해보세요.</p>
-      <div className="mt-8 w-full space-y-3">
-        <Button size="large" fullWidth onClick={onAdd} prefixIcon={<ReceiptText size={18} />}>첫 구독 서비스 등록하기</Button>
-        <Button size="large" fullWidth variant="secondary" onClick={onScan} prefixIcon={<ScanLine size={18} />}>AI 결제인식 (문자·영수증 스캔)</Button>
-        {onOpenDiscovery && (
-          <Button size="large" fullWidth variant="secondary" onClick={onOpenDiscovery} prefixIcon={<Sparkles size={18} />}>
-            숨은 구독 한 번에 찾기 (설치앱·명세서 스캔)
-          </Button>
-        )}
-      </div>
-      <div className="mt-8 flex items-center gap-2.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] px-4 py-3.5 text-left shadow-2xs">
-        <Sparkles size={18} className="shrink-0 text-[#FF6F0F]" />
-        <p className="text-[12px] leading-5 text-[#6B7684]">구독을 등록하면 내 사용 패턴에 맞는 프로모션을 추천해드려요.</p>
-      </div>
-      {(onOpenAccount || onLogout) && (
-        <div className="mt-6 flex items-center justify-center gap-3 text-[12px] text-[#8B95A1]">
-          {onOpenAccount && (
-            <button type="button" onClick={onOpenAccount} className="hover:text-[#191F28] hover:underline">
-              내 계정 ({profile?.nickname || "사용자"})
-            </button>
-          )}
-          {onOpenAccount && onLogout && <span>·</span>}
-          {onLogout && (
-            <button type="button" onClick={onLogout} className="hover:text-[#E11D48] hover:underline text-[#71717A]">
-              로그아웃
-            </button>
-          )}
-        </div>
-      )}
-    </section>
+    <ChevronRight
+      size={18}
+      strokeWidth={1.8}
+      className={"shrink-0 text-ink-subtle transition-transform " + (open ? "rotate-90" : "")}
+      aria-hidden="true"
+    />
   );
 }
 
-function VisualPromoCarousel({ promotions, onOpenPromotion }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const scrollRef = useRef(null);
-
-  // 배너는 확인된 혜택에만 연결한다. 해당 혜택이 카탈로그에 없으면 배너를 숨긴다.
-  const naverPromo = promotions.find((p) => p.id === "naverplus-netflix");
-  const youtubePromo = promotions.find((p) => p.id === "youtube-promo");
-  const bundlePromo = promotions.find((p) => p.id === "disney-bundle-37");
-
-  const slides = [
-    {
-      id: "naver-netflix",
-      promo: naverPromo,
-      tag: "네이버플러스 멤버십 제휴",
-      tagBg: "bg-[#DCFCE7] text-[#15803D]",
-      title: "네이버 멤버십으로\n넷플릭스 매월 0원!",
-      desc: "월 4,900원에 쇼핑 적립 + 넷플릭스 무료",
-      bgGradient: "from-[#F0FDF4] via-white to-[#E8F9EF] border-[#DCFCE7]",
-      visual: (
-        <div className="relative h-20 w-28 shrink-0 flex items-center justify-center select-none">
-          <div className="absolute top-3 right-9 w-[50px] h-[34px] rounded-xl bg-[#03C75A] text-white shadow-md -rotate-12 flex items-center justify-center font-black text-[13px] border-[1.5px] border-white">
-            N+
-          </div>
-          <div className="absolute top-7 right-1 w-[60px] h-[36px] rounded-xl bg-[#141414] text-[#E50914] shadow-md rotate-6 flex items-center justify-center font-black text-[11px] tracking-wider border-[1.5px] border-white">
-            NETFLIX
-          </div>
-          <div className="absolute top-1 right-2.5 h-[30px] w-[30px] rounded-full bg-[#22C55E] text-white flex items-center justify-center shadow-md text-[10px] font-black border-2 border-white">
-            0원
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "youtube-promo",
-      promo: youtubePromo,
-      tag: "YouTube Premium 신규 혜택",
-      tagBg: "bg-[#FFE4E6] text-[#BE123C]",
-      title: "유튜브 프리미엄\n첫 달 0원 체험!",
-      desc: "신규 가입 1개월 무료 + Lite 43% 할인",
-      bgGradient: "from-[#FFF1F2] via-white to-[#FFE4E6] border-[#FEE2E2]",
-      visual: (
-        <div className="relative h-20 w-28 shrink-0 flex items-center justify-center select-none">
-          <div className="absolute top-7 right-1 w-[62px] h-[36px] rounded-xl bg-[#FF0000] text-white shadow-md rotate-6 flex items-center justify-center font-black text-[11px] tracking-tight border-[1.5px] border-white">
-            YouTube
-          </div>
-          <div className="absolute top-1 right-2.5 h-[30px] w-[30px] rounded-full bg-[#22C55E] text-white flex items-center justify-center shadow-md text-[10px] font-black border-2 border-white">
-            0원
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "ott-bundle",
-      promo: bundlePromo,
-      tag: "OTT 3사 번들",
-      tagBg: "bg-[#DBEAFE] text-[#1D4ED8]",
-      title: "디즈니+·티빙·웨이브\n묶으면 최대 37% 할인!",
-      desc: "개별 구독 대비 결합 요금제 할인",
-      bgGradient: "from-[#EFF6FF] via-white to-[#E0F2FE] border-[#DBEAFE]",
-      visual: (
-        <div className="relative h-20 w-28 shrink-0 flex items-center justify-center select-none">
-          <div style={{ backgroundColor: "#001D38" }} className="absolute top-3 right-9 w-[54px] h-[34px] rounded-xl text-[#60A5FA] shadow-md -rotate-12 flex items-center justify-center font-black text-[11px] border-[1.5px] border-white">
-            Disney+
-          </div>
-          <div style={{ backgroundColor: "#FF153C" }} className="absolute top-7 right-1 w-[60px] h-[36px] rounded-xl text-white shadow-md rotate-6 flex items-center justify-center font-black text-[12px] border-[1.5px] border-white">
-            TVING
-          </div>
-          <div className="absolute top-1 right-2.5 h-[30px] w-[30px] rounded-full bg-[#38BDF8] text-[#0A1E3F] flex items-center justify-center shadow-md text-[10px] font-black border-2 border-white">
-            할인
-          </div>
-        </div>
-      ),
-    },
-  ].filter((slide) => slide.promo);
-
-  if (slides.length === 0) return null;
-
-  const handleScroll = () => {
-    if (!scrollRef.current) return;
-    const scrollLeft = scrollRef.current.scrollLeft;
-    const width = scrollRef.current.clientWidth;
-    if (width > 0) {
-      const newIdx = Math.round(scrollLeft / width);
-      setActiveIndex(newIdx);
-    }
-  };
-
-  const scrollToSlide = (idx) => {
-    if (!scrollRef.current) return;
-    const width = scrollRef.current.clientWidth;
-    scrollRef.current.scrollTo({
-      left: idx * width,
-      behavior: "smooth",
-    });
-    setActiveIndex(idx);
-  };
-
+// 로고 두 개를 왼쪽 위·오른쪽 아래로 겹쳐 40px 칸 안에 둔다. 흰 테두리로 겹친 부분을 나눈다.
+function LogoStack({ services }) {
+  const [first, second] = services;
+  if (!second) {
+    return <ServiceLogo serviceId={first.serviceId} name={first.name} image={first.image} />;
+  }
   return (
-    <div className="w-full">
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none rounded-[20px]"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {slides.map((s) => (
-          <div
-            key={s.id}
-            onClick={() => onOpenPromotion?.(s.promo)}
-            className={`w-full shrink-0 snap-center rounded-[20px] border bg-gradient-to-br ${s.bgGradient} px-4 py-3.5 flex items-center justify-between shadow-xs cursor-pointer active:scale-[0.98] transition-all`}
-            style={{ minHeight: "108px" }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onOpenPromotion?.(s.promo);
-              }
-            }}
-            aria-label={`${s.tag} - ${s.title}`}
-          >
-            <div className="flex-1 pr-2 min-w-0">
-              <span className={`inline-block text-[10.5px] font-bold px-2 py-0.5 rounded-md tracking-tight mb-1.5 ${s.tagBg}`}>
-                {s.tag}
-              </span>
-              <h3 className="text-[14px] font-bold text-[#191F28] tracking-tight leading-[1.3] whitespace-pre-line">
-                {s.title}
-              </h3>
-              <p className="text-[11px] font-medium text-[#4E5968] mt-1 truncate">
-                {s.desc}
-              </p>
-            </div>
-            {s.visual}
-          </div>
-        ))}
-      </div>
+    <span className="relative block h-10 w-10 shrink-0" aria-hidden="true">
+      <span className="absolute left-0 top-0 block rounded-[7px] ring-2 ring-white">
+        <ServiceLogo serviceId={first.serviceId} name={first.name} image={first.image} size={28} />
+      </span>
+      <span className="absolute bottom-0 right-0 block rounded-[7px] ring-2 ring-white">
+        <ServiceLogo serviceId={second.serviceId} name={second.name} image={second.image} size={28} />
+      </span>
+    </span>
+  );
+}
 
-      <div className="flex items-center justify-center gap-1.5 mt-2.5">
-        {slides.map((_, idx) => (
-          <button
-            key={idx}
-            type="button"
-            onClick={() => scrollToSlide(idx)}
-            className={`h-1.5 rounded-full transition-all cursor-pointer ${
-              activeIndex === idx ? "w-4.5 bg-[#3182F6]" : "w-1.5 bg-[#E5E8EB]"
-            }`}
-            aria-label={`슬라이드 ${idx + 1}`}
-          />
-        ))}
+function IconTile({ children }) {
+  return (
+    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-gray-100 text-ink-tertiary" aria-hidden="true">
+      {children}
+    </span>
+  );
+}
+
+// 홈 첫 묶음의 짧은 행(60px). 다가오는 결제 행(68px)보다 조금 낮다.
+function CompactRow({ leading, title, subtitle = null, trailing = null, onClick, open, ...props }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex min-h-[60px] w-full items-center gap-3.5 px-5 py-2.5 text-left transition-colors hover:bg-gray-50 active:bg-gray-100"
+      {...props}
+    >
+      {leading}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[16px] font-medium leading-[22px] tracking-tight text-ink">{title}</span>
+        {subtitle && (
+          <span className="mt-0.5 block truncate text-[13px] leading-[18px] tracking-tight text-ink-tertiary">{subtitle}</span>
+        )}
+      </span>
+      {trailing && (
+        <span className="shrink-0 text-[16px] font-semibold leading-[22px] tabular-nums tracking-tight text-ink">{trailing}</span>
+      )}
+      <ChevronIcon open={open} />
+    </button>
+  );
+}
+
+// 펼친 "챙길 일" 안의 꾸독 제안·알림 꺼짐 안내. 결정 버튼은 오른쪽 아래에 둔다.
+function TaskNotice({ icon, title, body, actions }) {
+  return (
+    <div className="flex gap-3.5 px-5 py-3">
+      <IconTile>{icon}</IconTile>
+      <div className="min-w-0 flex-1">
+        <p className="text-[15px] font-medium leading-[22px] tracking-tight text-ink">{title}</p>
+        {body && <p className="mt-0.5 text-[13px] leading-[18px] tracking-tight text-ink-tertiary">{body}</p>}
+        <div className="mt-2 flex flex-wrap gap-2">
+          {actions.map((action) => (
+            <Button
+              key={action.label}
+              size="small"
+              variant={action.primary ? "primary" : "secondary"}
+              onClick={action.onClick}
+              className="min-h-11"
+            >
+              {action.label}
+            </Button>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
+function HomeFooter({ onOpenTerms, onOpenAccount, onLogout, profile }) {
+  const links = [
+    onOpenAccount && { label: "내 계정 (" + (profile?.nickname || "사용자") + ")", onClick: onOpenAccount },
+    onOpenTerms && { label: "서비스 이용약관", onClick: () => onOpenTerms("terms") },
+    onOpenTerms && { label: "개인정보 처리방침", onClick: () => onOpenTerms("privacy") },
+    onLogout && { label: "로그아웃", onClick: onLogout },
+  ].filter(Boolean);
+  if (links.length === 0) return null;
+  return (
+    <footer className="mt-8 flex flex-wrap items-center justify-center gap-x-1 px-5 text-[12px] text-ink-tertiary">
+      {links.map((link) => (
+        <button key={link.label} type="button" onClick={link.onClick} className="min-h-11 px-1.5 hover:text-ink">
+          {link.label}
+        </button>
+      ))}
+    </footer>
+  );
+}
+
 export function HomeScreen({
-  subscriptions,
-  promotions = [],
+  subscriptions = [],
+  savedAmount = 0,
   profile,
   unreadCount = 0,
   notificationDenied,
   onOpenSubscription,
   onShowAll,
-  onOpenPromotion,
-  onExplorePromotions,
+  onShowCancelled,
   onAdd,
-  onScan,
-  onOpenDiscovery,
   onToggleNotificationPermission,
   onOpenNotificationCenter,
   onOpenTerms,
@@ -228,326 +166,255 @@ export function HomeScreen({
   onOpenAccount,
   onOpenAgent,
   careSlot = null,
+  careItems = [],
+  careHasRotation = false,
+  onOpenRotation,
   agentInsight = null,
   onOpenAgentInsight,
   onDismissInsight,
 }) {
-  const [annual, setAnnual] = useState(false);
+  const [tasksOpen, setTasksOpen] = useState(false);
 
-  const monthly = useMemo(() => {
-    return calculateMonthlyTotal(subscriptions);
-  }, [subscriptions]);
+  const activeSubscriptions = useMemo(
+    () => subscriptions.filter((sub) => sub && sub.status !== "cancelled"),
+    [subscriptions]
+  );
+  const monthlyTotal = useMemo(() => calculateMonthlyTotal(subscriptions), [subscriptions]);
+  const monthlyProgress = useMemo(() => calculateMonthlyProgress(subscriptions), [subscriptions]);
 
-  const yearly = useMemo(() => {
-    return calculateYearlyTotal(subscriptions);
-  }, [subscriptions]);
+  const upcoming = useMemo(() => {
+    return activeSubscriptions
+      .map((sub) => ({ sub, date: getNextChargeDate(sub), days: daysUntilCharge(sub) }))
+      .sort((a, b) => a.days - b.days)
+      .slice(0, UPCOMING_LIMIT);
+  }, [activeSubscriptions]);
 
-  const displayAmount = annual ? yearly : monthly;
+  const completed = useMemo(() => {
+    return monthlyProgress.items
+      .filter((item) => item.isCompleted)
+      .sort((a, b) => a.billingDay - b.billingDay)
+      .map((item) => ({ ...item, sub: activeSubscriptions.find((sub) => subscriptionKey(sub) === item.subscriptionId) }));
+  }, [monthlyProgress, activeSubscriptions]);
 
-  const activeSubscriptionsCount = useMemo(() => {
-    return subscriptions.filter((sub) => sub && sub.status !== "cancelled").length;
-  }, [subscriptions]);
+  const cancelItems = careItems.filter((item) => CANCEL_IN_PROGRESS.has(item.type));
+  const otherCareCount = careItems.length - cancelItems.length;
+  const noticeCount = (agentInsight ? 1 : 0) + (notificationDenied ? 1 : 0);
+  const taskCount = careItems.length + noticeCount;
+  const onlyCancelChecks = cancelItems.length > 0 && otherCareCount === 0 && noticeCount === 0;
 
-  // 결제 예정순 정렬 (무료체험 최우선 -> 사용자 지정 고정(강조) -> 빠른 결제일 순)
-  const sortedSubscriptions = useMemo(() => {
-    return [...subscriptions].sort((a, b) => {
-      const aTrial = Boolean(a.isTrial || a.status === "trial");
-      const bTrial = Boolean(b.isTrial || b.status === "trial");
-      if (aTrial && !bTrial) return -1;
-      if (!aTrial && bTrial) return 1;
+  // 해지 확인 중인 서비스. 다가오는 결제 행에 "해지 확인 중"을 붙이는 데 쓴다.
+  const cancellingKeys = useMemo(() => {
+    const keys = new Set();
+    for (const item of careItems) {
+      if (!CANCEL_IN_PROGRESS.has(item.type)) continue;
+      const record = item.record || {};
+      [record.subscriptionId, record.serviceId, record.id].filter(Boolean).forEach((key) => keys.add(key));
+    }
+    return keys;
+  }, [careItems]);
+  const isCancelling = (sub) =>
+    [sub.subscriptionId, sub.serviceId, sub.id].some((key) => key && cancellingKeys.has(key));
 
-      const aPinned = Boolean(a.isPinned || a.pinned);
-      const bPinned = Boolean(b.isPinned || b.pinned);
-      if (aPinned && !bPinned) return -1;
-      if (!aPinned && bPinned) return 1;
+  const taskServices = [];
+  const seenNames = new Set();
+  // 접힌 항목 전체(챙길 일 + 꾸독 제안)의 서비스를 모은다. 알림 꺼짐 안내는 서비스가 없어서 빠진다.
+  const foldedItems = onlyCancelChecks ? cancelItems : [...careItems, ...(agentInsight ? [agentInsight] : [])];
+  for (const item of foldedItems) {
+    const service = careItemService(item, subscriptions);
+    if (!service.name || seenNames.has(service.name)) continue;
+    seenNames.add(service.name);
+    taskServices.push(service);
+  }
+  const SUMMARY_NAME_LIMIT = 2;
+  const summaryNames = taskServices.slice(0, SUMMARY_NAME_LIMIT).map((service) => service.name).join(", ");
+  const hiddenNameCount = taskServices.length - SUMMARY_NAME_LIMIT;
+  const taskSubtitle =
+    taskServices.length > 0
+      ? summaryNames + (hiddenNameCount > 0 ? " 외 " + hiddenNameCount + "개" : "")
+      : agentInsight?.title || (notificationDenied ? "결제 전 알림이 꺼져 있어요" : null);
 
-      return daysUntilCharge(a) - daysUntilCharge(b);
-    });
-  }, [subscriptions]);
+  const nextPayment = upcoming.find((entry) => entry.date)?.date || null;
+  const today = new Date();
+  const header = (
+    <MainHeader
+      onOpenAgent={onOpenAgent}
+      onOpenNotifications={onOpenNotificationCenter}
+      unreadCount={unreadCount}
+    />
+  );
 
-  if (subscriptions.length === 0) {
-    // 마지막 구독을 해지해도 해지 확인 카드는 계속 보여야 한다.
+  const taskRows = (
+    <>
+      {taskCount > 0 && (
+        <CompactRow
+          leading={
+            taskServices.length > 0 ? (
+              <LogoStack services={taskServices} />
+            ) : (
+              <IconTile>
+                <ListChecks size={20} strokeWidth={1.7} />
+              </IconTile>
+            )
+          }
+          title={onlyCancelChecks ? "해지 확인 중 " + cancelItems.length + "건" : "챙길 일 " + taskCount + "건"}
+          subtitle={taskSubtitle}
+          onClick={() => setTasksOpen((open) => !open)}
+          open={tasksOpen}
+          aria-expanded={tasksOpen}
+          aria-controls="home-tasks"
+        />
+      )}
+      {taskCount > 0 && tasksOpen && (
+        <div id="home-tasks" className="pb-2">
+          {agentInsight && (
+            <TaskNotice
+              icon={<MessageCircle size={20} strokeWidth={1.7} />}
+              title={agentInsight.title}
+              body={agentInsight.message}
+              actions={[
+                onOpenAgentInsight && { label: "대화하기", primary: true, onClick: () => onOpenAgentInsight(agentInsight) },
+                onDismissInsight && { label: "닫기", onClick: () => onDismissInsight(agentInsight.id) },
+              ].filter(Boolean)}
+            />
+          )}
+          {notificationDenied && (
+            <TaskNotice
+              icon={<BellOff size={20} strokeWidth={1.7} />}
+              title="결제 전 알림이 꺼져 있어요"
+              body="결제 3일 전과 하루 전에 알려 드려요."
+              actions={[{ label: "알림 켜기", primary: true, onClick: onToggleNotificationPermission }]}
+            />
+          )}
+          {careSlot}
+        </div>
+      )}
+      {taskCount === 0 && careHasRotation && onOpenRotation && (
+        <CompactRow
+          leading={
+            <IconTile>
+              <ListChecks size={20} strokeWidth={1.7} />
+            </IconTile>
+          }
+          title="구독 순환 계획"
+          onClick={onOpenRotation}
+        />
+      )}
+      {Number(savedAmount) > 0 && (
+        <CompactRow
+          leading={
+            <IconTile>
+              <TrendingDown size={20} strokeWidth={1.7} />
+            </IconTile>
+          }
+          title="줄인 구독료"
+          trailing={"월 " + formatWonText(savedAmount)}
+          onClick={onShowCancelled || onShowAll}
+        />
+      )}
+    </>
+  );
+
+  if (activeSubscriptions.length === 0) {
+    // 마지막 구독을 해지해도 해지 확인과 줄인 구독료는 계속 보여야 한다.
     return (
       <>
-        {careSlot && <div className="px-4 sm:px-5">{careSlot}</div>}
-        <EmptyState
-          onAdd={onAdd}
-          onScan={onScan || onAdd}
-          onOpenDiscovery={onOpenDiscovery}
-          onLogout={onLogout}
-          onOpenAccount={onOpenAccount}
-          profile={profile}
-        />
+        {header}
+        <main className="pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+          <div className="pt-2">{taskRows}</div>
+          <section className="px-5 pb-6 pt-16 text-center">
+            <h1 className="text-[20px] font-bold leading-[28px] tracking-[-0.025em] text-ink">등록한 구독이 없어요</h1>
+            <p className="mt-2 text-[15px] leading-[22px] tracking-tight text-ink-tertiary">
+              구독을 추가하면 결제일 전에 알려 드려요.
+            </p>
+            <Button size="large" fullWidth onClick={onAdd} className="mt-8">
+              구독 추가하기
+            </Button>
+          </section>
+          <HomeFooter onOpenTerms={onOpenTerms} onOpenAccount={onOpenAccount} onLogout={onLogout} profile={profile} />
+        </main>
       </>
     );
   }
 
   return (
-    <main className="px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-safe select-none">
-      {/* 1. 상단 서비스 브랜드 & 알림센터/마이페이지 헤더 */}
-      <header className="flex items-center justify-between pt-4 pb-3 border-b border-gray-100/80">
-        <div className="flex items-baseline gap-2">
-          <span className="text-[20px] font-black tracking-tight text-black">
-            꾸독
-          </span>
-          <span className="text-[12px] font-semibold text-gray-400">
-            구독 관리
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onOpenNotificationCenter}
-            className="relative p-2 text-gray-500 hover:text-black transition-colors cursor-pointer"
-            aria-label="알림 센터 열기"
-          >
-            <Bell size={20} />
-            {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
-            )}
-          </button>
-          {onOpenAccount && (
-            <button
-              type="button"
-              onClick={onOpenAccount}
-              className="p-2 text-gray-500 hover:text-black transition-colors cursor-pointer"
-              aria-label="내 계정 관리"
-            >
-              <User size={20} />
-            </button>
-          )}
-        </div>
-      </header>
+    <>
+      {header}
+      <main className="pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+        <section className="px-5 pb-4 pt-5" aria-label="이번 달 구독료">
+          <p className="text-[15px] font-medium leading-[22px] tracking-tight text-ink-muted">
+            {today.getMonth() + 1}월 구독료
+          </p>
+          <p className="mt-1 text-[30px] font-bold leading-[40px] tracking-[-0.03em] text-ink tabular-nums">
+            {formatWonText(monthlyTotal)}
+          </p>
+          <p className="mt-1 text-[14px] leading-[20px] tracking-tight text-ink-tertiary">
+            구독 {activeSubscriptions.length}개{nextPayment ? " · 다음 결제 " + formatMonthDay(nextPayment) : ""}
+          </p>
+        </section>
 
-      {/* 2. 이번 달 총 지출 & 활성 구독 (원래 레이아웃 유지) */}
-      <div className="pt-6 pb-4 flex items-end justify-between">
-        <div
-          onClick={() => setAnnual((v) => !v)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setAnnual((v) => !v);
-            }
-          }}
-          className="cursor-pointer group"
-          role="button"
-          tabIndex={0}
-          aria-label="월간 및 연간 지출 전환"
-        >
-          <span className="text-[13px] font-semibold text-gray-400 block">
-            {annual ? "연간 환산 총 지출" : "이번 달 총 지출"}
-            <span className="text-[11px] text-gray-300 font-normal ml-1 group-hover:text-gray-500 transition-colors">
-              (탭하여 전환)
-            </span>
-          </span>
-          <span className="mt-1.5 block text-[36px] font-black text-black tracking-tight leading-none truncate">
-            {formatWon(displayAmount)}
-          </span>
-        </div>
+        {taskRows}
 
-        <div className="text-right pb-0.5 shrink-0">
-          <span className="text-[11px] font-medium text-gray-400 block">
-            활성 구독
-          </span>
-          <div className="mt-1 leading-none">
-            <span className="text-[26px] font-black text-black tracking-tight">
-              {activeSubscriptionsCount}
-            </span>
-            <span className="text-[15px] font-bold text-gray-600 ml-0.5">
-              개
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 꾸독 에이전트 선제적 인사이트 카드 */}
-      {agentInsight && (
-        <div
-          className="mt-2.5 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/90 via-white to-indigo-50/60 p-4 shadow-sm transition-all"
-          role="region"
-          aria-label="꾸독 인사이트"
-        >
-          <div className="flex items-start justify-between gap-2.5">
-            <div className="flex items-center gap-2">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#3182F6] text-white shadow-2xs">
-                <Sparkles size={13} />
-              </span>
-              <span className="text-[12px] font-bold text-[#3182F6]">꾸독</span>
-              {agentInsight.priority === "high" && (
-                <span className="rounded-md bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-600">
-                  중요
-                </span>
-              )}
-            </div>
-            {onDismissInsight && (
-              <button
-                type="button"
-                onClick={() => onDismissInsight(agentInsight.id)}
-                className="grid h-6 w-6 place-items-center rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-colors"
-                aria-label="인사이트 닫기"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
-
-          <div className="mt-2 min-w-0">
-            <strong className="block text-[14px] font-bold text-[#191F28] leading-snug">
-              {agentInsight.title}
-            </strong>
-            <p className="mt-1 text-[13px] leading-relaxed text-[#4E5968]">
-              {agentInsight.message}
-            </p>
-          </div>
-
-          {onOpenAgentInsight && (
-            <div className="mt-3 flex justify-end">
-              <button
-                type="button"
-                onClick={() => onOpenAgentInsight(agentInsight)}
-                className="flex items-center gap-1.5 rounded-xl bg-[#191F28] px-3.5 py-2 text-[12.5px] font-bold text-white shadow-xs transition-all active:scale-95 hover:bg-black"
-                aria-label="꾸독과 대화하기"
-              >
-                대화하기
-                <ChevronRight size={14} className="text-white/70" />
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 알림 권한 꺼짐 안내 (필요 시 노출) */}
-      {onOpenAgent && (
-        <button
-          type="button"
-          onClick={onOpenAgent}
-          className="mt-1 flex w-full items-center gap-3 rounded-2xl bg-[#191F28] px-4 py-3.5 text-left shadow-sm transition-all active:scale-[0.98]"
-          aria-label="꾸독에게 시키기"
-        >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-white">
-            <Sparkles size={17} />
-          </span>
-          <span className="min-w-0 flex-1">
-            <strong className="block text-[14px] font-bold text-white">꾸독에게 시키기</strong>
-            <span className="block truncate text-[12px] font-medium text-white/60">"넷플릭스 해지하고 환불 받아줘"</span>
-          </span>
-          <ChevronRight size={18} className="shrink-0 text-white/50" />
-        </button>
-      )}
-
-      {notificationDenied && (
-        <button
-          type="button"
-          onClick={onToggleNotificationPermission}
-          className="mt-3 flex w-full items-center justify-between rounded-xl border border-amber-200 bg-amber-50/90 p-3.5 text-left shadow-xs transition-all active:scale-[0.98]"
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-amber-500 text-white shadow-2xs">
-              <BellOff size={15} />
-            </span>
-            <div>
-              <strong className="block text-[12px] font-bold text-amber-950">결제 전 알림이 꺼져 있어요</strong>
-              <span className="text-[11px] font-medium text-amber-700">D-3, D-1 알림을 켜보세요.</span>
-            </div>
-          </div>
-          <span className="rounded-lg bg-amber-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs">
-            켜기
-          </span>
-        </button>
-      )}
-
-      {/* 3. 내 구독 파트 (피로도 제로: 편안한 16px 굵기와 넉넉한 20px+ 여백) */}
-      {careSlot}
-
-      <section className="mt-5">
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100/80">
-          <h2 className="text-[16px] font-bold text-[#191F28] tracking-tight">
-            구독 관리
-          </h2>
-          <div className="flex items-center gap-3">
-            {onOpenDiscovery && (
-              <button
-                type="button"
-                onClick={onOpenDiscovery}
-                className="inline-flex items-center gap-1 rounded-lg bg-[#EAF2ED] px-2.5 py-1 text-[11.5px] font-bold text-[#153D2E] hover:bg-[#dce9e1] transition-colors cursor-pointer"
-              >
-                <Sparkles size={12} />
-                숨은 구독 찾기
-              </button>
-            )}
-            {subscriptions.length > 5 && onShowAll && (
-              <button
-                type="button"
-                onClick={onShowAll}
-                className="text-[12px] font-medium text-gray-400 hover:text-black flex items-center transition-colors cursor-pointer"
-              >
-                전체보기 <ChevronRight size={13} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* 구독 리스트: 기존과 같은 단일 리스트 구성, 서비스 간 여백 py-5(20px) 넉넉한 확장 + 대형 로고 */}
-        <div className="divide-y divide-gray-100/80">
-          {sortedSubscriptions.map((subscription) => (
-            <SubscriptionCard
-              key={subscription.subscriptionId || subscription.id}
-              subscription={subscription}
-              variant="grouped"
-              onOpen={() => onOpenSubscription(subscription.subscriptionId || subscription.id)}
+        <SectionBand className="mt-2" />
+        <SectionHeader title="다가오는 결제" actionLabel="전체" onAction={onShowAll} />
+        <div>
+          {upcoming.map(({ sub, date }) => (
+            <ListRow
+              key={subscriptionKey(sub)}
+              onClick={() => onOpenSubscription(subscriptionKey(sub))}
+              leading={<ServiceLogo serviceId={sub.serviceId || sub.id} name={sub.name} monogram={sub.monogram} image={sub.image} />}
+              title={sub.name}
+              subtitle={
+                <>
+                  {formatMonthDay(date)}
+                  {isCancelling(sub) && (
+                    <>
+                      {" · "}
+                      <span className="font-medium text-ink-muted">해지 확인 중</span>
+                    </>
+                  )}
+                </>
+              }
+              trailingTitle={formatWonText(getSubscriptionDisplayAmount(sub))}
+              trailingSubtitle={<DDayText subscription={sub} />}
             />
           ))}
         </div>
-      </section>
 
-      {/* 4. 스마트 절약 · 혜택 (하단 30~40% 영역을 차지하는 시각화 스와이프 캐러셀) */}
-      <section className="mt-9">
-        <div className="flex items-center justify-between pb-2 border-b border-gray-100/80 mb-3.5">
-          <h2 className="text-[14px] font-bold text-gray-800 tracking-tight flex items-center gap-1.5">
-            <Sparkles size={16} className="text-[#3182F6]" />
-            스마트 절약 추천 · 혜택
-          </h2>
-          {onExplorePromotions && (
-            <button
-              type="button"
-              onClick={onExplorePromotions}
-              className="text-[12px] font-medium text-gray-400 hover:text-black flex items-center transition-colors"
-            >
-              더보기 <ChevronRight size={13} />
-            </button>
-          )}
-        </div>
+        {completed.length > 0 && (
+          <>
+            <SectionBand className="mt-3" />
+            <SectionHeader
+              title="이번 달 결제 완료"
+              trailing={
+                <span className="text-[14px] tabular-nums tracking-tight text-ink-tertiary">
+                  {formatWonText(monthlyProgress.completedAmount)}
+                </span>
+              }
+            />
+            <div>
+              {completed.map((item) => (
+                <ListRow
+                  key={item.subscriptionId}
+                  onClick={() => onOpenSubscription(item.subscriptionId)}
+                  leading={
+                    <ServiceLogo
+                      serviceId={item.sub?.serviceId || item.sub?.id}
+                      name={item.name}
+                      monogram={item.sub?.monogram}
+                      image={item.sub?.image}
+                    />
+                  }
+                  title={item.name}
+                  subtitle={formatMonthDay(item.chargeDate) + " 결제"}
+                  trailingTitle={formatWonText(item.amount)}
+                />
+              ))}
+            </div>
+          </>
+        )}
 
-        {/* 시각화 스와이프 캐러셀 (글자 목록 없이 단독 스와이프 배너) */}
-        <VisualPromoCarousel
-          promotions={promotions}
-          onOpenPromotion={onOpenPromotion}
-        />
-      </section>
-
-      {/* 5. Legal & Footer */}
-      <footer className="mt-12 border-t border-gray-100 pt-5 pb-4 text-center">
-        <div className="flex items-center justify-center gap-2.5 text-[11px] text-gray-400">
-          <button type="button" onClick={() => onOpenTerms?.("terms")} className="hover:text-black hover:underline">
-            서비스 이용약관
-          </button>
-          <span>·</span>
-          <button type="button" onClick={() => onOpenTerms?.("privacy")} className="hover:text-black hover:underline">
-            개인정보 처리방침
-          </button>
-          {onLogout && (
-            <>
-              <span>·</span>
-              <button type="button" onClick={onLogout} className="hover:text-red-500 hover:underline">
-                로그아웃
-              </button>
-            </>
-          )}
-        </div>
-        <p className="mt-1.5 text-[10px] text-gray-300">
-          © 2026 꾸독. 구독 관리 서비스
-        </p>
-      </footer>
-    </main>
+        <HomeFooter onOpenTerms={onOpenTerms} onOpenAccount={onOpenAccount} onLogout={onLogout} profile={profile} />
+      </main>
+    </>
   );
 }

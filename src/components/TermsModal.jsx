@@ -90,20 +90,20 @@ export function TermsModal({ initialTab = "terms", onClose }) {
   return (
     <BottomSheet onClose={onClose} label="꾸독 약관 및 정책">
       <div className="pb-2">
-        <div className="flex items-center justify-between pb-3 border-b border-[#E4E4E7]">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-xl bg-[#191F28] text-white">
+            <div className="grid h-8 w-8 place-items-center rounded-xl bg-gray-900 text-white">
               <Shield size={16} />
             </div>
             <div>
-              <h2 className="text-[16px] font-bold text-[#191F28]">약관 및 정책</h2>
-              <p className="text-[11px] text-[#71717A]">꾸독의 이용약관 및 개인정보 보호정책</p>
+              <h2 className="text-[16px] font-bold text-ink">약관 및 정책</h2>
+              <p className="text-[11px] text-ink-muted">꾸독의 이용약관 및 개인정보 보호정책</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="grid h-7 w-7 place-items-center rounded-lg text-[#71717A] hover:bg-[#F4F4F5] hover:text-black"
+            className="grid h-7 w-7 place-items-center rounded-lg text-ink-muted hover:bg-gray-100 hover:text-ink"
             aria-label="닫기"
           >
             <X size={16} />
@@ -121,18 +121,18 @@ export function TermsModal({ initialTab = "terms", onClose }) {
           ]}
         />
 
-        <div ref={contentRef} className="mt-4 max-h-[380px] overflow-y-auto rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-4 text-[13px] leading-relaxed text-[#333D4B] font-sans">
+        <div ref={contentRef} className="mt-4 max-h-[380px] overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50 p-4 text-[13px] leading-relaxed text-gray-800 font-sans">
           {currentTab === "terms" && (
             <div>
-              <div className="mb-3.5 rounded-xl border border-blue-200 bg-blue-50/70 p-3 text-[12px] text-blue-950">
-                <strong className="block font-bold mb-1">💡 이용약관 핵심 요약</strong>
-                <ul className="space-y-0.5 text-[11px] text-blue-900/90 list-disc list-inside">
+              <div className="mb-3.5 rounded-xl border border-brand-line bg-brand-soft/70 p-3 text-[12px] text-ink">
+                <strong className="block font-bold mb-1">이용약관 핵심 요약</strong>
+                <ul className="space-y-0.5 text-[11px] text-ink/90 list-disc list-inside">
                   <li>꾸독은 계약 당사자가 아닌 구독 관리 보조 서비스입니다.</li>
                   <li>최종 결제 및 해지 확인 책임은 이용자 본인에게 있습니다.</li>
                   <li>결제 감지 및 AI 인식 오차 가능성을 감안해 최종 확인을 권장합니다.</li>
                 </ul>
               </div>
-              <div className="whitespace-pre-line text-[12.5px] leading-6 text-[#333D4B]">
+              <div className="whitespace-pre-line text-[13px] leading-6 text-gray-800">
                 {TERMS_TEXT}
               </div>
             </div>
@@ -140,7 +140,7 @@ export function TermsModal({ initialTab = "terms", onClose }) {
           {currentTab === "privacy" && (
             <div>
               <div className="mb-3.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-[12px] text-emerald-950">
-                <strong className="block font-bold mb-1">🔒 개인정보 보호 핵심 원칙</strong>
+                <strong className="block font-bold mb-1">개인정보 보호 핵심 원칙</strong>
                 <ul className="space-y-0.5 text-[11px] text-emerald-900/90 list-disc list-inside">
                   <li>자체 ID/비밀번호 없이 Google OAuth 연동 및 Supabase AES-256 저장 암호화 적용.</li>
                   <li>실시간 결제 알림은 기기 내에서만 온디바이스 파싱 후 즉시 폐기됩니다.</li>
@@ -148,7 +148,7 @@ export function TermsModal({ initialTab = "terms", onClose }) {
                   <li>회원 탈퇴 시 모든 개인정보는 지체 없이 영구 파기됩니다.</li>
                 </ul>
               </div>
-              <div className="whitespace-pre-line text-[12.5px] leading-6 text-[#333D4B]">
+              <div className="whitespace-pre-line text-[13px] leading-6 text-gray-800">
                 {PRIVACY_TEXT}
               </div>
             </div>
@@ -156,21 +156,21 @@ export function TermsModal({ initialTab = "terms", onClose }) {
           {currentTab === "permissions" && (
             <div>
               <div className="mb-3.5 rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-[12px] text-amber-950">
-                <strong className="block font-bold mb-1">🛡️ 권한 사용 및 안전 보증</strong>
+                <strong className="block font-bold mb-1">권한 사용 및 안전 보증</strong>
                 <ul className="space-y-0.5 text-[11px] text-amber-900/90 list-disc list-inside">
                   <li>결제 알림 접근: 오직 카드사/은행/페이 결제 승인 알림만 선별 감지합니다.</li>
                   <li>안전한 해지 가이드: 별도 오버레이 권한 없이 전용 인앱 브라우저에서 안전하게 단계별 안내를 제공합니다.</li>
                   <li>사적인 메신저, 개인 문자, 이메일함 등에 대한 접근은 일체 수행하지 않습니다.</li>
                 </ul>
               </div>
-              <div className="whitespace-pre-line text-[12.5px] leading-6 text-[#333D4B]">
+              <div className="whitespace-pre-line text-[13px] leading-6 text-gray-800">
                 {CONSENT_TEXT}
               </div>
             </div>
           )}
         </div>
 
-        <p className="mt-3 text-center text-[11px] text-[#8B95A1]">
+        <p className="mt-3 text-center text-[11px] text-ink-tertiary">
           시행일자: 2026년 10월 19일 (v1.3) · 상세 전문은 docs/terms/ 문서에서 확인하실 수 있습니다.
         </p>
       </div>

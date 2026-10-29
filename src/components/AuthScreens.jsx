@@ -27,9 +27,9 @@ export function AuthLogin({ onSocial, onGuest }) {
   return (
     <main className="flex min-h-screen min-h-[100dvh] flex-col px-4 sm:px-5 pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1rem))] pt-[max(2.5rem,calc(env(safe-area-inset-top,0px)+1.5rem))]">
       <div className="mb-10">
-        <p className="mb-2 text-[13px] font-medium text-[#71717A]">구독을 내 편으로</p>
+        <p className="mb-2 text-[13px] font-medium text-ink-muted">구독을 내 편으로</p>
         <h1 className="text-3xl font-bold tracking-[-0.03em]">구독 관리의<br />가장 쉬운 시작</h1>
-        <p className="mt-4 max-w-[290px] text-[15px] leading-6 text-[#71717A]">결제 전에 알리고, 해지는 빠르게. 꾸독이 매달의 고정지출을 정리해드려요.</p>
+        <p className="mt-4 max-w-[290px] text-[15px] leading-6 text-ink-muted">결제 전에 알리고, 해지는 빠르게. 꾸독이 매달의 고정지출을 정리해드려요.</p>
       </div>
 
       <div className="space-y-3">
@@ -44,14 +44,14 @@ export function AuthLogin({ onSocial, onGuest }) {
 
         <Button
           variant="ghost"
-          className="w-full text-[#71717A] hover:text-black py-3"
+          className="w-full text-ink-muted hover:text-ink py-3"
           onClick={onGuest}
         >
           로그인 없이 둘러보기 (게스트 모드)
         </Button>
       </div>
 
-      <div className="mt-auto pt-8 text-center text-[12px] text-[#A1A1AA]">
+      <div className="mt-auto pt-8 text-center text-[12px] text-ink-subtle">
         <p>Google 로그인 시 안전한 PKCE 인증이 적용됩니다.</p>
       </div>
     </main>

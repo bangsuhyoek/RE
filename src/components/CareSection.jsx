@@ -1,17 +1,19 @@
 import { BadgeCheck, CalendarClock, Gift, Repeat, ShieldAlert, ShieldQuestion, Users, CircleHelp, Search } from "lucide-react";
 
 // 홈 '오늘 챙길 일': 꾸독이 챙긴 일을 보여주고 사용자는 버튼으로 결정만 한다.
+// C2: 아이콘은 모두 회색 타일. 이미 결제된 해지 실패만 빨강으로 구분한다.
+const NEUTRAL_TONE = "bg-gray-100 text-ink-muted";
 const TYPE_STYLE = {
-  cancel_ask: { icon: ShieldQuestion, tone: "bg-[#FFF4E5] text-[#B25E00]" },
-  cancel_charged: { icon: ShieldAlert, tone: "bg-[#FDEBEC] text-[#C2272D]" },
-  cancel_watching: { icon: Search, tone: "bg-[#F2F4F6] text-[#4E5968]" },
-  cancel_verified: { icon: BadgeCheck, tone: "bg-[#E8F7EE] text-[#1A7F45]" },
-  trial_guard: { icon: Gift, tone: "bg-[#FFF4E5] text-[#B25E00]" },
-  usage_ask: { icon: CircleHelp, tone: "bg-[#EEF4FF] text-[#1B64DA]" },
-  usage_suggest: { icon: CircleHelp, tone: "bg-[#EEF4FF] text-[#1B64DA]" },
-  settlement: { icon: Users, tone: "bg-[#F3EEFF] text-[#6B3FD4]" },
-  rotation_due: { icon: CalendarClock, tone: "bg-[#EEF4FF] text-[#1B64DA]" },
-  rotation_suggest: { icon: Repeat, tone: "bg-[#E8F7EE] text-[#1A7F45]" },
+  cancel_ask: { icon: ShieldQuestion, tone: NEUTRAL_TONE },
+  cancel_charged: { icon: ShieldAlert, tone: "bg-danger-soft text-danger" },
+  cancel_watching: { icon: Search, tone: NEUTRAL_TONE },
+  cancel_verified: { icon: BadgeCheck, tone: NEUTRAL_TONE },
+  trial_guard: { icon: Gift, tone: NEUTRAL_TONE },
+  usage_ask: { icon: CircleHelp, tone: NEUTRAL_TONE },
+  usage_suggest: { icon: CircleHelp, tone: NEUTRAL_TONE },
+  settlement: { icon: Users, tone: NEUTRAL_TONE },
+  rotation_due: { icon: CalendarClock, tone: NEUTRAL_TONE },
+  rotation_suggest: { icon: Repeat, tone: NEUTRAL_TONE },
 };
 
 export const CARE_ACTIONS = {
@@ -50,64 +52,59 @@ export const CARE_ACTIONS = {
   ],
 };
 
+// 홈의 "챙길 일" 행을 펼치면 이 목록이 바로 이어진다. 제목·카드 없이 평평한 행으로 그린다.
 export function CareSection({ items = [], onAction, onOpenRotation, hasRotation = false }) {
   if (items.length === 0 && !hasRotation) return null;
   const visible = items.slice(0, 5);
   return (
-    <section className="mt-5" aria-label="오늘 챙길 일">
-      <div className="flex items-center justify-between pb-2">
-        <h2 className="text-[16px] font-bold tracking-tight text-[#191F28]">오늘 챙길 일</h2>
-        {hasRotation && (
-          <button type="button" onClick={onOpenRotation} className="text-[12px] font-semibold text-[#6B7684] hover:text-[#191F28]">
-            구독 순환 계획
-          </button>
-        )}
-      </div>
+    <section aria-label="챙길 일">
       {visible.length === 0 ? (
-        <p className="rounded-2xl bg-[#F9FAFB] px-4 py-3 text-[13px] text-[#6B7684]">지금 결정할 일이 없어요. 꾸독이 계속 지켜볼게요.</p>
+        <p className="px-5 py-3 text-[13px] text-ink-tertiary">지금 결정할 일이 없어요. 꾸독이 계속 지켜볼게요.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul>
           {visible.map((item) => {
             const style = TYPE_STYLE[item.type] || TYPE_STYLE.cancel_watching;
             const Icon = style.icon;
             const actions = (CARE_ACTIONS[item.type] || []).filter((action) => !action.when || action.when(item));
             return (
-              <li key={item.key} className="rounded-2xl border border-[#E5E8EB] bg-white p-3.5">
-                <div className="flex items-start gap-3">
-                  <span className={"grid h-9 w-9 shrink-0 place-items-center rounded-full " + style.tone}>
-                    <Icon size={17} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[14px] font-bold leading-snug text-[#191F28]">{item.title}</p>
-                    <p className="mt-0.5 text-[12.5px] leading-relaxed text-[#6B7684]">{item.body}</p>
-                  </div>
+              <li key={item.key} className="flex gap-3.5 px-5 py-3">
+                <span className={"grid h-10 w-10 shrink-0 place-items-center rounded-[10px] " + style.tone}>
+                  <Icon size={20} strokeWidth={1.7} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-medium leading-[22px] tracking-tight text-ink">{item.title}</p>
+                  {item.body && <p className="mt-0.5 text-[13px] leading-[18px] tracking-tight text-ink-tertiary">{item.body}</p>}
+                  {actions.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {actions.map((action) => (
+                        <button
+                          key={action.id}
+                          type="button"
+                          onClick={() => onAction?.(item, action.id)}
+                          className={
+                            "min-h-11 rounded-[10px] px-3.5 text-[14px] font-semibold tracking-tight transition-colors " +
+                            (action.primary ? "bg-brand text-white hover:bg-brand-hover" : "bg-gray-100 text-ink-secondary hover:bg-gray-200")
+                          }
+                        >
+                          {action.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {actions.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1.5 pl-12">
-                    {actions.map((action) => (
-                      <button
-                        key={action.id}
-                        type="button"
-                        onClick={() => onAction?.(item, action.id)}
-                        className={
-                          "rounded-xl px-3 py-1.5 text-[12.5px] font-bold transition-transform active:scale-95 " +
-                          (action.primary ? "bg-[#191F28] text-white" : "bg-[#F2F4F6] text-[#333D4B]")
-                        }
-                      >
-                        {action.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </li>
             );
           })}
         </ul>
       )}
       {items.length > visible.length && (
-        <p className="mt-2 text-center text-[12px] text-[#8B95A1]">처리하면 나머지 {items.length - visible.length}건이 이어서 보여요.</p>
+        <p className="px-5 pt-1 text-[12px] text-ink-tertiary">처리하면 나머지 {items.length - visible.length}건이 이어서 보여요.</p>
+      )}
+      {hasRotation && onOpenRotation && (
+        <button type="button" onClick={onOpenRotation} className="ml-[74px] min-h-11 text-[14px] font-medium text-ink-tertiary hover:text-ink-secondary">
+          구독 순환 계획 보기
+        </button>
       )}
     </section>
   );
 }
-

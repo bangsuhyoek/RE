@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check, ChevronRight, ArrowLeft, X, CheckCircle2, Sparkles } from "lucide-react";
+import { Check, ChevronRight, ArrowLeft, X, CheckCircle2 } from "lucide-react";
 import { BottomSheet, Button, IconButton, ServiceMark, CategoryBadge, CATEGORY_PHILOSOPHY } from "./ui";
 import { formatWon } from "../lib/dates";
 import { PaymentMethodTriggerField } from "./PaymentMethod";
@@ -241,22 +241,22 @@ export function OnboardingScreen({ catalog = [], selectedIds = [], onToggle, onF
               <button
                 type="button"
                 onClick={onOpenDiscovery}
-                className="mt-4 flex w-full items-center justify-between rounded-2xl border border-surface-brand/30 bg-[#EAF2ED] px-4 py-3.5 text-left transition-all active:scale-[0.99]"
+                className="mt-4 flex w-full items-center justify-between rounded-2xl border border-surface-brand/30 bg-brand-soft px-4 py-3.5 text-left transition-all active:scale-[0.99]"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#153D2E] text-white">
-                    <Sparkles size={16} />
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gray-100 text-ink">
+                    <CheckCircle2 size={16} />
                   </span>
                   <div>
-                    <strong className="block text-[13.5px] font-bold text-[#153D2E]">
+                    <strong className="block text-[14px] font-bold text-brand-ink">
                       내 폰에서 숨은 구독 1초 자동 스캔
                     </strong>
-                    <span className="text-[11.5px] text-[#2C6049]">
+                    <span className="text-[12px] text-brand-ink">
                       설치된 구독 앱 · 명세서 · 5대 결제허브에서 한 번에 찾기
                     </span>
                   </div>
                 </div>
-                <ChevronRight size={18} className="text-[#153D2E]" />
+                <ChevronRight size={18} className="text-brand-ink" />
               </button>
             )}
           </section>
@@ -365,7 +365,7 @@ export function OnboardingScreen({ catalog = [], selectedIds = [], onToggle, onF
 
                     <div>
                       {isRegistered ? (
-                        <span className="rounded-xl border border-surface-brand/30 bg-palette-eucalyptus-green-50 px-3 py-1.5 text-[12px] font-bold text-surface-brand">
+                        <span className="rounded-xl border border-surface-brand/30 bg-eucalyptus-green-50 px-3 py-1.5 text-[12px] font-bold text-surface-brand">
                           매월 {displayDue}일 결제
                         </span>
                       ) : (

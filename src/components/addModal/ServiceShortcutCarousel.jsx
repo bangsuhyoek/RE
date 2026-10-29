@@ -10,7 +10,7 @@ export const ServiceShortcutCarousel = React.memo(function ServiceShortcutCarous
 }) {
   return (
     <div className="mt-3">
-      <p className="mb-2.5 text-[12px] font-semibold text-[#6B7684]">
+      <p className="mb-2.5 text-[14px] font-medium text-ink-tertiary">
         자주 쓰는 서비스
       </p>
 
@@ -41,15 +41,15 @@ export const ServiceShortcutCarousel = React.memo(function ServiceShortcutCarous
                       serviceId={shortcut.id}
                       name={shortcut.name}
                       monogram={shortcut.monogram}
-                      className={`h-12 w-12 rounded-[14px] transition-all ${
+                      className={`h-12 w-12 transition-all ${
                         selected
-                          ? "ring-2 ring-[#153D2E] ring-offset-2"
+                          ? "ring-2 ring-ink ring-offset-2"
                           : ""
                       }`}
                     />
 
                     {selected && (
-                      <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-[#153D2E] text-white ring-2 ring-white">
+                      <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-ink text-white ring-2 ring-white">
                         <Check
                           size={11}
                           strokeWidth={3}
@@ -59,10 +59,10 @@ export const ServiceShortcutCarousel = React.memo(function ServiceShortcutCarous
                   </span>
 
                   <span
-                    className={`max-w-[66px] truncate text-center text-[11px] leading-4 ${
+                    className={`max-w-[66px] truncate text-center text-[12px] leading-4 ${
                       selected
-                        ? "font-semibold text-[#153D2E]"
-                        : "font-medium text-[#6B7684]"
+                        ? "font-semibold text-ink"
+                        : "font-normal text-ink-tertiary"
                     }`}
                   >
                     {shortcut.name}
@@ -76,3 +76,4 @@ export const ServiceShortcutCarousel = React.memo(function ServiceShortcutCarous
     </div>
   );
 });
+

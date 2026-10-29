@@ -25,15 +25,15 @@ export const SharingEditor = React.memo(function SharingEditor({
       : gross;
 
   return (
-    <section className="border-t border-[#E7EAE8] pt-4">
+    <section className="border-t border-gray-100 pt-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-[14px] font-semibold text-[#252A28]">
+          <p className="text-[16px] font-medium text-ink">
             다른 사람과 함께 이용 중이에요
           </p>
 
           {enabled && (
-            <p className="mt-0.5 text-[12px] text-[#6B7684]">
+            <p className="mt-0.5 text-[13px] text-ink-tertiary">
               실제로 내가 부담하는 금액만 지출에 반영해요.
             </p>
           )}
@@ -47,7 +47,7 @@ export const SharingEditor = React.memo(function SharingEditor({
       </div>
 
       {enabled && (
-        <div className="mt-4 rounded-2xl bg-[#F4F7F5] p-4">
+        <div className="mt-4">
           <FieldLabel>
             함께 이용하는 인원
           </FieldLabel>
@@ -66,10 +66,11 @@ export const SharingEditor = React.memo(function SharingEditor({
                   onClick={() =>
                     onShareCountChange(count)
                   }
-                  className={`h-10 rounded-xl border text-[13px] font-semibold transition-all ${
+                  aria-pressed={selected}
+                  className={`min-h-[44px] rounded-xl border text-[15px] transition-colors ${
                     selected
-                      ? "border-[#153D2E] bg-[#153D2E] text-white"
-                      : "border-[#DDE2DF] bg-white text-[#252A28]"
+                      ? "border-ink bg-ink font-semibold text-white"
+                      : "border-gray-200 bg-white font-medium text-ink-secondary"
                   }`}
                 >
                   {count === 5
@@ -103,26 +104,26 @@ export const SharingEditor = React.memo(function SharingEditor({
                     )
                   )
                 }
-                className="w-full rounded-xl border border-[#DDE2DF] bg-white px-3.5 py-3 text-[14px] text-[#111315] outline-none focus:border-[#153D2E] focus:ring-[3px] focus:ring-[#153D2E]/[0.08]"
+                className="min-h-[52px] w-full rounded-xl border border-transparent bg-gray-100 px-3.5 text-[16px] text-ink outline-none focus:border-gray-300 focus:bg-white"
               />
             </div>
           )}
 
-          <div className="mt-4 space-y-2.5 text-[13px]">
-            <div className="flex items-center justify-between">
-              <span className="text-[#6B7684]">
+          <div className="mt-4 divide-y divide-gray-100 border-y border-gray-100 text-[15px]">
+            <div className="flex min-h-[44px] items-center justify-between">
+              <span className="text-ink-tertiary">
                 전체 구독료
               </span>
-              <strong className="font-semibold text-[#252A28]">
+              <strong className="font-semibold text-ink">
                 {formatWon(gross)}
               </strong>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-[#6B7684]">
+            <div className="flex min-h-[44px] items-center justify-between">
+              <span className="text-ink-tertiary">
                 {shareCount}명 균등 분담 기준
               </span>
-              <strong className="font-semibold text-[#252A28]">
+              <strong className="font-semibold text-ink">
                 {formatWon(equalShare)}
               </strong>
             </div>
@@ -145,10 +146,10 @@ export const SharingEditor = React.memo(function SharingEditor({
                     )
                   )
                 }
-                className="w-full rounded-xl border border-[#DDE2DF] bg-white px-3.5 py-3 pr-9 text-right text-[16px] font-bold text-[#153D2E] outline-none focus:border-[#153D2E] focus:ring-[3px] focus:ring-[#153D2E]/[0.08]"
+                className="min-h-[52px] w-full rounded-xl border border-transparent bg-gray-100 px-3.5 pr-9 text-right text-[17px] font-semibold tabular-nums text-ink outline-none focus:border-gray-300 focus:bg-white"
               />
 
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-[#6B7684]">
+              <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[15px] text-ink-tertiary">
                 원
               </span>
             </div>
@@ -158,3 +159,4 @@ export const SharingEditor = React.memo(function SharingEditor({
     </section>
   );
 });
+

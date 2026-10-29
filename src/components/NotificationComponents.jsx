@@ -1,19 +1,42 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, BellRing, ChevronRight, Sparkles, X, Trash2, Send } from "lucide-react";
-import { BottomSheet, Button, ServiceMark } from "./ui";
+import { Bell, ChevronRight, X, Trash2, Send } from "lucide-react";
+import { BottomSheet, Button, DDAY_BADGE_TONE, ServiceLogo, ServiceMark } from "./ui";
+import { normalizeWonText } from "../lib/dates";
+
+/** 알림 배지를 사람이 읽는 말로 바꾼다. TODAY → 오늘, TRIAL D-1 → 무료 D-1. */
+export function formatNotificationBadge(badge = "") {
+  const text = String(badge || "").trim();
+  if (!text) return "";
+  return text.replace(/^TODAY$/i, "오늘").replace(/^TRIAL\s*/i, "무료 ");
+}
+
+/** C2: 배지는 색 면 없이 글자로만. 오늘·D-3 이내만 빨강, 나머지는 회색. */
+export function isUrgentNotificationBadge(badge = "") {
+  const b = String(badge || "").toUpperCase();
+  if (b.includes("TODAY") || b.includes("오늘")) return true;
+  const dday = b.match(/D-(\d+)/);
+  return Boolean(dday && Number(dday[1]) <= 3);
+}
 
 function getNotificationBadgeStyle(badge = "") {
-  const b = badge.toUpperCase();
-  if (b.includes("D-0") || b.includes("D-1") || b.includes("TODAY") || b.includes("오늘")) {
-    return "bg-red-50 text-red-600 border border-red-200";
+  return isUrgentNotificationBadge(badge) ? DDAY_BADGE_TONE.urgent : DDAY_BADGE_TONE.normal;
+}
+
+/** 알림 시각을 짧게: 오늘이면 "오전 9:05", 어제면 "어제", 그 외 "10월 26일". */
+export function formatNotificationTime(value, now = new Date()) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  if (sameDay(date, now)) {
+    const h = date.getHours();
+    const m = String(date.getMinutes()).padStart(2, "0");
+    return `${h < 12 ? "오전" : "오후"} ${h % 12 === 0 ? 12 : h % 12}:${m}`;
   }
-  if (b.includes("D-3") || b.includes("정기")) {
-    return "bg-blue-50 text-blue-700 border border-blue-200";
-  }
-  if (b.includes("체험") || b.includes("만료") || b.includes("TRIAL")) {
-    return "bg-amber-50 text-amber-700 border border-amber-200";
-  }
-  return "bg-gray-100 text-gray-700 border border-gray-200";
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (sameDay(date, yesterday)) return "어제";
+  return `${date.getMonth() + 1}월 ${date.getDate()}일`;
 }
 
 /**
@@ -145,21 +168,21 @@ export function PushNotificationBanner({ notification, onClose, onOpenDetail, du
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <span className="rounded bg-white/20 px-1.5 py-0.5 text-[9px] font-bold tracking-tight text-white shrink-0">
-                  {notification.badge}
+                <span className="shrink-0 text-[11px] font-semibold tracking-tight text-white/70">
+                  {formatNotificationBadge(notification.badge)}
                 </span>
                 <span className="truncate text-[12px] font-semibold tracking-tight text-white">
-                  {notification.title}
+                  {normalizeWonText(notification.title)}
                 </span>
               </div>
               <p className="mt-1 text-[11px] leading-4 text-white/80">
-                {notification.message}
+                {normalizeWonText(notification.message)}
               </p>
             </div>
           </div>
 
           <div className="mt-2.5 flex items-center justify-between border-t border-white/10 pt-2">
-            <span className="text-[10px] font-medium text-[#A1A1AA]">
+            <span className="text-[10px] font-medium text-ink-subtle">
               탭하여 해지 가이드 바로보기
             </span>
             <span className="flex items-center gap-0.5 text-[10px] font-semibold text-white">
@@ -185,7 +208,7 @@ export function PushNotificationBanner({ notification, onClose, onOpenDetail, du
 }
 
 /**
- * Notification Center Modal / Drawer
+ * 알림 센터 시트 (C2): 평평한 목록 행, 글자 배지, 짧은 시각 표시.
  */
 export function NotificationCenterModal({
   notifications,
@@ -202,159 +225,133 @@ export function NotificationCenterModal({
     <BottomSheet onClose={onClose} label="꾸독 알림 센터">
       <div>
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#E4E4E7]">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="grid h-8 w-8 place-items-center rounded-xl bg-black text-white shrink-0">
-              <BellRing size={15} />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h2 className="text-[16px] font-bold tracking-tight">알림 센터</h2>
-                {unreadCount > 0 && (
-                  <span className="rounded-full bg-red-500 px-1.5 py-0.2 text-[10px] font-bold text-white">
-                    {unreadCount}
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-[#71717A] truncate">결제 D-3, D-1 사전 알림 내역</p>
-            </div>
-          </div>
+        <div className="flex items-center justify-between gap-2 pb-1">
+          <h2 className="min-w-0 truncate text-[20px] font-bold tracking-[-0.03em] text-ink">
+            알림
+            {unreadCount > 0 && <span className="ml-1.5 text-[16px] font-semibold text-ink-tertiary">{unreadCount}개 안 읽음</span>}
+          </h2>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="-mr-2 flex shrink-0 items-center">
             {notifications.length > 0 && (
               <>
                 <button
                   type="button"
                   onClick={onMarkAllRead}
-                  className="rounded-lg px-2 py-1 text-[11px] font-medium text-[#71717A] hover:bg-[#F4F4F5] hover:text-black"
+                  className="min-h-[44px] px-2 text-[14px] font-medium text-ink-tertiary hover:text-ink"
                 >
                   모두 읽음
                 </button>
                 <button
                   type="button"
                   onClick={onClearAll}
-                  className="grid h-7 w-7 place-items-center rounded-lg text-[#71717A] hover:bg-[#F4F4F5] hover:text-red-600"
+                  className="grid h-11 w-11 place-items-center rounded-full text-ink-tertiary hover:bg-gray-100 hover:text-danger"
                   aria-label="알림 전체 삭제"
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={18} />
                 </button>
               </>
             )}
             <button
               type="button"
               onClick={onClose}
-              className="grid h-7 w-7 place-items-center rounded-lg text-[#71717A] hover:bg-[#F4F4F5] hover:text-black"
+              className="grid h-11 w-11 place-items-center rounded-full text-ink-tertiary hover:bg-gray-100 hover:text-ink"
               aria-label="알림 센터 닫기"
             >
-              <X size={16} />
+              <X size={20} />
             </button>
           </div>
         </div>
+        <p className="text-[13px] text-ink-tertiary">결제 전에 미리 알려 드린 내역이에요.</p>
 
-        {/* Quick Test Trigger Bar */}
-        <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-[#FAFAFA] border border-[#E4E4E7] p-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <Sparkles size={15} className="text-black shrink-0" />
-            <div className="min-w-0">
-              <strong className="block text-[12px] font-semibold truncate">알림 기능 즉시 테스트</strong>
-              <span className="block text-[10px] text-[#71717A] truncate">
-                D-1/D-3 푸시 알림을 즉시 발송합니다
-              </span>
-            </div>
+        {/* Quick Test Trigger Bar: 개발 서버에서만 보인다(배포 APK는 프로덕션 빌드라 숨겨진다). */}
+        {import.meta.env.DEV && (
+          <div className="mt-3 flex min-h-[52px] items-center justify-between gap-2 border-y border-gray-100 py-2">
+            <span className="text-[14px] text-ink-tertiary">개발용: D-1/D-3 알림 바로 보내기</span>
+            <Button size="compact" variant="secondary" className="shrink-0" onClick={onTriggerTest}>
+              <Send size={13} />
+              보내기
+            </Button>
           </div>
-          <Button
-            size="compact"
-            className="shrink-0 !py-1.5 !px-2.5 !text-[11px]"
-            onClick={onTriggerTest}
-          >
-            <Send size={12} />
-            알림 발송
-          </Button>
-        </div>
+        )}
 
         {/* Notification List */}
-        <div className="mt-3 max-h-[340px] overflow-y-auto divide-y divide-[#F4F4F5]">
+        <div className="-mx-5 mt-2 max-h-[360px] overflow-y-auto">
           {notifications.length === 0 ? (
-            <div className="py-8 text-center">
-              <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-[#F4F4F5] text-[#A1A1AA]">
-                <Bell size={18} />
-              </div>
-              <p className="mt-2 text-[13px] font-semibold text-black">도착한 알림이 없습니다</p>
-              <p className="mt-1 text-[11px] text-[#71717A]">
-                구독 결제일 3일 전(D-3)과 하루 전(D-1)에 스마트 알림을 보내드려요.
-              </p>
+            <div className="px-5 py-10 text-center">
+              <Bell size={24} strokeWidth={1.6} className="mx-auto text-ink-subtle" />
+              <p className="mt-3 text-[16px] font-medium text-ink">도착한 알림이 없어요</p>
+              <p className="mt-1 text-[13px] text-ink-tertiary">결제 3일 전과 하루 전에 알려 드려요.</p>
             </div>
           ) : (
-            notifications.map((item) => (
-              <div
-                key={item.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => onOpenDetail(item.subscriptionId)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    onOpenDetail(item.subscriptionId);
-                  }
-                }}
-                className={`flex items-start gap-3 py-3 px-3 rounded-xl transition-all cursor-pointer text-left hover:bg-[#F9FAFB] ${
-                  !item.read ? "bg-[#F0F4FF] border-l-[3px] border-l-[#3182F6]" : "border-l-[3px] border-l-transparent bg-white border border-[#F2F4F6]"
-                }`}
-              >
-                <ServiceMark
-                  serviceId={item.subscriptionId || item.serviceId}
-                  name={item.title || item.name}
-                  monogram={item.monogram}
-                  className="mt-0.5 h-10 w-10 text-[12px] shrink-0 rounded-xl"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold shrink-0 ${getNotificationBadgeStyle(item.badge)}`}>
-                      {item.badge}
-                    </span>
-                    <strong className="truncate text-[13px] font-bold text-[#191F28]">
-                      {item.title}
-                    </strong>
-                    {!item.read && (
-                      <span className="h-2 w-2 rounded-full bg-red-500 shrink-0 ml-auto" />
-                    )}
-                  </div>
-                  <p className="mt-1 text-[12px] leading-relaxed text-[#4E5968]">
-                    {item.message}
-                  </p>
-                  <span className="mt-1.5 block text-[11px] font-medium text-[#3182F6]">
-                    {item.isTest ? "테스트 알림" : "스마트 결제 알림"} · {
-                      item.badge?.includes("체험") || item.badge?.includes("D-0") || item.badge?.includes("D-1")
-                        ? "탭하여 해지 가이드 및 일정 확인"
-                        : "탭하여 결제 상세 정보 확인"
+            notifications.map((item) => {
+              const badgeText = formatNotificationBadge(item.badge);
+              const time = formatNotificationTime(item.timestamp);
+              return (
+                <div
+                  key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onOpenDetail(item.subscriptionId)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      onOpenDetail(item.subscriptionId);
                     }
-                  </span>
+                  }}
+                  aria-label={`${item.read ? "" : "안 읽음, "}${badgeText ? badgeText + ", " : ""}${item.title}`}
+                  className={`flex min-h-[72px] cursor-pointer items-start gap-3.5 px-5 py-3.5 text-left transition-colors hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink ${
+                    !item.read ? "bg-gray-50" : ""
+                  }`}
+                >
+                  <ServiceLogo
+                    serviceId={item.subscriptionId || item.serviceId}
+                    name={item.title || item.name}
+                    monogram={item.monogram}
+                    className="mt-0.5"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <strong className={`truncate text-[15px] leading-[21px] text-ink ${item.read ? "font-medium" : "font-semibold"}`}>
+                        {normalizeWonText(item.title)}
+                      </strong>
+                      {!item.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-danger" aria-hidden="true" />}
+                      {time && <span className="ml-auto shrink-0 pl-2 text-[12px] text-ink-tertiary">{time}</span>}
+                    </div>
+                    <p className="mt-0.5 text-[14px] leading-[20px] text-ink-secondary">
+                      {normalizeWonText(item.message)}
+                    </p>
+                    <p className="mt-1 flex items-center gap-1.5 text-[13px] leading-[18px]">
+                      {badgeText && (
+                        <span className={`font-semibold ${getNotificationBadgeStyle(item.badge)}`}>{badgeText}</span>
+                      )}
+                      {item.isTest && import.meta.env.DEV && <span className="text-ink-tertiary">테스트 알림</span>}
+                    </p>
+                  </div>
+                  <ChevronRight size={16} className="mt-3 shrink-0 text-ink-subtle" aria-hidden="true" />
                 </div>
-                <ChevronRight size={15} className="text-[#B0B8C1] shrink-0 mt-3" />
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
         {/* Permission Status Footer */}
-        <div className="mt-3 border-t border-[#E4E4E7] pt-2.5 flex items-center justify-between text-[11px]">
-          <div className="flex items-center gap-1.5 text-[#71717A]">
-            <Bell size={13} className="shrink-0" />
-            <span>기기 푸시:</span>
-            <strong className="text-black">
+        <div className="mt-2 flex min-h-[48px] items-center justify-between border-t border-gray-100 text-[14px]">
+          <span className="text-ink-tertiary">
+            기기 알림{" "}
+            <strong className="font-medium text-ink">
               {notificationPermission === "granted"
                 ? "허용됨"
                 : notificationPermission === "denied"
                 ? "차단됨"
-                : "미설정"}
+                : "설정 안 함"}
             </strong>
-          </div>
+          </span>
           {notificationPermission !== "granted" && (
             <button
               type="button"
               onClick={onRequestPermission}
-              className="text-[11px] font-semibold text-black underline underline-offset-4"
+              className="-mr-2 min-h-[44px] px-2 text-[14px] font-semibold text-ink"
             >
-              알림 권한 허용하기
+              알림 허용하기
             </button>
           )}
         </div>

@@ -63,8 +63,8 @@ function AccountInfoRoute({ route, subscription, compact = false, onOpened, onTo
 
   const body = (
     <>
-      <p className={"text-[12px] leading-relaxed text-[#6B7684] " + (compact ? "mt-2" : "")}>{route.note}</p>
-      <div className={"rounded-xl px-3.5 py-3 text-[13px] leading-relaxed " + (availability.open ? "bg-[#F2F8FF] text-[#1B64DA]" : "bg-[#FFF8E6] text-[#8A5A00]") + " mt-2"}>
+      <p className={"text-[12px] leading-relaxed text-ink-muted " + (compact ? "mt-2" : "")}>{route.note}</p>
+      <div className={"rounded-xl px-3.5 py-3 text-[13px] leading-relaxed " + (availability.open ? "bg-brand-soft text-brand-ink" : "bg-[#FFF8E6] text-[#8A5A00]") + " mt-2"}>
         {availability.open
           ? "지금 해지 신청할 수 있어요 (오늘 22:00까지)."
           : `지금은 해지 신청 시간이 아니에요. 다음 해지 가능 시각은 ${availability.nextOpenLabel}이에요. 조회는 매일 08:00~24:00에 돼요.`}
@@ -91,8 +91,8 @@ function AccountInfoRoute({ route, subscription, compact = false, onOpened, onTo
 
   if (compact) {
     return (
-      <details className="rounded-2xl border border-[#E5E8EB] px-3.5 py-3">
-        <summary className="cursor-pointer text-[13px] font-bold text-[#333D4B]">{route.label}</summary>
+      <details className="rounded-2xl border border-gray-200 px-3.5 py-3">
+        <summary className="cursor-pointer text-[13px] font-bold text-gray-800">{route.label}</summary>
         {body}
       </details>
     );
@@ -452,7 +452,7 @@ export function CancelModal({
     return (
       <BottomSheet onClose={finish} label="해지 완료">
         <div className="flex flex-col items-center px-2 pb-5 pt-3 text-center">
-          <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#191F28] text-white">
+          <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gray-900 text-white">
             <CheckCircle2 size={28} />
           </span>
 
@@ -463,16 +463,16 @@ export function CancelModal({
             </div>
           )}
 
-          <p className={"text-[14px] font-semibold text-[#6B7684] " + (autoDetectedSuccess ? "mt-2" : "mt-4")}>
+          <p className={"text-[14px] font-semibold text-ink-muted " + (autoDetectedSuccess ? "mt-2" : "mt-4")}>
             {subscription.name} 해지 완료
           </p>
-          <h2 className="mt-1 text-[24px] font-extrabold tracking-tight text-[#191F28]">
+          <h2 className="mt-1 text-[24px] font-extrabold tracking-tight text-ink">
             매달 {formatWon(monthlySavings)} 절약
           </h2>
-          <p className="mt-1 text-[14px] font-medium text-[#4E5968]">
+          <p className="mt-1 text-[14px] font-medium text-ink-secondary">
             1년이면 {formatWon(yearlySavings)}이에요.
           </p>
-          <p className="mt-2 text-[13px] leading-relaxed text-[#8B95A1]">
+          <p className="mt-2 text-[13px] leading-relaxed text-ink-tertiary">
             {expectedNextWatchDate
               ? "다음 결제 예정일(" + expectedNextWatchDate + ") 이후 재결제가 없는지 꾸독이 자동으로 지켜볼게요."
               : "구독 목록에서 빼고, 아낀 금액은 통계에 기록해 둘게요."}
@@ -480,7 +480,7 @@ export function CancelModal({
 
           {/* 자동 감지 증빙 썸네일 카드 */}
           {autoProofPath && (
-            <div className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-[#D6E4FF] bg-[#F2F8FF] p-3 text-left">
+            <div className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-brand-line bg-brand-soft p-3 text-left">
               <img
                 src={autoProofPath}
                 alt="해지 증빙"
@@ -488,11 +488,11 @@ export function CancelModal({
                 onError={(e) => { e.currentTarget.style.display = "none"; }}
               />
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 text-[13px] font-bold text-[#1B64DA]">
+                <div className="flex items-center gap-1.5 text-[13px] font-bold text-brand-ink">
                   <ShieldCheck size={16} />
                   <span>증빙 자동 저장됨</span>
                 </div>
-                <p className="mt-0.5 text-[11px] text-[#4E5968]">완료 화면을 기기에 안전하게 보관했어요.</p>
+                <p className="mt-0.5 text-[11px] text-ink-secondary">완료 화면을 기기에 안전하게 보관했어요.</p>
               </div>
             </div>
           )}
@@ -507,7 +507,7 @@ export function CancelModal({
             <button
               type="button"
               onClick={revertCompletion}
-              className="mt-3 text-[13px] font-medium text-[#8B95A1] underline underline-offset-4 hover:text-[#4E5968] cursor-pointer"
+              className="mt-3 text-[13px] font-medium text-ink-tertiary underline underline-offset-4 hover:text-ink-secondary cursor-pointer"
             >
               아직 안 끝났어요
             </button>
@@ -515,11 +515,11 @@ export function CancelModal({
 
           {/* 접어둔 피드백 및 수동 증빙 옵션 */}
           <div className="mt-4 w-full">
-            <details className="group rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-3 text-left">
-              <summary className="cursor-pointer text-center text-[12px] font-semibold text-[#6B7684] hover:text-[#333D4B] list-none flex items-center justify-center gap-1">
+            <details className="group rounded-2xl border border-gray-200 bg-gray-50 p-3 text-left">
+              <summary className="cursor-pointer text-center text-[12px] font-semibold text-ink-muted hover:text-gray-800 list-none flex items-center justify-center gap-1">
                 <span>{autoProofPath ? "해지가 어려웠다면 알려주기" : "해지 완료 화면 저장하기"}</span>
               </summary>
-              <div className="mt-3 border-t border-[#E5E8EB] pt-3">
+              <div className="mt-3 border-t border-gray-200 pt-3">
                 {!autoProofPath && <CancelProofCapture record={proofRecord} />}
                 {userId && (
                   <DifficultySurvey
@@ -534,14 +534,14 @@ export function CancelModal({
 
           {/* 추천 혜택 배너 (확인 버튼 뒤에 배치) */}
           {promotion && (
-            <div className="mt-4 w-full rounded-2xl border border-[#E5E8EB] p-3.5 text-left">
-              <p className="text-[11px] font-bold text-[#8B95A1]">추천 혜택</p>
-              <p className="mt-0.5 text-[13px] font-bold text-[#191F28]">{promotion.title}</p>
+            <div className="mt-4 w-full rounded-2xl border border-gray-200 p-3.5 text-left">
+              <p className="text-[11px] font-bold text-ink-tertiary">추천 혜택</p>
+              <p className="mt-0.5 text-[13px] font-bold text-ink">{promotion.title}</p>
               {promotion.link && (
                 <button
                   type="button"
                   onClick={openPromotion}
-                  className="mt-2 inline-flex items-center gap-1 text-[12px] font-bold text-[#3182F6]"
+                  className="mt-2 inline-flex items-center gap-1 text-[12px] font-bold text-brand-ink"
                 >
                   자세히 보기 <ExternalLink size={12} />
                 </button>
@@ -592,10 +592,10 @@ export function CancelModal({
 
   const timingTone =
     timingAdvice.kind === "keep_until" || timingAdvice.kind === "prorated_refund"
-      ? { box: "border-[#D6E4FF] bg-[#F2F8FF]", head: "text-[#1B64DA]", body: "text-[#357AE8]" }
+      ? { box: "border-brand-line bg-brand-soft", head: "text-brand-ink", body: "text-brand-ink" }
       : isMoneyWarning
       ? { box: "border-[#FFE5B5] bg-[#FFF8E6]", head: "text-[#8A5A00]", body: "text-[#9E6A00]" }
-      : { box: "border-[#E5E8EB] bg-white", head: "text-[#333D4B]", body: "text-[#6B7684]" };
+      : { box: "border-gray-200 bg-white", head: "text-gray-800", body: "text-ink-muted" };
 
   const reminderButton = timingAdvice.reminderAt ? (
     <Button
@@ -623,9 +623,9 @@ export function CancelModal({
           className="h-12 w-12 rounded-2xl text-[14px] shadow-2xs"
         />
         <div className="min-w-0">
-          <h2 className="truncate text-[20px] font-extrabold tracking-tight text-[#191F28]">{subscription.name} 해지</h2>
-          <p className="mt-0.5 text-[13px] font-medium text-[#6B7684]">
-            월 {formatWon(monthlySavings)} · 해지하면 1년에 <span className="font-bold text-[#3182F6]">{formatWon(yearlySavings)}</span> 아껴요
+          <h2 className="truncate text-[20px] font-extrabold tracking-tight text-ink">{subscription.name} 해지</h2>
+          <p className="mt-0.5 text-[13px] font-medium text-ink-muted">
+            월 {formatWon(monthlySavings)} · 해지하면 1년에 <span className="font-bold text-brand-ink">{formatWon(yearlySavings)}</span> 아껴요
           </p>
         </div>
       </div>
@@ -642,12 +642,12 @@ export function CancelModal({
       )}
       {/* 3. 복귀 시 최상단에 뜨는 원터치 확인 질문 카드 */}
       {topCardState === "completion_question" && (
-        <div className="mt-3.5 rounded-2xl border-2 border-[#3182F6] bg-[#F2F8FF] p-4 text-left shadow-xs">
+        <div className="mt-3.5 rounded-2xl border-2 border-brand bg-brand-soft p-4 text-left shadow-xs">
           <div className="flex items-center justify-between">
-            <h3 className="text-[16px] font-extrabold text-[#191F28]">해지를 끝냈나요?</h3>
-            <span className="rounded-full bg-[#3182F6] px-2 py-0.5 text-[11px] font-bold text-white">확인</span>
+            <h3 className="text-[16px] font-extrabold text-ink">해지를 끝냈나요?</h3>
+            <span className="rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold text-white">확인</span>
           </div>
-          <p className="mt-1 text-[13px] text-[#4E5968]">
+          <p className="mt-1 text-[13px] text-ink-secondary">
             해지 페이지에서 단계를 마치셨다면 완료를 눌러주세요.
           </p>
           <div className="mt-3.5 flex gap-2">
@@ -672,7 +672,7 @@ export function CancelModal({
 
       {/* 4. 결제한 곳 채널 선택 필 (스크롤 없이 상단에 바로 노출) */}
       <div className="mt-3.5">
-        <p className="text-[12px] font-bold text-[#8B95A1]">결제한 곳</p>
+        <p className="text-[12px] font-bold text-ink-tertiary">결제한 곳</p>
         <div className="mt-1.5 flex flex-wrap gap-1.5" role="group" aria-label="결제한 곳 선택">
           {CANCEL_CHANNELS.map((option) => (
             <button
@@ -680,14 +680,14 @@ export function CancelModal({
               type="button"
               aria-pressed={channel === option.id}
               onClick={() => changeChannel(option.id)}
-              className={"rounded-full border px-3 py-1.5 text-[12px] font-bold transition-colors " + (channel === option.id ? "border-[#191F28] bg-[#191F28] text-white" : "border-[#E5E8EB] bg-white text-[#4E5968] hover:border-[#D1D6DB]")}
+              className={"rounded-full border px-3 py-1.5 text-[12px] font-bold transition-colors " + (channel === option.id ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-white text-ink-secondary hover:border-gray-300")}
             >
               {option.label}
             </button>
           ))}
         </div>
         {(isStoreRoute ? routes.primary.note : routes.note) && (
-          <p className="mt-2 text-[12px] leading-relaxed text-[#6B7684]">{isStoreRoute ? routes.primary.note : routes.note}</p>
+          <p className="mt-2 text-[12px] leading-relaxed text-ink-muted">{isStoreRoute ? routes.primary.note : routes.note}</p>
         )}
       </div>
 
@@ -757,7 +757,7 @@ export function CancelModal({
           )
         ) : !hasCancelUrl ? (
           <>
-            <p className="rounded-xl bg-[#F9FAFB] px-3.5 py-3 text-[13px] leading-relaxed text-[#4E5968]">
+            <p className="rounded-xl bg-gray-50 px-3.5 py-3 text-[13px] leading-relaxed text-ink-secondary">
               해지 페이지 주소가 아직 등록되지 않았어요. 아래 순서대로 {subscription.name} 앱이나 웹사이트에서 해지해 주세요.
             </p>
             <Button size="large" fullWidth onClick={complete}>{COMPLETE_LABEL}</Button>
@@ -790,23 +790,23 @@ export function CancelModal({
         <button
           type="button"
           onClick={openInSystemBrowser}
-          className="mt-2 w-full py-1.5 text-center text-[12px] font-semibold text-[#6B7684] underline-offset-2 hover:underline"
+          className="mt-2 w-full py-1.5 text-center text-[12px] font-semibold text-ink-muted underline-offset-2 hover:underline"
         >
           평소 쓰는 브라우저로 열기
         </button>
       )}
 
       {usesCancelAgent && (
-        <label className="mt-2.5 flex cursor-pointer items-start gap-2.5 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] px-3 py-2.5 text-left">
+        <label className="mt-2.5 flex cursor-pointer items-start gap-2.5 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-left">
           <input
             type="checkbox"
             checked={aiCancelConsent}
             onChange={toggleAiCancelConsent}
-            className="mt-0.5 h-4 w-4 shrink-0 rounded border-[#D1D6DB] accent-[#3182F6]"
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand"
           />
-          <span className="text-[11.5px] leading-snug text-[#4E5968]">
-            <strong className="font-bold text-[#333D4B]">AI 해지 도우미 함께 쓰기 (선택)</strong>
-            <span className="mt-0.5 block text-[11px] text-[#8B95A1]">
+          <span className="text-[12px] leading-snug text-ink-secondary">
+            <strong className="font-bold text-gray-800">AI 해지 도우미 함께 쓰기 (선택)</strong>
+            <span className="mt-0.5 block text-[11px] text-ink-tertiary">
               다음 버튼을 못 찾았을 때만 개인정보를 지운 화면 버튼 이름을 Google Gemini로 보내 확인해요.
             </span>
           </span>
@@ -826,14 +826,14 @@ export function CancelModal({
       ))}
 
       {/* 6. 신뢰 및 안내 문구 */}
-      <p className="mt-3 text-center text-[12px] leading-relaxed text-[#8B95A1]">
+      <p className="mt-3 text-center text-[12px] leading-relaxed text-ink-tertiary">
         {guidanceCopy}
       </p>
 
       {/* 7. 접어둔 "해지 전에 알아두면 좋은 것" 섹션 */}
-      <details className="mt-4 rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-3.5 text-left">
-        <summary className="cursor-pointer text-[13px] font-bold text-[#333D4B]">해지 전에 알아두면 좋은 것</summary>
-        <div className="mt-3 space-y-3 border-t border-[#E5E8EB] pt-3">
+      <details className="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-3.5 text-left">
+        <summary className="cursor-pointer text-[13px] font-bold text-gray-800">해지 전에 알아두면 좋은 것</summary>
+        <div className="mt-3 space-y-3 border-t border-gray-200 pt-3">
           <DifficultyBadge serviceId={canonicalServiceId} />
 
           {!isMoneyWarning && (
@@ -844,7 +844,7 @@ export function CancelModal({
               )}
               {reminderButton && <div className="mt-3">{reminderButton}</div>}
               {timingAdvice.checkedAt && (
-                <p className="mt-2 text-[11px] text-[#8B95A1]">
+                <p className="mt-2 text-[11px] text-ink-tertiary">
                   {timingAdvice.checkedAt} 기준 서비스 안내이며 변경될 수 있어요
                   {timingAdvice.sourceUrl && (
                     <>
@@ -852,7 +852,7 @@ export function CancelModal({
                       <button
                         type="button"
                         onClick={() => openExternal(timingAdvice.sourceUrl)}
-                        className="underline underline-offset-2 hover:text-[#4E5968]"
+                        className="underline underline-offset-2 hover:text-ink-secondary"
                       >
                         공식 안내
                       </button>
@@ -872,16 +872,16 @@ export function CancelModal({
           />
 
           {promotion && (
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#E5E8EB] bg-white p-3.5">
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-3.5">
               <div className="min-w-0">
-                <p className="text-[11px] font-bold text-[#8B95A1]">해지 전에 볼 만한 혜택</p>
-                <p className="mt-0.5 truncate text-[13px] font-bold text-[#191F28]">{promotion.title}</p>
+                <p className="text-[11px] font-bold text-ink-tertiary">해지 전에 볼 만한 혜택</p>
+                <p className="mt-0.5 truncate text-[13px] font-bold text-ink">{promotion.title}</p>
               </div>
               {promotion.link && (
                 <button
                   type="button"
                   onClick={openPromotion}
-                  className="shrink-0 rounded-xl bg-[#F2F4F6] px-3 py-1.5 text-[12px] font-bold text-[#333D4B] active:scale-95 transition-transform"
+                  className="shrink-0 rounded-xl bg-gray-100 px-3 py-1.5 text-[12px] font-bold text-gray-800 active:scale-95 transition-transform"
                 >
                   보기
                 </button>
@@ -894,8 +894,8 @@ export function CancelModal({
       {/* 8. 해지 순서 단계 */}
       <section className="mt-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-[15px] font-bold text-[#191F28]">해지 순서</h3>
-          <span className="text-[12px] font-semibold text-[#8B95A1]">{steps.length}단계</span>
+          <h3 className="text-[15px] font-bold text-ink">해지 순서</h3>
+          <span className="text-[12px] font-semibold text-ink-tertiary">{steps.length}단계</span>
         </div>
         <ol className="mt-3 space-y-2">
           {steps.map((step, index) => (
@@ -910,18 +910,18 @@ export function CancelModal({
                   }
                   return steps.map((_, i) => (i === index ? willCheck : Boolean(current?.[i])));
                 })}
-                className={"flex w-full items-start gap-3 rounded-2xl border p-3.5 text-left transition-colors " + (checked[index] ? "border-[#D1D6DB] bg-[#F9FAFB]" : "border-[#E5E8EB] bg-white hover:border-[#D1D6DB]")}
+                className={"flex w-full items-start gap-3 rounded-2xl border p-3.5 text-left transition-colors " + (checked[index] ? "border-gray-300 bg-gray-50" : "border-gray-200 bg-white hover:border-gray-300")}
               >
-                <span className={"mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold " + (checked[index] ? "bg-[#191F28] text-white" : "bg-[#F2F4F6] text-[#8B95A1]")}>
+                <span className={"mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold " + (checked[index] ? "bg-gray-900 text-white" : "bg-gray-100 text-ink-tertiary")}>
                   {checked[index] ? <Check size={14} strokeWidth={3} /> : index + 1}
                 </span>
                 <div className="min-w-0 flex-1">
                   {step.title && (
-                    <span className={"block text-[13px] font-bold " + (checked[index] ? "text-[#8B95A1]" : "text-[#191F28]")}>
+                    <span className={"block text-[13px] font-bold " + (checked[index] ? "text-ink-tertiary" : "text-ink")}>
                       {step.title}
                     </span>
                   )}
-                  <span className={"mt-0.5 block text-[13px] leading-snug " + (checked[index] ? "text-[#8B95A1]" : "text-[#4E5968]")}>
+                  <span className={"mt-0.5 block text-[13px] leading-snug " + (checked[index] ? "text-ink-tertiary" : "text-ink-secondary")}>
                     {step.description}
                   </span>
                 </div>
@@ -931,7 +931,7 @@ export function CancelModal({
         </ol>
 
         {!usesServicePage && routes.primary.source && (
-          <p className="mt-3 text-[11px] text-[#8B95A1]">
+          <p className="mt-3 text-[11px] text-ink-tertiary">
             출처{" "}
             <a href={routes.primary.source} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
               {new URL(routes.primary.source).hostname}
@@ -941,12 +941,12 @@ export function CancelModal({
         )}
 
         {usesServicePage && !guide.verified && (
-          <p className="mt-3 text-[12px] leading-relaxed text-[#6B7684]">
+          <p className="mt-3 text-[12px] leading-relaxed text-ink-muted">
             {subscription.name}의 해지 메뉴는 아직 공식 안내로 확인하지 못했어요. 실제 메뉴 이름은 서비스마다 달라요.
             {guide.helpUrl && (
               <>
                 {" "}
-                <a href={guide.helpUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#3182F6] underline-offset-2 hover:underline">
+                <a href={guide.helpUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-ink underline-offset-2 hover:underline">
                   {guide.helpLabel} 보기
                 </a>
               </>
@@ -957,8 +957,8 @@ export function CancelModal({
         {usesServicePage && guide.verified && guide.notes.length > 0 && (
           <ul className="mt-3 space-y-1.5">
             {guide.notes.map((note) => (
-              <li key={note} className="flex gap-2 text-[12px] leading-relaxed text-[#6B7684]">
-                <span aria-hidden="true" className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-[#B0B8C1]" />
+              <li key={note} className="flex gap-2 text-[12px] leading-relaxed text-ink-muted">
+                <span aria-hidden="true" className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-gray-400" />
                 <span>{note}</span>
               </li>
             ))}
@@ -966,12 +966,12 @@ export function CancelModal({
         )}
 
         {usesServicePage && guide.verified && guide.altRoutes.map((route) => (
-          <details key={route.id} className="mt-3 rounded-2xl border border-[#E5E8EB] px-3.5 py-3">
-            <summary className="cursor-pointer text-[13px] font-bold text-[#333D4B]">{route.label}</summary>
+          <details key={route.id} className="mt-3 rounded-2xl border border-gray-200 px-3.5 py-3">
+            <summary className="cursor-pointer text-[13px] font-bold text-gray-800">{route.label}</summary>
             <ol className="mt-2 space-y-1.5">
               {route.steps.map((step) => (
-                <li key={step.stepNumber} className="flex gap-2 text-[12px] leading-relaxed text-[#4E5968]">
-                  <span className="shrink-0 font-bold tabular-nums text-[#8B95A1]">{step.stepNumber}</span>
+                <li key={step.stepNumber} className="flex gap-2 text-[12px] leading-relaxed text-ink-secondary">
+                  <span className="shrink-0 font-bold tabular-nums text-ink-tertiary">{step.stepNumber}</span>
                   <span>{step.description}</span>
                 </li>
               ))}
@@ -980,7 +980,7 @@ export function CancelModal({
         ))}
 
         {usesServicePage && guide.verified && (
-          <p className="mt-3 text-[11px] text-[#8B95A1]">
+          <p className="mt-3 text-[11px] text-ink-tertiary">
             출처{" "}
             {guide.sources.map((source, index) => (
               <span key={source}>

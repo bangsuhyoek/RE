@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { LogOut, Check, X, AlertCircle, FileText, Download, Trash2, AlertTriangle } from "lucide-react";
-import { BottomSheet, Button } from "./ui";
+import { Check, X, AlertCircle } from "lucide-react";
+import { BottomSheet, Button, SectionBand } from "./ui";
 import { readEvidenceCases } from "../lib/storage";
 import { deleteAllEvidence, grantEvidenceConsent, readEvidenceConsent, revokeEvidenceConsent } from "../lib/evidenceStore";
 import { grantDifficultyConsent, readDifficultyConsent, revokeDifficultyConsent } from "../lib/cancelDifficulty";
@@ -16,6 +16,51 @@ import {
   revokePaymentCaptureConsent,
 } from "../lib/paymentCapture";
 import { PaymentCaptureDisclosureModal } from "./capture/PaymentCaptureDisclosureModal";
+
+/** 설정 묶음 제목(Apple 설정의 그룹 머리말). */
+function GroupTitle({ children }) {
+  return <h3 className="pb-1 pt-5 text-[13px] font-medium text-ink-tertiary">{children}</h3>;
+}
+
+/** 시트 안에서 좌우 끝까지 닿는 회색 구획 띠. 시트 본문 좌우 여백(px-5)을 상쇄한다. */
+function SheetBand() {
+  return <SectionBand className="-mx-5 mt-4 w-auto" />;
+}
+
+/** ui.jsx ToggleSwitch 와 같은 모양에 disabled 만 더한 스위치. */
+function RowSwitch({ checked, onChange, label, disabled = false }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={onChange}
+      className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50 before:absolute before:-inset-x-2 before:-inset-y-2.5 before:content-[''] ${
+        checked ? "bg-brand" : "bg-gray-300"
+      }`}
+    >
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none inline-block h-6 w-6 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.15)] transition-transform ${checked ? "translate-x-5" : "translate-x-0"}`}
+      />
+    </button>
+  );
+}
+
+/** 설정 행: 제목 + 보조 줄 + 오른쪽 조작부. */
+function SettingRow({ title, description, trailing = null, testId }) {
+  return (
+    <div className="flex min-h-[60px] items-center justify-between gap-4 py-3" data-testid={testId}>
+      <div className="min-w-0 flex-1">
+        <span className="block text-[16px] font-medium leading-[22px] text-ink">{title}</span>
+        {description && <span className="mt-0.5 block text-[13px] leading-[18px] text-ink-tertiary">{description}</span>}
+      </div>
+      {trailing}
+    </div>
+  );
+}
 
 /**
  * 결제 알림 수집 출처 설정.
@@ -62,39 +107,26 @@ function CaptureSourceSettings({ onToast }) {
   ];
 
   return (
-    <div className="mt-5 rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs" data-testid="account-capture-source-settings">
-      <div className="flex items-center gap-2">
-        <span className="text-[13px] font-bold text-[#191F28]">알림 수집 범위</span>
-        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">선택</span>
-      </div>
-      <p className="mt-1 text-[11px] leading-relaxed text-[#8B95A1]">
-        카드사·은행·간편결제·앱스토어 알림은 기본으로 확인해요. 아래 앱들은 직접 켤 때만 알림에서
-        결제 내역을 찾고, 원문은 저장하거나 전송하지 않아요.
+    <div data-testid="account-capture-source-settings">
+      <GroupTitle>알림에서 결제 찾기 (선택)</GroupTitle>
+      <p className="pb-1 text-[13px] leading-relaxed text-ink-tertiary">
+        카드사·은행·간편결제·앱스토어 알림은 기본으로 확인해요. 아래 앱은 켤 때만 확인하고, 알림 원문은 저장하거나 보내지 않아요.
       </p>
-      <ul className="mt-3 space-y-2">
+      <ul className="divide-y divide-gray-100">
         {rows.map((row) => (
-          <li key={row.key} className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <span className="block text-[12px] font-semibold text-[#191F28]">{row.label}</span>
-              <span className="block text-[10.5px] text-[#8B95A1]">{row.hint}</span>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={Boolean(settings[row.key])}
-              aria-label={`${row.label} 알림 수집`}
-              disabled={busy}
-              onClick={() => toggle(row.key)}
-              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                settings[row.key] ? "bg-emerald-600" : "bg-[#E5E8EB]"
-              } ${busy ? "opacity-60" : ""}`}
-            >
-              <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
-                  settings[row.key] ? "left-[22px]" : "left-0.5"
-                }`}
-              />
-            </button>
+          <li key={row.key}>
+            <SettingRow
+              title={row.label}
+              description={row.hint}
+              trailing={
+                <RowSwitch
+                  checked={Boolean(settings[row.key])}
+                  label={`${row.label} 알림 수집`}
+                  disabled={busy}
+                  onChange={() => toggle(row.key)}
+                />
+              }
+            />
           </li>
         ))}
       </ul>
@@ -133,42 +165,25 @@ function EvidenceSettings({ userId, onToast }) {
   };
 
   return (
-    <div className="mt-5 rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs" data-testid="account-evidence-settings">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <strong className="flex items-center gap-1.5 text-[13px] font-bold text-[#191F28]"><FileText size={14} /> 결제 증빙 기록</strong>
-          <span className="mt-0.5 block text-[11px] leading-relaxed text-[#8B95A1]">
-            요금 인상·유료 전환·해지 후 결제 증빙 {count}건 · {userId ? (consented ? "계정에 보관 중(1년 뒤 자동 삭제)" : "이 기기에만 저장") : "이 기기에만 저장"}
-          </span>
-        </div>
-        {userId && (
-          <button
-            type="button"
-            role="switch"
-            aria-checked={consented}
-            aria-label="증빙 계정 보관"
-            disabled={busy}
-            onClick={toggle}
-            className={"relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 " + (consented ? "bg-[#3182F6]" : "bg-[#D1D6DB]")}
-          >
-            <span className={"absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform " + (consented ? "translate-x-[22px]" : "translate-x-0.5")} />
-          </button>
-        )}
-      </div>
+    <div data-testid="account-evidence-settings">
+      <SettingRow
+        title="결제 증빙 기록"
+        description={`요금 인상·유료 전환·해지 후 결제 증빙 ${count}건 · ${userId ? (consented ? "계정에 보관 중, 1년 뒤 자동 삭제" : "이 기기에만 저장") : "이 기기에만 저장"}`}
+        trailing={userId ? <RowSwitch checked={consented} label="증빙 계정 보관" disabled={busy} onChange={toggle} /> : null}
+      />
       {count > 0 && (
         confirmDelete ? (
-          <div className="mt-3 flex gap-2">
-            <Button size="compact" variant="secondary" className="flex-1" onClick={() => setConfirmDelete(false)} disabled={busy}>취소</Button>
-            <Button size="compact" className="flex-1 !bg-[#F04452]" onClick={removeAll} disabled={busy}>모두 지우기</Button>
+          <div className="flex gap-2 pb-3">
+            <Button size="default" variant="secondary" className="flex-1" onClick={() => setConfirmDelete(false)} disabled={busy}>취소</Button>
+            <Button size="default" variant="danger" className="flex-1" onClick={removeAll} disabled={busy}>모두 지우기</Button>
           </div>
         ) : (
-          <button type="button" onClick={() => setConfirmDelete(true)} className="mt-2 text-[11px] font-semibold text-[#F04452]">증빙 모두 지우기</button>
+          <button type="button" onClick={() => setConfirmDelete(true)} className="flex min-h-[44px] w-full items-center border-t border-gray-100 text-left text-[16px] text-danger">증빙 모두 지우기</button>
         )
       )}
     </div>
   );
 }
-
 
 /** 해지 난이도 및 다크패턴 익명 공유 동의 설정 */
 function DifficultySettings({ userId, onToast }) {
@@ -192,25 +207,12 @@ function DifficultySettings({ userId, onToast }) {
   if (!userId) return null;
 
   return (
-    <div className="mt-3 flex items-center justify-between rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs" data-testid="account-difficulty-settings">
-      <div className="min-w-0 pr-3">
-        <strong className="block text-[13px] font-bold text-[#191F28]">해지 난이도 익명 공유</strong>
-        <span className="mt-0.5 block text-[11px] leading-relaxed text-[#8B95A1]">
-          해지 시 겪은 절차와 다크패턴 경험을 식별자 없이 통계로만 익명 공유해요.
-        </span>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={consented}
-        aria-label="해지 난이도 익명 공유"
-        disabled={busy}
-        onClick={toggle}
-        className={"relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 " + (consented ? "bg-[#3182F6]" : "bg-[#D1D6DB]")}
-      >
-        <span className={"absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform " + (consented ? "translate-x-[22px]" : "translate-x-0.5")} />
-      </button>
-    </div>
+    <SettingRow
+      testId="account-difficulty-settings"
+      title="해지 경험 익명 공유"
+      description="해지 절차와 겪은 불편을 식별 정보 없이 통계로만 공유해요."
+      trailing={<RowSwitch checked={consented} label="해지 난이도 익명 공유" disabled={busy} onChange={toggle} />}
+    />
   );
 }
 
@@ -311,169 +313,134 @@ export function AccountModal({
 
   return (
     <BottomSheet onClose={onClose} label="계정 설정">
-      <div className="flex items-center justify-between pb-3 border-b border-[#F2F4F6]">
-        <h2 className="text-[18px] font-bold tracking-tight text-[#191F28]">내 계정 관리</h2>
+      <div className="flex items-center justify-between pb-1">
+        <h2 className="text-[20px] font-bold tracking-[-0.03em] text-ink">내 계정</h2>
         <button
           type="button"
           onClick={onClose}
-          className="grid h-8 w-8 place-items-center rounded-full text-[#8B95A1] hover:bg-[#F2F4F6] hover:text-[#191F28] transition-colors"
+          className="-mr-2 grid h-11 w-11 place-items-center rounded-full text-ink-tertiary hover:bg-gray-100 hover:text-ink transition-colors"
           aria-label="닫기"
         >
-          <X size={18} />
+          <X size={20} />
         </button>
       </div>
 
-      {/* 사용자 프로필 요약 카드 */}
-      <div className="mt-4 flex items-center gap-3.5 rounded-2xl bg-[#F9FAFB] p-4 border border-[#E5E8EB]">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#191F28] text-[18px] font-bold text-white shadow-xs">
+      {/* 프로필 행 */}
+      <div className="flex min-h-[72px] items-center gap-3.5 py-3">
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gray-100 text-[18px] font-semibold text-ink-muted" aria-hidden="true">
           {currentNickname.slice(0, 1).toUpperCase()}
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <strong className="text-[16px] font-bold text-[#191F28] truncate">{currentNickname}</strong>
-            <span className="rounded-md bg-[#EEF2F6] px-1.5 py-0.5 text-[10px] font-semibold text-[#4E5968]">
-              {isGoogle ? "Google" : "게스트"}
-            </span>
-          </div>
-          <p className="mt-0.5 text-[12px] text-[#8B95A1] flex items-center gap-1 truncate">
+          <strong className="block truncate text-[17px] font-semibold text-ink">{currentNickname}</strong>
+          <p className="mt-0.5 flex items-center gap-1 truncate text-[13px] text-ink-tertiary">
             {isGoogle ? (
               <>
                 <GoogleIcon className="h-3.5 w-3.5 shrink-0" />
                 <span className="truncate">{profile?.email || "Google 계정 연동됨"}</span>
               </>
             ) : (
-              <span>체험 게스트 모드</span>
+              <span>게스트로 쓰는 중</span>
             )}
           </p>
-
         </div>
       </div>
 
-      {/* 닉네임 변경 블록 */}
-      <div className="mt-5 rounded-2xl border border-[#E5E8EB] p-4 bg-white shadow-2xs">
-        <label className="block">
-          <span className="block text-[13px] font-bold text-[#191F28]">닉네임 변경</span>
-          <span className="mt-0.5 block text-[11px] text-[#8B95A1]">
-            홈 화면 및 알림에 표시되는 호칭이에요 (한/영 2~12자)
-          </span>
-          <div className="mt-2.5 flex items-center gap-2">
-            <input
-              type="text"
-              value={nicknameInput}
-              onChange={handleNicknameChange}
-              placeholder="새 닉네임 입력"
-              maxLength={12}
-              className="flex-1 rounded-xl border border-[#E5E8EB] bg-white px-3.5 py-2.5 text-[14px] text-[#191F28] outline-none transition-colors focus:border-black placeholder:text-[#A1A1AA]"
-            />
-            <button
-              type="button"
-              onClick={handleSaveNickname}
-              disabled={!canSave}
-              className={`rounded-xl px-3.5 py-2.5 text-[13px] font-bold transition-all ${
-                canSave
-                  ? "bg-[#191F28] text-white hover:bg-black active:scale-95"
-                  : "bg-[#F2F4F6] text-[#A1A1AA] cursor-not-allowed"
-              }`}
-            >
-              변경
+      {/* 닉네임 변경 */}
+      <GroupTitle>닉네임</GroupTitle>
+      <label className="block">
+        <span className="sr-only">닉네임 변경</span>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={nicknameInput}
+            onChange={handleNicknameChange}
+            placeholder="새 닉네임 입력"
+            maxLength={12}
+            className="min-h-[48px] min-w-0 flex-1 rounded-xl bg-gray-100 px-3.5 text-[16px] text-ink outline-none transition-colors focus:bg-white focus:ring-1 focus:ring-inset focus:ring-gray-300 placeholder:text-ink-subtle"
+          />
+          <Button size="default" variant="primary" onClick={handleSaveNickname} disabled={!canSave} className="min-w-[68px] shrink-0">
+            변경
+          </Button>
+        </div>
+        <span className="mt-1.5 block text-[13px] text-ink-tertiary">홈과 알림에 보이는 이름이에요. 한글·영문 2~12자.</span>
+      </label>
+      {error && (
+        <p role="alert" className="mt-1.5 flex items-center gap-1 text-[13px] text-danger">
+          <AlertCircle size={14} />
+          {error}
+        </p>
+      )}
+      {success && (
+        <p className="mt-1.5 flex items-center gap-1 text-[13px] text-ink-secondary">
+          <Check size={14} />
+          닉네임을 바꿨어요.
+        </p>
+      )}
+
+      <SheetBand />
+
+      {/* 결제 자동 감지 */}
+      <GroupTitle>결제 자동 감지</GroupTitle>
+      <SettingRow
+        title="결제 알림으로 자동 등록"
+        description="카드사 문자·앱 알림이 오면 등록 창을 띄워요. 시험 기능이에요."
+        trailing={
+          onRequestPaymentCapture ? (
+            <Button size="compact" variant="secondary" onClick={handleOpenCaptureSettings} className="shrink-0">
+              설정
+            </Button>
+          ) : null
+        }
+      />
+      {(onTestPaymentDetection || captureConsented) && (
+        <div className="divide-y divide-gray-100 border-t border-gray-100">
+          {onTestPaymentDetection && (
+            <button type="button" onClick={onTestPaymentDetection} className="flex min-h-[48px] w-full items-center text-left text-[16px] text-ink">
+              자동 감지 체험해 보기
             </button>
-          </div>
-        </label>
-
-        {error && (
-          <p className="mt-2 flex items-center gap-1 text-[12px] text-[#EF4444]">
-            <AlertCircle size={13} />
-            {error}
-          </p>
-        )}
-        {success && (
-          <p className="mt-2 flex items-center gap-1 text-[12px] text-[#10B981]">
-            <Check size={13} />
-            닉네임이 성공적으로 변경되었습니다.
-          </p>
-        )}
-      </div>
-
-      {/* 스마트 자동화 설정: 실시간 결제 자동 감지 (Beta) */}
-      <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-xs">
-              ⚡
-            </span>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <strong className="block text-[13px] font-bold text-emerald-950">실시간 결제 자동 감지</strong>
-                <span className="rounded bg-emerald-200/80 px-1 py-0.2 text-[9px] font-bold text-emerald-800">Beta</span>
-              </div>
-              <span className="block text-[11px] text-emerald-700/80 truncate">
-                카드사 결제 문자/앱 알림 시 자동 등록 팝업
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {onTestPaymentDetection && (
-              <Button
-                size="compact"
-                variant="secondary"
-                className="!py-1.5 !px-2.5 !text-[11px] !bg-white !border-emerald-200 !text-emerald-900 cursor-pointer"
-                onClick={onTestPaymentDetection}
-              >
-                체험
-              </Button>
-            )}
-            {captureConsented && (
-              <button
-                type="button"
-                onClick={handleRevokeCaptureConsent}
-                className="text-[11px] text-[#8B95A1] hover:text-[#F04452] underline underline-offset-2 px-1"
-              >
-                동의 철회
-              </button>
-            )}
-            {onRequestPaymentCapture && (
-              <Button
-                size="compact"
-                className="!py-1.5 !px-2.5 !text-[11px] !bg-emerald-600 !text-white hover:!bg-emerald-700 cursor-pointer"
-                onClick={handleOpenCaptureSettings}
-              >
-                설정
-              </Button>
-            )}
-          </div>
+          )}
+          {captureConsented && (
+            <button type="button" onClick={handleRevokeCaptureConsent} className="flex min-h-[48px] w-full items-center text-left text-[16px] text-danger">
+              자동 감지 동의 철회
+            </button>
+          )}
         </div>
-      </div>
-
-      <EvidenceSettings userId={userId} onToast={onToast} />
+      )}
 
       <CaptureSourceSettings onToast={onToast} />
 
-      <DifficultySettings userId={userId} onToast={onToast} />
+      <SheetBand />
 
-      {/* 데이터 내보내기 (JSON 백업) */}
-      <DataExportSection userId={userId} profile={profile} onToast={onToast} />
+      {/* 데이터와 개인정보 */}
+      <GroupTitle>데이터</GroupTitle>
+      <div className="divide-y divide-gray-100">
+        <EvidenceSettings userId={userId} onToast={onToast} />
+        <DifficultySettings userId={userId} onToast={onToast} />
+        {/* 데이터 내보내기 (JSON 백업) */}
+        <DataExportSection userId={userId} profile={profile} onToast={onToast} />
+      </div>
 
-      {/* 회원 탈퇴 (데이터 영구 파기 및 로컬 정리) */}
-      <AccountDeletionSection
-        userId={userId}
-        onToast={onToast}
-        onClose={onClose}
-        onLogout={onLogout}
-      />
+      <SheetBand />
 
-      {/* 로그아웃 블록 */}
-      <div className="mt-6 pt-2">
-        <Button
-          variant="secondary"
-          className="w-full flex items-center justify-center gap-2 text-[#E11D48] hover:bg-red-50 hover:border-red-200 border-[#E5E8EB] py-3 text-[14px]"
+      {/* 로그아웃 · 회원 탈퇴 */}
+      <div className="divide-y divide-gray-100 pt-1">
+        <button
+          type="button"
+          className="flex min-h-[52px] w-full items-center text-left text-[16px] font-medium text-danger"
           onClick={() => {
             onClose?.();
             onLogout?.();
           }}
         >
-          <LogOut size={16} />
-          <span>로그아웃</span>
-        </Button>
+          로그아웃
+        </button>
+        {/* 회원 탈퇴 (데이터 영구 파기 및 로컬 정리) */}
+        <AccountDeletionSection
+          userId={userId}
+          onToast={onToast}
+          onClose={onClose}
+          onLogout={onLogout}
+        />
       </div>
 
       <PaymentCaptureDisclosureModal
@@ -506,28 +473,23 @@ function DataExportSection({ userId, profile, onToast }) {
   };
 
   return (
-    <div className="mt-3 rounded-2xl border border-[#E5E8EB] bg-white p-4 shadow-2xs" data-testid="account-export-section">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0 pr-2">
-          <strong className="flex items-center gap-1.5 text-[13px] font-bold text-[#191F28]">
-            <Download size={14} /> 데이터 내보내기
-          </strong>
-          <span className="mt-0.5 block text-[11px] leading-relaxed text-[#8B95A1]">
-            구독 목록, 해지 기록, 증빙 요약 및 동의 내역을 JSON 파일로 백업해요.
-          </span>
-        </div>
+    <SettingRow
+      testId="account-export-section"
+      title="데이터 내보내기"
+      description="구독 목록, 해지 기록, 증빙 요약, 동의 내역을 JSON 파일로 받아요."
+      trailing={
         <Button
           size="compact"
           variant="secondary"
           disabled={exporting}
           onClick={handleExport}
-          className="shrink-0 text-[12px] font-semibold"
+          className="shrink-0"
           data-testid="account-export-button"
         >
-          {exporting ? "생성 중..." : "내보내기"}
+          {exporting ? "만드는 중" : "내보내기"}
         </Button>
-      </div>
-    </div>
+      }
+    />
   );
 }
 
@@ -570,69 +532,50 @@ function AccountDeletionSection({ userId, onToast, onClose, onLogout }) {
   };
 
   return (
-    <div className="mt-3 rounded-2xl border border-red-100 bg-red-50/40 p-4 shadow-2xs" data-testid="account-deletion-section">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <strong className="flex items-center gap-1.5 text-[13px] font-bold text-[#F04452]">
-            <Trash2 size={14} /> {userId ? "회원 탈퇴" : "로컬 데이터 초기화 및 탈퇴"}
-          </strong>
-          <span className="mt-0.5 block text-[11px] leading-relaxed text-[#8B95A1]">
-            계정과 연동된 모든 구독·증빙·승인 데이터가 즉시 영구 삭제됩니다.
-          </span>
-        </div>
-        {!showConfirm && (
-          <button
-            type="button"
-            onClick={() => setShowConfirm(true)}
-            className="shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-bold text-[#F04452] hover:bg-red-100/60 transition-colors"
-          >
-            탈퇴하기
-          </button>
-        )}
-      </div>
+    <div data-testid="account-deletion-section">
+      {!showConfirm ? (
+        <button
+          type="button"
+          onClick={() => setShowConfirm(true)}
+          className="flex min-h-[52px] w-full flex-col justify-center py-2 text-left"
+        >
+          <span className="text-[16px] font-medium text-danger">{userId ? "회원 탈퇴" : "기기 데이터 지우고 탈퇴"}</span>
+          <span className="mt-0.5 text-[13px] text-ink-tertiary">구독·증빙·승인 데이터가 바로 영구 삭제돼요.</span>
+        </button>
+      ) : (
+        <div className="py-3">
+          <strong className="block text-[16px] font-semibold text-danger">{userId ? "회원 탈퇴" : "기기 데이터 지우고 탈퇴"}</strong>
+          <p className="mt-2 text-[14px] text-ink-secondary">아래 항목이 모두 지워지고 되돌릴 수 없어요.</p>
+          <ul className="mt-1.5 list-disc space-y-0.5 pl-5 text-[14px] text-ink-tertiary">
+            <li>등록된 모든 구독과 지난 구독 기록</li>
+            <li>결제 증빙과 영수증 인식 내역</li>
+            <li>꾸독 에이전트 승인 요청과 자동 허용 기록</li>
+            <li>기기에 보관된 캐시와 설정</li>
+          </ul>
 
-      {showConfirm && (
-        <div className="mt-3 border-t border-red-100 pt-3">
-          <div className="rounded-xl bg-white p-3 border border-red-100 text-[11px] text-[#4E5968] leading-relaxed">
-            <p className="font-bold text-[#F04452] flex items-center gap-1 mb-1">
-              <AlertTriangle size={13} /> 삭제되는 항목 안내
-            </p>
-            <ul className="list-disc pl-4 space-y-0.5 text-[#6B7684]">
-              <li>등록된 모든 활성 및 과거 구독 목록</li>
-              <li>결제 증빙 및 영수증 자동 인식 내역</li>
-              <li>AI 에이전트 승인 요청 및 자동 허용(위임) 기록</li>
-              <li>기기에 보관된 캐시 및 환경 설정</li>
-            </ul>
-            <p className="mt-2 text-[10px] text-[#8B95A1]">
-              * 탈퇴 후에는 모든 데이터가 영구 파기되며 절대 복구할 수 없습니다.
-            </p>
-          </div>
-
-          <div className="mt-3">
-            <label className="block text-[11px] font-medium text-[#4E5968] mb-1">
-              계속하려면 <strong className="text-[#F04452]">'탈퇴'</strong>를 입력해 주세요.
-            </label>
+          <label className="mt-4 block text-[14px] text-ink-secondary">
+            계속하려면 <strong className="text-danger">'탈퇴'</strong>를 입력해 주세요.
             <input
               type="text"
               value={confirmInput}
               onChange={(e) => setConfirmInput(e.target.value)}
               placeholder="탈퇴"
               disabled={deleting}
-              className="w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-[13px] outline-none focus:border-[#F04452] placeholder:text-[#A1A1AA]"
+              className="mt-1.5 min-h-[48px] w-full rounded-xl bg-gray-100 px-3.5 text-[16px] text-ink outline-none focus:bg-white focus:ring-1 focus:ring-inset focus:ring-danger placeholder:text-ink-subtle"
               data-testid="account-delete-input"
             />
-          </div>
+          </label>
 
           {errorMsg && (
-            <p className="mt-2 flex items-center gap-1 text-[11px] font-medium text-[#F04452]">
-              <AlertCircle size={13} />
+            <p role="alert" className="mt-2 flex items-center gap-1 text-[13px] font-medium text-danger">
+              <AlertCircle size={14} />
               {errorMsg}
             </p>
           )}
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-4 flex gap-2">
             <Button
-              size="compact"
+              size="default"
               variant="secondary"
               disabled={deleting}
               onClick={() => {
@@ -640,18 +583,19 @@ function AccountDeletionSection({ userId, onToast, onClose, onLogout }) {
                 setConfirmInput("");
                 setErrorMsg("");
               }}
-              className="flex-1 text-[12px]"
+              className="flex-1"
             >
               취소
             </Button>
             <Button
-              size="compact"
+              size="default"
+              variant="danger"
               disabled={!isConfirmed || deleting}
               onClick={handleDelete}
-              className="flex-1 !bg-[#F04452] text-white text-[12px] disabled:opacity-40"
+              className="flex-1"
               data-testid="account-delete-button"
             >
-              {deleting ? "탈퇴 처리 중..." : "영구 탈퇴"}
+              {deleting ? "탈퇴 처리 중" : "영구 탈퇴"}
             </Button>
           </div>
         </div>
@@ -659,3 +603,4 @@ function AccountDeletionSection({ userId, onToast, onClose, onLogout }) {
     </div>
   );
 }
+

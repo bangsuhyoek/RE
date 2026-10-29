@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { IconButton, ServiceMark } from "./ui";
-import { formatKoreanMonth, formatWon, getCalendarDays, getLastDate } from "../lib/dates";
+import { IconButton, ListRow, SectionBand, ServiceLogo } from "./ui";
+import { formatKoreanMonth, formatWonText, getCalendarDays, getLastDate } from "../lib/dates";
 import { buildDuesByDay } from "../lib/calendarDues";
 
 export function CalendarScreen({ subscriptions, onOpen }) {
@@ -20,14 +20,6 @@ export function CalendarScreen({ subscriptions, onOpen }) {
 
   const selectedDues = duesByDay.get(clampedDay) || [];
   const selectedTotal = selectedDues.reduce((sum, item) => sum + item.amount, 0);
-  const maxDayAmount = useMemo(() => {
-    let max = 0;
-    for (const list of duesByDay.values()) {
-      const daySum = list.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
-      if (daySum > max) max = daySum;
-    }
-    return max;
-  }, [duesByDay]);
 
   const monthTotal = useMemo(() => {
     let total = 0;
@@ -39,112 +31,97 @@ export function CalendarScreen({ subscriptions, onOpen }) {
     return total;
   }, [duesByDay]);
 
+  const now = new Date();
+  const todayDay = now.getFullYear() === year && now.getMonth() === month ? now.getDate() : null;
+
   const prevMonth = () => setDate(new Date(year, month - 1, 1));
   const nextMonth = () => setDate(new Date(year, month + 1, 1));
 
   return (
-    <main className="px-4 sm:px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-5 sm:pt-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-[22px] font-extrabold tracking-tight text-fg-primary">
-            {formatKoreanMonth(year, month)}
-            {monthTotal > 0 && (
-              <span className="rounded-full bg-surface-subtle px-2.5 py-0.5 text-[12px] font-bold text-fg-secondary">
-                총 {formatWon(monthTotal)}
-              </span>
-            )}
-          </h1>
+    <main className="pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-3">
+      <div className="flex items-center justify-between px-5">
+        <div className="min-w-0">
+          <h1 className="text-[20px] font-bold tracking-[-0.03em] text-ink">{formatKoreanMonth(year, month)}</h1>
+          <p className="mt-0.5 text-[14px] tabular-nums text-ink-tertiary">
+            {monthTotal > 0 ? <>이번 달 결제 <strong className="font-semibold text-ink-secondary">{formatWonText(monthTotal)}</strong></> : "이번 달 결제 예정이 없어요"}
+          </p>
         </div>
         <div className="flex gap-1">
-          <IconButton variant="weak" size="medium" onClick={prevMonth} aria-label="이전 달"><ChevronLeft size={16} /></IconButton>
-          <IconButton variant="weak" size="medium" onClick={nextMonth} aria-label="다음 달"><ChevronRight size={16} /></IconButton>
+          <IconButton variant="ghost" size="large" onClick={prevMonth} aria-label="이전 달"><ChevronLeft size={20} /></IconButton>
+          <IconButton variant="ghost" size="large" onClick={nextMonth} aria-label="다음 달"><ChevronRight size={20} /></IconButton>
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-border-subtle bg-surface-default p-3 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div className="grid grid-cols-7 text-center text-[12px] font-bold text-fg-subtle">
+      <div className="mt-3 px-3">
+        <div className="grid grid-cols-7 text-center text-[12px] font-medium text-ink-tertiary">
           <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
         </div>
-        <div className="mt-2 grid grid-cols-7 gap-y-2 text-center text-[13px]">
+        <div className="mt-1 grid grid-cols-7 text-center">
           {days.map((item, i) => {
-            if (!item) return <div key={`empty-${i}`} className="h-8 sm:h-10" />;
+            if (!item) return <div key={`empty-${i}`} className="h-12" />;
             const isSelected = item === clampedDay;
+            const isToday = item === todayDay;
             const subsOnDay = duesByDay.get(item) || [];
             const hasDue = subsOnDay.length > 0;
-            const dayAmount = subsOnDay.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
-            const isPeak = hasDue && maxDayAmount > 0 && dayAmount >= maxDayAmount * 0.6;
-            const isMid = hasDue && !isPeak && maxDayAmount > 0 && dayAmount >= maxDayAmount * 0.25;
 
-            let dayStyle = "text-fg-primary hover:bg-surface-subtle";
-            if (isSelected) {
-              dayStyle = "bg-surface-inverse text-fg-inverse shadow-sm";
-            } else if (isPeak) {
-              dayStyle = "bg-amber-100/90 text-amber-950 font-bold border border-amber-300 shadow-2xs";
-            } else if (isMid) {
-              dayStyle = "bg-emerald-50 text-emerald-950 font-semibold border border-emerald-200/70";
-            } else if (hasDue) {
-              dayStyle = "bg-surface-subtle text-fg-primary font-semibold";
-            }
+            let dayStyle = "text-ink";
+            if (isSelected) dayStyle = "bg-ink text-white font-semibold";
+            else if (isToday) dayStyle = "bg-gray-100 text-ink font-bold";
+            else if (hasDue) dayStyle = "text-ink font-semibold";
 
             return (
               <button
                 key={`day-${item}`}
                 type="button"
                 onClick={() => setSelectedDay(item)}
-                className={`relative mx-auto flex h-8 w-8 min-w-[32px] sm:h-10 sm:w-10 sm:min-w-[40px] flex-col items-center justify-center rounded-xl text-[12px] sm:text-[13px] font-semibold transition-all active:scale-95 ${dayStyle}`}
+                aria-label={`${month + 1}월 ${item}일${isToday ? " 오늘" : ""}${hasDue ? ` 결제 ${subsOnDay.length}건` : ""}`}
+                aria-pressed={isSelected}
+                className="group flex h-12 w-full items-center justify-center"
               >
-                <span>{item}</span>
-                {hasDue && !isSelected && (
-                  <span className={`absolute bottom-1 h-1 w-1 rounded-full ${
-                    isPeak ? "bg-amber-600" : isMid ? "bg-emerald-600" : "bg-surface-brand"
-                  }`} />
-                )}
-                {hasDue && isSelected && (
-                  <span className="absolute bottom-1 h-1 w-1 rounded-full bg-white" />
-                )}
+                <span className={`relative flex h-10 w-10 flex-col items-center justify-center rounded-full text-[15px] tabular-nums transition-colors ${isSelected ? "" : "group-hover:bg-gray-100"} ${dayStyle}`}>
+                  <span>{item}</span>
+                  {hasDue && (
+                    <span className={`absolute bottom-1 h-1 w-1 rounded-full ${isSelected ? "bg-white" : "bg-ink-subtle"}`} aria-hidden="true" />
+                  )}
+                </span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <section className="mt-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[16px] font-bold text-fg-primary">{month + 1}월 {clampedDay}일 결제 예정 ({selectedDues.length}건)</h2>
-          {selectedDues.length > 0 && <span className="text-[15px] font-extrabold text-fg-primary">{formatWon(selectedTotal)}</span>}
+      <SectionBand className="mt-3" />
+
+      <section>
+        <div className="flex items-baseline justify-between px-5 pb-1 pt-5">
+          <h2 className="text-[18px] font-bold leading-[26px] tracking-[-0.025em] text-ink">{month + 1}월 {clampedDay}일</h2>
+          {selectedDues.length > 0 && (
+            <span className="text-[14px] tabular-nums text-ink-tertiary">{selectedDues.length}건 · <strong className="font-semibold text-ink">{formatWonText(selectedTotal)}</strong></span>
+          )}
         </div>
 
         {selectedDues.length > 0 ? (
-          <div className="mt-3 border-t border-border-subtle divide-y divide-border-subtle">
+          <div>
             {selectedDues.map((sub) => (
-              <button
+              <ListRow
                 key={sub.subscriptionId || sub.id}
-                type="button"
                 onClick={() => onOpen(sub.subscriptionId || sub.id)}
-                className="flex w-full items-center justify-between gap-3.5 text-left transition-colors cursor-pointer bg-transparent hover:bg-surface-subtle active:bg-border-subtle/40 px-0.5 sm:px-1 py-3.5 rounded-none border-0 shadow-none"
-              >
-                <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                  <ServiceMark
-                    serviceId={sub.id}
+                leading={
+                  <ServiceLogo
+                    serviceId={sub.serviceId || sub.id}
                     name={sub.name}
                     monogram={sub.monogram || sub.name?.slice(0, 1)}
                     image={sub.image || sub.attachments?.[0]}
-                    category={sub.category}
-                    className="h-12 w-12 rounded-xl text-[13px]"
                   />
-                  <div className="min-w-0 flex-1">
-                    <strong className="block text-[17px] font-semibold text-fg-primary tracking-tight truncate leading-tight">{sub.name}</strong>
-                    <span className="mt-1 block text-[12px] font-medium text-fg-muted truncate">{sub.plan}</span>
-                  </div>
-                </div>
-                <span className="text-[16px] font-bold tracking-tight text-fg-primary shrink-0 pl-2">{formatWon(sub.amount)}</span>
-              </button>
+                }
+                title={sub.name}
+                subtitle={sub.plan}
+                trailingTitle={formatWonText(sub.amount)}
+              />
             ))}
           </div>
         ) : (
-          <div className="mt-3 rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-6 text-center text-[13px] text-[#6B7684]">
-            해당 일자에는 예정된 결제 일정이 없습니다.
-          </div>
+          <p className="px-5 py-6 text-[14px] text-ink-tertiary">이날은 결제 예정이 없어요.</p>
         )}
       </section>
     </main>

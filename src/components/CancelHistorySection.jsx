@@ -53,8 +53,8 @@ function getVerificationMeta(record) {
       return {
         label: "해지 후 결제됨",
         desc: "해지한 뒤에 결제가 있었어요. 아래 문구로 환불을 요청해 보세요.",
-        dot: "bg-[#F04452]",
-        text: "text-[#F04452]",
+        dot: "bg-[#D22030]",
+        text: "text-[#D22030]",
       };
     case "asking":
       return {
@@ -69,15 +69,15 @@ function getVerificationMeta(record) {
         desc: expectedLabel
           ? expectedLabel + " 결제 예정일이 지나면 결제가 없었는지 여쭤볼게요."
           : "다음 결제 예정일이 지나면 결제가 없었는지 여쭤볼게요.",
-        dot: "bg-[#3182F6]",
-        text: "text-[#1B64DA]",
+        dot: "bg-brand",
+        text: "text-brand-ink",
       };
     default:
       return {
         label: "해지 기록됨",
         desc: null,
-        dot: "bg-[#B0B8C1]",
-        text: "text-[#6B7684]",
+        dot: "bg-gray-400",
+        text: "text-ink-muted",
       };
   }
 }
@@ -114,16 +114,16 @@ export function CancelHistorySection({
 
   return (
     <section className="mt-4 space-y-3" aria-label="해지한 구독" data-testid="cancel-history-section">
-      <div className="rounded-2xl bg-[#F9FAFB] px-4 py-4">
-        <p className="text-[13px] font-medium text-[#6B7684]">해지로 아끼는 돈</p>
-        <p className="mt-1 text-[22px] font-extrabold tracking-tight text-[#191F28]">매달 {formatWon(monthlySavedTotal)}</p>
-        <p className="mt-0.5 text-[12px] text-[#8B95A1]">1년이면 {formatWon(monthlySavedTotal * 12)}</p>
+      <div className="rounded-2xl bg-gray-50 px-4 py-4">
+        <p className="text-[13px] font-medium text-ink-muted">해지로 아끼는 돈</p>
+        <p className="mt-1 text-[22px] font-extrabold tracking-tight text-ink">매달 {formatWon(monthlySavedTotal)}</p>
+        <p className="mt-0.5 text-[12px] text-ink-tertiary">1년이면 {formatWon(monthlySavedTotal * 12)}</p>
       </div>
 
       {cancelHistory.length === 0 ? (
         <div className="px-4 py-10 text-center">
-          <p className="text-[15px] font-bold text-[#191F28]">아직 해지한 구독이 없어요</p>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-[#6B7684]">
+          <p className="text-[15px] font-bold text-ink">아직 해지한 구독이 없어요</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-ink-muted">
             해지하면 다음 결제일까지 결제가 없는지 여기서 지켜볼게요.
           </p>
         </div>
@@ -139,7 +139,7 @@ export function CancelHistorySection({
             const cancelledLabel = formatMonthDay(record.cancelledAt);
 
             return (
-              <li key={key} className="rounded-2xl border border-[#E5E8EB] bg-white p-4" data-testid="cancel-history-item">
+              <li key={key} className="rounded-2xl border border-gray-200 bg-white p-4" data-testid="cancel-history-item">
                 <div className="flex items-center gap-3">
                   <ServiceMark
                     serviceId={record.serviceId || record.id}
@@ -148,18 +148,18 @@ export function CancelHistorySection({
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <strong className="truncate text-[15px] font-bold text-[#191F28]">{record.name}</strong>
-                      <span className="shrink-0 text-[13px] font-semibold text-[#4E5968]">월 {formatWon(record.amount)}</span>
+                      <strong className="truncate text-[15px] font-bold text-ink">{record.name}</strong>
+                      <span className="shrink-0 text-[13px] font-semibold text-ink-secondary">월 {formatWon(record.amount)}</span>
                     </div>
                     <p className={"mt-0.5 flex items-center gap-1.5 text-[12px] font-semibold " + meta.text}>
                       <span aria-hidden="true" className={"h-1.5 w-1.5 rounded-full " + meta.dot} />
                       {meta.label}
-                      {cancelledLabel && <span className="font-medium text-[#8B95A1]">· {cancelledLabel} 해지</span>}
+                      {cancelledLabel && <span className="font-medium text-ink-tertiary">· {cancelledLabel} 해지</span>}
                     </p>
                   </div>
                 </div>
 
-                {meta.desc && <p className="mt-2.5 text-[12.5px] leading-relaxed text-[#6B7684]">{meta.desc}</p>}
+                {meta.desc && <p className="mt-2.5 text-[13px] leading-relaxed text-ink-muted">{meta.desc}</p>}
 
                 {record.verification === "asking" && onAnswerCancel && (
                   <div className="mt-3 flex gap-2">
@@ -172,11 +172,11 @@ export function CancelHistorySection({
                   </div>
                 )}
 
-                <div className="mt-3 flex gap-2 border-t border-[#F2F4F6] pt-3">
+                <div className="mt-3 flex gap-2 border-t border-gray-100 pt-3">
                   <button
                     type="button"
                     onClick={() => setExpandedProofKey(isProofOpen ? null : key)}
-                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#F2F4F6] px-3 py-2 text-[12px] font-bold text-[#333D4B] transition-colors hover:bg-[#E5E8EB]"
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-[12px] font-bold text-gray-800 transition-colors hover:bg-gray-200"
                   >
                     <Camera size={13} />
                     <span>{matchedProof ? "해지 화면 보기" : "해지 화면 저장"}</span>
@@ -186,7 +186,7 @@ export function CancelHistorySection({
                     <button
                       type="button"
                       onClick={() => setExpandedDraftKey(expandedDraftKey === key ? null : key)}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#F2F4F6] px-3 py-2 text-[12px] font-bold text-[#333D4B] transition-colors hover:bg-[#E5E8EB]"
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-[12px] font-bold text-gray-800 transition-colors hover:bg-gray-200"
                     >
                       <FileText size={13} />
                       <span>환불 요청 문구</span>
@@ -198,22 +198,22 @@ export function CancelHistorySection({
                 {isProofOpen && (
                   <div className="mt-3">
                     {matchedProof ? (
-                      <div className="rounded-2xl bg-[#F9FAFB] p-3.5 text-left">
+                      <div className="rounded-2xl bg-gray-50 p-3.5 text-left">
                         <div className="flex items-center justify-between">
-                          <span className="text-[12px] font-semibold text-[#4E5968]">
+                          <span className="text-[12px] font-semibold text-ink-secondary">
                             {formatKSTDateTime(matchedProof.cancelledAt || matchedProof.createdAt)}에 저장
                           </span>
                           <button
                             type="button"
                             onClick={() => handleDeleteProof(matchedProof.id)}
-                            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-[#8B95A1] hover:bg-white hover:text-[#F04452]"
+                            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-ink-tertiary hover:bg-white hover:text-[#D22030]"
                           >
                             <Trash2 size={12} /> 삭제
                           </button>
                         </div>
-                        {matchedProof.note && <p className="mt-1 text-[12px] text-[#6B7684]">{matchedProof.note}</p>}
+                        {matchedProof.note && <p className="mt-1 text-[12px] text-ink-muted">{matchedProof.note}</p>}
                         {matchedProof.imageDataUrl && (
-                          <div className="mt-2.5 overflow-hidden rounded-xl border border-[#E5E8EB] bg-white">
+                          <div className="mt-2.5 overflow-hidden rounded-xl border border-gray-200 bg-white">
                             <img
                               src={matchedProof.imageDataUrl}
                               alt={record.name + " 해지 화면"}

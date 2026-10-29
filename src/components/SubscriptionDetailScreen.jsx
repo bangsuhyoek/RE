@@ -2,19 +2,24 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 import {
   ChevronLeft,
+  ChevronRight,
   Pencil,
-  Sparkles,
+  Check,
   CalendarPlus,
 } from "lucide-react";
 import {
   BottomSheet,
   Button,
-  DDayBadge,
-  ServiceMark,
+  DDayText,
+  IconButton,
+  ListRow,
+  SectionBand,
+  ServiceLogo,
   ToggleSwitch,
   PaymentMethodTriggerField,
 } from "./ui";
 import { DifficultySurvey } from "./DifficultySurvey";
+import { SelectSheet, SelectTrigger } from "./SelectSheet";
 import { CancelProofCapture } from "./CancelProofCapture";
 import { getCachedCatalog, loadSubscriptionData } from "../data/catalogLoader";
 import { getCancelPolicy } from "../data/cancelPolicies";
@@ -22,13 +27,17 @@ import { getCancelTimingAdvice } from "../lib/cancelTiming";
 import { createCancelSession } from "../lib/cancelDifficulty";
 import { hasMoneyRelevantWarning } from "../lib/cancelBrowser";
 import { expectedChargeAfterCancel } from "../lib/cancelVerification";
-import { formatWon } from "../lib/dates";
+import { formatWonText } from "../lib/dates";
 import { toMonthlyAmount, toAnnualAmount } from "../lib/subscriptionMath";
 import { resolvePaymentChannel, shouldAutoOpenServicePage } from "../lib/cancelRoutes";
 import { getRailCancelPlan } from "../lib/railCancel";
 import { addBillingToCalendar } from "../lib/calendarExport";
 import { buildSettlementRequest } from "../lib/settlement";
 import { shareText } from "../lib/shareText";
+
+// C2 입력칸: 회색 면, 선 없음, 포커스 때만 얇은 안쪽 선.
+const EDIT_INPUT =
+  "mt-1.5 min-h-[48px] w-full rounded-xl bg-gray-100 px-3.5 text-[16px] text-ink outline-none transition-colors focus:bg-white focus:ring-1 focus:ring-inset focus:ring-gray-300";
 
 /**
  * 프리미엄 iOS/쿠퍼티노 스타일 스크롤 휠 드럼롤 컬럼
@@ -81,8 +90,8 @@ function ScrollWheelColumn({ items, value, onChange }) {
               onClick={() => handleClick(it.value, idx)}
               className={`h-[44px] flex items-center justify-center snap-center cursor-pointer transition-all duration-150 select-none ${
                 isSelected
-                  ? "text-[21px] font-black text-black scale-105"
-                  : "text-[16px] font-medium text-gray-300 hover:text-gray-500"
+                  ? "text-[19px] font-semibold text-ink"
+                  : "text-[16px] font-normal text-ink-subtle hover:text-ink-tertiary"
               }`}
             >
               {it.label}
@@ -140,19 +149,19 @@ function NotificationTimeScrollPickerModal({
   return (
     <BottomSheet onClose={onClose} label="사전 알림 시간 설정">
       <div className="px-3 pt-2 pb-5 select-none">
-        <div className="text-center mb-4">
-          <h3 className="text-[18px] font-extrabold tracking-tight text-black">
+        <div className="mb-4">
+          <h3 className="text-[18px] font-bold tracking-[-0.025em] text-ink">
             알림 받을 시간
           </h3>
-          <p className="text-[12px] text-gray-500 mt-1">
-            결제일 전 원하는 알림 시점과 시간을 휠로 맞추세요
+          <p className="text-[14px] text-ink-tertiary mt-1">
+            결제 며칠 전, 몇 시에 알려드릴지 골라 주세요.
           </p>
         </div>
 
         {/* 네이티브 휠 드럼롤 (박스 없는 개방형 + 원통형 실린더 그라디언트 페이드) */}
         <div className="relative max-w-xs mx-auto my-2">
           {/* 중앙 통합 플로팅 선택 바 (단일 소프트 필) */}
-          <div className="absolute inset-x-2 top-[80px] h-[44px] rounded-xl bg-gray-100/90 pointer-events-none -z-10" />
+          <div className="absolute inset-x-2 top-[80px] h-[44px] rounded-xl bg-gray-100 pointer-events-none -z-10" />
 
           <div
             className="relative flex items-center z-0"
@@ -180,13 +189,9 @@ function NotificationTimeScrollPickerModal({
         </div>
 
         <div className="mt-6">
-          <button
-            type="button"
-            onClick={handleConfirm}
-            className="w-full rounded-2xl bg-[#111827] text-white font-bold py-4 text-[16px] shadow-sm hover:bg-black active:scale-[0.98] transition-all cursor-pointer text-center"
-          >
+          <Button variant="primary" size="large" fullWidth onClick={handleConfirm}>
             D-{dday} {ampm} {Number(hour)}시로 설정
-          </button>
+          </Button>
         </div>
       </div>
     </BottomSheet>
@@ -210,6 +215,8 @@ export function SubscriptionDetailScreen({
   const [celebrateSheetOpen, setCelebrateSheetOpen] = useState(false);
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [editError, setEditError] = useState("");
+  const [cyclePickerOpen, setCyclePickerOpen] = useState(false);
+  const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
   const [draft, setDraft] = useState(() => ({
     plan: subscription?.plan || "기본 플랜",
     amount: subscription?.amount || 0,
@@ -285,8 +292,8 @@ export function SubscriptionDetailScreen({
   if (!subscription) {
     return (
       <main className="px-5 pb-12 pt-12 text-center">
-        <h1 className="text-[18px] font-bold text-black">구독 정보를 찾을 수 없습니다.</h1>
-        <p className="mt-2 text-[13px] text-gray-500">삭제되었거나 잘못된 경로입니다.</p>
+        <h1 className="text-[18px] font-bold text-ink">구독 정보를 찾을 수 없어요</h1>
+        <p className="mt-2 text-[14px] text-ink-tertiary">삭제됐거나 잘못된 경로예요.</p>
         <Button className="mt-6 mx-auto" onClick={onBack}>목록으로 돌아가기</Button>
       </main>
     );
@@ -350,204 +357,160 @@ export function SubscriptionDetailScreen({
   };
 
   return (
-    <main className="px-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-3 select-none">
-      {/* 1. 상단 뒤로가기 버튼 */}
-      <div className="flex items-center justify-between pb-1">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-1 text-[15px] font-medium text-gray-600 hover:text-black py-2 cursor-pointer transition-colors"
-        >
-          <ChevronLeft size={20} strokeWidth={2.5} />
-          <span>뒤로</span>
-        </button>
-
+    <main className="pb-[calc(6rem+env(safe-area-inset-bottom,0px))] select-none">
+      {/* 1. 상단 바: 뒤로 + 수정 */}
+      <div className="flex h-[52px] items-center justify-between pl-2 pr-3">
+        <IconButton onClick={onBack} aria-label="뒤로가기" size="large">
+          <ChevronLeft size={24} strokeWidth={2} className="text-ink" />
+        </IconButton>
         <button
           type="button"
           onClick={() => setEditing((v) => !v)}
-          className="text-[13px] font-semibold text-gray-400 hover:text-black flex items-center gap-1 py-2 transition-colors cursor-pointer"
+          className="inline-flex min-h-[44px] items-center gap-1 px-2 text-[15px] font-medium text-ink-tertiary transition-colors hover:text-ink"
         >
-          <Pencil size={13} />
+          <Pencil size={14} />
           <span>{editing ? "수정 닫기" : "수정"}</span>
         </button>
       </div>
 
-      {/* 2. 서비스 헤더 (공식 브랜드 로고 + 서비스명 + D-Day 뱃지 + 플랜/카테고리) */}
-      <div className="flex items-center gap-4 mt-2 mb-5">
-        <ServiceMark
+      {/* 2. 서비스 머리 */}
+      <div className="flex items-center gap-3.5 px-5 pt-1">
+        <ServiceLogo
           serviceId={subscription.serviceId || subscription.id}
           name={subscription.name}
           monogram={monogram}
           image={subscription.image || subscription.attachments?.[0]}
-          category={subscription.category}
-          className="h-14 w-14 rounded-full"
+          className="h-12 w-12"
         />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-[22px] font-bold text-black tracking-tight truncate leading-tight">
-              {subscription.name}
-            </h1>
-            <DDayBadge subscription={subscription} />
-          </div>
-          <p className="text-[13px] text-gray-400 font-normal mt-1 truncate">
+          <h1 className="truncate text-[20px] font-bold leading-[28px] tracking-[-0.03em] text-ink">
+            {subscription.name}
+          </h1>
+          <p className="truncate text-[14px] text-ink-tertiary">
             {subscription.plan || "Standard 4K"} · {subscription.category || "엔터테인먼트"}
           </p>
         </div>
       </div>
 
-      <div className="h-px bg-gray-100/80 mb-5" />
-
       {!editing ? (
         <>
-          {/* 3. 결제 정보 (박스 컨테이너 없이 열린 에디토리얼 레이아웃) */}
-          <section className="py-2">
-            <span className="text-[12px] font-medium text-gray-400 block mb-1">
-              결제 금액
+          {/* 3. 결제 금액 (화면의 유일한 큰 숫자) */}
+          <section className="px-5 pb-6 pt-6">
+            <span className="block text-[14px] text-ink-tertiary">
+              {subscription.billingCycle === "매년" ? "매년" : "매월"} 결제 금액
             </span>
-            <div className="flex items-baseline justify-between">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[34px] font-black tracking-tight text-black leading-none">
-                  {formatWon(subscription.amount)}
-                </span>
-                <span className="text-[13px] text-gray-400 font-medium">
-                  /{subscription.billingCycle === "매년" ? "년" : "월"}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-medium text-gray-400">다음 결제</span>
-                <DDayBadge subscription={subscription} />
-              </div>
-            </div>
-
-            <div className="h-px bg-gray-100/80 my-5" />
-
-            <div className="space-y-3.5 text-[14px]">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400">결제 수단</span>
-                <span className="font-semibold text-black">
-                  {subscription.paymentMethod || "신한카드 ****4521"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400">결제 주기</span>
-                <span className="font-semibold text-black">
-                  {subscription.billingCycle === "매년" ? "매년 자동 결제" : "매월 자동 결제"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400">카테고리</span>
-                <span className="font-semibold text-black">
-                  {subscription.category || "엔터테인먼트"}
-                </span>
-              </div>
-            </div>
-          </section>
-
-          <div className="h-px bg-gray-100/80 my-5" />
-
-          {/* 4. 사전 알림 설정 (스크롤 휠 시간 픽커 연동) */}
-          <section className="flex items-center justify-between py-2">
-            <div
-              className="cursor-pointer group flex-1 pr-4"
-              onClick={() => setTimePickerOpen(true)}
-              role="button"
-              tabIndex={0}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-[15px] font-bold text-black group-hover:text-gray-700 transition-colors">
-                  사전 결제 알림
-                </span>
-                <span className="text-[11px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-md">
-                  D-{alertDDay} {alertAmpm} {Number(alertHour)}시
-                </span>
-              </div>
-              <span className="text-[12px] text-gray-400 mt-0.5 flex items-center gap-1">
-                <span>결제 D-{alertDDay} {alertAmpm} {Number(alertHour)}시에 푸시 발송</span>
-                <span className="text-[11px] text-gray-600 font-semibold underline underline-offset-2">(시간 변경)</span>
+            <div className="mt-1 flex items-baseline gap-1">
+              <span className="text-[30px] font-bold leading-[38px] tabular-nums tracking-[-0.03em] text-ink">
+                {formatWonText(subscription.amount)}
               </span>
+              <span className="text-[15px] text-ink-tertiary">/{subscription.billingCycle === "매년" ? "년" : "월"}</span>
             </div>
-            <ToggleSwitch
-              checked={Boolean(alertEnabled)}
-              onChange={(checked) => {
-                onUpdate(subscription.subscriptionId, {
-                  alertEnabled: checked,
-                  alertD3: checked && alertDDay === 3,
-                  alertD1: checked && alertDDay === 1,
-                });
-              }}
-              label="사전 결제 알림 활성화"
-            />
           </section>
 
-          {/* 4-2. 홈 화면 상단 고정 강조 설정 */}
-          <section className="flex items-center justify-between py-1 mt-6">
-            <div>
-              <h2 className="text-[16px] font-bold text-black tracking-tight">홈 화면 상단 고정</h2>
-              <span className="text-[13px] text-gray-400 block mt-0.5">
-                홈 화면 구독 목록에서 이 서비스를 최상단에 우선 표시합니다.
-              </span>
-            </div>
-            <ToggleSwitch
-              checked={Boolean(subscription.isPinned || subscription.pinned)}
-              onChange={(checked) => {
-                onUpdate(subscription.subscriptionId, {
-                  isPinned: checked,
-                  pinned: checked,
-                });
-              }}
-              label="홈 화면 상단 고정"
-            />
-          </section>
+          <SectionBand />
 
-          {/* 4-3. 결제일을 내 캘린더에 넣기 (캘린더 권한 없이 캘린더 앱 일정 화면을 채워 연다) */}
-          {subscription.sharingEnabled && Number(subscription.shareCount) > 1 && (
-            <section className="flex items-center justify-between gap-3 py-1 mt-6">
-              <div className="min-w-0">
-                <h2 className="text-[16px] font-bold text-black tracking-tight">정산 요청 보내기</h2>
-                <span className="text-[13px] text-gray-400 block mt-0.5">
-                  {subscription.shareCount}명이 나눠 내요. 1인 {formatWon(buildSettlementRequest(subscription).perPerson)} 요청 문구를 보내요.
-                </span>
-              </div>
+          {/* 4. 결제 정보: 라벨/값 행 */}
+          <dl className="divide-y divide-gray-100 px-5">
+            <div className="flex min-h-[52px] items-center justify-between gap-4">
+              <dt className="text-[15px] text-ink-tertiary">다음 결제</dt>
+              <dd><DDayText subscription={subscription} className="text-[15px]" /></dd>
+            </div>
+            <div className="flex min-h-[52px] items-center justify-between gap-4">
+              <dt className="text-[15px] text-ink-tertiary">결제 수단</dt>
+              <dd className="truncate text-[15px] font-medium text-ink">{subscription.paymentMethod || "신한카드 ****4521"}</dd>
+            </div>
+            <div className="flex min-h-[52px] items-center justify-between gap-4">
+              <dt className="text-[15px] text-ink-tertiary">결제 주기</dt>
+              <dd className="text-[15px] font-medium text-ink">{subscription.billingCycle === "매년" ? "매년 자동 결제" : "매월 자동 결제"}</dd>
+            </div>
+            <div className="flex min-h-[52px] items-center justify-between gap-4">
+              <dt className="text-[15px] text-ink-tertiary">카테고리</dt>
+              <dd className="text-[15px] font-medium text-ink">{subscription.category || "엔터테인먼트"}</dd>
+            </div>
+          </dl>
+
+          <SectionBand className="mt-2" />
+
+          {/* 5. 설정 행 */}
+          <div className="divide-y divide-gray-100">
+            <div className="flex min-h-[64px] items-center justify-between gap-4 px-5 py-2">
               <button
                 type="button"
+                onClick={() => setTimePickerOpen(true)}
+                className="min-w-0 flex-1 py-1 text-left"
+                aria-label={`사전 결제 알림 시간 변경, 현재 D-${alertDDay} ${alertAmpm} ${Number(alertHour)}시`}
+              >
+                <span className="block text-[16px] font-medium text-ink">사전 결제 알림</span>
+                <span className="mt-0.5 flex items-center gap-0.5 text-[13px] text-ink-tertiary">
+                  결제 D-{alertDDay} {alertAmpm} {Number(alertHour)}시
+                  <ChevronRight size={14} className="text-ink-subtle" aria-hidden="true" />
+                </span>
+              </button>
+              <ToggleSwitch
+                checked={Boolean(alertEnabled)}
+                onChange={(checked) => {
+                  onUpdate(subscription.subscriptionId, {
+                    alertEnabled: checked,
+                    alertD3: checked && alertDDay === 3,
+                    alertD1: checked && alertDDay === 1,
+                  });
+                }}
+                label="사전 결제 알림 활성화"
+              />
+            </div>
+
+            <div className="flex min-h-[64px] items-center justify-between gap-4 px-5 py-2">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[16px] font-medium text-ink">홈 화면 상단 고정</h2>
+                <span className="mt-0.5 block break-keep text-[13px] text-ink-tertiary">홈 목록 맨 위에 보여줘요.</span>
+              </div>
+              <ToggleSwitch
+                checked={Boolean(subscription.isPinned || subscription.pinned)}
+                onChange={(checked) => {
+                  onUpdate(subscription.subscriptionId, {
+                    isPinned: checked,
+                    pinned: checked,
+                  });
+                }}
+                label="홈 화면 상단 고정"
+              />
+            </div>
+
+            {subscription.sharingEnabled && Number(subscription.shareCount) > 1 && (
+              <ListRow
+                title="정산 요청 보내기"
+                subtitle={`${subscription.shareCount}명 · 1인 ${formatWonText(buildSettlementRequest(subscription).perPerson)}`}
+                withArrow
                 onClick={async () => {
                   const request = buildSettlementRequest(subscription);
                   const result = await shareText({ title: request.title, text: request.message });
                   if (result.method === "clipboard") onToast?.("정산 요청 문구를 복사했어요. 단톡방에 붙여 넣어 보내세요.");
                 }}
-                className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-[13px] font-bold text-gray-800 active:scale-95 transition-transform"
-              >
-                보내기
-              </button>
-            </section>
-          )}
+              />
+            )}
 
-          <section className="flex items-center justify-between gap-3 py-1 mt-6">
-            <div className="min-w-0">
-              <h2 className="text-[16px] font-bold text-black tracking-tight">내 캘린더에 결제일 추가</h2>
-              <span className="text-[13px] text-gray-400 block mt-0.5">
-                {Capacitor.isNativePlatform() ? "캘린더 앱에서 저장을 누르면 결제일이 반복 일정으로 들어가요." : "일정 파일(.ics)을 받아 쓰는 캘린더에 추가해요."}
-              </span>
-            </div>
-            <button
-              type="button"
+            {/* 결제일을 내 캘린더에 넣기 (캘린더 권한 없이 캘린더 앱 일정 화면을 채워 연다) */}
+            <ListRow
+              leading={<CalendarPlus size={20} strokeWidth={1.8} className="shrink-0 text-ink-muted" aria-hidden="true" />}
+              title="내 캘린더에 결제일 추가"
+              subtitle={Capacitor.isNativePlatform() ? "반복 일정으로 넣어요" : "일정 파일(.ics)로 받아요"}
+              withArrow
               onClick={async () => {
                 const result = await addBillingToCalendar(subscription);
                 if (!result.ok) onToast?.(result.code === "NO_CALENDAR_APP" ? "캘린더 앱을 찾지 못했어요." : "캘린더를 열지 못했어요.");
                 else if (result.method === "ics") onToast?.("일정 파일을 받았어요. 열어서 캘린더에 추가해 주세요.");
               }}
-              className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-2 text-[13px] font-bold text-gray-800 active:scale-95 transition-transform"
-            >
-              <CalendarPlus size={15} /> 추가
-            </button>
-          </section>
+            />
+          </div>
 
-          <div className="h-px bg-gray-100/80 my-8" />
+          <SectionBand />
 
-          {/* 5. 하단 2-트랙 해지 CTA 버튼 */}
-          <div className="space-y-3">
-            <button
-              type="button"
+          {/* 6. 해지 동작: 주요 버튼 하나 + 보조 버튼 */}
+          <div className="space-y-2.5 px-5 pt-5">
+            <Button
+              variant="primary"
+              size="large"
+              fullWidth
               onClick={() => {
                 // Google Play·App Store·카드 자동납부·2단계 결제 경로 차단 및 금전적 불이익 경고 구독은 해지 안내를 먼저 보여준다.
                 const hasRailPlan = Boolean(railPlan);
@@ -558,39 +521,33 @@ export function SubscriptionDetailScreen({
                 }
                 onStartCancel(subscription.subscriptionId, promotion, { autoOpen });
               }}
-              className={`w-full rounded-2xl bg-[#111827] text-white font-bold py-4 text-[16px] text-center active:scale-[0.98] transition-all shadow-sm cursor-pointer hover:bg-black ${
-                highlightCancel ? "ring-2 ring-blue-500 ring-offset-2 animate-pulse" : ""
-              }`}
+              className={highlightCancel ? "ring-2 ring-ink ring-offset-2 animate-pulse" : ""}
             >
               해지하기
-            </button>
-            <button
-              type="button"
-              onClick={() => setCelebrateSheetOpen(true)}
-              className="w-full rounded-2xl bg-white border border-[#111827] text-[#111827] font-bold py-4 text-[16px] text-center active:scale-[0.98] transition-all shadow-xs cursor-pointer hover:bg-gray-50"
-            >
-              해지 완료로 표시 & 삭제
-            </button>
+            </Button>
+            <Button variant="secondary" size="large" fullWidth onClick={() => setCelebrateSheetOpen(true)}>
+              해지 완료로 표시하고 삭제
+            </Button>
           </div>
         </>
       ) : (
         /* 수정 모드 폼 */
-        <section className="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm mb-6">
-          <h2 className="text-[15px] font-bold text-black mb-4">구독 정보 수정</h2>
-          <div className="space-y-3.5">
-            <label className="block text-[12px] font-semibold text-gray-500">
+        <section className="px-5 pb-6 pt-6">
+          <h2 className="mb-4 text-[18px] font-bold tracking-[-0.025em] text-ink">구독 정보 수정</h2>
+          <div className="space-y-4">
+            <label className="block text-[14px] font-medium text-ink-tertiary">
               요금제
               <input
-                className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
+                className={EDIT_INPUT}
                 value={draft.plan}
                 onChange={(e) => setDraft((v) => ({ ...v, plan: e.target.value }))}
               />
             </label>
             <div className="grid grid-cols-2 gap-3">
-              <label className="block text-[12px] font-semibold text-gray-500">
+              <label className="block text-[14px] font-medium text-ink-tertiary">
                 결제 금액
                 <input
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
+                  className={EDIT_INPUT}
                   type="number"
                   min="0"
                   value={draft.amount}
@@ -598,20 +555,20 @@ export function SubscriptionDetailScreen({
                 />
               </label>
               {draft.billingCycle === "매년" ? (
-                <label className="block text-[12px] font-semibold text-gray-500">
+                <label className="block text-[14px] font-medium text-ink-tertiary">
                   갱신일
                   <input
-                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
+                    className={EDIT_INPUT}
                     type="date"
                     value={draft.nextBillingDate || ""}
                     onChange={(e) => setDraft((v) => ({ ...v, nextBillingDate: e.target.value }))}
                   />
                 </label>
               ) : (
-                <label className="block text-[12px] font-semibold text-gray-500">
+                <label className="block text-[14px] font-medium text-ink-tertiary">
                   결제일 (1~31일)
                   <input
-                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
+                    className={EDIT_INPUT}
                     type="number"
                     min="1"
                     max="31"
@@ -622,32 +579,48 @@ export function SubscriptionDetailScreen({
               )}
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <label className="block text-[12px] font-semibold text-gray-500">
+              <div className="block text-[14px] font-medium text-ink-tertiary">
                 결제 주기
-                <select
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
-                  value={draft.billingCycle}
-                  onChange={(e) => setDraft((v) => ({ ...v, billingCycle: e.target.value }))}
-                >
-                  <option value="매월">매월</option>
-                  <option value="매년">매년</option>
-                </select>
-              </label>
-              <label className="block text-[12px] font-semibold text-gray-500">
+                <SelectTrigger
+                  label="결제 주기"
+                  valueLabel={draft.billingCycle}
+                  onClick={() => setCyclePickerOpen(true)}
+                  className="mt-1.5"
+                />
+                {cyclePickerOpen && (
+                  <SelectSheet
+                    title="결제 주기"
+                    options={[
+                      { value: "매월", label: "매월" },
+                      { value: "매년", label: "매년" },
+                    ]}
+                    value={draft.billingCycle}
+                    onSelect={(next) => setDraft((v) => ({ ...v, billingCycle: next }))}
+                    onClose={() => setCyclePickerOpen(false)}
+                  />
+                )}
+              </div>
+              <div className="block text-[14px] font-medium text-ink-tertiary">
                 카테고리
-                <select
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[14px] text-black outline-none focus:border-black"
-                  value={draft.category}
-                  onChange={(e) => setDraft((v) => ({ ...v, category: e.target.value }))}
-                >
-                  {["엔터테인먼트", "OTT", "음악", "쇼핑", "생산성", "도서", "클라우드", "게임", "기타"].map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </label>
+                <SelectTrigger
+                  label="카테고리"
+                  valueLabel={draft.category}
+                  onClick={() => setCategoryPickerOpen(true)}
+                  className="mt-1.5"
+                />
+                {categoryPickerOpen && (
+                  <SelectSheet
+                    title="카테고리"
+                    options={["엔터테인먼트", "OTT", "음악", "쇼핑", "생산성", "도서", "클라우드", "게임", "기타"].map((cat) => ({ value: cat, label: cat }))}
+                    value={draft.category}
+                    onSelect={(next) => setDraft((v) => ({ ...v, category: next }))}
+                    onClose={() => setCategoryPickerOpen(false)}
+                  />
+                )}
+              </div>
             </div>
             <div>
-              <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
+              <label className="block text-[14px] font-medium text-ink-tertiary mb-1.5">
                 결제 수단
               </label>
               <PaymentMethodTriggerField
@@ -658,12 +631,12 @@ export function SubscriptionDetailScreen({
               />
             </div>
             {editError && (
-              <p className="text-[12px] font-semibold text-red-500">{editError}</p>
+              <p role="alert" className="text-[13px] font-medium text-danger">{editError}</p>
             )}
           </div>
-          <div className="mt-5 grid grid-cols-2 gap-2.5">
-            <Button variant="secondary" size="default" onClick={() => setEditing(false)}>취소</Button>
-            <Button size="default" onClick={save}>저장</Button>
+          <div className="mt-6 grid grid-cols-2 gap-2.5">
+            <Button variant="secondary" size="large" onClick={() => setEditing(false)}>취소</Button>
+            <Button size="large" variant="primary" onClick={save}>저장</Button>
           </div>
         </section>
       )}
@@ -683,34 +656,33 @@ export function SubscriptionDetailScreen({
       {celebrateSheetOpen && (
         <BottomSheet onClose={() => setCelebrateSheetOpen(false)} label="해지 완료 확인">
           <div className="flex flex-col items-center text-center px-2 pb-5 pt-2">
-            <div className="grid h-16 w-16 place-items-center rounded-3xl bg-[#111827] text-white mb-4 shadow-md">
-              <Sparkles size={28} />
+            <div className="grid h-12 w-12 place-items-center rounded-full bg-gray-100 text-ink mb-3">
+              <Check size={24} strokeWidth={2.2} />
             </div>
-            <h3 className="text-[20px] font-extrabold text-black tracking-tight">
+            <h3 className="text-[20px] font-bold text-ink tracking-[-0.03em]">
               {subscription.name} 해지 완료
             </h3>
-            <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-center w-full">
-              <span className="text-[12px] font-semibold text-emerald-800 block">
-                절약된 고정 지출
-              </span>
-              <strong className="mt-1 block text-[24px] font-black text-emerald-950 tracking-tight">
-                연간 {formatWon(annualAmount)}
-              </strong>
-              <span className="mt-0.5 block text-[12px] text-emerald-700">
-                (이번 달 {formatWon(monthlyAmount)} 절약)
-              </span>
-            </div>
-            <p className="mt-3 text-[13px] text-gray-500 leading-relaxed max-w-[280px]">
+            <dl className="mt-4 w-full divide-y divide-gray-100 border-y border-gray-100 text-left">
+              <div className="flex min-h-[48px] items-center justify-between">
+                <dt className="text-[15px] text-ink-tertiary">1년에 아끼는 돈</dt>
+                <dd className="text-[16px] font-semibold tabular-nums text-ink">{formatWonText(annualAmount)}</dd>
+              </div>
+              <div className="flex min-h-[48px] items-center justify-between">
+                <dt className="text-[15px] text-ink-tertiary">매달 아끼는 돈</dt>
+                <dd className="text-[16px] font-semibold tabular-nums text-ink">{formatWonText(monthlyAmount)}</dd>
+              </div>
+            </dl>
+            <p className="mt-3 text-[14px] text-ink-tertiary leading-relaxed max-w-[300px]">
               {expectedNextWatchDate
                 ? `다음 결제 예정일(${expectedNextWatchDate}) 이후 재결제가 없는지 꾸독이 자동으로 지켜볼게요.`
                 : "공식 웹사이트에서 해지를 마치셨다면 목록에서 제거하여 지출 현황을 최신화하세요."}
             </p>
 
-            <details className="mt-4 w-full rounded-2xl border border-[#E5E8EB] bg-[#F9FAFB] p-3 text-left">
-              <summary className="cursor-pointer list-none text-center text-[12px] font-semibold text-[#6B7684] hover:text-[#333D4B]">
+            <details className="mt-4 w-full rounded-xl bg-gray-50 px-3 text-left">
+              <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-center text-[14px] font-medium text-ink-muted hover:text-ink">
                 해지 완료 화면 저장하기
               </summary>
-              <div className="mt-3 border-t border-[#E5E8EB] pt-3">
+              <div className="border-t border-gray-200 py-3">
                 <CancelProofCapture
                   record={{
                     serviceId: canonicalServiceId,
@@ -732,23 +704,20 @@ export function SubscriptionDetailScreen({
             </details>
 
             <div className="mt-6 w-full space-y-2.5">
-              <button
-                type="button"
+              <Button
+                variant="primary"
+                size="large"
+                fullWidth
                 onClick={() => {
                   setCelebrateSheetOpen(false);
                   onDelete?.(subscription.subscriptionId || subscription.id);
                 }}
-                className="w-full rounded-2xl bg-[#111827] text-white font-bold py-3.5 text-[15px] text-center active:scale-[0.98] transition-all shadow-sm cursor-pointer hover:bg-black"
               >
                 목록에서 삭제 완료
-              </button>
-              <button
-                type="button"
-                onClick={() => setCelebrateSheetOpen(false)}
-                className="w-full rounded-2xl bg-gray-100 text-gray-700 font-semibold py-3 text-[14px] text-center active:scale-[0.98] transition-all cursor-pointer hover:bg-gray-200"
-              >
+              </Button>
+              <Button variant="secondary" size="large" fullWidth onClick={() => setCelebrateSheetOpen(false)}>
                 닫기
-              </button>
+              </Button>
             </div>
           </div>
         </BottomSheet>

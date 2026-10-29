@@ -5,13 +5,14 @@ export const FieldLabel = React.memo(function FieldLabel({
   required = false,
 }) {
   return (
-    <label className="mb-1.5 block text-[13px] font-semibold text-[#252A28]">
+    <label className="mb-1.5 block text-[14px] font-medium text-ink-tertiary">
       {children}
       {required && (
-        <span className="ml-0.5 text-[#B42318]">
+        <span className="ml-0.5 text-danger">
           *
         </span>
       )}
     </label>
   );
 });
+

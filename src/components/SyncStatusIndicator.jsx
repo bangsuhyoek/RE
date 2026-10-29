@@ -29,13 +29,13 @@ export function SyncStatusIndicator({
       <div
         className={`flex items-center justify-between gap-2.5 rounded-xl border px-3.5 py-2 text-[12px] shadow-2xs ${
           isSyncing
-            ? "border-[#E5E8EB] bg-[#F9FAFB] text-[#4E5968]"
+            ? "border-gray-200 bg-gray-50 text-ink-secondary"
             : "border-amber-200 bg-amber-50/90 text-amber-900"
         }`}
       >
         <div className="flex items-center gap-2 min-w-0 truncate">
           {isSyncing ? (
-            <LoaderCircle size={15} className="animate-spin text-[#153D2E] shrink-0" />
+            <LoaderCircle size={15} className="animate-spin text-brand-ink shrink-0" />
           ) : (
             <AlertCircle size={15} className="text-amber-600 shrink-0" />
           )}

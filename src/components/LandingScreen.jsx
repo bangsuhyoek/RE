@@ -23,14 +23,14 @@ export function SplashScreen({ onFinish }) {
       <div className="flex flex-col items-center animate-in fade-in zoom-in-95 duration-500 text-center px-4">
         {/* Brand Logo matching benchmarked style */}
         <div className="flex items-center gap-2">
-          <span className="text-[38px] font-black tracking-tight text-[#111827]">
+          <span className="text-[38px] font-black tracking-tight text-ink">
             꾸독
           </span>
-          <span className="inline-flex items-center justify-center rounded-full bg-[#3182F6] px-3.5 py-1 text-[17px] font-black text-white shadow-sm">
+          <span className="inline-flex items-center justify-center rounded-full bg-brand px-3.5 py-1 text-[17px] font-black text-white shadow-sm">
             ₩
           </span>
         </div>
-        <p className="mt-3 text-[14px] font-semibold text-gray-400 tracking-tight">
+        <p className="mt-3 text-[14px] font-semibold text-ink-tertiary tracking-tight">
           스마트한 구독 소비의 시작
         </p>
       </div>
@@ -48,10 +48,10 @@ export function LandingScreen({ onStart, onLogin }) {
       {/* Top Brand */}
       <div className="pt-8 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-[26px] font-black tracking-tight text-[#111827]">
+          <span className="text-[26px] font-black tracking-tight text-ink">
             꾸독
           </span>
-          <span className="inline-flex items-center justify-center rounded-full bg-[#3182F6] px-2.5 py-0.5 text-[12px] font-black text-white shadow-xs">
+          <span className="inline-flex items-center justify-center rounded-full bg-brand px-2.5 py-0.5 text-[12px] font-black text-white shadow-xs">
             ₩
           </span>
         </div>
@@ -59,7 +59,7 @@ export function LandingScreen({ onStart, onLogin }) {
           <button
             type="button"
             onClick={onLogin}
-            className="text-[13px] font-semibold text-gray-500 hover:text-black transition-colors cursor-pointer"
+            className="text-[13px] font-semibold text-gray-500 hover:text-ink transition-colors cursor-pointer"
           >
             로그인
           </button>
@@ -69,13 +69,13 @@ export function LandingScreen({ onStart, onLogin }) {
       {/* Center Hero */}
       <div className="my-auto py-10 text-center flex flex-col items-center">
         {/* Floating Visual Pill */}
-        <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-[12px] font-bold text-blue-600 mb-6">
+        <div className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-4 py-1.5 text-[12px] font-bold text-brand-ink mb-6">
           <Zap size={14} /> AI 기반 스마트 구독 관리
         </div>
 
-        <h1 className="text-[32px] sm:text-[36px] font-black tracking-tight text-black leading-tight">
+        <h1 className="text-[32px] sm:text-[36px] font-black tracking-tight text-ink leading-tight">
           숨어있는 구독료,<br />
-          <span className="text-[#3182F6]">가장 쉽게</span> 통제하세요
+          <span className="text-brand-ink">가장 쉽게</span> 통제하세요
         </h1>
 
         <p className="mt-4 text-[14px] text-gray-500 max-w-[280px] leading-relaxed">
@@ -85,19 +85,19 @@ export function LandingScreen({ onStart, onLogin }) {
         {/* Feature Icons Grid */}
         <div className="mt-10 grid grid-cols-3 gap-4 w-full max-w-xs text-center">
           <div className="flex flex-col items-center">
-            <div className="h-12 w-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-black shadow-2xs mb-2">
+            <div className="h-12 w-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-ink shadow-2xs mb-2">
               <BellRing size={20} />
             </div>
             <span className="text-[12px] font-bold text-gray-700">사전 결제 알림</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="h-12 w-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-black shadow-2xs mb-2">
+            <div className="h-12 w-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-ink shadow-2xs mb-2">
               <ShieldCheck size={20} />
             </div>
             <span className="text-[12px] font-bold text-gray-700">원터치 해지 가이드</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="h-12 w-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-black shadow-2xs mb-2">
+            <div className="h-12 w-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-ink shadow-2xs mb-2">
               <Zap size={20} />
             </div>
             <span className="text-[12px] font-bold text-gray-700">스마트 절약 추천</span>
@@ -110,7 +110,7 @@ export function LandingScreen({ onStart, onLogin }) {
         <button
           type="button"
           onClick={onStart}
-          className="w-full rounded-2xl bg-[#111827] text-white font-bold py-4 text-[16px] shadow-sm hover:bg-black active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full rounded-2xl bg-brand text-white font-bold py-4 text-[16px] shadow-sm hover:bg-brand-hover active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <span>꾸독 시작하기</span>
           <ArrowRight size={18} />

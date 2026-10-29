@@ -76,37 +76,37 @@ export function ActionCard({
     switch (type) {
       case "add_subscription": {
         return (
-          <div className="space-y-1.5 text-[12px] text-[#4E5968]">
+          <div className="space-y-1.5 text-[12px] text-ink-secondary">
             <div className="flex items-center justify-between">
-              <span className="text-[#8B95A1]">서비스</span>
-              <span className="font-semibold text-[#191F28]">{payload.name}</span>
+              <span className="text-ink-tertiary">서비스</span>
+              <span className="font-semibold text-ink">{payload.name}</span>
             </div>
             {payload.plan && (
               <div className="flex items-center justify-between">
-                <span className="text-[#8B95A1]">요금제</span>
-                <span className="font-semibold text-[#191F28]">{payload.plan}</span>
+                <span className="text-ink-tertiary">요금제</span>
+                <span className="font-semibold text-ink">{payload.plan}</span>
               </div>
             )}
             <div className="flex items-center justify-between">
-              <span className="text-[#8B95A1]">금액</span>
-              <span className="font-bold text-[#191F28]">{formatWon(payload.amount)}</span>
+              <span className="text-ink-tertiary">금액</span>
+              <span className="font-bold text-ink">{formatWon(payload.amount)}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[#8B95A1]">결제 주기</span>
-              <span className="font-medium text-[#191F28]">{payload.billingCycle || "매월"}</span>
+              <span className="text-ink-tertiary">결제 주기</span>
+              <span className="font-medium text-ink">{payload.billingCycle || "매월"}</span>
             </div>
             {(payload.nextChargeDate || payload.billingDay) && (
               <div className="flex items-center justify-between">
-                <span className="text-[#8B95A1]">결제일</span>
-                <span className="font-medium text-[#191F28]">
+                <span className="text-ink-tertiary">결제일</span>
+                <span className="font-medium text-ink">
                   {payload.nextChargeDate || ("매월 " + payload.billingDay + "일")}
                 </span>
               </div>
             )}
             {payload.paymentMethod && (
               <div className="flex items-center justify-between">
-                <span className="text-[#8B95A1]">결제 수단</span>
-                <span className="font-medium text-[#191F28]">{payload.paymentMethod}</span>
+                <span className="text-ink-tertiary">결제 수단</span>
+                <span className="font-medium text-ink">{payload.paymentMethod}</span>
               </div>
             )}
           </div>
@@ -117,52 +117,52 @@ export function ActionCard({
         const changes = payload.changes || {};
         const displayName = beforeSnapshot?.name || targetSub?.name || "선택한 구독";
         return (
-          <div className="space-y-2 text-[12px] text-[#4E5968]">
-            <div className="flex items-center justify-between border-b border-[#F2F4F6] pb-1.5">
-              <span className="text-[#8B95A1]">대상 구독</span>
-              <span className="font-bold text-[#191F28]">{displayName}</span>
+          <div className="space-y-2 text-[12px] text-ink-secondary">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-1.5">
+              <span className="text-ink-tertiary">대상 구독</span>
+              <span className="font-bold text-ink">{displayName}</span>
             </div>
 
             {changes.amount !== undefined && (
               <div className="flex items-center justify-between">
-                <span className="text-[#8B95A1]">금액</span>
+                <span className="text-ink-tertiary">금액</span>
                 <span className="inline-flex items-center gap-1.5 font-bold">
-                  <span className="text-[#8B95A1] line-through">
+                  <span className="text-ink-tertiary line-through">
                     {formatWon(beforeSnapshot?.amount ?? beforeSnapshot?.grossAmount ?? targetSub?.amount ?? targetSub?.grossAmount)}
                   </span>
-                  <ArrowRight size={12} className="text-[#8B95A1]" />
-                  <span className="text-[#3182F6]">{formatWon(changes.amount)}</span>
+                  <ArrowRight size={12} className="text-ink-tertiary" />
+                  <span className="text-brand-ink">{formatWon(changes.amount)}</span>
                 </span>
               </div>
             )}
 
             {changes.plan !== undefined && (
               <div className="flex items-center justify-between">
-                <span className="text-[#8B95A1]">요금제</span>
+                <span className="text-ink-tertiary">요금제</span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="text-[#8B95A1]">{beforeSnapshot?.plan || targetSub?.plan || "기본"}</span>
-                  <ArrowRight size={12} className="text-[#8B95A1]" />
-                  <span className="font-semibold text-[#191F28]">{changes.plan}</span>
+                  <span className="text-ink-tertiary">{beforeSnapshot?.plan || targetSub?.plan || "기본"}</span>
+                  <ArrowRight size={12} className="text-ink-tertiary" />
+                  <span className="font-semibold text-ink">{changes.plan}</span>
                 </span>
               </div>
             )}
 
             {changes.billingCycle !== undefined && (
               <div className="flex items-center justify-between">
-                <span className="text-[#8B95A1]">결제 주기</span>
+                <span className="text-ink-tertiary">결제 주기</span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="text-[#8B95A1]">{beforeSnapshot?.billingCycle || targetSub?.billingCycle || "매월"}</span>
-                  <ArrowRight size={12} className="text-[#8B95A1]" />
-                  <span className="font-semibold text-[#191F28]">{changes.billingCycle}</span>
+                  <span className="text-ink-tertiary">{beforeSnapshot?.billingCycle || targetSub?.billingCycle || "매월"}</span>
+                  <ArrowRight size={12} className="text-ink-tertiary" />
+                  <span className="font-semibold text-ink">{changes.billingCycle}</span>
                 </span>
               </div>
             )}
 
             {(changes.nextChargeDate !== undefined || changes.billingDay !== undefined) && (
               <div className="flex items-center justify-between">
-                <span className="text-[#8B95A1]">결제일</span>
+                <span className="text-ink-tertiary">결제일</span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="text-[#8B95A1]">
+                  <span className="text-ink-tertiary">
                     {beforeSnapshot?.nextChargeDate ||
                       beforeSnapshot?.nextBillingDate ||
                       (beforeSnapshot?.billingDay ? ("매월 " + beforeSnapshot.billingDay + "일") : null) ||
@@ -170,8 +170,8 @@ export function ActionCard({
                       targetSub?.nextBillingDate ||
                       (targetSub?.dueDay ? ("매월 " + targetSub.dueDay + "일") : "-")}
                   </span>
-                  <ArrowRight size={12} className="text-[#8B95A1]" />
-                  <span className="font-semibold text-[#191F28]">
+                  <ArrowRight size={12} className="text-ink-tertiary" />
+                  <span className="font-semibold text-ink">
                     {changes.nextChargeDate || ("매월 " + changes.billingDay + "일")}
                   </span>
                 </span>
@@ -180,11 +180,11 @@ export function ActionCard({
 
             {changes.paymentMethod !== undefined && (
               <div className="flex items-center justify-between">
-                <span className="text-[#8B95A1]">결제 수단</span>
+                <span className="text-ink-tertiary">결제 수단</span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="text-[#8B95A1]">{beforeSnapshot?.paymentMethod || targetSub?.paymentMethod || "미등록"}</span>
-                  <ArrowRight size={12} className="text-[#8B95A1]" />
-                  <span className="font-semibold text-[#191F28]">{changes.paymentMethod}</span>
+                  <span className="text-ink-tertiary">{beforeSnapshot?.paymentMethod || targetSub?.paymentMethod || "미등록"}</span>
+                  <ArrowRight size={12} className="text-ink-tertiary" />
+                  <span className="font-semibold text-ink">{changes.paymentMethod}</span>
                 </span>
               </div>
             )}
@@ -197,23 +197,23 @@ export function ActionCard({
           ? "전체 구독"
           : (beforeSnapshot?.name || targetSub?.name || "선택한 구독");
         return (
-          <div className="space-y-1.5 text-[12px] text-[#4E5968]">
+          <div className="space-y-1.5 text-[12px] text-ink-secondary">
             <div className="flex items-center justify-between">
-              <span className="text-[#8B95A1]">알림 대상</span>
-              <span className="font-bold text-[#191F28]">{targetName}</span>
+              <span className="text-ink-tertiary">알림 대상</span>
+              <span className="font-bold text-ink">{targetName}</span>
             </div>
             {payload.alertD3 !== undefined && (
               <div className="flex items-center justify-between">
-                <span className="text-[#8B95A1]">3일 전 알림</span>
-                <span className={"font-semibold " + (payload.alertD3 ? "text-[#3182F6]" : "text-[#8B95A1]")}>
+                <span className="text-ink-tertiary">3일 전 알림</span>
+                <span className={"font-semibold " + (payload.alertD3 ? "text-brand-ink" : "text-ink-tertiary")}>
                   {payload.alertD3 ? "켜기 (D-3)" : "끄기"}
                 </span>
               </div>
             )}
             {payload.alertD1 !== undefined && (
               <div className="flex items-center justify-between">
-                <span className="text-[#8B95A1]">1일 전 알림</span>
-                <span className={"font-semibold " + (payload.alertD1 ? "text-[#3182F6]" : "text-[#8B95A1]")}>
+                <span className="text-ink-tertiary">1일 전 알림</span>
+                <span className={"font-semibold " + (payload.alertD1 ? "text-brand-ink" : "text-ink-tertiary")}>
                   {payload.alertD1 ? "켜기 (D-1)" : "끄기"}
                 </span>
               </div>
@@ -225,12 +225,12 @@ export function ActionCard({
       case "open_cancel": {
         const displayName = beforeSnapshot?.name || targetSub?.name || payload.subscriptionId;
         return (
-          <div className="space-y-1.5 text-[12px] text-[#4E5968]">
+          <div className="space-y-1.5 text-[12px] text-ink-secondary">
             <div className="flex items-center justify-between">
-              <span className="text-[#8B95A1]">해지 대상</span>
-              <span className="font-bold text-[#191F28]">{displayName}</span>
+              <span className="text-ink-tertiary">해지 대상</span>
+              <span className="font-bold text-ink">{displayName}</span>
             </div>
-            <p className="text-[12px] text-[#6B7684]">
+            <p className="text-[12px] text-ink-muted">
               확인을 누르면 해지 안내 및 공식 사이트 이동 화면이 열려요.
             </p>
           </div>
@@ -238,7 +238,7 @@ export function ActionCard({
       }
 
       default:
-        return <pre className="text-[11px] text-[#8B95A1]">{JSON.stringify(payload, null, 2)}</pre>;
+        return <pre className="text-[11px] text-ink-tertiary">{JSON.stringify(payload, null, 2)}</pre>;
     }
   };
 
@@ -254,35 +254,35 @@ export function ActionCard({
   };
 
   return (
-    <div className="mt-3 rounded-2xl border-2 border-[#191F28] bg-white p-4 shadow-xs" data-testid="agent-action-card">
-      <div className="flex items-center justify-between border-b border-[#F2F4F6] pb-2.5">
+    <div className="mt-3 rounded-2xl border-2 border-gray-900 bg-white p-4 shadow-xs" data-testid="agent-action-card">
+      <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
         <div className="flex items-center gap-1.5">
-          {type === "add_subscription" && <PlusCircle size={15} className="text-[#3182F6]" />}
-          {type === "update_subscription" && <CreditCard size={15} className="text-[#3182F6]" />}
-          {type === "set_alerts" && <Bell size={15} className="text-[#3182F6]" />}
-          {type === "open_cancel" && <Trash2 size={15} className="text-[#F04452]" />}
-          <span className="text-[13px] font-extrabold text-[#191F28]">{getTitle()}</span>
+          {type === "add_subscription" && <PlusCircle size={15} className="text-brand-ink" />}
+          {type === "update_subscription" && <CreditCard size={15} className="text-brand-ink" />}
+          {type === "set_alerts" && <Bell size={15} className="text-brand-ink" />}
+          {type === "open_cancel" && <Trash2 size={15} className="text-[#D22030]" />}
+          <span className="text-[13px] font-extrabold text-ink">{getTitle()}</span>
         </div>
         {isDone && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#E8F3FF] px-2.5 py-0.5 text-[11px] font-bold text-[#3182F6]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-bold text-brand-ink">
             <Check size={12} /> 반영했어요
           </span>
         )}
         {isCancelled && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#F2F4F6] px-2.5 py-0.5 text-[11px] font-semibold text-[#8B95A1]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-ink-tertiary">
             <X size={12} /> 취소함
           </span>
         )}
       </div>
 
-      <div className="my-3 rounded-xl bg-[#F9FAFB] p-3">
+      <div className="my-3 rounded-xl bg-gray-50 p-3">
         {isTargetMissing && (
-          <p className="mb-2 rounded-lg bg-[#FEECE8] px-2.5 py-1 text-[11px] font-semibold text-[#F04452]">
+          <p className="mb-2 rounded-lg bg-[#FEECE8] px-2.5 py-1 text-[11px] font-semibold text-[#D22030]">
             해당 구독을 찾을 수 없어요.
           </p>
         )}
         {isNoopUpdate && !isDone && !isCancelled && (
-          <p className="mb-2 flex items-center gap-1 rounded-lg bg-[#E8F3FF] px-2.5 py-1 text-[11px] font-semibold text-[#3182F6]">
+          <p className="mb-2 flex items-center gap-1 rounded-lg bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand-ink">
             <Info size={12} /> 이미 같은 값이에요.
           </p>
         )}

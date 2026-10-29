@@ -10,9 +10,8 @@ export const SubscriptionEditForm = React.memo(function SubscriptionEditForm({
   form,
   matchedService,
   catalog,
-  validService,
-  validAmount,
-  validSchedule,
+  showErrors = {},
+  onFieldBlur,
   isServicePickerOpen,
   customServiceInputOpen,
   onOpenServicePicker,
@@ -27,7 +26,7 @@ export const SubscriptionEditForm = React.memo(function SubscriptionEditForm({
 }) {
   return (
     <div className="space-y-5">
-      <div>
+      <div data-add-field="service" tabIndex={-1} className="outline-none">
         <div className="flex items-center justify-between">
           <FieldLabel required>
             서비스
@@ -37,7 +36,7 @@ export const SubscriptionEditForm = React.memo(function SubscriptionEditForm({
             <button
               type="button"
               onClick={onOpenServicePicker}
-              className="mb-1.5 inline-flex items-center gap-0.5 text-[13px] font-semibold text-[#2C6049]"
+              className="-mb-1.5 -mr-2 -mt-3 inline-flex min-h-[44px] items-center gap-0.5 px-2 text-[14px] font-medium text-ink-tertiary"
             >
               변경
               <ChevronRight size={14} />
@@ -47,10 +46,10 @@ export const SubscriptionEditForm = React.memo(function SubscriptionEditForm({
 
         {!customServiceInputOpen ? (
           <div
-            className={`flex min-h-[50px] items-center gap-3 rounded-xl border bg-white px-3.5 ${
-              !validService
-                ? "border-[#B42318]"
-                : "border-[#DDE2DF]"
+            className={`flex min-h-[52px] items-center gap-3 rounded-xl border px-3.5 ${
+              showErrors.service
+                ? "border-danger bg-white"
+                : "border-transparent bg-gray-100"
             }`}
           >
             <ServiceMark
@@ -60,14 +59,14 @@ export const SubscriptionEditForm = React.memo(function SubscriptionEditForm({
               }
               name={form.name}
               monogram={form.monogram}
-              className="h-8 w-8 rounded-[10px] p-1.5"
+              className="h-8 w-8"
             />
 
             <span
-              className={`min-w-0 flex-1 truncate text-[14px] font-semibold ${
+              className={`min-w-0 flex-1 truncate text-[16px] font-medium ${
                 form.name
-                  ? "text-[#111315]"
-                  : "text-[#8B95A1]"
+                  ? "text-ink"
+                  : "text-ink-tertiary"
               }`}
             >
               {form.name ||
@@ -79,17 +78,18 @@ export const SubscriptionEditForm = React.memo(function SubscriptionEditForm({
             autoFocus
             value={form.name}
             onChange={(event) => onCustomServiceNameChange(event.target.value)}
+            onBlur={() => onFieldBlur?.("service")}
             placeholder="서비스명을 입력해 주세요"
-            className={`w-full rounded-xl border bg-white px-3.5 py-3 text-[14px] text-[#111315] outline-none focus:border-[#153D2E] focus:ring-[3px] focus:ring-[#153D2E]/[0.08] ${
-              !validService
-                ? "border-[#B42318]"
-                : "border-[#DDE2DF]"
+            className={`min-h-[52px] w-full rounded-xl border px-3.5 text-[16px] text-ink outline-none placeholder:text-ink-subtle focus:border-gray-300 focus:bg-white ${
+              showErrors.service
+                ? "border-danger bg-white"
+                : "border-transparent bg-gray-100"
             }`}
           />
         )}
 
         {isServicePickerOpen && (
-          <div className="mt-3 rounded-2xl bg-[#F7F8F6] px-4 py-4">
+          <div className="mt-3 border-y border-gray-100 py-3">
             <ServiceShortcutCarousel
               catalog={catalog}
               selectedId={
@@ -100,14 +100,14 @@ export const SubscriptionEditForm = React.memo(function SubscriptionEditForm({
             />
 
             <div className="mt-3 flex items-center justify-between">
-              <span className="text-[12px] text-[#6B7684]">
+              <span className="text-[14px] text-ink-tertiary">
                 찾는 서비스가 없나요?
               </span>
 
               <button
                 type="button"
                 onClick={onCustomServiceClick}
-                className="text-[13px] font-semibold text-[#2C6049]"
+                className="-my-2 -mr-2 min-h-[44px] px-2 text-[14px] font-semibold text-ink"
               >
                 + 직접 입력
               </button>
@@ -116,7 +116,7 @@ export const SubscriptionEditForm = React.memo(function SubscriptionEditForm({
         )}
       </div>
 
-      <div>
+      <div data-add-field="amount" tabIndex={-1} className="outline-none">
         <FieldLabel required>
           결제 금액
         </FieldLabel>
@@ -134,14 +134,15 @@ export const SubscriptionEditForm = React.memo(function SubscriptionEditForm({
               )
             }
             placeholder="0"
-            className={`w-full rounded-xl border bg-white px-3.5 py-3 pr-9 text-right text-[16px] font-bold text-[#111315] outline-none focus:border-[#153D2E] focus:ring-[3px] focus:ring-[#153D2E]/[0.08] ${
-              !validAmount
-                ? "border-[#B42318]"
-                : "border-[#DDE2DF]"
+            onBlur={() => onFieldBlur?.("amount")}
+            className={`min-h-[52px] w-full rounded-xl border px-3.5 pr-9 text-right text-[17px] font-semibold tabular-nums text-ink outline-none placeholder:text-ink-subtle focus:border-gray-300 focus:bg-white ${
+              showErrors.amount
+                ? "border-danger bg-white"
+                : "border-transparent bg-gray-100"
             }`}
           />
 
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-[#6B7684]">
+          <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[15px] text-ink-tertiary">
             원
           </span>
         </div>
@@ -151,7 +152,8 @@ export const SubscriptionEditForm = React.memo(function SubscriptionEditForm({
         billingCycle={form.billingCycle}
         dueDay={form.dueDay}
         nextBillingDate={form.nextBillingDate}
-        validSchedule={validSchedule}
+        showError={Boolean(showErrors.schedule)}
+        onBlur={() => onFieldBlur?.("schedule")}
         onBillingCycleChange={onBillingCycleChange}
         onDueDayChange={onDueDayChange}
         onNextBillingDateChange={onNextBillingDateChange}
@@ -169,10 +171,11 @@ export const SubscriptionEditForm = React.memo(function SubscriptionEditForm({
           }
         />
 
-        <p className="mt-1.5 text-[11px] leading-4 text-[#6B7684]">
+        <p className="mt-1.5 text-[13px] leading-[18px] text-ink-tertiary">
           어디에서 구독료가 나가는지 기록하는 용도예요.
         </p>
       </div>
     </div>
   );
 });
+
