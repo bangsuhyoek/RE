@@ -6,6 +6,7 @@ import {
   saveStoredNotifications,
   NOTIFICATION_STORAGE_KEY,
   requestNotificationPermission,
+  checkNotificationPermission,
   initAndroidNotificationChannel,
   sendAppNotification,
   scheduleSubscriptionNotifications,
@@ -32,11 +33,34 @@ export function useNotificationManager({ subscriptions = [] } = {}) {
   });
 
   const [notificationPermission, setNotificationPermission] = useState(() => {
+    // 네이티브 앱은 웹 Notification API가 앱 권한을 반영하지 않으므로 아래 효과에서 LocalNotifications로 확인한다.
+    if (Capacitor.isNativePlatform()) return "default";
     if (typeof window !== "undefined" && "Notification" in window) {
       return Notification.permission;
     }
     return "unsupported";
   });
+
+  // 실제 기기 권한을 읽고, 사용자가 시스템 설정에서 바꾸고 돌아올 때 다시 읽는다.
+  useEffect(() => {
+    let active = true;
+    const refresh = () => {
+      checkNotificationPermission()
+        .then((perm) => {
+          if (active) setNotificationPermission(perm);
+        })
+        .catch(() => {});
+    };
+    refresh();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      active = false;
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
 
   // Persist notifications
   useEffect(() => {
