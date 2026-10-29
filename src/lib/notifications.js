@@ -4,11 +4,79 @@ import { daysUntilCharge, formatWon, getNextChargeDate, toLocalDateKey } from ".
 import { readStoredValue, writeStoredValue, storageKeys } from "./storage.js";
 import { formatKoreanDateTime } from "./businessDays.js";
 import { buildCareNotifications } from "./careFeed.js";
+import { toMonthlyAmount } from "./subscriptionMath.js";
+import { findCheaperPlan, unusedStreak, isUsageThrottled, hasUsageAnswerForCycle } from "./usageCheck.js";
+import { getCachedCatalog } from "../data/catalogLoader.js";
 
 export const NOTIFICATION_STORAGE_KEY = "submate-mvp:notifications";
 export const NOTIFICATION_SETTINGS_KEY = "submate-mvp:notification-settings";
 export const DEFAULT_NOTIFICATION_DURATION = 2500; // 사용자 피드백 반영: 2~3초 내 빠른 자동 사라짐 (2.5초)
 export const CANCEL_REMINDER_TYPE = "cancel_reminder";
+export const USAGE_CHECK_ACTION_TYPE_ID = "usage_check";
+
+/**
+ * 결제 3일 전(D-3) 알림 내용 생성:
+ * 1. 2회 이상 연속 미사용(unusedStreak >= 2) -> 해지 권유 알림 (눌러서 해지 상세로 이동)
+ * 2. 최근 2회 연속 '잘 썼어요'(isUsageThrottled) -> 기존 안내형 D-3 알림
+ * 3. 이번 주기 답변 이미 존재 -> 기존 안내형 D-3 알림
+ * 4. 연간/비월간 구독 또는 2회차(cycle > 1) 또는 무료체험 -> 기존 안내형 알림
+ * 5. 그 외 -> 사용 여부를 묻는 액션 버튼 알림
+ */
+export function buildD3NotificationContent({
+  subscription,
+  chargeDate,
+  cycleIndex = 0,
+  answers = {},
+  catalog = [],
+}) {
+  const name = subscription.name || "구독";
+  const isTrial = Boolean(subscription.isTrial || subscription.status === "trial");
+  const isMonthly = (subscription.billingCycle || "매월") !== "매년";
+  const subKey = subscription.subscriptionId || subscription.id;
+  const cycleNumber = cycleIndex + 1;
+  const cycleDateKey = chargeDate ? toLocalDateKey(chargeDate) : toLocalDateKey(new Date());
+
+  // 기존 안내형 D-3 폴백
+  const informational = {
+    title: `[결제 D-3] ${name} 결제 예정`,
+    body: `3일 뒤 ${name} ${formatWon(subscription.amount)}이 결제될 예정입니다.`,
+    extra: { subscriptionId: subKey, cycle: cycleNumber, type: "billing_d3", cycleKey: cycleDateKey },
+    actionTypeId: undefined,
+  };
+
+  // 월간 정기 구독의 1회차 주기(cycle 1)에만 질문/권유 로직 적용
+  if (cycleIndex !== 0 || isTrial || !isMonthly) {
+    return informational;
+  }
+
+  const streak = unusedStreak(answers, subscription, cycleDateKey);
+  if (streak >= 2) {
+    const monthlyAmount = toMonthlyAmount(subscription);
+    const cheaper = findCheaperPlan(subscription, catalog);
+    const title = `${name} ${streak}달째 거의 안 쓰셨어요`;
+    let body = `그동안 ${formatWon(streak * monthlyAmount)} 나갔어요. 3일 뒤 또 결제돼요. 눌러서 해지를 확인하세요.`;
+    if (cheaper) {
+      body += ` 더 싼 ${cheaper.name}(${formatWon(cheaper.amount)})도 있어요.`;
+    }
+    return {
+      title,
+      body,
+      extra: { subscriptionId: subKey, cycle: cycleNumber, type: "usage_cancel_suggest", cycleKey: cycleDateKey },
+      actionTypeId: undefined,
+    };
+  }
+
+  if (isUsageThrottled(answers, subscription) || hasUsageAnswerForCycle(answers, subscription, chargeDate)) {
+    return informational;
+  }
+
+  return {
+    title: `${name}, 3일 뒤 ${formatWon(subscription.amount)}`,
+    body: `이번 달 ${name} 잘 쓰셨어요? 알림을 내려서 바로 답해 주세요.`,
+    extra: { subscriptionId: subKey, cycle: cycleNumber, type: "usage_check", cycleKey: cycleDateKey },
+    actionTypeId: USAGE_CHECK_ACTION_TYPE_ID,
+  };
+}
 
 /**
  * 예약 알림 필드. 오전 9시 안내라 분 단위 정확도는 필요 없으므로 부정확 알람을 쓴다.
@@ -61,8 +129,10 @@ export function parseAlertTimeTo24Hours(ampm = "오전", hour = "09") {
 /**
  * Generate alert items for subscriptions based on D-3, D-1, and TODAY rules
  */
-export function generateSubscriptionAlerts(subscriptions, referenceDate = new Date()) {
+export function generateSubscriptionAlerts(subscriptions, referenceDate = new Date(), options = {}) {
   const alerts = [];
+  const answers = options.usageAnswers || readStoredValue(storageKeys.usageAnswers, {});
+  const catalog = options.catalog || getCachedCatalog()?.serviceCatalog || [];
 
   for (const sub of subscriptions) {
     if (sub.status === "cancelled") continue;
@@ -80,7 +150,7 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
     if (days === 1 && shouldAlertD1) {
       alerts.push({
         id: `alert-${subId}-${cycleKey}-d1`,
-        subscriptionId: sub.subscriptionId,
+        subscriptionId: sub.subscriptionId || sub.id,
         serviceName: sub.name,
         amount: sub.amount,
         plan: sub.plan,
@@ -103,9 +173,34 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
     // D-3 Alert
     const shouldAlertD3 = hasAlertDDay ? targetDDay === 3 : (sub.alertD3 !== false);
     if (days === 3 && shouldAlertD3) {
+      if (!isTrial) {
+        const content = buildD3NotificationContent({
+          subscription: sub,
+          chargeDate: nextCharge || referenceDate,
+          cycleIndex: 0,
+          answers,
+          catalog,
+        });
+        alerts.push({
+          id: `alert-${subId}-${cycleKey}-d3`,
+          subscriptionId: sub.subscriptionId || sub.id,
+          serviceName: sub.name,
+          amount: sub.amount,
+          plan: sub.plan,
+          monogram: sub.monogram || sub.name?.slice(0, 1) || "S",
+          category: sub.category || "기타",
+          type: content.extra.type,
+          badge: "D-3",
+          title: content.title,
+          message: content.body,
+          timestamp: new Date().toISOString(),
+          daysUntil: 3,
+          read: false,
+        });
+      } else {
       alerts.push({
         id: `alert-${subId}-${cycleKey}-d3`,
-        subscriptionId: sub.subscriptionId,
+        subscriptionId: sub.subscriptionId || sub.id,
         serviceName: sub.name,
         amount: sub.amount,
         plan: sub.plan,
@@ -119,13 +214,14 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
         daysUntil: 3,
         read: false,
       });
+      }
     }
 
     // Custom D-day Alert when targetDDay is not 1 and not 3 (e.g. D-2, D-5)
     if (hasAlertDDay && targetDDay !== 1 && targetDDay !== 3 && days === targetDDay) {
       alerts.push({
         id: `alert-${subId}-${cycleKey}-d${targetDDay}`,
-        subscriptionId: sub.subscriptionId,
+        subscriptionId: sub.subscriptionId || sub.id,
         serviceName: sub.name,
         amount: sub.amount,
         plan: sub.plan,
@@ -149,7 +245,7 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
     if (days === 0) {
       alerts.push({
         id: `alert-${subId}-${cycleKey}-today`,
-        subscriptionId: sub.subscriptionId,
+        subscriptionId: sub.subscriptionId || sub.id,
         serviceName: sub.name,
         amount: sub.amount,
         plan: sub.plan,
@@ -249,6 +345,27 @@ export async function initAndroidNotificationChannel() {
       });
     } catch (e) {
       console.warn("Failed to create Android notification channel:", e);
+    }
+  }
+  await registerNotificationActionTypes();
+}
+
+export async function registerNotificationActionTypes() {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await LocalNotifications.registerActionTypes({
+        types: [
+          {
+            id: USAGE_CHECK_ACTION_TYPE_ID,
+            actions: [
+              { id: "used", title: "잘 썼어요" },
+              { id: "unused", title: "거의 안 썼어요" },
+            ],
+          },
+        ],
+      });
+    } catch (e) {
+      console.warn("Failed to register notification action types:", e);
     }
   }
 }
@@ -417,9 +534,11 @@ export function takeDueCancelReminders(now = new Date()) {
 /**
  * 향후 30~60일간의 결제 사전 알림(D-3, D-1)을 네이티브 로컬 알림 큐에 배치 스케줄링
  */
-export async function scheduleSubscriptionNotifications(subscriptions = [], now = new Date()) {
+export async function scheduleSubscriptionNotifications(subscriptions = [], now = new Date(), options = {}) {
   if (!Capacitor.isNativePlatform()) return false;
   try {
+    const answers = options.usageAnswers || readStoredValue(storageKeys.usageAnswers, {});
+    const catalog = options.catalog || getCachedCatalog()?.serviceCatalog || [];
     const perm = await LocalNotifications.checkPermissions();
     if (perm.display !== "granted") return false;
 
@@ -466,6 +585,24 @@ export async function scheduleSubscriptionNotifications(subscriptions = [], now 
 
           if (alertDate > now) {
             const notifId = Math.abs(stringHashCode(`${subKey}-${cycleKey}-d${dday}`));
+            if (dday === 3 && !isTrial) {
+              const content = buildD3NotificationContent({
+                subscription: sub,
+                chargeDate,
+                cycleIndex,
+                answers,
+                catalog,
+              });
+              scheduledList.push({
+                id: notifId % 100000000,
+                title: content.title,
+                body: content.body,
+                channelId: "submate-billing-channel",
+                ...(content.actionTypeId ? { actionTypeId: content.actionTypeId } : {}),
+                ...scheduledAt(alertDate),
+                extra: content.extra,
+              });
+            } else {
             const type = isTrial ? `trial_d${dday}` : `billing_d${dday}`;
             const title = isTrial
               ? (dday === 1 ? `[체험 만료 D-1] ${sub.name} 무료체험 종료` : `[체험 만료 D-${dday}] ${sub.name} 무료체험 종료`)
@@ -486,6 +623,7 @@ export async function scheduleSubscriptionNotifications(subscriptions = [], now 
               ...scheduledAt(alertDate),
               extra: { subscriptionId: subKey, cycle: cycleIndex + 1, type },
             });
+            }
           }
         } else {
           // D-3 예약 (기본 시각)
@@ -496,13 +634,21 @@ export async function scheduleSubscriptionNotifications(subscriptions = [], now 
 
             if (d3Date > now) {
               const notifId = Math.abs(stringHashCode(`${subKey}-${cycleKey}-d3`));
+              const content = buildD3NotificationContent({
+                subscription: sub,
+                chargeDate,
+                cycleIndex,
+                answers,
+                catalog,
+              });
               scheduledList.push({
                 id: notifId % 100000000,
-                title: `[결제 D-3] ${sub.name} 결제 예정`,
-                body: `3일 뒤 ${sub.name} ${formatWon(sub.amount)}이 결제될 예정입니다.`,
+                title: content.title,
+                body: content.body,
                 channelId: "submate-billing-channel",
+                ...(content.actionTypeId ? { actionTypeId: content.actionTypeId } : {}),
                 ...scheduledAt(d3Date),
-                extra: { subscriptionId: subKey, cycle: cycleIndex + 1, type: "billing_d3" },
+                extra: content.extra,
               });
             }
           }

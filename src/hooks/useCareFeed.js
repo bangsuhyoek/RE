@@ -74,9 +74,9 @@ export function useCareFeed({ subscriptions = [], catalog = [], onEvents } = {})
     });
   }, []);
 
-  const answerUsage = useCallback((subscription, answer) => {
+  const answerUsage = useCallback((subscription, answer, cycleKey) => {
     setUsageAnswers((current) => {
-      const next = recordUsageAnswer(current, subscription, answer, new Date());
+      const next = recordUsageAnswer(current, subscription, answer, new Date(), cycleKey);
       writeStoredValue(storageKeys.usageAnswers, next);
       return next;
     });

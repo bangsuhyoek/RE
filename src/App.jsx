@@ -23,7 +23,7 @@ import {
   writeCancelHistory,
 } from "./lib/storage";
 import { persistEvidenceCase } from "./lib/evidenceStore";
-import { generateSubscriptionAlerts } from "./lib/notifications";
+import { generateSubscriptionAlerts, registerNotificationActionTypes } from "./lib/notifications";
 import { CANCEL_REMINDER_TYPE, scheduleSubscriptionNotifications } from "./lib/notifications";
 import { consumePendingShare, listenForShares, sharedImageToFile, sharedTextToDetected } from "./lib/shareIntake";
 import { assessDetectedPayment, buildRenewalResponse, createEvidenceCase, findCancelRecordForPayment } from "./lib/subscriptionAgent";
@@ -107,6 +107,7 @@ export default function App() {
   const renewalNotificationHandlerRef = useRef(null);
   const cancelReminderHandlerRef = useRef(null);
   const careNotificationHandlerRef = useRef(null);
+  const usageNotificationHandlerRef = useRef(null);
   const shareHandlerRef = useRef(null);
   const [rotationOpen, setRotationOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(() => {
@@ -118,6 +119,7 @@ export default function App() {
 
   useEffect(() => {
     migrateLocalUsersToGuest();
+    registerNotificationActionTypes().catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -240,6 +242,10 @@ export default function App() {
       }
       if (CARE_CANCEL_TYPES.has(extra.type) || CARE_HOME_TYPES.has(extra.type)) {
         careNotificationHandlerRef.current?.(extra);
+        return;
+      }
+      if (extra.subscriptionId && (extra.type === "usage_check" || extra.type === "usage_cancel_suggest")) {
+        usageNotificationHandlerRef.current?.(extra, event?.actionId || "tap");
         return;
       }
       if (!extra.subscriptionId || !RENEWAL_NOTIFICATION_TYPES.has(extra.type)) return;
@@ -486,6 +492,27 @@ export default function App() {
       return;
     }
     navigate("home");
+  };
+
+  usageNotificationHandlerRef.current = (extra, actionId) => {
+    if (extra.type === "usage_cancel_suggest") {
+      setNotificationCenterOpen(false);
+      setHighlightCancelId(extra.subscriptionId);
+      navigate("detail", extra.subscriptionId);
+      return;
+    }
+    if (extra.type === "usage_check") {
+      if (actionId === "used" || actionId === "unused") {
+        const sub = getSubscriptionById(extra.subscriptionId);
+        if (!sub || !extra.cycleKey) return;
+        care.answerUsage(sub, actionId, extra.cycleKey);
+        notify("기록했어요");
+        return;
+      }
+      setNotificationCenterOpen(false);
+      navigate("detail", extra.subscriptionId);
+      return;
+    }
   };
 
   // 해지했다고 처리한 구독은 목록에서 빠지므로, 해지 기록으로 결제 감지 흐름(증빙·환불 요청)을 다시 만든다.
@@ -1041,7 +1068,7 @@ export default function App() {
         }}
         promotion={livePromotions.find((p) => p.sourceServiceIds?.includes(selectedSubscription?.id))}
         onTriggerNotification={(sub) => handleTriggerTestNotification(sub, notify)}
-        highlightCancel={highlightCancelId === selectedSubscription?.subscriptionId}
+        highlightCancel={highlightCancelId === (selectedSubscription?.subscriptionId || selectedSubscription?.id)}
         userId={profile?.user_id || null}
       />
     );
