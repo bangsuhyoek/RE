@@ -4,7 +4,7 @@ import { parseTerms, parseClaim, matchClaim, extractDeadline, extractMonthlyPric
 import { getPromotionSource } from "../scripts/crawler/promotions/sources.js";
 import { classifyPage, extractStructuredMetadataText, PageState } from "../scripts/crawler/promotions/pageFetcher.js";
 import { verifyEvidenceQuote, validateUpdatedOffer, extractOfferWithAi } from "../scripts/crawler/promotions/aiExtractor.js";
-import { verifyPromotion, applyResult, planCatalogUpdate, Verdict } from "../scripts/crawler/runPromotionPipeline.js";
+import { verifyPromotion, applyResult, planCatalogUpdate, assertApplicableResults, Verdict } from "../scripts/crawler/runPromotionPipeline.js";
 
 const NOW = Date.parse("2026-09-29T00:00:00+09:00");
 const LONG_FILLER = "\n" + "안내 문구 ".repeat(200);
@@ -197,6 +197,62 @@ test("planCatalogUpdate: 절반 넘게 지워질 상황이면 점검 실패로 �
   assert.throws(() => planCatalogUpdate(items, byId, at), /--force-prune/);
   assert.equal(planCatalogUpdate(items, byId, at, { forcePrune: true }).kept.length, 0);
 });
++test("assertApplicableResults: MANUAL·EXPIRED를 제외한 네트워크 점검 항목이 모두 UNREACHABLE이면 반영을 중단한다", () => {
+  assert.throws(
+    () =>
+      assertApplicableResults([
+        { verdict: Verdict.MANUAL },
+        { verdict: Verdict.EXPIRED },
+        { verdict: Verdict.UNREACHABLE },
+      ]),
+    /UNREACHABLE/
+  );
+
+  // 페이지를 읽은 항목이 하나라도 있으면 진행한다
+  assert.doesNotThrow(() =>
+    assertApplicableResults([
+      { verdict: Verdict.UNREACHABLE },
+      { verdict: Verdict.CONFIRMED },
+      { verdict: Verdict.MANUAL },
+    ])
+  );
+
+  // 네트워크 점검 대상이 없으면 수집 실패가 아니다
+  assert.doesNotThrow(() =>
+    assertApplicableResults([
+      { verdict: Verdict.MANUAL },
+      { verdict: Verdict.EXPIRED },
+    ])
+  );
+
+  assert.throws(() => assertApplicableResults([]), /0개/);
+  assert.doesNotThrow(() =>
+    assertApplicableResults([{ verdict: Verdict.UNREACHABLE }], { forcePrune: true })
+  );
+});
+
+test("planCatalogUpdate: --only로 일부만 점검하면 선택되지 않은 항목은 삭제되지 않는다", () => {
+  const at = "2026-10-29T00:00:00.000Z";
+  const items = [
+    { id: "a", verifiedStatus: "LIVE_CONFIRMED" },
+    { id: "b", verifiedStatus: "LIVE_CONFIRMED" },
+    { id: "c", verifiedStatus: "LIVE_CONFIRMED" },
+    { id: "d" },
+  ];
+  // 이번 실행에서 점검한 것은 a 하나뿐이지만, byId에는 다른 항목 결과가 섞여 있어도 무시해야 한다
+  const byId = new Map([
+    ["a", { verdict: Verdict.EXPIRED }],
+    ["b", { verdict: Verdict.EXPIRED }],
+    ["c", { verdict: Verdict.UNREACHABLE }],
+  ]);
+
+  const plan = planCatalogUpdate(items, byId, at, { only: new Set(["a"]) });
+
+  assert.deepEqual(plan.removed.map((p) => p.id), ["a"]);
+  assert.deepEqual(plan.kept.map((p) => p.id), ["b", "c"]);
+  assert.equal("lastCheckedAt" in plan.masterUpdated.find((p) => p.id === "b"), false, "선택되지 않은 항목은 손대지 않는다");
+});
+
 
 test("extractStructuredMetadataText는 OG 메타와 JSON-LD에서 프로모션 문구를 추출한다", () => {
   const html = `

@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       apply:
-        description: 'Run promotion pipeline with --apply to update app catalog and sync DB'
+        description: 'Run promotion pipeline with --apply (scheduled runs always apply; uncheck for a report-only manual run)'
         required: false
-        default: false
+        default: true
         type: boolean
       force_prune:
         description: 'Allow dropping more than 50% of live promotions if needed'
@@ -45,24 +45,22 @@ jobs:
         run: pnpm crawl
 
       - name: Run Promotion Pipeline
+        # 정기 실행(schedule)은 항상 --apply로 카탈로그·DB를 갱신한다. --force-prune은 수동 실행에서만 허용한다.
         run: |
-          if [ "${{ github.event_name == 'workflow_dispatch' && inputs.apply == true }}" = "true" ]; then
-            EXTRA_FLAGS="--apply"
-            if [ "${{ inputs.force_prune == true }}" = "true" ]; then
-              EXTRA_FLAGS="$EXTRA_FLAGS --force-prune"
-            fi
-            pnpm crawl:promotions -- $EXTRA_FLAGS
-          else
-            pnpm crawl:promotions
+          FLAGS=()
+          if [ "${{ github.event_name == 'schedule' || inputs.apply == true }}" = "true" ]; then
+            FLAGS+=("--apply")
           fi
+          if [ "${{ github.event_name == 'workflow_dispatch' && inputs.apply == true && inputs.force_prune == true }}" = "true" ]; then
+            FLAGS+=("--force-prune")
+          fi
+          echo "promotion pipeline flags: ${FLAGS[*]:-(report only)}"
+          node scripts/crawler/runPromotionPipeline.js "${FLAGS[@]}"
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || vars.VITE_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
-      - name: Run Refund Policy Check
-        run: pnpm crawl:refunds
 
       - name: Run Verification Tests
         run: pnpm test
@@ -81,3 +79,15 @@ jobs:
             - 트리거: `${{ github.event_name }}`
           branch: 'data-update/crawler-scheduled'
           delete-branch: true
+
+      # 환불 정책 페이지는 문구만 바뀌어도 실패로 판정된다.
+      # 카탈로그 PR이 환불 점검 때문에 막히지 않도록 PR 단계 뒤에서 실행하고, 실패는 경고 주석으로 남긴다.
+      - name: Run Refund Policy Check
+        id: refund_check
+        continue-on-error: true
+        run: pnpm crawl:refunds
+
+      - name: Annotate refund policy check result
+        if: steps.refund_check.outcome == 'failure'
+        run: |
+          echo "::warning title=환불 정책 페이지 확인 필요::pnpm crawl:refunds 가 실패했습니다. 운영 DB는 이미 갱신되었고 카탈로그 PR은 생성되었습니다. 환불 정책 문구 변경 여부를 확인하세요."

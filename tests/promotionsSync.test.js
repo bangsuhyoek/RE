@@ -466,3 +466,65 @@ test("mapDbBenefitToPromotion 및 loadLivePromotions는 Supabase/원격 데이�
   const cachedInitial = getInitialPromotions({ fallbackPromotions: fallback, storage, now: NOW });
   assert.equal(cachedInitial[0].id, "disney-bundle-37");
 });
++test("syncPromotionsToSupabase는 isFreeTier 항목을 upsert에서 제외하고 건너뛴 개수를 보고한다 (DB CHECK: confirmed/unverified/expired)", async () => {
+  const upserted = {};
+  const mockSupabase = {
+    from(table) {
+      return {
+        async select() {
+          if (table === "subscription_services") {
+            return { data: [{ id: "youtube" }, { id: "framer" }], error: null };
+          }
+          return { data: [], error: null };
+        },
+        async upsert(rows, options) {
+          upserted[table] = { rows, options };
+          return { data: rows, error: null };
+        },
+      };
+    },
+  };
+
+  const promos = [
+    {
+      id: "framer-promo",
+      title: "Framer Pro",
+      kind: "상시 무료 플랜",
+      category: "SaaS",
+      offerPrice: 0,
+      isFreeTier: true,
+      sourceServiceIds: ["framer"],
+      verifiedStatus: "LIVE_CONFIRMED",
+    },
+    {
+      id: "youtube-promo",
+      title: "YouTube Premium",
+      kind: "1개월 무료 체험",
+      category: "OTT",
+      offerPrice: 0,
+      sourceServiceIds: ["youtube"],
+      verifiedStatus: "LIVE_CONFIRMED",
+    },
+  ];
+
+  const res = await syncPromotionsToSupabase(promos, {
+    supabaseClient: mockSupabase,
+    updatedAt: "2026-10-29T03:00:00.000Z",
+  });
+
+  assert.deepEqual(res.errors, []);
+  assert.deepEqual(res.freeTierSkipped, ["framer-promo"]);
+  assert.equal(res.benefitsUpserted, 1);
+  assert.equal(upserted.benefits.rows.length, 1);
+  assert.equal(upserted.benefits.rows[0].id, "youtube-promo");
+
+  // DB CHECK 제약(confirmed/unverified/expired)에 없는 값이 전송되지 않아야 한다
+  const allowed = new Set(["confirmed", "unverified", "expired"]);
+  for (const row of upserted.benefits.rows) {
+    assert.ok(allowed.has(row.verified_status), "허용되지 않은 verified_status: " + row.verified_status);
+  }
+  // service_benefits 매핑에도 상시 무료 항목이 섞이지 않는다
+  assert.equal(upserted.service_benefits.rows.length, 1);
+  assert.equal(upserted.service_benefits.rows[0].benefit_id, "youtube-promo");
+});
+

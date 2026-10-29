@@ -204,6 +204,20 @@ function validatePromotion(promotion) {
 }
 
 /**
+ * DB의 benefits.verified_status CHECK 제약은 confirmed/unverified/expired만 허용한다.
+ * 상시 무료 요금제(isFreeTier)는 앱 카탈로그에서도 라이브 혜택으로 노출하지 않으므로
+ * DB upsert 대상에서 제외한다. (한 행이라도 free_tier가 섞이면 배치 전체가 23514로 실패한다.)
+ */
+export function isDbSyncExcluded(promotion) {
+  if (!promotion || typeof promotion !== "object") return false;
+  return (
+    promotion.isFreeTier === true ||
+    promotion.verifiedStatus === "free_tier" ||
+    promotion.verified_status === "free_tier"
+  );
+}
+
+/**
  * 마스터/라이브 프로모션 목록을 Supabase benefits 및 service_benefits 테이블에 Upsert한다.
  */
 export async function syncPromotionsToSupabase(
@@ -247,6 +261,7 @@ export async function syncPromotionsToSupabase(
       errors: [],
       syncedBenefits: 0,
       syncedServiceBenefits: 0,
+      freeTierSkipped: [],
     };
   }
 
@@ -267,18 +282,34 @@ export async function syncPromotionsToSupabase(
       errors: [],
       syncedBenefits: 0,
       syncedServiceBenefits: 0,
+      freeTierSkipped: [],
     };
   }
 
   const invalid = [];
   const validPromotions = [];
+  const freeTierSkipped = [];
   for (const promotion of (promotions || [])) {
+    // 상시 무료 요금제는 DB CHECK 제약(confirmed/unverified/expired)에 맞는 상태값이 없어 upsert에서 제외한다.
+    if (isDbSyncExcluded(promotion)) {
+      freeTierSkipped.push(promotion?.id ?? null);
+      continue;
+    }
     const missing = validatePromotion(promotion);
     if (missing.length > 0) {
       invalid.push({ id: promotion?.id ?? null, missing });
     } else {
       validPromotions.push(promotion);
     }
+  }
+
+  if (freeTierSkipped.length > 0) {
+    console.log(
+      "상시 무료 요금제(isFreeTier) " +
+        freeTierSkipped.length +
+        "개는 DB 동기화에서 제외했습니다: " +
+        freeTierSkipped.join(", ")
+    );
   }
 
   const benefitRows = validPromotions.map((p) => mapPromotionToBenefitRow(p, updatedAt, { now }));
@@ -368,6 +399,7 @@ export async function syncPromotionsToSupabase(
     invalid,
     unknownServiceIds,
     errors,
+    freeTierSkipped,
     syncedBenefits: benefitsUpserted,
     syncedServiceBenefits: mappingsUpserted,
   };

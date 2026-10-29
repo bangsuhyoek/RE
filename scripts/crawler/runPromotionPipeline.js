@@ -7,6 +7,7 @@
  *                                               + 확인되지 않은 혜택(LIVE_CONFIRMED가 아닌 항목)은 앱 데이터에서 삭제
  *   옵션: --no-browser(단순 fetch), --headful(브라우저 창 표시), --concurrency=4
  *         --force-prune(삭제 대상이 절반을 넘어도 삭제 진행)
+ *         --help(사용법 출력)
  *
  * 앱이 보여주는 promotionCatalog(public/catalog/promotions.json)의 각 혜택을
  * 실제 브라우저로 공식 페이지를 열어 확인하고 아래 중 하나로 판정한다.
@@ -48,9 +49,12 @@ export const Verdict = Object.freeze({
 });
 
 function parseArgs(argv) {
-  const args = { apply: false, syncDb: false, browser: true, headless: true, concurrency: 4, only: null, dumpText: false, forcePrune: false };
+  const args = { apply: false, syncDb: false, browser: true, headless: true, concurrency: 4, only: null, dumpText: false, forcePrune: false, help: false };
   for (const arg of argv) {
-    if (arg === "--apply") args.apply = true;
+    // `pnpm crawl:promotions -- --apply`처럼 전달되는 구분자 `--`는 무시한다.
+    if (arg === "--") continue;
+    else if (arg === "--help" || arg === "-h") args.help = true;
+    else if (arg === "--apply") args.apply = true;
     else if (arg === "--sync-db") args.syncDb = true;
     else if (arg === "--force-prune") args.forcePrune = true;
     else if (arg === "--no-browser") args.browser = false;
@@ -58,8 +62,40 @@ function parseArgs(argv) {
     else if (arg === "--dump-text") args.dumpText = true;
     else if (arg.startsWith("--concurrency=")) args.concurrency = Math.max(1, Number(arg.split("=")[1]) || 4);
     else if (arg.startsWith("--only=")) args.only = new Set(arg.split("=")[1].split(",").map((s) => s.trim()).filter(Boolean));
+    else console.warn("알 수 없는 옵션을 무시합니다 (unknown flag ignored): " + arg);
   }
   return args;
+}
+
+const USAGE = [
+  "사용법 (usage): node scripts/crawler/runPromotionPipeline.js [options]",
+  "  --apply          확인 결과를 promotions-master.json / promotions.json / subscriptionData.js 와 Supabase benefits 에 반영",
+  "  --force-prune    확인되지 않은 혜택이 절반을 넘어도 삭제 진행 (정기 실행에서는 사용하지 않음)",
+  "  --sync-db        크롤링 없이 현재 마스터 카탈로그를 Supabase 에 동기화",
+  "  --only=a,b       지정한 프로모션만 점검",
+  "  --no-browser | --headful | --concurrency=N | --dump-text | --help",
+].join("\n");
+
+/**
+ * --apply 전에 점검 결과가 비었거나 전부 접속 실패면 중단한다.
+ * (네트워크 장애·차단으로 수집이 통째로 실패한 결과가 카탈로그와 운영 DB에 반영되는 것을 막는다.
+ *  일부만 탈락하는 경우는 planCatalogUpdate의 50% 서킷 브레이커가 막는다.)
+ */
+export function assertApplicableResults(results, { forcePrune = false } = {}) {
+  if (!results.length) {
+    throw new Error("점검한 프로모션이 0개라 반영을 중단했습니다 (no promotions checked; apply aborted). 파일과 DB는 바뀌지 않았습니다.");
+  }
+  // MANUAL(자동 점검 대상 아님)·EXPIRED(이미 종료된 캠페인)는 네트워크 점검 실패가 아니다.
+  // 이 둘을 빼고 봤을 때 점검 대상이 모두 UNREACHABLE이면 수집이 통째로 실패한 것으로 본다.
+  const networkChecked = results.filter(
+    (r) => r.verdict !== Verdict.MANUAL && r.verdict !== Verdict.EXPIRED
+  );
+  if (!forcePrune && networkChecked.length > 0 && networkChecked.every((r) => r.verdict === Verdict.UNREACHABLE)) {
+    throw new Error(
+      "모든 프로모션 페이지를 읽지 못해 반영을 중단했습니다 (all " + networkChecked.length + " network-checked promotions UNREACHABLE; apply aborted). " +
+        "네트워크·차단 문제를 확인하세요. 파일과 DB는 바뀌지 않았습니다."
+    );
+  }
 }
 
 function campaignEnded(promotion, now) {
@@ -259,10 +295,14 @@ export function applyResult(item, result, checkedAt) {
   return next;
 }
 
-export function planCatalogUpdate(items, byId, checkedAt, { forcePrune = false, maxPruneRatio = MAX_PRUNE_RATIO } = {}) {
-  const masterUpdated = items.map((p) => applyResult(p, byId.get(p.id), checkedAt));
+export function planCatalogUpdate(items, byId, checkedAt, { forcePrune = false, maxPruneRatio = MAX_PRUNE_RATIO, only = null } = {}) {
+  // --only로 일부만 점검했을 때는 선택되지 않은 항목의 상태를 그대로 둔다 (이번 실행에서 삭제 대상이 되지 않는다).
+  const isChecked = (p) => !only || only.has(p.id);
+  const masterUpdated = items.map((p) => (isChecked(p) ? applyResult(p, byId.get(p.id), checkedAt) : p));
   const kept = masterUpdated.filter((p) => p.verifiedStatus === KEEP_STATUS && !p.isFreeTier);
-  const removed = masterUpdated.filter((p) => p.verifiedStatus !== KEEP_STATUS && !p.isFreeTier);
+  const removed = masterUpdated.filter(
+    (p) => isChecked(p) && p.verifiedStatus !== KEEP_STATUS && !p.isFreeTier
+  );
 
   // 기존에 LIVE_CONFIRMED였던 항목 중 이번에 탈락하는 비율이 절반을 넘으면 서킷 브레이커 작동
   const previouslyLive = items.filter((p) => p.verifiedStatus === KEEP_STATUS && !p.isFreeTier);
@@ -301,11 +341,11 @@ function readMasterCatalog() {
   return JSON.parse(fs.readFileSync(target, "utf-8"));
 }
 
-function applyToAppData(results, checkedAt, { forcePrune = false } = {}) {
+function applyToAppData(results, checkedAt, { forcePrune = false, only = null } = {}) {
   const byId = new Map(results.map((r) => [r.id, r]));
 
   const masterItems = readMasterCatalog();
-  const plan = planCatalogUpdate(masterItems, byId, checkedAt, { forcePrune });
+  const plan = planCatalogUpdate(masterItems, byId, checkedAt, { forcePrune, only });
   const nextMasterJson = JSON.stringify(plan.masterUpdated, null, 2) + "\n";
   const nextLiveJson = JSON.stringify(plan.kept, null, 2) + "\n";
 
@@ -401,19 +441,22 @@ export async function runPromotionPipeline(options = {}) {
     if (!dbSync) return "Supabase 동기화: 결과 없음";
     const invalidCount = dbSync.invalid?.length ?? 0;
     const unknownList = dbSync.unknownServiceIds?.length ? `[${dbSync.unknownServiceIds.join(", ")}]` : "0개";
+    const freeTierCount = dbSync.freeTierSkipped?.length ?? 0;
+    const freeTierText = freeTierCount > 0 ? ` · 상시 무료 제외 ${freeTierCount}개` : "";
     const errorCount = dbSync.errors?.length ?? 0;
     const errorText = errorCount > 0
       ? `${errorCount}건 (${dbSync.errors.map((e) => e.message || String(e)).join("; ")})`
       : "0건";
     if (dbSync.skipped) {
-      return `Supabase 동기화 건너뜀 (사유: ${dbSync.reason ?? "알 수 없음"}) · 무효 ${invalidCount}개 · 미등록 서비스 ${unknownList} · 오류 ${errorText}`;
+      return `Supabase 동기화 건너뜀 (사유: ${dbSync.reason ?? "알 수 없음"}) · 무효 ${invalidCount}개 · 미등록 서비스 ${unknownList}${freeTierText} · 오류 ${errorText}`;
     }
-    return `Supabase 동기화: 혜택 ${dbSync.benefitsUpserted ?? 0}건 · 매핑 ${dbSync.mappingsUpserted ?? 0}건 · 무효 ${invalidCount}개 · 미등록 서비스 ${unknownList} · 오류 ${errorText}`;
+    return `Supabase 동기화: 혜택 ${dbSync.benefitsUpserted ?? 0}건 · 매핑 ${dbSync.mappingsUpserted ?? 0}건 · 무효 ${invalidCount}개 · 미등록 서비스 ${unknownList}${freeTierText} · 오류 ${errorText}`;
   }
 
   if (args.apply) {
     if (args.only) console.log("--only와 함께 실행해 해당 항목만 반영합니다.");
-    const applied = applyToAppData(results, checkedAt, { forcePrune: args.forcePrune });
+    assertApplicableResults(results, { forcePrune: args.forcePrune });
+    const applied = applyToAppData(results, checkedAt, { forcePrune: args.forcePrune, only: args.only });
     console.log("앱 데이터(promotions-master.json, promotions.json, subscriptionData.js)에 확인 상태를 반영했습니다. 남은 혜택 " + applied.kept + "개");
     if (applied.removed.length) {
       console.log("확인되지 않아 라이브에서 제외한 혜택 " + applied.removed.length + "개:");
@@ -453,7 +496,12 @@ export async function runPromotionPipeline(options = {}) {
 }
 
 async function main() {
-  await runPromotionPipeline(parseArgs(process.argv.slice(2)));
+  const args = parseArgs(process.argv.slice(2));
+  if (args.help) {
+    console.log(USAGE);
+    return;
+  }
+  await runPromotionPipeline(args);
 }
 
 const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
