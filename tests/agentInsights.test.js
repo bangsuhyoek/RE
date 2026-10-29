@@ -270,13 +270,13 @@ test("Rule d (duplicate_category): OTT 및 음악 카테고리 2개 이상 중�
   assert.ok(ottDup);
   assert.equal(ottDup.priority, "normal");
   assert.match(ottDup.title, /OTT 구독이 2개 있어요/);
-  assert.match(ottDup.message, /월 총 ₩26,900/);
+  assert.match(ottDup.message, /월 총 26,900원/);
 
   const musicDup = dupInsights.find((i) => i.id.includes("music"));
   assert.ok(musicDup);
   assert.equal(musicDup.priority, "normal");
   assert.match(musicDup.title, /음악 구독이 2개 있어요/);
-  assert.match(musicDup.message, /월 총 ₩19,800/);
+  assert.match(musicDup.message, /월 총 19,800원/);
 });
 
 test("Rule e (price_changed): originalAmount 존재 및 인상/인하 감지", () => {
@@ -317,12 +317,12 @@ test("Rule e (price_changed): originalAmount 존재 및 인상/인하 감지", (
   assert.equal(priceInsights[0].subscriptionId, "price-up");
   assert.equal(priceInsights[0].priority, "high");
   assert.match(priceInsights[0].title, /요금이 올랐어요/);
-  assert.match(priceInsights[0].message, /₩3,000 인상되었어요/);
+  assert.match(priceInsights[0].message, /3,000원 인상되었어요/);
 
   assert.equal(priceInsights[1].subscriptionId, "price-down");
   assert.equal(priceInsights[1].priority, "normal");
   assert.match(priceInsights[1].title, /요금이 내렸어요/);
-  assert.match(priceInsights[1].message, /₩2,000 인하되었어요/);
+  assert.match(priceInsights[1].message, /2,000원 인하되었어요/);
 });
 
 test("정렬 검증: high 우선순위가 항상 normal보다 앞서고, 같은 우선순위 내에서는 빠른 결제일 순으로 정렬된다", () => {

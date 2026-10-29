@@ -129,8 +129,8 @@ test("buildSettlementRequest: 정산 메시지에 서비스명, 결제일, 총�
 
   const req = buildSettlementRequest(sub, { now: fixedNow });
   assert.ok(req.message.includes("[꾸독 정산] Netflix 프리미엄"));
-  assert.ok(req.message.includes("10월 15일 결제 ₩17,000 ÷ 4명"));
-  assert.ok(req.message.includes("1인 ₩4,250 보내 주세요."));
+  assert.ok(req.message.includes("10월 15일 결제 17,000원 ÷ 4명"));
+  assert.ok(req.message.includes("1인 4,250원 보내 주세요."));
 });
 
 // 4. memo의 10자리 이상 긴 숫자 가림 (계좌번호, 카드번호 마스킹)

@@ -14,7 +14,12 @@ export const parseLocalDate = (dateStr) => {
 
 const startOfDay = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-export const formatWon = (amount) => `₩${Number(amount || 0).toLocaleString("ko-KR")}`;
+// C2 표기: 화면과 알림·메시지 모두 "17,000원".
+export const formatWon = (amount) => `${Number(amount || 0).toLocaleString("ko-KR")}원`;
+export const formatWonText = formatWon;
+// 예전에 저장된 알림·대화 문구의 "₩14,900"을 화면에 보여 줄 때 "14,900원"으로 바꾼다(저장 데이터는 그대로).
+export const normalizeWonText = (text) =>
+  typeof text === "string" ? text.replace(/[₩￦]\s?(\d[\d,]*)/g, "$1원") : text;
 
 // 기기 시간대 기준 YYYY-MM-DD. toISOString()은 UTC라 한국 자정이 전날로 바뀌므로 날짜 키에는 이 함수를 쓴다.
 export const toLocalDateKey = (date) =>

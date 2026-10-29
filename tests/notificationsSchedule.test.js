@@ -166,7 +166,7 @@ test("D-2 및 오후 시간 설정(예: 오후 3시)이 그대로 예약된다",
   assert.ok(cycle1);
   assert.equal(cycle1.extra?.type, "billing_d2");
   assert.equal(cycle1.title, "[결제 D-2] Custom Service 결제 예정");
-  assert.equal(cycle1.body, "2일 뒤 Custom Service ₩9,900이 결제될 예정입니다.");
+  assert.equal(cycle1.body, "2일 뒤 Custom Service 9,900원이 결제될 예정입니다.");
 
   const scheduledDate = new Date(cycle1.schedule.at);
   assert.equal(scheduledDate.getDate(), 18);
@@ -267,7 +267,7 @@ test("1. 답변이 없을 때 cycle 1 D-3 알림은 질문 형태와 actionTypeI
     (n) => n.extra?.subscriptionId === "sub-netflix" && n.extra?.cycle === 1 && n.extra?.type === "usage_check"
   );
   assert.ok(d3Cycle1, "cycle 1에 usage_check 타입의 D-3 알림이 있어야 함");
-  assert.equal(d3Cycle1.title, "넷플릭스, 3일 뒤 ₩17,000");
+  assert.equal(d3Cycle1.title, "넷플릭스, 3일 뒤 17,000원");
   assert.equal(d3Cycle1.body, "이번 달 넷플릭스 잘 쓰셨어요? 알림을 내려서 바로 답해 주세요.");
   assert.equal(d3Cycle1.actionTypeId, USAGE_CHECK_ACTION_TYPE_ID);
 });
@@ -298,7 +298,7 @@ test("2. 최근 2회 연속 '잘 썼어요'인 경우 스케줄링 시 정보성
   );
   assert.ok(d3Cycle1, "스로틀 시 cycle 1 D-3은 정보성 billing_d3 알림이어야 함");
   assert.equal(d3Cycle1.title, "[결제 D-3] 넷플릭스 결제 예정");
-  assert.equal(d3Cycle1.body, "3일 뒤 넷플릭스 ₩17,000이 결제될 예정입니다.");
+  assert.equal(d3Cycle1.body, "3일 뒤 넷플릭스 17,000원이 결제될 예정입니다.");
   assert.equal(d3Cycle1.actionTypeId, undefined);
 });
 
@@ -328,7 +328,7 @@ test("3. 2달 이상 미사용(streak>=2) 시 총 누적 금액을 포함한 해
   );
   assert.ok(d3Cycle1, "streak 2 이상 시 cycle 1 D-3은 usage_cancel_suggest 이어야 함");
   assert.equal(d3Cycle1.title, "넷플릭스 2달째 거의 안 쓰셨어요");
-  assert.ok(d3Cycle1.body.startsWith("그동안 ₩34,000 나갔어요. 3일 뒤 또 결제돼요. 눌러서 해지를 확인하세요."));
+  assert.ok(d3Cycle1.body.startsWith("그동안 34,000원 나갔어요. 3일 뒤 또 결제돼요. 눌러서 해지를 확인하세요."));
   assert.equal(d3Cycle1.actionTypeId, undefined);
 });
 
@@ -365,7 +365,7 @@ test("4. 무료체험 구독은 질문/해지권유로 바뀌지 않고 체험 �
   const d3Alert = lastScheduled.find((n) => n.extra?.subscriptionId === "sub-trial-d3" && n.extra?.type === "trial_d3");
   assert.ok(d3Alert);
   assert.equal(d3Alert.title, "[체험 만료 D-3] 쿠팡 와우 무료체험 종료");
-  assert.equal(d3Alert.body, "3일 뒤 쿠팡 와우 무료체험이 종료되고 ₩7,890이 결제됩니다.");
+  assert.equal(d3Alert.body, "3일 뒤 쿠팡 와우 무료체험이 종료되고 7,890원이 결제됩니다.");
 
   // buildD3NotificationContent도 체험판은 질문/해지권유로 변환하지 않음
   const content = buildD3NotificationContent({
@@ -398,7 +398,7 @@ test("5. 월간 구독의 cycle 2 D-3 알림은 항상 정보성 문구를 유�
   );
   assert.ok(cycle2D3, "cycle 2 D-3은 항상 billing_d3이어야 함");
   assert.equal(cycle2D3.title, "[결제 D-3] 넷플릭스 결제 예정");
-  assert.equal(cycle2D3.body, "3일 뒤 넷플릭스 ₩17,000이 결제될 예정입니다.");
+  assert.equal(cycle2D3.body, "3일 뒤 넷플릭스 17,000원이 결제될 예정입니다.");
   assert.equal(cycle2D3.actionTypeId, undefined);
 });
 
@@ -486,7 +486,7 @@ test("9. 이번 주기(미결제)의 unused 답변은 알림 권유 금액 산�
   assert.notEqual(contentOne.extra.type, "usage_cancel_suggest", "과거 1회 + 이번 주기 1회는 아직 2달 누적 결제가 아니므로 권유로 전환되지 않음");
 
   // 2) 과거 2회(8/25, 9/25)가 unused이고 이번 달(10/25)도 unused 답변이 있는 경우:
-  // 과거 2회만 카운트되어 2달치(₩20,000)만 누적 금액으로 표시되어야 함 (3달치 ₩30,000이 아님)
+  // 과거 2회만 카운트되어 2달치(20,000원)만 누적 금액으로 표시되어야 함 (3달치 30,000원이 아님)
   const answersTwoPast = {
     "sub-watcha@2026-08-25": { answer: "unused", subscriptionId: "sub-watcha" },
     "sub-watcha@2026-09-25": { answer: "unused", subscriptionId: "sub-watcha" },
@@ -500,7 +500,7 @@ test("9. 이번 주기(미결제)의 unused 답변은 알림 권유 금액 산�
   });
   assert.equal(contentTwo.extra.type, "usage_cancel_suggest");
   assert.equal(contentTwo.title, "왓챠 2달째 거의 안 쓰셨어요");
-  assert.ok(contentTwo.body.includes("그동안 ₩20,000 나갔어요"), "아직 결제되지 않은 이번 주기(10/25) 금액은 누적 금액에서 제외되어 ₩20,000이어야 함");
+  assert.ok(contentTwo.body.includes("그동안 20,000원 나갔어요"), "아직 결제되지 않은 이번 주기(10/25) 금액은 누적 금액에서 제외되어 20,000원이어야 함");
 });
 
 test("10. id와 subscriptionId 접두어가 섞여 있어도 날짜 기준으로 올바르게 정렬되어 unusedStreak를 계산한다", async () => {
