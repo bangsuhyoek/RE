@@ -1,30 +1,42 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
+  // Light-only app: the "dark" class is never applied, so dark: variants and
+  // prefers-color-scheme never change the UI.
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        // Eucalyptus Grove Custom Palette (from Figma)
+        // [0] SubMate semantic tokens (light theme only) - C2 system
+        // Neutral Toss-like gray scale. 400 is decoration/placeholder only (3.0:1);
+        // 500 and darker pass 4.5:1 on white. See outputs/design-concepts/c2/tokens.md.
+        gray: { 50: "#F9FAFB", 100: "#F2F4F6", 200: "#E5E8EB", 300: "#D1D6DB", 400: "#8B95A1", 500: "#646E7C", 600: "#4E5968", 700: "#333D4B", 800: "#252C38", 900: "#191F28" },
+        // "brand" is the primary action color. C2 has no hue accent: primary = ink.
+        brand: {
+          DEFAULT: "#191F28", hover: "#333D4B", pressed: "#0B0F15", // white text 16.6:1
+          soft: "#F2F4F6", "soft-strong": "#E5E8EB", line: "#D1D6DB",
+          ink: "#191F28",
+        },
+        ink: {
+          DEFAULT: "#191F28",   // primary text 16.6:1
+          secondary: "#333D4B", // 11.0:1
+          muted: "#4E5968",     // secondary text 7.1:1
+          tertiary: "#646E7C",  // meta/labels 5.2:1 (4.7:1 on gray-100)
+          subtle: "#8B95A1",    // placeholder/decoration only 3.0:1
+        },
+        // Semantic red for urgency/destructive. #E42939 (TDS red600) is 4.49:1, so the
+        // text/fill value is darkened to #D22030 (5.3:1 on white, white text 5.3:1).
+        danger: { DEFAULT: "#D22030", soft: "#FFF0F0", line: "#FBCACE" },
+
+        // Legacy eucalyptus families now resolve to the same neutral scale so old classes turn gray.
         eucalyptus: {
-          sage: {
-            50: "#F8F7F3", 100: "#F1EFE6", 200: "#E3DFCFA", 300: "#D5D0BC", 400: "#C4BEA2",
-            500: "#B2AC88", 600: "#9B946E", 700: "#7F7954", 800: "#625D3F", 900: "#46422B",
-          },
-          gray: {
-            50: "#FAFAFA", 100: "#F2F0EF", 200: "#E4E2DF", 300: "#D0CECB", 400: "#B1AFA9",
-            500: "#898989", 600: "#6E6F6C", 700: "#535450", 800: "#393B37", 900: "#1F221E",
-          },
-          green: {
-            50: "#F2F6F1", 100: "#E4ECE3", 200: "#C9DAC7", 300: "#A7C2A4", 400: "#789E74",
-            500: "#4B6E48", 600: "#3E5C3B", 700: "#324B30", 800: "#263924", 900: "#1B291A",
-          },
+          sage: { 50: "#F9FAFB", 100: "#F2F4F6", 200: "#E5E8EB", 300: "#D1D6DB", 400: "#8B95A1", 500: "#646E7C", 600: "#4E5968", 700: "#333D4B", 800: "#252C38", 900: "#191F28" },
+          gray: { 50: "#F9FAFB", 100: "#F2F4F6", 200: "#E5E8EB", 300: "#D1D6DB", 400: "#8B95A1", 500: "#646E7C", 600: "#4E5968", 700: "#333D4B", 800: "#252C38", 900: "#191F28" },
+          green: { 50: "#F9FAFB", 100: "#F2F4F6", 200: "#E5E8EB", 300: "#D1D6DB", 400: "#8B95A1", 500: "#646E7C", 600: "#4E5968", 700: "#333D4B", 800: "#252C38", 900: "#191F28" },
         },
         // [1] Primitive Palette (100 Colors from Figma: 10 Hues x 10 Steps)
         palette: {
-          gray: {
-            50: "#F9FAFB", 100: "#F2F4F6", 200: "#E5E8EB", 300: "#D1D6DB", 400: "#B0B8C1",
-            500: "#8B95A1", 600: "#6B7684", 700: "#4E5968", 800: "#333D4B", 900: "#191F28",
-          },
+          gray: { 50: "#F9FAFB", 100: "#F2F4F6", 200: "#E5E8EB", 300: "#D1D6DB", 400: "#8B95A1", 500: "#646E7C", 600: "#4E5968", 700: "#333D4B", 800: "#252C38", 900: "#191F28" },
           orange: {
             50: "#FFF5ED", 100: "#FFE8D6", 200: "#FFD2B2", 300: "#FFB380", 400: "#FF924D",
             500: "#FF6F0F", 600: "#E65A00", 700: "#BD4500", 800: "#943400", 900: "#6B2300",

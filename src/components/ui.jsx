@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
+  Bell,
   CalendarDays,
   Camera,
+  ChevronRight,
   CreditCard,
+  Gift,
   Home,
-  Plus,
-  Sparkles,
+  MessageCircle,
+  PlusCircle,
   Loader2,
   X,
   Pin,
 } from "lucide-react";
-import { daysUntilCharge, formatWon } from "../lib/dates";
+import { daysUntilCharge, formatWonText } from "../lib/dates";
 import {
   PaymentIcon,
   PaymentMethodBadge,
@@ -37,81 +40,80 @@ export function LogoMark() {
 
 /**
  * SubMate x SEED Design System Category Philosophy
- * 지출 카테고리별 고유한 삶의 가치와 철학을 부여하고,
- * 유칼립투스 그로브 100색 매트릭스와 엄격한 접근성 페어링 규칙으로 설계된 토큰 맵.
+ * 카테고리 라벨·설명 맵. C2 시스템에서는 카테고리에 색을 입히지 않고 모두 중립 회색으로 표시한다.
  */
 export const CATEGORY_PHILOSOPHY = {
   OTT: {
     label: "OTT",
     theme: "몰입과 휴식",
     desc: "지친 일상을 비우고 온전히 빠져드는 스크린의 여유",
-    style: "bg-palette-indigo-50 text-palette-indigo-700 border-palette-indigo-200",
-    chipActive: "bg-palette-indigo-700 text-white border-palette-indigo-700",
-    dot: "bg-palette-indigo-500",
+    style: "bg-gray-100 text-ink-muted border-transparent",
+    chipActive: "bg-ink text-white border-ink",
+    dot: "bg-gray-400",
   },
   음악: {
     label: "음악",
     theme: "감성과 리듬",
     desc: "하루의 틈새를 채우는 나만의 감각적인 선율과 비트",
-    style: "bg-palette-pink-50 text-palette-pink-700 border-palette-pink-200",
-    chipActive: "bg-palette-pink-700 text-white border-palette-pink-700",
-    dot: "bg-palette-pink-500",
+    style: "bg-gray-100 text-ink-muted border-transparent",
+    chipActive: "bg-ink text-white border-ink",
+    dot: "bg-gray-400",
   },
   생산성: {
     label: "생산성",
     theme: "명료함과 지적 성장",
     desc: "인지 부하를 덜고 지속 가능한 일과 성장을 돕는 도구",
-    style: "bg-palette-eucalyptus-green-50 text-palette-eucalyptus-green-700 border-palette-eucalyptus-green-200",
-    chipActive: "bg-palette-eucalyptus-green-700 text-white border-palette-eucalyptus-green-700",
-    dot: "bg-palette-eucalyptus-green-500",
+    style: "bg-gray-100 text-ink-muted border-transparent",
+    chipActive: "bg-ink text-white border-ink",
+    dot: "bg-gray-400",
   },
   쇼핑: {
     label: "쇼핑",
     theme: "실속과 풍요",
     desc: "일상의 수고를 덜고 매월 확실한 가치와 절약을 회수하는 스마트함",
-    style: "bg-palette-eucalyptus-sage-50 text-palette-eucalyptus-sage-800 border-palette-eucalyptus-sage-300",
-    chipActive: "bg-palette-eucalyptus-sage-800 text-white border-palette-eucalyptus-sage-800",
-    dot: "bg-palette-eucalyptus-sage-600",
+    style: "bg-gray-100 text-ink-muted border-transparent",
+    chipActive: "bg-ink text-white border-ink",
+    dot: "bg-gray-400",
   },
   도서: {
     label: "도서",
     theme: "사색과 지식 축적",
     desc: "소음을 걷어내고 내면의 시야를 넓히는 차분한 지식의 축적",
-    style: "bg-palette-amber-50 text-palette-amber-800 border-palette-amber-200",
-    chipActive: "bg-palette-amber-700 text-white border-palette-amber-700",
-    dot: "bg-palette-amber-600",
+    style: "bg-gray-100 text-ink-muted border-transparent",
+    chipActive: "bg-ink text-white border-ink",
+    dot: "bg-gray-400",
   },
   클라우드: {
     label: "클라우드",
     theme: "투명한 신뢰",
     desc: "기록과 자산을 소리 없이 안전하게 지탱하는 인프라",
-    style: "bg-palette-blue-50 text-palette-blue-700 border-palette-blue-200",
-    chipActive: "bg-palette-blue-700 text-white border-palette-blue-700",
-    dot: "bg-palette-blue-500",
+    style: "bg-gray-100 text-ink-muted border-transparent",
+    chipActive: "bg-ink text-white border-ink",
+    dot: "bg-gray-400",
   },
   게임: {
     label: "게임",
     theme: "유희와 성취",
     desc: "기분 좋은 긴장감과 상상력이 깨어나는 즐거운 도전",
-    style: "bg-palette-purple-50 text-palette-purple-700 border-palette-purple-200",
-    chipActive: "bg-palette-purple-700 text-white border-palette-purple-700",
-    dot: "bg-palette-purple-500",
+    style: "bg-gray-100 text-ink-muted border-transparent",
+    chipActive: "bg-ink text-white border-ink",
+    dot: "bg-gray-400",
   },
   유틸리티: {
     label: "유틸리티",
     theme: "일상의 기반",
     desc: "생활의 마찰을 줄여주는 없어서는 안 될 기본 편의",
-    style: "bg-palette-teal-50 text-palette-teal-700 border-palette-teal-200",
-    chipActive: "bg-palette-teal-700 text-white border-palette-teal-700",
-    dot: "bg-palette-teal-500",
+    style: "bg-gray-100 text-ink-muted border-transparent",
+    chipActive: "bg-ink text-white border-ink",
+    dot: "bg-gray-400",
   },
   기타: {
     label: "기타",
     theme: "취향의 발견",
     desc: "나만의 고유한 라이프스타일을 완성하는 특별한 경험",
-    style: "bg-surface-subtle text-fg-secondary border-border-subtle",
-    chipActive: "bg-surface-inverse text-fg-inverse border-surface-inverse",
-    dot: "bg-fg-muted",
+    style: "bg-gray-100 text-ink-muted border-transparent",
+    chipActive: "bg-ink text-white border-ink",
+    dot: "bg-gray-400",
   },
 };
 
@@ -252,17 +254,10 @@ export const SERVICE_IMAGES = {
   uplus: "/assets/services/uplus.svg",
 };
 
-export function ServiceMark({
-  serviceId,
-  name,
-  monogram,
-  image = null,
-  category = null,
-  brandColor,
-  brandBg,
-  brandText,
-  className = "",
-}) {
+/**
+ * 서비스 이미지 경로를 찾는다. 서비스 id → 이름 일치 → 이름 키워드 순서.
+ */
+export function resolveServiceImage({ serviceId, name, image = null } = {}) {
   const cleanName = (name || "").toLowerCase().trim();
   const cleanId = (serviceId || "").toLowerCase().trim();
   const resolvedImage =
@@ -366,36 +361,47 @@ export function ServiceMark({
       (cleanName.includes("naver") || cleanName.includes("네이버") ? SERVICE_IMAGES.naver : null) ||
       (cleanName.includes("icloud") || cleanName.includes("apple") || cleanName.includes("아이클라우드") || cleanName.includes("애플") ? SERVICE_IMAGES.icloud : null)
     ));
+  return resolvedImage || null;
+}
 
-  if (resolvedImage) {
+// 호출부가 넘기는 모양·색 클래스(rounded, shadow, border, bg, 글자색, padding)는 무시하고
+// 크기·여백·정렬 클래스만 남겨서 모든 화면의 로고 모양을 하나로 맞춘다.
+const LOGO_STRIP = /^(?:rounded(?:-.*)?|shadow(?:-.*)?|border(?:-.*)?|bg-.*|p-.*|px-.*|py-.*|ring(?:-.*)?|text-(?:white|black|ink.*|gray-.*|fg-.*|brand.*|\[#.*\]))$/;
+function logoLayoutClasses(className = "") {
+  return className.split(/\s+/).filter((token) => token && !LOGO_STRIP.test(token.replace(/^[a-z]+:/, ""))).join(" ");
+}
+
+/**
+ * C2 서비스 로고. public/assets/services 의 실제 로고를 둥근 사각형(25%)으로 꽉 채워 보여 주고,
+ * 로고가 없으면 회색 바탕에 글자 하나(모노그램)를 둔다. 기본 크기는 40px.
+ */
+export function ServiceLogo({ serviceId, name, monogram, image = null, className = "", size }) {
+  // 카탈로그의 실제 로고가 먼저다. 사용자가 붙인 사진(image)은 로고를 못 찾았을 때만 쓴다.
+  const resolvedImage = resolveServiceImage({ serviceId, name }) || image || null;
+  const [failed, setFailed] = useState(false);
+  const layout = logoLayoutClasses(className);
+  const hasSize = /(^|\s)(?:[a-z]+:)?(?:h|w|size)-/.test(layout);
+  const style = { borderRadius: "25%", ...(size ? { width: size, height: size } : null) };
+  const base = cx("relative inline-flex shrink-0 overflow-hidden select-none", !hasSize && !size && "h-10 w-10", layout);
+  if (resolvedImage && !failed) {
     return (
-      <span className={cx("inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-50/80 p-2 overflow-hidden border border-gray-100 select-none", className)}>
+      <span className={base} style={style}>
         <img
           src={resolvedImage}
           alt={name || ""}
-          className="h-full w-full object-contain pointer-events-none"
+          className="h-full w-full object-cover pointer-events-none"
+          onError={() => setFailed(true)}
         />
+        <span className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-black/[0.04]" aria-hidden="true" />
       </span>
     );
   }
-  const display = (monogram && monogram.trim()) ? monogram.trim().slice(0, 2).toUpperCase() : "S";
-  const info = (category && CATEGORY_PHILOSOPHY[category]) || CATEGORY_PHILOSOPHY.기타;
-  const catStyle = info.style;
-  const customStyle = (brandBg || brandText || brandColor) ? {
-    backgroundColor: brandBg || (brandColor ? `${brandColor}18` : undefined),
-    color: brandText || brandColor || undefined,
-    borderColor: brandColor ? `${brandColor}35` : undefined,
-  } : undefined;
-
+  const source = (monogram && monogram.trim()) || (name && name.trim()) || "S";
+  const display = Array.from(source)[0].toUpperCase();
   return (
     <span
-      style={customStyle}
-      className={cx(
-        "grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-sm font-bold border transition-colors",
-        !customStyle && catStyle,
-        className
-      )}
-      title={info.theme}
+      className={cx(base, "items-center justify-center bg-gray-100 font-semibold text-ink-muted text-[15px]")}
+      style={style}
       aria-hidden="true"
     >
       {display}
@@ -403,39 +409,14 @@ export function ServiceMark({
   );
 }
 
-export function BrandServiceMark({ monogram, image = null, category = null, brandColor, brandBg, brandText, className = "" }) {
-  if (image) {
-    return (
-      <img
-        src={image}
-        alt=""
-        className={cx("h-11 w-11 shrink-0 rounded-2xl object-cover border border-border-subtle", className)}
-      />
-    );
-  }
-  const display = (monogram && monogram.trim()) ? monogram.trim().slice(0, 2).toUpperCase() : "S";
-  const info = (category && CATEGORY_PHILOSOPHY[category]) || CATEGORY_PHILOSOPHY.기타;
-  const catStyle = info.style;
-  const customStyle = (brandBg || brandText || brandColor) ? {
-    backgroundColor: brandBg || (brandColor ? `${brandColor}18` : undefined),
-    color: brandText || brandColor || undefined,
-    borderColor: brandColor ? `${brandColor}35` : undefined,
-  } : undefined;
+/** 예전 이름. 모든 호출이 ServiceLogo 로 그려진다. */
+export function ServiceMark({ serviceId, name, monogram, image = null, className = "" }) {
+  return <ServiceLogo serviceId={serviceId} name={name} monogram={monogram} image={image} className={className} />;
+}
 
-  return (
-    <span
-      style={customStyle}
-      className={cx(
-        "grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-sm font-bold border transition-colors",
-        !customStyle && catStyle,
-        className
-      )}
-      title={info.theme}
-      aria-hidden="true"
-    >
-      {display}
-    </span>
-  );
+/** 예전 이름. 이미지가 없으면 회색 모노그램. */
+export function BrandServiceMark({ monogram, image = null, className = "" }) {
+  return <ServiceLogo monogram={monogram} image={image} className={className} />;
 }
 
 export function CategoryBadge({ category, showPhilosophy = false, className = "" }) {
@@ -476,23 +457,24 @@ export function Button({
   ...props
 }) {
   const variants = {
-    primary: "bg-surface-inverse text-fg-inverse hover:bg-palette-gray-800 active:bg-palette-gray-700 shadow-sm",
-    "neutral-solid": "bg-surface-inverse text-fg-inverse hover:bg-palette-gray-800 active:bg-palette-gray-700 shadow-sm",
-    secondary: "bg-surface-subtle text-fg-secondary hover:bg-border-subtle active:bg-border-default",
-    "neutral-weak": "bg-surface-subtle text-fg-secondary hover:bg-border-subtle active:bg-border-default",
-    outline: "border border-border-subtle bg-surface-default text-fg-secondary hover:bg-surface-inset active:bg-surface-subtle",
-    "neutral-outline": "border border-border-subtle bg-surface-default text-fg-secondary hover:bg-surface-inset active:bg-surface-subtle",
-    brand: "bg-surface-brand text-fg-inverse hover:bg-surface-brand-hover active:bg-surface-brand-active shadow-sm",
-    "brand-solid": "bg-surface-brand text-fg-inverse hover:bg-surface-brand-hover active:bg-surface-brand-active shadow-sm",
-    danger: "bg-palette-red-500 text-fg-inverse hover:bg-palette-red-600 active:bg-palette-red-700",
-    "critical-solid": "bg-palette-red-500 text-fg-inverse hover:bg-palette-red-600 active:bg-palette-red-700",
-    ghost: "text-fg-tertiary hover:bg-surface-subtle hover:text-fg-primary active:bg-border-subtle",
+    // C2: 주요 버튼은 잉크색 채움, 보조는 회색 면, 아웃라인은 흰 바탕 + 얇은 선. 그림자 없음.
+    primary: "bg-brand text-white hover:bg-brand-hover active:bg-brand-pressed",
+    "neutral-solid": "bg-brand text-white hover:bg-brand-hover active:bg-brand-pressed",
+    secondary: "bg-gray-100 text-ink-secondary hover:bg-gray-200 active:bg-gray-200",
+    "neutral-weak": "bg-gray-100 text-ink-secondary hover:bg-gray-200 active:bg-gray-200",
+    outline: "border border-gray-200 bg-white text-ink-secondary hover:bg-gray-50 active:bg-gray-100",
+    "neutral-outline": "border border-gray-200 bg-white text-ink-secondary hover:bg-gray-50 active:bg-gray-100",
+    brand: "bg-brand text-white hover:bg-brand-hover active:bg-brand-pressed",
+    "brand-solid": "bg-brand text-white hover:bg-brand-hover active:bg-brand-pressed",
+    danger: "bg-danger text-white hover:opacity-90 active:opacity-80",
+    "critical-solid": "bg-danger text-white hover:opacity-90 active:opacity-80",
+    ghost: "text-ink-muted hover:bg-gray-100 hover:text-ink active:bg-gray-200",
   };
   const sizes = {
-    large: "min-h-[52px] rounded-2xl px-5 text-[16px] font-bold tracking-tight",
-    default: "min-h-[46px] rounded-xl px-4 text-[15px] font-semibold tracking-tight",
-    compact: "min-h-[36px] rounded-lg px-3.5 text-[13px] font-semibold tracking-tight",
-    xsmall: "min-h-[28px] rounded-full px-2.5 text-[12px] font-medium tracking-tight",
+    large: "min-h-[52px] rounded-[14px] px-5 text-[16px] font-semibold tracking-tight",
+    default: "min-h-[48px] rounded-xl px-4 text-[15px] font-semibold tracking-tight",
+    compact: "min-h-[36px] rounded-[10px] px-3.5 text-[13px] font-semibold tracking-tight",
+    xsmall: "min-h-[28px] rounded-lg px-2.5 text-[12px] font-medium tracking-tight",
     icon: "grid h-10 w-10 place-items-center rounded-xl p-0",
   };
   const isDisabled = disabled || loading;
@@ -501,7 +483,7 @@ export function Button({
       type={type}
       disabled={isDisabled}
       className={cx(
-        "relative inline-flex select-none items-center justify-center gap-1.5 transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#191F28]",
+        "relative inline-flex select-none items-center justify-center gap-1.5 transition-colors duration-150 ease-[cubic-bezier(0.2,0,0,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900",
         isDisabled ? "cursor-not-allowed opacity-40 pointer-events-none active:scale-100" : "cursor-pointer",
         fullWidth && "w-full",
         variants[variant] || variants.primary,
@@ -540,22 +522,25 @@ export function IconButton({
   ...props
 }) {
   const variants = {
-    ghost: "text-fg-tertiary hover:bg-surface-subtle hover:text-fg-primary active:bg-border-subtle",
-    weak: "bg-surface-subtle text-fg-secondary hover:bg-border-subtle active:bg-border-default",
-    outline: "border border-border-subtle bg-surface-default text-fg-secondary hover:bg-surface-inset active:bg-surface-subtle",
-    solid: "bg-surface-inverse text-fg-inverse hover:bg-palette-gray-800 active:bg-palette-gray-700",
+    ghost: "text-ink-muted hover:bg-gray-100 hover:text-ink active:bg-gray-200",
+    weak: "bg-gray-100 text-ink-secondary hover:bg-gray-200 active:bg-gray-200",
+    outline: "border border-gray-200 bg-white text-ink-secondary hover:bg-gray-50 active:bg-gray-100",
+    solid: "bg-brand text-white hover:bg-brand-hover active:bg-brand-pressed",
   };
   const sizes = {
     large: "h-11 w-11 rounded-xl",
-    medium: "h-9 w-9 rounded-lg",
-    small: "h-7 w-7 rounded-md",
+    // 보이는 크기는 유지하고 before 가상 요소로 터치 영역만 44px 이상으로 넓힌다.
+    medium: "h-9 w-9 rounded-lg before:absolute before:-inset-1 before:content-['']",
+    small: "h-7 w-7 rounded-md before:absolute before:-inset-2 before:content-['']",
   };
+  const positioned = /(^|\s)(absolute|fixed|sticky)(\s|$)/.test(className);
   return (
     <button
       type={type}
       disabled={disabled}
       className={cx(
         "grid place-items-center select-none transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.94] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus",
+        !positioned && "relative",
         disabled ? "cursor-not-allowed opacity-40 pointer-events-none" : "cursor-pointer",
         variants[variant] || variants.ghost,
         sizes[size] || sizes.medium,
@@ -569,8 +554,7 @@ export function IconButton({
 }
 
 /**
- * SEED Chip Component
- * For filters, categories, and selectable option tags.
+ * C2 필터 칩. 선택된 칩만 잉크색으로 채우고, 나머지는 흰 바탕 + 얇은 회색 선(당근 칩 방식).
  */
 export function Chip({
   children,
@@ -585,10 +569,10 @@ export function Chip({
       type={type}
       disabled={disabled}
       className={cx(
-        "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-semibold tracking-tight transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.96]",
+        "inline-flex min-h-[34px] shrink-0 items-center justify-center gap-1 rounded-full border px-3.5 text-[14px] tracking-tight transition-colors duration-150 ease-[cubic-bezier(0.2,0,0,1)] before:absolute before:-inset-y-1.5 before:inset-x-0 before:content-[''] relative",
         selected
-          ? "bg-surface-inverse text-fg-inverse shadow-sm"
-          : "bg-surface-subtle text-fg-tertiary hover:bg-border-subtle hover:text-fg-primary active:bg-border-default",
+          ? "border-ink bg-ink font-semibold text-white"
+          : "border-gray-200 bg-white font-medium text-ink-secondary hover:bg-gray-50 active:bg-gray-100",
         disabled && "cursor-not-allowed opacity-40 pointer-events-none",
         className,
       )}
@@ -610,7 +594,7 @@ export function SegmentedControl({
   className = "",
 }) {
   return (
-    <div className={cx("flex items-center gap-1 rounded-xl bg-surface-subtle p-1", className)} role="tablist">
+    <div className={cx("flex items-center gap-1 rounded-xl bg-gray-100 p-1", className)} role="tablist">
       {options.map((option) => {
         const isSelected = option.value === value;
         return (
@@ -623,8 +607,8 @@ export function SegmentedControl({
             className={cx(
               "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-[13px] font-semibold tracking-tight transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)]",
               isSelected
-                ? "bg-surface-default text-fg-primary shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
-                : "text-fg-subtle hover:text-fg-tertiary active:scale-[0.98]",
+                ? "bg-white text-ink shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
+                : "text-ink-tertiary hover:text-ink-secondary",
             )}
           >
             {option.icon && <span className="shrink-0">{option.icon}</span>}
@@ -636,40 +620,162 @@ export function SegmentedControl({
   );
 }
 
-export function DDayBadge({ subscription }) {
+// D-day 규칙(C2): 배지 없이 글자로만 쓴다. 3일 이내(오늘 포함)는 빨강, 그 외는 회색.
+// 알림 센터는 이 톤을 그대로 가져다 쓴다(테두리는 투명).
+export const DDAY_BADGE_TONE = {
+  urgent: "border-transparent bg-transparent text-danger",
+  normal: "border-transparent bg-transparent text-ink-tertiary",
+};
+
+export function getDDayLabel(subscription) {
   const days = daysUntilCharge(subscription);
-  if (subscription.isTrial || subscription.status === "trial") {
-    return (
-      <span className="inline-flex items-center text-[11px] font-semibold tracking-tight text-[#EA580C] leading-none">
-        무료 D-{days}
-      </span>
-    );
-  }
-  if (days === 0) {
-    return (
-      <span className="inline-flex items-center rounded-md bg-[#C2410C] px-2 py-0.5 text-[10px] font-bold tracking-tight text-white leading-none shadow-xs">
-        TODAY
-      </span>
-    );
-  }
-  if (days === 1) {
-    return (
-      <span className="inline-flex items-center rounded-md bg-[#FF6F0F] px-2 py-0.5 text-[10px] font-bold tracking-tight text-white leading-none shadow-xs">
-        D-1
-      </span>
-    );
-  }
-  if (days <= 3) {
-    return (
-      <span className="inline-flex items-center rounded-md bg-[#FFF5ED] border border-[#FED2B2] px-2 py-0.5 text-[10px] font-semibold tracking-tight text-[#EA580C] leading-none">
-        D-{days}
-      </span>
-    );
-  }
+  const isTrial = subscription.isTrial || subscription.status === "trial";
+  return {
+    days,
+    urgent: days <= 3,
+    label: (isTrial ? "무료 " : "") + (days === 0 ? "오늘" : "D-" + days),
+  };
+}
+
+export function DDayText({ subscription, className = "" }) {
+  const { urgent, label } = getDDayLabel(subscription);
   return (
-    <span className="inline-flex items-center rounded-md bg-[#F9FAFB] border border-[#E5E8EB] px-2 py-0.5 text-[10px] font-normal tracking-tight text-[#9CA3AF] leading-none">
-      D-{days}
+    <span
+      className={cx(
+        "inline-block shrink-0 whitespace-nowrap text-[13px] leading-[18px] tabular-nums tracking-tight",
+        urgent ? "font-semibold text-danger" : "font-normal text-ink-tertiary",
+        className,
+      )}
+    >
+      {label}
     </span>
+  );
+}
+
+/** 예전 이름. 이제 배지가 아니라 글자로 그린다. */
+export function DDayBadge({ subscription, className = "" }) {
+  return <DDayText subscription={subscription} className={className} />;
+}
+
+/**
+ * C2 섹션 머리말. 18px 굵은 제목 + 오른쪽 회색 텍스트 버튼(선택).
+ */
+export function SectionHeader({ title, actionLabel, onAction, trailing = null, className = "" }) {
+  return (
+    <div className={cx("flex items-center justify-between px-5 pb-1 pt-6", className)}>
+      <h2 className="text-[18px] font-bold leading-[26px] tracking-[-0.025em] text-ink">{title}</h2>
+      {trailing}
+      {actionLabel && onAction && (
+        <button
+          type="button"
+          onClick={onAction}
+          className="relative -mr-1 inline-flex min-h-[44px] items-center gap-0.5 px-1 text-[14px] font-medium text-ink-tertiary hover:text-ink-secondary"
+        >
+          {actionLabel}
+          <ChevronRight size={16} strokeWidth={2} className="text-ink-subtle" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** C2 구획 띠. 큰 묶음 사이를 12px 회색 면으로 나눈다(토스·당근 방식). */
+export function SectionBand({ className = "" }) {
+  // 너비를 고정하지 않아서 시트 안에서 -mx-5 를 주면 좌우 끝까지 닿는다.
+  return <div className={cx("block h-3 bg-gray-100", className)} aria-hidden="true" />;
+}
+
+/**
+ * C2 리스트 행. 왼쪽 로고(40px), 가운데 제목 16 + 보조 13, 오른쪽 금액 16 굵게 + 보조 13.
+ * onClick 이 있으면 버튼으로 그리고 withArrow 로 화살표를 붙일 수 있다.
+ */
+export function ListRow({
+  leading = null,
+  title,
+  titleAccessory = null,
+  subtitle = null,
+  trailingTitle = null,
+  trailingSubtitle = null,
+  withArrow = false,
+  onClick,
+  className = "",
+}) {
+  const Tag = onClick ? "button" : "div";
+  return (
+    <Tag
+      type={onClick ? "button" : undefined}
+      onClick={onClick}
+      className={cx(
+        "flex min-h-[68px] w-full items-center gap-3.5 px-5 py-3 text-left",
+        onClick && "cursor-pointer transition-colors hover:bg-gray-50 active:bg-gray-100",
+        className,
+      )}
+    >
+      {leading}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          {/* 큰 글씨에서도 뜻이 보이도록 제목은 두 줄까지 단어 단위로 줄바꿈한다. */}
+          <span className="line-clamp-2 break-keep text-[16px] font-medium leading-[22px] tracking-tight text-ink">{title}</span>
+          {titleAccessory}
+        </div>
+        {subtitle && (
+          <div className="mt-0.5 truncate text-[13px] leading-[18px] tracking-tight text-ink-tertiary">{subtitle}</div>
+        )}
+      </div>
+      {(trailingTitle || trailingSubtitle) && (
+        <div className="shrink-0 text-right">
+          {trailingTitle && (
+            <div className="text-[16px] font-semibold leading-[22px] tabular-nums tracking-tight text-ink">{trailingTitle}</div>
+          )}
+          {trailingSubtitle && <div className="mt-0.5 text-[13px] leading-[18px] text-ink-tertiary">{trailingSubtitle}</div>}
+        </div>
+      )}
+      {withArrow && <ChevronRight size={18} strokeWidth={1.8} className="shrink-0 text-ink-subtle" aria-hidden="true" />}
+    </Tag>
+  );
+}
+
+/** C2 에이전트 진입점. 헤더 오른쪽의 작은 회색 알약 버튼. */
+export function AgentEntryPill({ onClick, label = "꾸독에게 맡기기" }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative inline-flex h-8 items-center gap-1.5 rounded-full bg-gray-100 px-3 text-[14px] font-semibold tracking-tight text-ink-muted transition-colors hover:bg-gray-200 active:bg-gray-200 before:absolute before:-inset-y-1.5 before:inset-x-0 before:content-['']"
+    >
+      <MessageCircle size={16} strokeWidth={1.8} aria-hidden="true" />
+      {label}
+    </button>
+  );
+}
+
+/** C2 알림 버튼. 읽지 않은 알림이 있으면 작은 빨간 점. */
+export function NotificationBellButton({ onClick, unreadCount = 0 }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative grid h-10 w-10 place-items-center rounded-full text-ink-muted transition-colors hover:bg-gray-100 hover:text-ink before:absolute before:-inset-0.5 before:content-['']"
+      aria-label={unreadCount > 0 ? `알림 센터 열기, 읽지 않은 알림 ${unreadCount}개` : "알림 센터 열기"}
+    >
+      <Bell size={22} strokeWidth={1.8} />
+      {unreadCount > 0 && <span className="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-danger" aria-hidden="true" />}
+    </button>
+  );
+}
+
+/** C2 홈 헤더: 왼쪽 "꾸독", 오른쪽 에이전트 알약 + 알림. 홈 화면 재구성 때 쓴다. */
+export function MainHeader({ onOpenAgent, onOpenNotifications, unreadCount = 0 }) {
+  return (
+    <header className="sticky top-0 z-30 w-full bg-white pt-safe">
+      <div className="flex h-[52px] items-center justify-between pl-5 pr-3">
+        <span className="text-[20px] font-bold tracking-[-0.04em] text-ink">꾸독</span>
+        <div className="flex items-center gap-1">
+          {onOpenAgent && <AgentEntryPill onClick={onOpenAgent} />}
+          {onOpenNotifications && <NotificationBellButton onClick={onOpenNotifications} unreadCount={unreadCount} />}
+        </div>
+      </div>
+    </header>
   );
 }
 
@@ -682,8 +788,8 @@ export function ToggleSwitch({ checked, onChange, label }) {
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cx(
-        "relative inline-flex h-7 w-12 shrink-0 cursor-pointer select-none rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus active:scale-[0.97]",
-        checked ? "bg-surface-inverse" : "bg-border-subtle",
+        "relative inline-flex h-7 w-12 shrink-0 cursor-pointer select-none rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus active:scale-[0.97] before:absolute before:-inset-x-2 before:-inset-y-2.5 before:content-['']",
+        checked ? "bg-brand" : "bg-gray-300",
       )}
     >
       <span
@@ -697,19 +803,19 @@ export function ToggleSwitch({ checked, onChange, label }) {
   );
 }
 
-export function AppHeader({ title, onBack, rightSlot = null }) {
+export function AppHeader({ title, onBack, rightSlot = null, large = false }) {
   return (
-    <header className="sticky top-0 z-30 flex flex-col w-full border-b border-border-subtle bg-surface-default/95 backdrop-blur-md pt-safe">
-      <div className="flex h-14 w-full items-center justify-between px-4 sm:px-5">
+    <header className="sticky top-0 z-30 flex flex-col w-full bg-white pt-safe">
+      <div className="flex h-14 w-full items-center justify-between pl-4 pr-3 sm:pl-5">
         <div className="flex items-center gap-2 min-w-0">
           {onBack && (
             <IconButton onClick={onBack} aria-label="뒤로가기" size="medium">
-              <ArrowLeft size={20} className="text-fg-secondary" />
+              <ArrowLeft size={22} className="text-ink" />
             </IconButton>
           )}
-          <span className="text-[17px] font-bold tracking-tight text-fg-primary truncate">{title}</span>
+          <span className={cx("font-bold tracking-[-0.03em] text-ink truncate", large ? "text-[24px]" : "text-[20px]")}>{title}</span>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           {rightSlot}
         </div>
       </div>
@@ -717,75 +823,42 @@ export function AppHeader({ title, onBack, rightSlot = null }) {
   );
 }
 
+const NAV_ITEMS = [
+  { key: "home", label: "홈", Icon: Home, routes: ["home"] },
+  { key: "subscriptions", label: "구독", Icon: CreditCard, routes: ["subscriptions", "detail"] },
+  { key: "add", label: "추가", Icon: PlusCircle, routes: [] },
+  { key: "calendar", label: "캘린더", Icon: CalendarDays, routes: ["calendar"] },
+  { key: "promotions", label: "혜택", Icon: Gift, routes: ["promotions"] },
+];
+
+// C2 하단 탭: 같은 모양의 선 아이콘 5개. 활성은 잉크색, 비활성은 회색. 추가도 일반 탭처럼 둔다.
 export function BottomNavigation({
   route,
   onNavigate,
   onOpenAdd,
 }) {
   return (
-    <nav className="fixed bottom-0 left-1/2 z-30 flex min-h-[calc(3.75rem+env(safe-area-inset-bottom,0px))] w-full max-w-full sm:max-w-[440px] -translate-x-1/2 items-center justify-around border-t border-gray-100 bg-white px-2 pb-[max(0.4rem,calc(env(safe-area-inset-bottom,0px)+0.2rem))] pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.03)]" aria-label="주요 탐색">
-      <button
-        type="button"
-        onClick={() => onNavigate("home")}
-        className={cx(
-          "flex flex-1 flex-col items-center gap-1 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]",
-          route === "home" ? "font-bold text-black" : "font-medium text-gray-400 hover:text-gray-600"
-        )}
-        aria-current={route === "home" ? "page" : undefined}
-      >
-        <Home size={22} strokeWidth={route === "home" ? 2.5 : 1.75} />
-        <span>홈</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => onNavigate("subscriptions")}
-        className={cx(
-          "flex flex-1 flex-col items-center gap-1 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]",
-          (route === "subscriptions" || route === "detail") ? "font-bold text-black" : "font-medium text-gray-400 hover:text-gray-600"
-        )}
-        aria-current={(route === "subscriptions" || route === "detail") ? "page" : undefined}
-      >
-        <CreditCard size={22} strokeWidth={(route === "subscriptions" || route === "detail") ? 2.5 : 1.75} />
-        <span>구독</span>
-      </button>
-
-      <div className="flex flex-1 items-center justify-center">
-        <button
-          type="button"
-          onClick={onOpenAdd}
-          className="grid h-12 w-12 place-items-center rounded-full bg-[#111827] text-white shadow-[0_4px_16px_rgba(17,24,39,0.3)] transition-all duration-150 active:scale-95 hover:bg-black -mt-4 cursor-pointer"
-          aria-label="새 구독 추가"
-        >
-          <Plus size={24} strokeWidth={2.5} />
-        </button>
-      </div>
-
-      <button
-        type="button"
-        onClick={() => onNavigate("calendar")}
-        className={cx(
-          "flex flex-1 flex-col items-center gap-1 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]",
-          route === "calendar" ? "font-bold text-black" : "font-medium text-gray-400 hover:text-gray-600"
-        )}
-        aria-current={route === "calendar" ? "page" : undefined}
-      >
-        <CalendarDays size={22} strokeWidth={route === "calendar" ? 2.5 : 1.75} />
-        <span>캘린더</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => onNavigate("promotions")}
-        className={cx(
-          "flex flex-1 flex-col items-center gap-1 py-1 text-[11px] tracking-tight transition-all active:scale-[0.95]",
-          route === "promotions" ? "font-bold text-black" : "font-medium text-gray-400 hover:text-gray-600"
-        )}
-        aria-current={route === "promotions" ? "page" : undefined}
-      >
-        <Sparkles size={22} strokeWidth={route === "promotions" ? 2.5 : 1.75} />
-        <span>혜택</span>
-      </button>
+    <nav className="fixed bottom-0 left-1/2 z-30 grid w-full max-w-full sm:max-w-[440px] -translate-x-1/2 grid-cols-5 border-t border-gray-100 bg-white px-1 pb-[max(0.25rem,env(safe-area-inset-bottom,0px))] pt-1" aria-label="주요 탐색">
+      {NAV_ITEMS.map(({ key, label, Icon, routes }) => {
+        const active = routes.includes(route);
+        const isAdd = key === "add";
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={isAdd ? onOpenAdd : () => onNavigate(key)}
+            className={cx(
+              "flex min-h-[52px] flex-col items-center justify-center gap-[3px] text-[11px] tracking-tight transition-colors",
+              active ? "font-semibold text-ink" : "font-medium text-ink-tertiary hover:text-ink-muted",
+            )}
+            aria-current={active ? "page" : undefined}
+            aria-label={isAdd ? "새 구독 추가" : undefined}
+          >
+            <Icon size={24} strokeWidth={active ? 2.1 : 1.7} aria-hidden="true" />
+            <span>{label}</span>
+          </button>
+        );
+      })}
     </nav>
   );
 }
@@ -824,9 +897,9 @@ export function SubscriptionCard({
 }) {
   const isGrouped = variant === "grouped";
   const monogram = subscription.monogram || subscription.name?.slice(0, 1) || "S";
-  const isTrial = Boolean(subscription.isTrial || subscription.status === "trial");
   const isPinned = Boolean(subscription.isPinned || subscription.pinned);
   const displayAmount = getSubscriptionDisplayAmount(subscription);
+  const cycleLabel = subscription.billingCycle === "매년" ? "매년" : "매월";
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -842,48 +915,37 @@ export function SubscriptionCard({
       onClick={onOpen}
       onKeyDown={handleKeyDown}
       className={cx(
-        "flex w-full items-center justify-between text-left transition-colors cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3182F6]",
+        "flex w-full min-h-[68px] items-center justify-between gap-3 text-left transition-colors cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink",
         isGrouped
-          ? "py-5 border-b border-gray-100/80 bg-transparent hover:bg-gray-50/40 active:bg-gray-100/50"
-          : "card-press p-4 rounded-xl border border-gray-100/80 bg-white shadow-xs hover:border-gray-200 active:scale-[0.99]",
+          ? "py-3 bg-transparent hover:bg-gray-50 active:bg-gray-100"
+          : "px-5 py-3 bg-white hover:bg-gray-50 active:bg-gray-100",
         className
       )}
     >
-      <div className="flex items-center gap-4 min-w-0 flex-1">
+      <div className="flex items-center gap-3.5 min-w-0 flex-1">
         <ServiceMark
           serviceId={subscription.serviceId || subscription.id}
           name={subscription.name}
           monogram={monogram}
           image={subscription.image || subscription.attachments?.[0]}
-          category={subscription.category}
-          className="h-12 w-12 rounded-full shrink-0 shadow-xs"
+          className="h-10 w-10"
         />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-[16px] font-semibold text-[#191F28] tracking-tight leading-tight">
-              {subscription.name}
-            </span>
-            <DDayBadge subscription={subscription} />
-          </div>
-          <p className="truncate text-[12px] text-gray-400 font-normal mt-1 leading-tight">
-            {subscription.plan || "기본 플랜"}{subscription.paymentMethod ? ` · ${subscription.paymentMethod}` : ""}
+          <span className="block truncate text-[16px] font-medium leading-[22px] tracking-tight text-ink">
+            {subscription.name}
+          </span>
+          <p className="mt-0.5 truncate text-[13px] leading-[18px] tracking-tight text-ink-tertiary">
+            {subscription.plan || "기본 플랜"} · {cycleLabel}{subscription.paymentMethod ? ` · ${subscription.paymentMethod}` : ""}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0 pl-3">
+      <div className="flex items-center gap-1 shrink-0">
         <div className="text-right">
-          <span
-            className={cx(
-              "text-[16px] font-semibold tracking-tight block leading-tight",
-              isTrial ? "text-[#FF6F0F]" : "text-[#191F28]"
-            )}
-          >
-            {formatWon(displayAmount)}
+          <span className="block text-[16px] font-semibold leading-[22px] tabular-nums tracking-tight text-ink">
+            {formatWonText(displayAmount)}
           </span>
-          <span className="text-[11px] text-gray-400 block mt-0.5 leading-tight font-normal">
-            /{subscription.billingCycle === "매년" ? "년" : "월"}
-          </span>
+          <DDayText subscription={subscription} className="mt-0.5" />
         </div>
 
         {onTogglePin && (
@@ -897,15 +959,15 @@ export function SubscriptionCard({
               e.stopPropagation();
             }}
             className={cx(
-              "p-1.5 rounded-full transition-all cursor-pointer",
+              "relative ml-1 p-1.5 rounded-full transition-colors cursor-pointer before:absolute before:-inset-2 before:content-['']",
               isPinned
-                ? "text-amber-500 hover:text-amber-600 hover:bg-amber-50"
-                : "text-gray-300 hover:text-gray-500 hover:bg-gray-100 opacity-60 group-hover/card:opacity-100"
+                ? "text-ink hover:bg-gray-100"
+                : "text-ink-subtle hover:text-ink-muted hover:bg-gray-100"
             )}
             title={isPinned ? "상단 고정 해제" : "상단에 고정 강조"}
             aria-label={isPinned ? "상단 고정 해제" : "상단에 고정 강조"}
           >
-            <Pin size={17} className={isPinned ? "fill-amber-500 text-amber-500" : ""} />
+            <Pin size={16} className={isPinned ? "fill-ink text-ink" : ""} />
           </button>
         )}
       </div>
@@ -1028,7 +1090,7 @@ export function Toast({ toast, onClose, duration = 2500 }) {
         <button
           type="button"
           onClick={handleClose}
-          className="rounded-lg p-1 text-[#A1A1AA] hover:text-white transition-colors"
+          className="rounded-lg p-1 text-ink-subtle hover:text-white transition-colors"
           aria-label="알림 닫기"
         >
           <X size={16} />
@@ -1038,7 +1100,7 @@ export function Toast({ toast, onClose, duration = 2500 }) {
       <div className="h-[2px] w-full bg-white/10">
         <div
           key={toastKey}
-          className="h-full bg-blue-400/80 origin-left"
+          className="h-full bg-brand/80 origin-left"
           style={{
             animation: `toast-shrink ${initialDuration}ms linear forwards`,
             animationPlayState: isPaused ? "paused" : "running",
@@ -1142,14 +1204,14 @@ export function BottomSheet({ children, onClose, label }) {
         ref={dialogRef}
         tabIndex={-1}
         onKeyDown={handleKeyDown}
-        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-full sm:max-w-[440px] max-h-[90vh] max-h-[90dvh] flex flex-col rounded-t-[24px] border-t border-[#F2F4F6] bg-white px-4 sm:px-5 pb-[max(1.75rem,calc(env(safe-area-inset-bottom,0px)+1rem))] pt-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)] outline-none"
+        className="sheet-slide-up fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-full sm:max-w-[440px] max-h-[90vh] max-h-[90dvh] flex flex-col rounded-t-[20px] bg-white pb-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1rem))] pt-2.5 outline-none"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label={label}
       >
-        <div className="mx-auto mb-3 h-1 w-9 shrink-0 rounded-full bg-[#D1D6DB]" />
-        <div className="overflow-y-auto no-scrollbar flex-1 overscroll-contain pb-2 pr-0.5">
+        <div className="mx-auto mb-3 h-1 w-10 shrink-0 rounded-full bg-gray-200" aria-hidden="true" />
+        <div className="overflow-y-auto overflow-x-hidden no-scrollbar flex-1 overscroll-contain px-5 pb-2">
           {children}
         </div>
       </div>
@@ -1179,19 +1241,19 @@ export function AttachmentInput({
         disabled={disabled || files.length >= maxFiles}
         onClick={() => fileInputRef.current?.click()}
         className={cx(
-          "relative flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl border border-[#E5E8EB] bg-[#F7F8F9] transition-all",
+          "relative flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-gray-200 bg-white transition-colors",
           files.length >= maxFiles || disabled
             ? "cursor-not-allowed opacity-40"
-            : "cursor-pointer hover:border-[#191F28] hover:bg-[#F2F4F6] active:scale-[0.96]"
+            : "cursor-pointer hover:bg-gray-50 active:bg-gray-100"
         )}
         aria-label={`사진 첨부하기 (${files.length}/${maxFiles})`}
       >
-        <Camera size={24} className="text-[#868B94]" />
+        <Camera size={24} className="text-ink-tertiary" />
         <div className="text-[12px] leading-tight select-none">
-          <strong className={cx("font-bold", files.length > 0 ? "text-[#212124]" : "text-[#868B94]")}>
+          <strong className={cx("font-semibold", files.length > 0 ? "text-ink" : "text-ink-tertiary")}>
             {files.length}
           </strong>
-          <span className="text-[#868B94]">/{maxFiles}</span>
+          <span className="text-ink-tertiary">/{maxFiles}</span>
         </div>
         <input
           ref={fileInputRef}
@@ -1206,7 +1268,7 @@ export function AttachmentInput({
       {files.map((fileUrl, index) => (
         <div
           key={index}
-          className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-[#E5E8EB] bg-[#F2F4F6]"
+          className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-gray-100"
         >
           <img src={fileUrl} alt={`첨부 사진 ${index + 1}`} className="h-full w-full object-cover" />
           {index === 0 && (
@@ -1220,7 +1282,7 @@ export function AttachmentInput({
               e.stopPropagation();
               onRemove?.(index);
             }}
-            className="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-[#E5E8EB] bg-white text-[#212124] shadow-xs transition-transform hover:bg-[#F2F4F6] active:scale-90"
+            className="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-gray-200 bg-white text-ink transition-colors hover:bg-gray-100 before:absolute before:-inset-3 before:content-['']"
             aria-label={`첨부 사진 ${index + 1} 삭제`}
           >
             <X size={11} />
@@ -1232,8 +1294,7 @@ export function AttachmentInput({
 }
 
 /**
- * SEED Action Chip Component
- * For category selection, filter chips, and interactive tags.
+ * 선택형 칩. Chip 과 같은 C2 모양(선택 = 잉크 채움, 기본 = 흰 바탕 + 회색 선).
  */
 export function ActionChip({
   children,
@@ -1254,11 +1315,11 @@ export function ActionChip({
       disabled={disabled}
       onClick={onClick}
       className={cx(
-        "inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-all active:scale-[0.96] select-none shrink-0 cursor-pointer",
+        "inline-flex items-center justify-center gap-1.5 rounded-full border transition-colors select-none shrink-0 cursor-pointer",
         sizes[size] || sizes.medium,
         selected
-          ? "bg-[#212124] text-white shadow-xs"
-          : "border border-[#E5E8EB] bg-[#F7F8F9] text-[#4E5968] hover:border-[#D1D6DB] hover:bg-white",
+          ? "border-ink bg-ink font-semibold text-white"
+          : "border-gray-200 bg-white font-medium text-ink-secondary hover:bg-gray-50",
         disabled && "opacity-40 cursor-not-allowed pointer-events-none",
         className
       )}

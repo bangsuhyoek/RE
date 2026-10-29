@@ -112,7 +112,7 @@
         android:layout_height="3dp"
         android:max="100"
         android:progress="0"
-        android:progressTint="#3182F6"
+        android:progressTint="#4B6E48"
         android:visibility="gone" />
 
     <View
@@ -140,7 +140,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="로그인해 주세요. 로그인이 끝나면 꾸독이 이어서 진행해요."
-            android:textColor="#1B64DA"
+            android:textColor="#3E5C3B"
             android:background="@android:color/transparent"
             android:textSize="13sp" />
 
@@ -157,7 +157,7 @@
             android:paddingEnd="10dp"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
-            android:background="#1B64DA"
+            android:background="#3E5C3B"
             android:visibility="gone"
             android:clickable="true"
             android:focusable="true" />
@@ -206,7 +206,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="꾸독이 진행하는 중"
-                    android:textColor="#3182F6"
+                    android:textColor="#4B6E48"
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
@@ -247,7 +247,7 @@
                 android:layout_height="3dp"
                 android:layout_marginTop="24dp"
                 android:indeterminate="true"
-                android:indeterminateTint="#3182F6" />
+                android:indeterminateTint="#4B6E48" />
 
             <TextView
                 android:id="@+id/tvAgentTargetButton"
@@ -340,7 +340,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1/4단계"
-                android:textColor="#3182F6"
+                android:textColor="#4B6E48"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:paddingStart="6dp"

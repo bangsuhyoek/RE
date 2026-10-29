@@ -12,7 +12,7 @@
   "plugins": {
     "LocalNotifications": {
       "smallIcon": "ic_stat_icon_config_sample",
-      "iconColor": "#3182F6"
+      "iconColor": "#191F28"
     },
     "SystemBars": {
       "insetsHandling": "disable"
