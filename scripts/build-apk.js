@@ -45,11 +45,13 @@ const env = {
 const gradlewCmd = process.platform === "win32" ? "gradlew.bat" : "./gradlew";
 execSync(`${gradlewCmd} assembleDebug`, { cwd: androidDir, env, stdio: "inherit" });
 
-console.log("📦 [4/4] APK 파일 프로젝트 루트로 복사 중...");
+console.log("📦 [4/4] APK 파일 outputs/apk/ 로 복사 중...");
 const srcApk = path.join(androidDir, "app", "build", "outputs", "apk", "debug", "app-debug.apk");
-const destApk = path.join(rootDir, "SubMate-debug.apk");
+const apkOutDir = path.join(rootDir, "outputs", "apk");
+const destApk = path.join(apkOutDir, "SubMate-debug.apk");
 
 if (fs.existsSync(srcApk)) {
+  fs.mkdirSync(apkOutDir, { recursive: true });
   fs.copyFileSync(srcApk, destApk);
 
   // Sign with v1, v2, v3 schemes for maximum Android device compatibility

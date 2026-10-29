@@ -21,7 +21,8 @@
     "crawl:promotions": "node scripts/crawler/runPromotionPipeline.js",
     "crawl:refunds": "node scripts/crawler/refundPolicyCheck.js",
     "crawl:schedule": "node scripts/crawler/scheduler.js",
-    "version:android": "node scripts/sync-android-version.mjs"
+    "version:android": "node scripts/sync-android-version.mjs",
+    "check:migrations": "node scripts/check-migrations.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",

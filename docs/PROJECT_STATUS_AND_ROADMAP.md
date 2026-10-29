@@ -109,9 +109,11 @@
 ## 6. 앞으로 진행되어야 할 핵심 작업 (우선순위별)
 
 1. **배포 선행 순서 및 Vercel 환경변수 / Supabase 마이그레이션 적용 (필수)**
-   - **순서 엄수**: 신규 웹/앱 빌드를 배포하기 **전에** 반드시 아래 두 가지 Supabase 마이그레이션을 원격 데이터베이스에 순차 적용해야 합니다.
+   - **순서 엄수**: 신규 웹/앱 빌드를 배포하기 **전에** 반드시 아래 세 가지 Supabase 마이그레이션을 원격 데이터베이스에 순차 적용해야 합니다.
      1. `supabase/migrations/20261021090000_quota_rpc_service_role_only.sql` (할당량 RPC service_role 제한)
      2. `supabase/migrations/20261021120000_subscription_memo_alert_fields.sql` (구독 메모 및 알림 설정 컬럼 추가)
+     3. `supabase/migrations/20261023100000_atomic_account_deletion_and_security_hardening.sql` (원자적 계정 삭제 함수 및 보안 강화)
+   - **배포 직전 점검**: 원격 DB의 `SUPABASE_URL`(또는 `VITE_SUPABASE_URL`)과 `SUPABASE_SERVICE_ROLE_KEY`를 환경변수로 넣고 `pnpm check:migrations`를 실행합니다. 읽기 전용 점검(컬럼 조회와 API 스키마 조회만 수행, RPC 미호출)으로 위 세 마이그레이션의 컬럼·함수가 있는지 확인하며, 하나라도 없으면 누락 항목을 나열하고 실패(종료 코드 1)합니다. 통과한 뒤에만 프론트엔드/API를 배포합니다. (anon 키도 함께 넣으면 내부 RPC가 anon에 노출되지 않는지도 확인합니다.)
    - **Vercel 환경변수 사전 등록**: 마이그레이션 적용 및 신규 배포 전 Vercel 프로젝트 환경변수에 `SUPABASE_SERVICE_ROLE_KEY`가 반드시 설정되어 있어야 합니다. 키가 없으면 모든 AI 엔드포인트가 fail-closed로 동작하여 503 에러를 반환하며, 마이그레이션이 누락되면 신규 구독 저장 시 컬럼 부재(unknown columns)로 저장이 실패합니다.
 2. **main 브랜치 병합 및 Vercel 프로덕션 배포**
    - 원격 DB 마이그레이션 및 Vercel 환경변수 설정이 완료된 후 main 브랜치 병합 및 프로덕션 배포를 진행합니다.
