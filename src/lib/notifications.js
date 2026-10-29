@@ -12,6 +12,82 @@ export const NOTIFICATION_STORAGE_KEY = "submate-mvp:notifications";
 export const NOTIFICATION_SETTINGS_KEY = "submate-mvp:notification-settings";
 export const DEFAULT_NOTIFICATION_DURATION = 2500; // 사용자 피드백 반영: 2~3초 내 빠른 자동 사라짐 (2.5초)
 export const CANCEL_REMINDER_TYPE = "cancel_reminder";
+export const AGENT_INSIGHT_NOTIFICATION_TYPE = "agent_insight";
+export const MONTHLY_REPORT_TYPE = "monthly_report";
+export const MONTHLY_REPORT_NOTIFICATION_ID = 300000000;
+
+const CARE_CANCEL_TYPES = new Set(["trial_d2", "rotation_cancel"]);
+const CARE_HOME_TYPES = new Set(["cancel_check", "settlement_due", "rotation_resume"]);
+const BILLING_NOTIFICATION_PATTERN = /^(?:billing|trial)_d[1-9]\d*$/;
+
+/**
+ * 로컬 알림의 extra를 화면 이동 동작으로 바꾼다. 알 수 없는 형식은 null을 돌려 아무 동작도 하지 않는다.
+ * 알림 종류가 늘어나도 App의 리스너를 고치지 않도록 순수 함수로 유지한다.
+ */
+export function resolveNotificationRoute(extra = {}) {
+  const type = String(extra?.type || "");
+  const subscriptionId = extra?.subscriptionId || null;
+
+  if (type === AGENT_INSIGHT_NOTIFICATION_TYPE) {
+    return { kind: "agent", insight: extra?.insight || null };
+  }
+  if (type === MONTHLY_REPORT_TYPE) {
+    return { kind: "home" };
+  }
+  if (type === CANCEL_REMINDER_TYPE && subscriptionId) {
+    return { kind: "cancel_reminder", subscriptionId };
+  }
+  if (CARE_CANCEL_TYPES.has(type)) {
+    return { kind: "care_cancel", subscriptionId, extra };
+  }
+  if (CARE_HOME_TYPES.has(type)) {
+    return { kind: "care_home", subscriptionId, extra };
+  }
+  if (subscriptionId && (type === "usage_check" || type === "usage_cancel_suggest")) {
+    return { kind: "usage", subscriptionId, extra };
+  }
+  if (subscriptionId && (type === "billing_today" || BILLING_NOTIFICATION_PATTERN.test(type))) {
+    return { kind: "renewal", subscriptionId };
+  }
+  return null;
+}
+
+/** 매달 1일 09시 요약 시각. 1일 09시 전이면 아직 오지 않은 오늘 09시 알림을 유지한다. */
+export function getMonthlyReportScheduleAt(now = new Date()) {
+  const todayAtNine = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0, 0);
+  if (now.getDate() === 1 && now < todayAtNine) return todayAtNine;
+  return new Date(now.getFullYear(), now.getMonth() + 1, 1, 9, 0, 0, 0);
+}
+
+/** 요약 예정일의 바로 전 달에 이미 구독 중이던 유료 서비스의 월 환산 예상 결제액. */
+export function getPreviousMonthPaidTotal(subscriptions = [], now = new Date()) {
+  const scheduledFor = getMonthlyReportScheduleAt(now);
+  const reportMonthEnd = new Date(scheduledFor.getFullYear(), scheduledFor.getMonth(), 1);
+  return (Array.isArray(subscriptions) ? subscriptions : []).reduce((total, subscription) => {
+    if (!subscription || subscription.status === "cancelled") return total;
+    if (subscription.isTrial || subscription.status === "trial") return total;
+    const createdAt = subscription.createdAt ? new Date(subscription.createdAt) : null;
+    if (createdAt && !Number.isNaN(createdAt.getTime()) && createdAt >= reportMonthEnd) {
+      return total;
+    }
+    return total + toMonthlyAmount(subscription);
+  }, 0);
+}
+
+/** 매달 1일 09시에 지난달 예상 결제액과 누적 절약액을 알리는 고정 ID 알림. */
+export function buildMonthlyReportNotification(subscriptions = [], savedAmount = 0, now = new Date()) {
+  const paidTotal = getPreviousMonthPaidTotal(subscriptions, now);
+  const safeSavedAmount = Number.isFinite(Number(savedAmount)) ? Math.max(0, Number(savedAmount)) : 0;
+  const scheduledFor = getMonthlyReportScheduleAt(now);
+  return {
+    id: MONTHLY_REPORT_NOTIFICATION_ID,
+    title: "꾸독 월간 요약",
+    body: `지난달 예상 결제액은 ${formatWon(paidTotal)}, 지금까지 아낀 금액은 ${formatWon(safeSavedAmount)}이에요.`,
+    channelId: "submate-billing-channel",
+    ...scheduledAt(scheduledFor),
+    extra: { type: MONTHLY_REPORT_TYPE },
+  };
+}
 export const USAGE_CHECK_ACTION_TYPE_ID = "usage_check";
 
 /**
@@ -537,6 +613,7 @@ export function takeDueCancelReminders(now = new Date()) {
 export async function scheduleSubscriptionNotifications(subscriptions = [], now = new Date(), options = {}) {
   if (!Capacitor.isNativePlatform()) return false;
   try {
+    const savedAmount = options.savedAmount ?? readStoredValue(storageKeys.savedAmount, 0);
     const answers = options.usageAnswers || readStoredValue(storageKeys.usageAnswers, {});
     const catalog = options.catalog || getCachedCatalog()?.serviceCatalog || [];
     const perm = await LocalNotifications.checkPermissions();
@@ -701,6 +778,9 @@ export async function scheduleSubscriptionNotifications(subscriptions = [], now 
       });
     }
 
+    // 매달 1일 아침 요약도 같은 재예약 주기에 포함해 고정 ID로 한 번만 남긴다.
+    scheduledList.push(buildMonthlyReportNotification(subscriptions, savedAmount, now));
+
     // 시각이 지났지만 아직 오지 않은 알림은 5초 뒤로 다시 건다(같은 id가 새로 잡혀 있으면 그쪽을 쓴다).
     const rearmAt = new Date(now.getTime() + 5000);
     for (const notification of overdue) {
@@ -730,7 +810,6 @@ export async function scheduleSubscriptionNotifications(subscriptions = [], now 
 // ============================================================================
 // Agent Proactive Insight Notification Support
 // ============================================================================
-export const AGENT_INSIGHT_NOTIFICATION_TYPE = "agent_insight";
 export const AGENT_INSIGHT_LAST_NOTIFIED_KEY = "submate-mvp:agent-insights:last-notified-date";
 
 /**

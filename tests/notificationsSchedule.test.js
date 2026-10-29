@@ -47,6 +47,11 @@ const {
   saveStoredNotifications,
   generateSubscriptionAlerts,
   NOTIFICATION_STORAGE_KEY,
+  MONTHLY_REPORT_NOTIFICATION_ID,
+  MONTHLY_REPORT_TYPE,
+  buildMonthlyReportNotification,
+  getPreviousMonthPaidTotal,
+  resolveNotificationRoute,
   registerNotificationActionTypes,
   USAGE_CHECK_ACTION_TYPE_ID,
   buildD3NotificationContent,
@@ -245,6 +250,127 @@ test("알림 센터 ID에 결제 주기 식별자가 포함되어 다음 달 알
   // 10월 알림이 알림 센터 목록에 남아 있어도 11월 알림 ID가 달라 중복 필터링되지 않음
   const existingIds = new Set(octAlerts.map((n) => n.id));
   assert.ok(!existingIds.has(novAlerts[0].id));
+});
+
+test("알림 탭 경로: 에이전트·월간·결제·오늘 결제·관리 알림을 올바른 화면으로 보낸다", () => {
+  const insight = { id: "insight-1", title: "확인할 결제" };
+  assert.deepEqual(
+    resolveNotificationRoute({ type: "agent_insight", insight }),
+    { kind: "agent", insight }
+  );
+  assert.deepEqual(resolveNotificationRoute({ type: MONTHLY_REPORT_TYPE }), { kind: "home" });
+  assert.deepEqual(
+    resolveNotificationRoute({ type: "billing_d3", subscriptionId: "sub-1" }),
+    { kind: "renewal", subscriptionId: "sub-1" }
+  );
+  assert.deepEqual(
+    resolveNotificationRoute({ type: "trial_d5", subscriptionId: "sub-2" }),
+    { kind: "renewal", subscriptionId: "sub-2" }
+  );
+  assert.deepEqual(
+    resolveNotificationRoute({ type: "billing_today", subscriptionId: "sub-3" }),
+    { kind: "renewal", subscriptionId: "sub-3" }
+  );
+  assert.deepEqual(
+    resolveNotificationRoute({ type: "trial_d2", subscriptionId: "sub-4" }),
+    { kind: "care_cancel", subscriptionId: "sub-4", extra: { type: "trial_d2", subscriptionId: "sub-4" } }
+  );
+  const usageExtra = { type: "usage_check", subscriptionId: "sub-6", cycleKey: "2026-10-25" };
+  assert.deepEqual(
+    resolveNotificationRoute(usageExtra),
+    { kind: "usage", subscriptionId: "sub-6", extra: usageExtra }
+  );
+  assert.equal(resolveNotificationRoute({ type: "billing_d3" }), null);
+  assert.equal(resolveNotificationRoute({ type: "unknown_type", subscriptionId: "sub-5" }), null);
+});
+
+test("월간 요약: 지난달 유료 구독의 월 환산 합계와 누적 절약액을 계산한다", () => {
+  const now = new Date(2026, 9, 15, 12, 0, 0);
+  const subscriptions = [
+    { subscriptionId: "monthly", amount: 17000, billingCycle: "매월", createdAt: "2026-08-01T00:00:00.000Z" },
+    { subscriptionId: "annual", amount: 120000, billingCycle: "매년", createdAt: "2025-12-01T00:00:00.000Z" },
+    { subscriptionId: "new-this-month", amount: 9000, createdAt: "2026-10-03T00:00:00.000Z" },
+    { subscriptionId: "trial", amount: 5000, status: "trial" },
+    { subscriptionId: "cancelled", amount: 8000, status: "cancelled" },
+  ];
+
+  assert.equal(getPreviousMonthPaidTotal(subscriptions, now), 36000);
+  const report = buildMonthlyReportNotification(subscriptions, 15000, now);
+  assert.equal(report.id, MONTHLY_REPORT_NOTIFICATION_ID);
+  assert.equal(report.extra.type, MONTHLY_REPORT_TYPE);
+  assert.match(report.body, /지난달 예상 결제액은 36,000원/);
+  assert.match(report.body, /지금까지 아낀 금액은 15,000원/);
+});
+
+test("월간 요약은 10/31과 11/1 08시 모두 11/1 09시 예약으로 10월 예상치를 계산한다", async () => {
+  const subscriptions = [
+    { subscriptionId: "sep", amount: 11000, createdAt: new Date(2026, 8, 15).toISOString() },
+    { subscriptionId: "oct", amount: 9000, createdAt: new Date(2026, 9, 3).toISOString() },
+    { subscriptionId: "nov", amount: 7000, createdAt: new Date(2026, 10, 1, 0, 0).toISOString() },
+    { subscriptionId: "trial", amount: 5000, status: "trial" },
+  ];
+
+  for (const now of [new Date(2026, 9, 31, 23, 30), new Date(2026, 10, 1, 8, 0)]) {
+    const report = buildMonthlyReportNotification(subscriptions, 12000, now);
+    const at = new Date(report.schedule.at);
+    assert.equal(at.getFullYear(), 2026);
+    assert.equal(at.getMonth(), 10);
+    assert.equal(at.getDate(), 1);
+    assert.equal(at.getHours(), 9);
+    assert.match(report.body, /지난달 예상 결제액은 20,000원/);
+  }
+
+  lastScheduled = [];
+  const sub = {
+    subscriptionId: "monthly-oct",
+    name: "10월 구독",
+    amount: 11000,
+    dueDay: 20,
+    alertD3: true,
+    alertD1: true,
+    createdAt: new Date(2026, 8, 1).toISOString(),
+  };
+  await scheduleSubscriptionNotifications([sub], new Date(2026, 10, 1, 8, 0), { savedAmount: 12000 });
+  const monthly = lastScheduled.find((item) => item.extra?.type === MONTHLY_REPORT_TYPE);
+  const scheduledAt = new Date(monthly.schedule.at);
+  assert.equal(scheduledAt.getFullYear(), 2026);
+  assert.equal(scheduledAt.getMonth(), 10);
+  assert.equal(scheduledAt.getDate(), 1);
+  assert.equal(scheduledAt.getHours(), 9);
+});
+
+test("월간 요약 알림은 다음 달 1일 09시에 고정 ID로 한 번만 예약된다", async () => {
+  lastScheduled = [];
+  const sub = {
+    subscriptionId: "sub-monthly",
+    name: "월간 구독",
+    amount: 17000,
+    dueDay: 25,
+    alertD1: true,
+    alertD3: true,
+    status: "active",
+  };
+
+  const now = new Date(2026, 9, 15, 12, 0, 0);
+  await scheduleSubscriptionNotifications([sub], now, { savedAmount: 23000 });
+  const firstRun = lastScheduled.filter((item) => item.extra?.type === MONTHLY_REPORT_TYPE);
+  assert.equal(firstRun.length, 1);
+  assert.equal(firstRun[0].id, MONTHLY_REPORT_NOTIFICATION_ID);
+
+  const at = new Date(firstRun[0].schedule.at);
+  assert.equal(at.getFullYear(), 2026);
+  assert.equal(at.getMonth(), 10);
+  assert.equal(at.getDate(), 1);
+  assert.equal(at.getHours(), 9);
+  assert.equal(at.getMinutes(), 0);
+  assert.match(firstRun[0].body, /17,000원/);
+  assert.match(firstRun[0].body, /23,000원/);
+
+  await scheduleSubscriptionNotifications([sub], now, { savedAmount: 23000 });
+  const secondRun = lastScheduled.filter((item) => item.extra?.type === MONTHLY_REPORT_TYPE);
+  assert.equal(secondRun.length, 1);
+  assert.equal(secondRun[0].id, firstRun[0].id);
+  assert.equal(new Date(secondRun[0].schedule.at).getTime(), at.getTime());
 });
 
 test("1. 답변이 없을 때 cycle 1 D-3 알림은 질문 형태와 actionTypeId를 갖는다", async () => {

@@ -2,7 +2,6 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
-import { LocalNotifications } from "@capacitor/local-notifications";
 import { Bell, LoaderCircle } from "lucide-react";
 import { AuthLogin } from "./components/AuthScreens";
 import { SplashScreen, LandingScreen } from "./components/LandingScreen";
@@ -23,9 +22,12 @@ import {
   writeCancelHistory,
 } from "./lib/storage";
 import { persistEvidenceCase } from "./lib/evidenceStore";
-import { generateSubscriptionAlerts, registerNotificationActionTypes } from "./lib/notifications";
-import { CANCEL_REMINDER_TYPE, scheduleSubscriptionNotifications } from "./lib/notifications";
-import { consumePendingShare, listenForShares, sharedImageToFile, sharedTextToDetected } from "./lib/shareIntake";
+import {
+  generateSubscriptionAlerts,
+  registerNotificationActionTypes,
+  scheduleSubscriptionNotifications,
+} from "./lib/notifications";
+import { sharedImageToFile, sharedTextToDetected } from "./lib/shareIntake";
 import { assessDetectedPayment, buildRenewalResponse, createEvidenceCase, findCancelRecordForPayment } from "./lib/subscriptionAgent";
 import { markRecordCharged, recordKey } from "./lib/cancelVerification";
 import { shareText } from "./lib/shareText";
@@ -36,10 +38,10 @@ import { CareSection } from "./components/CareSection";
 import { useNavigation } from "./hooks/useNavigation";
 import { useSubscriptions, createSubscription } from "./hooks/useSubscriptions";
 import { useNotificationManager } from "./hooks/useNotificationManager";
+import { useAppRouting } from "./hooks/useAppRouting";
 import { supabase, isSupabaseConfigured, signInWithGoogle, signOut, upsertDbSubscription } from "./lib/supabase";
 import { getInitialPromotions, loadLivePromotions } from "./lib/promotionsSync";
 import { buildDiscoveredSubscriptions } from "./lib/subscriptionDiscovery";
-import { parseDeepLink, verifyAndConsumeNonce } from "./lib/deepLinks";
 import { clearConsentOnSignOut } from "./lib/consentStore";
 import { clearCancelBrowserSession } from "./lib/cancelBrowser";
 
@@ -78,12 +80,6 @@ function SheetFallback() {
   );
 }
 
-// 결제 사전 알림 중 갱신 승인 카드로 이어지는 종류
-const RENEWAL_NOTIFICATION_TYPES = new Set(["billing_d3", "billing_d1", "trial_d1"]);
-// 오늘 챙길 일 알림: 해지 화면으로 바로 가는 종류와 홈으로 가는 종류
-const CARE_CANCEL_TYPES = new Set(["trial_d2", "rotation_cancel"]);
-const CARE_HOME_TYPES = new Set(["cancel_check", "settlement_due", "rotation_resume"]);
-
 export default function App() {
   const [addOpen, setAddOpen] = useState(false);
   const [addInitialMode, setAddInitialMode] = useState("manual");
@@ -107,8 +103,10 @@ export default function App() {
   const renewalNotificationHandlerRef = useRef(null);
   const cancelReminderHandlerRef = useRef(null);
   const careNotificationHandlerRef = useRef(null);
+  const agentNotificationHandlerRef = useRef(null);
   const usageNotificationHandlerRef = useRef(null);
   const shareHandlerRef = useRef(null);
+  const closeNotificationCenterRef = useRef(null);
   const [rotationOpen, setRotationOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(() => {
     if (typeof window !== "undefined") {
@@ -174,100 +172,17 @@ export default function App() {
   } = useNavigation();
 
 
-  // Deep link listener (PKCE OAuth 및 실시간 결제 감지 알림 탭 시 수신)
-  useEffect(() => {
-    const handleUrl = async (event) => {
-      const rawUrl = event?.url;
-      if (!rawUrl) return;
-      try {
-        const parsedLink = parseDeepLink(rawUrl);
-
-        // 1. Native OAuth Callback: submate://auth/callback?code=xxx 인 경우만 처리
-        if (parsedLink.type === "auth_callback") {
-          Browser.close().catch(() => {});
-          if (parsedLink.code && supabase) {
-            await supabase.auth.exchangeCodeForSession(parsedLink.code).catch(console.error);
-          }
-          return;
-        }
-
-        // 2. Quick-Add Deep Link: submate://quick-add?nonce=...
-        if (parsedLink.type === "quick_add") {
-          const { nonce, quickAdd } = parsedLink;
-          if (!nonce) {
-            console.warn("Ignored quick-add deep link without nonce:", rawUrl);
-            return;
-          }
-          const isValid = await verifyAndConsumeNonce(nonce);
-          if (!isValid) {
-            console.warn("Ignored quick-add deep link with invalid or expired nonce:", rawUrl);
-            return;
-          }
-          detectedPaymentHandlerRef.current?.(quickAdd);
-          return;
-        }
-
-        // 그 외 외부 링크는 거부 및 무시
-      } catch (err) {
-        console.warn("Failed to parse deep link URL:", rawUrl, err);
-      }
-    };
-
-
-    let sub;
-    if (CapApp && typeof CapApp.addListener === "function") {
-      sub = CapApp.addListener("appUrlOpen", handleUrl);
-      if (typeof CapApp.getLaunchUrl === "function") {
-        CapApp.getLaunchUrl().then((launch) => {
-          if (launch?.url) handleUrl(launch);
-        });
-      }
-    }
-
-    return () => {
-      if (sub && typeof sub.then === "function") {
-        sub.then((handle) => handle?.remove?.());
-      }
-    };
-  }, []);
-
-  // 결제 사전 알림(D-3, D-1)을 누르면 그 구독의 갱신 승인 카드를 연다. 앱이 꺼져 있을 때 누른 알림도 시작 직후 전달된다.
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return undefined;
-    const handlePromise = LocalNotifications.addListener("localNotificationActionPerformed", (event) => {
-      const extra = event?.notification?.extra || {};
-      if (extra.subscriptionId && extra.type === CANCEL_REMINDER_TYPE) {
-        cancelReminderHandlerRef.current?.(extra.subscriptionId);
-        return;
-      }
-      if (CARE_CANCEL_TYPES.has(extra.type) || CARE_HOME_TYPES.has(extra.type)) {
-        careNotificationHandlerRef.current?.(extra);
-        return;
-      }
-      if (extra.subscriptionId && (extra.type === "usage_check" || extra.type === "usage_cancel_suggest")) {
-        usageNotificationHandlerRef.current?.(extra, event?.actionId || "tap");
-        return;
-      }
-      if (!extra.subscriptionId || !RENEWAL_NOTIFICATION_TYPES.has(extra.type)) return;
-      renewalNotificationHandlerRef.current?.(extra.subscriptionId);
-    });
-    return () => {
-      handlePromise.then((handle) => handle?.remove?.()).catch(() => {});
-    };
-  }, []);
-
-  // 다른 앱에서 '공유'로 보낸 결제 문자·영수증 캡처를 받는다. 앱이 꺼져 있었으면 시작 직후, 켜져 있으면 바로 전달된다.
-  useEffect(() => {
-    let active = true;
-    consumePendingShare().then((shared) => {
-      if (active && shared) shareHandlerRef.current?.(shared);
-    });
-    const stop = listenForShares((shared) => shareHandlerRef.current?.(shared));
-    return () => {
-      active = false;
-      stop();
-    };
-  }, []);
+  useAppRouting({
+    detectedPaymentHandlerRef,
+    renewalNotificationHandlerRef,
+    cancelReminderHandlerRef,
+    careNotificationHandlerRef,
+    agentNotificationHandlerRef,
+    usageNotificationHandlerRef,
+    shareHandlerRef,
+    closeNotificationCenterRef,
+    navigate,
+  });
 
 
   const handleOpenTerms = (tab = "terms") => {
@@ -377,6 +292,7 @@ export default function App() {
     markAllRead,
     clearAll,
   } = useNotificationManager({ subscriptions });
+  closeNotificationCenterRef.current = () => setNotificationCenterOpen(false);
 
   // 오늘 챙길 일: 해지 확인 루프의 결과(확정·질문)를 알림 센터에 넣는다.
   const handleCareEvents = useCallback((events) => {
@@ -407,6 +323,12 @@ export default function App() {
     setAgentInitialInsight(insight);
     setAgentOpen(true);
   }, []);
+
+  agentNotificationHandlerRef.current = (insight) => {
+    setNotificationCenterOpen(false);
+    setAgentInitialInsight(insight || null);
+    setAgentOpen(true);
+  };
 
   const handleAddSubscriptionFromAgent = useCallback((payload) => {
     const dueDay = payload.billingDay || (payload.nextChargeDate ? Number(String(payload.nextChargeDate).split("-")[2]) : 1);
@@ -485,10 +407,10 @@ export default function App() {
   };
 
   // 오늘 챙길 일 알림을 누르면: 무료체험 D-2·순환 해지일은 해지 화면, 나머지는 홈의 '오늘 챙길 일'로 간다.
-  careNotificationHandlerRef.current = (extra) => {
+  careNotificationHandlerRef.current = (route) => {
     setNotificationCenterOpen(false);
-    if (CARE_CANCEL_TYPES.has(extra.type) && getSubscriptionById(extra.subscriptionId)) {
-      startCancellation(extra.subscriptionId);
+    if (route.kind === "care_cancel" && getSubscriptionById(route.subscriptionId)) {
+      startCancellation(route.subscriptionId);
       return;
     }
     navigate("home");
@@ -595,7 +517,7 @@ export default function App() {
     care.saveRotation(plan);
     care.ack("rotation_suggest");
     setRotationOpen(false);
-    scheduleSubscriptionNotifications(subscriptions).catch(() => {});
+    scheduleSubscriptionNotifications(subscriptions, new Date(), { savedAmount }).catch(() => {});
     notify("구독 순환 계획을 저장했어요. 해지·가입할 날마다 알려드릴게요.");
   };
 
@@ -1220,7 +1142,7 @@ export default function App() {
           onClear={() => {
             care.clearRotation();
             setRotationOpen(false);
-            scheduleSubscriptionNotifications(subscriptions).catch(() => {});
+            scheduleSubscriptionNotifications(subscriptions, new Date(), { savedAmount }).catch(() => {});
             notify("구독 순환 계획을 껐어요.");
           }}
           onClose={() => setRotationOpen(false)}
