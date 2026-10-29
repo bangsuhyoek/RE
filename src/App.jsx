@@ -13,16 +13,21 @@ import { AppHeader, BottomNavigation, Toast } from "./components/ui";
 import { SyncStatusIndicator } from "./components/SyncStatusIndicator";
 import { loadSubscriptionData } from "./data/catalogLoader";
 import {
+  clearUserScopedData,
   migrateLocalUsersToGuest,
   removeDemoSubscriptions,
   storageKeys,
   readStoredValue,
   clearStoredValue,
+  runLogoutFlow,
+  shouldClearUserDataOnAccountSwitch,
   readCancelHistory,
   writeCancelHistory,
 } from "./lib/storage";
 import { persistEvidenceCase } from "./lib/evidenceStore";
+import { clearAllCancelProofs, retryPendingCancelProofWipe } from "./lib/cancelProof";
 import {
+  cancelScheduledUserNotifications,
   generateSubscriptionAlerts,
   registerNotificationActionTypes,
   scheduleSubscriptionNotifications,
@@ -80,7 +85,17 @@ function SheetFallback() {
   );
 }
 
-export default function App() {
+async function clearLocalAccountData(ownerUserId) {
+  clearUserScopedData(ownerUserId);
+  const [proofsCleared, notificationsCleared] = await Promise.all([
+    clearAllCancelProofs(ownerUserId),
+    cancelScheduledUserNotifications(),
+  ]);
+  if (!proofsCleared) console.warn("Could not clear all local cancel proofs.");
+  if (!notificationsCleared) console.warn("Could not cancel all local notifications.");
+}
+
+function AppContent({ onAccountToast, onUserScopeChange }) {
   const [addOpen, setAddOpen] = useState(false);
   const [addInitialMode, setAddInitialMode] = useState("manual");
   const [quickAddData, setQuickAddData] = useState(null);
@@ -107,6 +122,7 @@ export default function App() {
   const usageNotificationHandlerRef = useRef(null);
   const shareHandlerRef = useRef(null);
   const closeNotificationCenterRef = useRef(null);
+  const explicitLogoutInProgressRef = useRef(false);
   const [rotationOpen, setRotationOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(() => {
     if (typeof window !== "undefined") {
@@ -118,6 +134,7 @@ export default function App() {
   useEffect(() => {
     migrateLocalUsersToGuest();
     registerNotificationActionTypes().catch(() => {});
+    retryPendingCancelProofWipe().catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -259,6 +276,7 @@ export default function App() {
     selectedOnboarding,
     setSelectedOnboarding,
     cancelTarget,
+    setCancelTarget,
     cancelSubscription,
     startCancellation,
     closeCancellation,
@@ -272,10 +290,14 @@ export default function App() {
     updateSubscription,
     togglePinSubscription,
     muteSubscription,
+    refreshSubscriptions,
+    retryFirstLoginMigration,
+    migrationError,
     syncState,
     pendingRetryCount,
     retrySync,
-  } = useSubscriptions({ currentRoute: screen.route, catalog });
+  } = useSubscriptions({ currentRoute: screen.route, catalog, onAccountScopeChange: onUserScopeChange });
+  const userScopeKey = profile ? (profile.user_id ? `user:${profile.user_id}` : "guest") : "signed-out";
 
   // Notifications domain state
   const {
@@ -318,6 +340,46 @@ export default function App() {
   }, [setNotifications]);
   const care = useCareFeed({ subscriptions, catalog, onEvents: handleCareEvents });
   const { topInsight: agentInsight, dismiss: dismissAgentInsight } = useAgentInsights(subscriptions);
+
+  const previousUserScopeRef = useRef(userScopeKey);
+  useEffect(() => {
+    if (previousUserScopeRef.current === userScopeKey) return;
+    const previousScope = previousUserScopeRef.current;
+    previousUserScopeRef.current = userScopeKey;
+
+    // 계정 범위가 바뀌면 이전 사용자의 대화·초안·열린 시트가 새 화면에 남지 않게 닫는다.
+    setAgentMessages([]);
+    setAgentInitialInsight(null);
+    setAgentOpen(false);
+    setNotificationCenterOpen(false);
+    setAddOpen(false);
+    setQuickAddData(null);
+    setSharedFile(null);
+    setDiscoveryOpen(false);
+    setAccountOpen(false);
+    setTermsOpen(false);
+    setPaymentCaptureDisclosureOpen(false);
+    setRotationOpen(false);
+    setCancelTarget(null);
+    setRenewalTarget(null);
+    setSelectedOnboarding([]);
+    setHighlightCancelId(null);
+    // 알림 기록·순환 계획은 실사용자 A→B 전환에서만 지운다. 게스트·세션 만료는 보존한다.
+    if (shouldClearUserDataOnAccountSwitch(previousScope, userScopeKey)) {
+      clearAll();
+      care.clearRotation();
+    }
+    care.refreshHistory();
+  }, [
+    care,
+    clearAll,
+    setCancelTarget,
+    setHighlightCancelId,
+    setNotificationCenterOpen,
+    setRenewalTarget,
+    setSelectedOnboarding,
+    userScopeKey,
+  ]);
 
   const handleOpenAgentInsight = useCallback((insight) => {
     setAgentInitialInsight(insight);
@@ -577,31 +639,43 @@ export default function App() {
       if (session?.user) {
         const user = session.user;
         const nickname = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "사용자";
-        setProfile((prev) => ({
-          ...(prev || {}),
-          user_id: user.id,
-          nickname: prev?.nickname || nickname,
-          email: user.email,
-          provider: "Google",
-          guest: false,
-          notificationsAllowed: prev?.notificationsAllowed ?? true,
-        }));
+        setProfile((prev) => {
+          const sameUser = prev?.user_id === user.id;
+          return {
+            ...(prev || {}),
+            user_id: user.id,
+            nickname: sameUser && prev?.nickname ? prev.nickname : nickname,
+            email: user.email,
+            provider: "Google",
+            guest: false,
+            notificationsAllowed: prev?.notificationsAllowed ?? true,
+          };
+        });
+        if (
+          typeof window !== "undefined" &&
+          (!window.location.hash || window.location.hash.startsWith("#/login"))
+        ) {
+          navigate("home");
+        }
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" && session?.user) {
         const user = session.user;
         const nickname = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "사용자";
-        setProfile((prev) => ({
-          ...(prev || {}),
-          user_id: user.id,
-          nickname: prev?.nickname || nickname,
-          email: user.email,
-          provider: "Google",
-          guest: false,
-          notificationsAllowed: prev?.notificationsAllowed ?? true,
-        }));
+        setProfile((prev) => {
+          const sameUser = prev?.user_id === user.id;
+          return {
+            ...(prev || {}),
+            user_id: user.id,
+            nickname: sameUser && prev?.nickname ? prev.nickname : nickname,
+            email: user.email,
+            provider: "Google",
+            guest: false,
+            notificationsAllowed: prev?.notificationsAllowed ?? true,
+          };
+        });
         setOnboardingComplete(true);
 
         // 타 웹사이트 왕복/탭 포커스 복귀 시 중복 팝업 방지 (최초 1회만 알림 표시 및 홈 이동)
@@ -619,9 +693,12 @@ export default function App() {
             }
           }
           navigate("home");
-          notify(`${nickname}님, 구글 계정으로 로그인되었어요!`);
+          onAccountToast?.(nickname + "님, 구글 계정으로 로그인되었어요!");
         }
       } else if (event === "SIGNED_OUT") {
+        // 명시적 로그아웃은 handleLogout이 세션 확인 후 한 번만 정리한다.
+        // 세션 만료·강제 SIGNED_OUT에서는 어떤 사용자 데이터도 지우지 않는다.
+        if (explicitLogoutInProgressRef.current) return;
         googleAuthNotifiedUserRef.current = null;
         if (typeof window !== "undefined") {
           try {
@@ -633,13 +710,14 @@ export default function App() {
         setProfile(null);
         setSubscriptions([]);
         navigate("login");
+        onAccountToast?.("세션이 만료되어 로그인 화면으로 이동했어요.");
       }
     });
 
     return () => {
       subscription?.unsubscribe();
     };
-  }, [navigate, notify, setOnboardingComplete, setProfile, setSubscriptions]);
+  }, [navigate, notify, onAccountToast, setOnboardingComplete, setProfile, setSubscriptions]);
 
   // Handle URL query actions (?notifications=1)
   useEffect(() => {
@@ -761,32 +839,80 @@ export default function App() {
     navigate("home");
   };
 
+  const handleRefreshSubscriptions = async () => {
+    const result = await refreshSubscriptions();
+    if (result?.ok) {
+      notify("최신 구독 목록으로 동기화했어요.");
+    } else if (result?.reason === "not_signed_in") {
+      notify("로그인하면 구독 목록을 새로고침할 수 있어요.");
+    } else {
+      notify("구독 목록을 새로고침하지 못했어요. 잠시 후 다시 시도해 주세요.");
+    }
+  };
+
   const handleLogout = async () => {
     setAccountOpen(false);
-    googleAuthNotifiedUserRef.current = null;
-    if (typeof window !== "undefined") {
-      try {
-        sessionStorage.removeItem("submate_google_login_notified_user");
-      } catch {
-        // 세션 스토리지 접근이 막힌 환경(시크릿 모드 등)에서는 무시한다
-      }
-    }
-    // 동의 정리 및 해지 브라우저 WebView 세션(쿠키, 웹 저장소) 삭제
-    clearConsentOnSignOut();
-    clearCancelBrowserSession().catch(() => {});
-    // 로그아웃한 사용자의 남은 동기화 메타데이터(삭제 대기열·재시도 큐)를 지운다.
-    // 다음 계정이 로그인했을 때 이전 사용자의 삭제가 새 계정 데이터에 적용되지 않게 한다.
-    clearStoredValue(storageKeys.syncTombstones);
-    clearStoredValue(storageKeys.syncRetryQueue);
+    const ownerUserId = profile?.user_id || null;
+    const isRemoteUser = Boolean(isSupabaseConfigured && ownerUserId);
 
-    if (isSupabaseConfigured && profile?.user_id) {
-      await signOut();
-      notify("로그아웃되었습니다.");
-    } else {
+    const clearLocalSession = async () => {
+      // HEAD와 동일하게 게스트·로컬 계정의 구독·채팅·증빙은 보존한다.
+      googleAuthNotifiedUserRef.current = null;
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem("submate_google_login_notified_user");
+        } catch {
+          // 세션 스토리지 접근이 막힌 환경(시크릿 모드 등)에서는 무시한다
+        }
+      }
+      clearConsentOnSignOut();
+      clearCancelBrowserSession().catch(() => {});
+      clearStoredValue(storageKeys.syncTombstones);
+      clearStoredValue(storageKeys.syncRetryQueue);
       setProfile(null);
       setSubscriptions([]);
       navigate("login");
-      notify("로그아웃되었습니다.");
+    };
+
+    const finishRemoteLogout = async () => {
+      googleAuthNotifiedUserRef.current = null;
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem("submate_google_login_notified_user");
+        } catch {
+          // 세션 스토리지 접근이 막힌 환경(시크릿 모드 등)에서는 무시한다
+        }
+      }
+      clearConsentOnSignOut();
+      await clearCancelBrowserSession().catch(() => {});
+      clearAll();
+      care.clearRotation();
+      clearUserScopedData(ownerUserId);
+      setProfile(null);
+      setSubscriptions([]);
+      setOnboardingComplete(false);
+      navigate("login");
+    };
+
+    if (isRemoteUser) explicitLogoutInProgressRef.current = true;
+    const result = await runLogoutFlow({
+      isRemoteUser,
+      signOut,
+      getSession: async () => {
+        const { data } = await supabase.auth.getSession();
+        return data.session;
+      },
+      clearRemoteData: () => clearLocalAccountData(ownerUserId),
+      clearLocalSession,
+    });
+    explicitLogoutInProgressRef.current = false;
+
+    if (result.ok) {
+      if (isRemoteUser) await finishRemoteLogout();
+      onAccountToast?.("로그아웃되었습니다.");
+    } else {
+      console.error("Sign out failed:", result.error);
+      onAccountToast?.("로그아웃하지 못했어요. 연결을 확인하고 다시 시도해 주세요.");
     }
   };
 
@@ -950,7 +1076,7 @@ export default function App() {
         onAdd={() => { setAddInitialMode("manual"); setAddOpen(true); }}
         onStartCancel={startCancellation}
         onMute={(id) => muteSubscription(id, notify)}
-        onRefresh={() => notify("최신 구독 목록을 확인했어요.")}
+        onRefresh={handleRefreshSubscriptions}
         onTogglePin={(id) => togglePinSubscription(id, notify)}
         onAnswerCancel={(record, answer) => {
           const key = recordKey(record);
@@ -1021,6 +1147,21 @@ export default function App() {
         pendingRetryCount={pendingRetryCount}
         onRetry={retrySync}
       />
+      {migrationError && (
+        <div
+          role="alert"
+          className="mx-auto mt-2 flex w-full max-w-md items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"
+        >
+          <span className="flex-1">이 기기의 기존 데이터를 계정으로 옮기지 못했어요</span>
+          <button
+            type="button"
+            onClick={retryFirstLoginMigration}
+            className="shrink-0 rounded-lg bg-amber-900 px-2.5 py-1 font-semibold text-white"
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
       {hasAppChrome && screen.route !== "home" && screen.route !== "detail" && (
         <AppHeader
           title={pageTitle}
@@ -1208,5 +1349,27 @@ export default function App() {
       </Suspense>
       <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
+  );
+}
+
+export default function App() {
+  const [accountScopeVersion, setAccountScopeVersion] = useState(0);
+  const [accountToast, setAccountToast] = useState(null);
+  const handleUserScopeChange = useCallback(() => {
+    setAccountScopeVersion((version) => version + 1);
+  }, []);
+  const showAccountToast = useCallback((message, duration = 6000) => {
+    setAccountToast({ message, duration, id: Date.now() });
+  }, []);
+
+  return (
+    <>
+      <AppContent
+        key={accountScopeVersion}
+        onAccountToast={showAccountToast}
+        onUserScopeChange={handleUserScopeChange}
+      />
+      <Toast toast={accountToast} onClose={() => setAccountToast(null)} />
+    </>
   );
 }

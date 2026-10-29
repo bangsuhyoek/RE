@@ -393,10 +393,10 @@ test("readCancelAiConsent 및 setCancelAiConsent: 기본값은 false이며 명�
 
   assert.equal(readCancelAiConsent(mockStorage), false);
   assert.equal(setCancelAiConsent(true, mockStorage), true);
-  assert.equal(mockStorage.getItem(CANCEL_AI_CONSENT_KEY), "granted");
+  assert.equal(mockStorage.getItem(CANCEL_AI_CONSENT_KEY), null);
   assert.equal(readCancelAiConsent(mockStorage), true);
 
   assert.equal(setCancelAiConsent(false, mockStorage), false);
-  assert.equal(mockStorage.getItem(CANCEL_AI_CONSENT_KEY), "declined");
+  assert.equal(mockStorage.getItem(CANCEL_AI_CONSENT_KEY), null);
   assert.equal(readCancelAiConsent(mockStorage), false);
 });

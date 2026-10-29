@@ -8,8 +8,8 @@ import { toMonthlyAmount } from "./subscriptionMath.js";
 import { findCheaperPlan, unusedStreak, isUsageThrottled, hasUsageAnswerForCycle } from "./usageCheck.js";
 import { getCachedCatalog } from "../data/catalogLoader.js";
 
-export const NOTIFICATION_STORAGE_KEY = "submate-mvp:notifications";
-export const NOTIFICATION_SETTINGS_KEY = "submate-mvp:notification-settings";
+export const NOTIFICATION_STORAGE_KEY = storageKeys.notifications;
+export const NOTIFICATION_SETTINGS_KEY = storageKeys.notificationSettings;
 export const DEFAULT_NOTIFICATION_DURATION = 2500; // 사용자 피드백 반영: 2~3초 내 빠른 자동 사라짐 (2.5초)
 export const CANCEL_REMINDER_TYPE = "cancel_reminder";
 export const AGENT_INSIGHT_NOTIFICATION_TYPE = "agent_insight";
@@ -805,12 +805,30 @@ export async function scheduleSubscriptionNotifications(subscriptions = [], now 
   }
 }
 
+/** 로그아웃·계정 전환 시 이전 사용자의 예약 알림과 알림 센터에 남은 네이티브 알림을 지운다. */
+export async function cancelScheduledUserNotifications() {
+  if (!Capacitor.isNativePlatform()) return true;
+  try {
+    const pending = await LocalNotifications.getPending();
+    if (pending?.notifications?.length > 0) {
+      await LocalNotifications.cancel({ notifications: pending.notifications });
+    }
+    if (typeof LocalNotifications.removeAllDeliveredNotifications === "function") {
+      await LocalNotifications.removeAllDeliveredNotifications();
+    }
+    return true;
+  } catch (err) {
+    console.warn("cancelScheduledUserNotifications error:", err);
+    return false;
+  }
+}
+
 
 
 // ============================================================================
 // Agent Proactive Insight Notification Support
 // ============================================================================
-export const AGENT_INSIGHT_LAST_NOTIFIED_KEY = "submate-mvp:agent-insights:last-notified-date";
+export const AGENT_INSIGHT_LAST_NOTIFIED_KEY = storageKeys.agentInsightsLastNotified;
 
 /**
  * Schedule or send at most one local notification per KST day for the top high-priority insight.

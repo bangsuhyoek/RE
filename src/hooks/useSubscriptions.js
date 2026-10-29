@@ -4,14 +4,28 @@ import { getCachedCatalog } from "../data/catalogLoader";
 import { getMonthKey, isPastDueThisCycle } from "../lib/dates";
 import {
   appendCancelRecord,
-  clearStoredValue,
+  clearUserScopedData,
+  filterRetryQueueForUser,
+  GUEST_PARTITION,
+  getActiveOwnerPartition,
+  hasPendingGuestMigration,
+  hasOwnerPartition,
+  migrateGuestDataToOwner,
+  ownerPartitionId,
+  upsertRetryQueueForUser,
+  removeRetryQueueItemForUser,
+  shouldWipeLocalDataForIncomingUser,
+  setActiveOwnerPartition,
+  writePartitionValue,
   readStoredValue,
   removeDemoSubscriptions,
   storageKeys,
   writeStoredValue,
 } from "../lib/storage";
 import { readHash } from "./useNavigation";
-import { upsertDbSubscription, deleteDbSubscription, fetchUserSubscriptions } from "../lib/supabase";
+import { supabase, mapDbToSubscription, upsertDbSubscription, deleteDbSubscription, fetchUserSubscriptions } from "../lib/supabase";
+import { cancelScheduledUserNotifications } from "../lib/notifications";
+import { clearAllCancelProofs } from "../lib/cancelProof";
 import { isDuplicateSubscription } from "../lib/subscriptionAdd";
 import { createSubscriptionId } from "../lib/ids";
 import {
@@ -19,10 +33,10 @@ import {
   mergeSubscriptions,
   recordTombstone,
   getRetryQueue,
-  enqueueRetry,
-  dequeueRetry,
 } from "../lib/subscriptionSync";
 import { toMonthlyAmount } from "../lib/subscriptionMath";
+
+const autoMigrationAttemptedUsers = new Set();
 
 export const createSubscription = (service) => ({
   ...service,
@@ -36,7 +50,7 @@ export const createSubscription = (service) => ({
   renewalPending: false,
 });
 
-export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
+export function useSubscriptions({ currentRoute = "home", catalog = [], onAccountScopeChange = null } = {}) {
   const catalogRef = useRef(catalog);
   useEffect(() => {
     catalogRef.current = catalog;
@@ -48,13 +62,6 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
 
   const storedProfile = useMemo(() => {
     const raw = typeof window !== "undefined" ? readStoredValue(storageKeys.profile, null) : null;
-    if (raw && (raw.guest || raw.provider === "Guest" || raw.nickname === "민수")) {
-      clearStoredValue(storageKeys.profile);
-      clearStoredValue(storageKeys.subscriptions);
-      clearStoredValue(storageKeys.onboardingComplete);
-      clearStoredValue(storageKeys.ownerUserId);
-      return null;
-    }
     return raw;
   }, []);
 
@@ -73,6 +80,8 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
   });
   const subscriptionsRef = useRef(subscriptions);
   subscriptionsRef.current = subscriptions;
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
 
   const [onboardingComplete, setOnboardingComplete] = useState(() => readStoredValue(storageKeys.onboardingComplete, false));
   const [savedAmount, setSavedAmount] = useState(() => readStoredValue(storageKeys.savedAmount, 0));
@@ -80,18 +89,36 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
   const [cancelTarget, setCancelTarget] = useState(null);
   const [renewalTarget, setRenewalTarget] = useState(null);
   const [completedCancelId, setCompletedCancelId] = useState(null);
-  const [pendingRetryCount, setPendingRetryCount] = useState(() => getRetryQueue().length);
-  const [syncState, setSyncState] = useState(() => (getRetryQueue().length > 0 ? "error" : "idle"));
+  const initialRetryQueue = filterRetryQueueForUser(getRetryQueue(), profile?.user_id || null);
+  const [pendingRetryCount, setPendingRetryCount] = useState(() => initialRetryQueue.length);
+  const [syncState, setSyncState] = useState(() => (initialRetryQueue.length > 0 ? "error" : "idle"));
+  const [migrationError, setMigrationError] = useState(() =>
+    Boolean(profile?.user_id && hasPendingGuestMigration(profile.user_id))
+  );
+  const previousAccountIdRef = useRef(profile?.user_id || null);
+
+  useEffect(() => {
+    const currentUserId = profile?.user_id || null;
+    if (previousAccountIdRef.current && !currentUserId) {
+      setSavedAmount(0);
+      setOnboardingComplete(false);
+    }
+    previousAccountIdRef.current = currentUserId;
+  }, [profile?.user_id]);
 
   const refreshSyncQueueState = useCallback(() => {
-    const queue = getRetryQueue();
+    const queue = filterRetryQueueForUser(getRetryQueue(), profileRef.current?.user_id || null);
     setPendingRetryCount(queue.length);
     setSyncState(queue.length > 0 ? "error" : "idle");
   }, []);
 
   const safeEnqueueRetryRef = useRef();
-  safeEnqueueRetryRef.current = (item) => {
-    enqueueRetry(item);
+  safeEnqueueRetryRef.current = (item, ownerUserId = profileRef.current?.user_id || null) => {
+    if (!ownerUserId) return;
+    writeStoredValue(
+      storageKeys.syncRetryQueue,
+      upsertRetryQueueForUser(getRetryQueue(), item, ownerUserId)
+    );
     refreshSyncQueueState();
   };
   const safeEnqueueRetry = useCallback((item) => {
@@ -101,12 +128,8 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
   // Storage sync
   useEffect(() => {
     if (profile) {
-      writeStoredValue(storageKeys.profile, profile);
-      if (profile.user_id) {
-        writeStoredValue(storageKeys.ownerUserId, profile.user_id);
-      }
-    } else {
-      clearStoredValue(storageKeys.profile);
+      const partition = profile.user_id ? ownerPartitionId(profile.user_id) : GUEST_PARTITION;
+      writePartitionValue(storageKeys.profile, partition, profile);
     }
   }, [profile]);
 
@@ -127,7 +150,12 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
   // 재시도 큐 처리 함수 (앱 시작 및 온라인 복귀 시 실행)
   const processRetryQueue = useCallback(async (userId) => {
     if (!userId) return;
-    const queue = getRetryQueue();
+    const storedQueue = getRetryQueue();
+    const queueWithOwners = storedQueue.filter((item) => item?.ownerUserId);
+    if (queueWithOwners.length !== storedQueue.length) {
+      writeStoredValue(storageKeys.syncRetryQueue, queueWithOwners);
+    }
+    const queue = filterRetryQueueForUser(queueWithOwners, userId);
     if (queue.length === 0) {
       setPendingRetryCount(0);
       setSyncState("idle");
@@ -140,10 +168,16 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
       if (item.type === "upsert" && item.data) {
         const res = await upsertDbSubscription(userId, item.data);
         if (res) {
-          dequeueRetry(item.id, item.type);
+          writeStoredValue(
+            storageKeys.syncRetryQueue,
+            removeRetryQueueItemForUser(getRetryQueue(), item, userId)
+          );
         } else {
           item.attempts = (item.attempts || 0) + 1;
-          enqueueRetry(item);
+          writeStoredValue(
+            storageKeys.syncRetryQueue,
+            upsertRetryQueueForUser(getRetryQueue(), item, userId)
+          );
           if (item.attempts >= 3) {
             window.dispatchEvent(
               new CustomEvent("submate-sync-error", {
@@ -155,10 +189,16 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
       } else if (item.type === "delete") {
         const ok = await deleteDbSubscription(userId, item.id);
         if (ok) {
-          dequeueRetry(item.id, item.type);
+          writeStoredValue(
+            storageKeys.syncRetryQueue,
+            removeRetryQueueItemForUser(getRetryQueue(), item, userId)
+          );
         } else {
           item.attempts = (item.attempts || 0) + 1;
-          enqueueRetry(item);
+          writeStoredValue(
+            storageKeys.syncRetryQueue,
+            upsertRetryQueueForUser(getRetryQueue(), item, userId)
+          );
           if (item.attempts >= 3) {
             window.dispatchEvent(
               new CustomEvent("submate-sync-error", {
@@ -169,10 +209,114 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
         }
       }
     }
-    const remaining = getRetryQueue().length;
+    const remaining = filterRetryQueueForUser(getRetryQueue(), userId).length;
     setPendingRetryCount(remaining);
     setSyncState(remaining > 0 ? "error" : "idle");
   }, []);
+
+  const fetchLatestCloudSubscriptions = useCallback(async (userId) => {
+    if (!supabase) {
+      const list = await fetchUserSubscriptions(userId);
+      if (!Array.isArray(list)) throw new Error("구독 목록 응답이 올바르지 않습니다.");
+      return list;
+    }
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    const activeCatalog = catalogRef.current?.length ? catalogRef.current : null;
+    return (data || []).map((row) => mapDbToSubscription(row, activeCatalog));
+  }, []);
+
+  // 목록 새로고침 버튼: 캐시를 그대로 보여주지 않고 클라우드에서 다시 읽어 병합한다.
+  const refreshSubscriptions = useCallback(async () => {
+    const userId = profileRef.current?.user_id;
+    if (!userId) return { ok: false, reason: "not_signed_in" };
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setSyncState("error");
+      return { ok: false, reason: "offline" };
+    }
+
+    setSyncState("syncing");
+    try {
+      const cloudList = await fetchLatestCloudSubscriptions(userId);
+      if (profileRef.current?.user_id !== userId) {
+        return { ok: false, reason: "account_changed" };
+      }
+
+      const tombstones = readStoredValue(storageKeys.syncTombstones, {});
+      const { merged, toUpload, toDeleteFromCloud } = mergeSubscriptions({
+        localList: subscriptionsRef.current || [],
+        cloudList,
+        tombstones,
+      });
+
+      subscriptionsRef.current = merged;
+      setSubscriptions(merged);
+      writeStoredValue(storageKeys.subscriptions, merged);
+
+      let writeFailed = false;
+      for (const sub of toUpload) {
+        const saved = await upsertDbSubscription(userId, sub);
+        if (!saved) {
+          writeFailed = true;
+          safeEnqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub }, userId);
+        }
+      }
+      for (const subId of toDeleteFromCloud) {
+        const deleted = await deleteDbSubscription(userId, subId);
+        if (!deleted) {
+          writeFailed = true;
+          safeEnqueueRetry({ id: subId, type: "delete" }, userId);
+        }
+      }
+
+      if (cloudList.length > 0) setOnboardingComplete(true);
+      await processRetryQueue(userId);
+      const hasPendingRetry = filterRetryQueueForUser(getRetryQueue(), userId).length > 0;
+      setSyncState(writeFailed || hasPendingRetry ? "error" : "idle");
+      if (writeFailed || hasPendingRetry) {
+        return { ok: false, reason: "sync_incomplete", count: merged.length };
+      }
+      return { ok: true, count: merged.length };
+    } catch (error) {
+      console.warn("refreshSubscriptions error:", error);
+      setSyncState("error");
+      return { ok: false, reason: "sync_failed", error };
+    }
+  }, [fetchLatestCloudSubscriptions, processRetryQueue, safeEnqueueRetry]);
+
+  const retryFirstLoginMigration = useCallback(async () => {
+    const userId = profileRef.current?.user_id;
+    if (!userId) return false;
+    if (!hasPendingGuestMigration(userId)) {
+      setMigrationError(false);
+      return true;
+    }
+
+    setSyncState("syncing");
+    const migrated = migrateGuestDataToOwner(userId);
+    if (!migrated) {
+      setMigrationError(true);
+      // 동기화 자체는 계속 진행되므로 상태 표시기는 idle로 되돌리고 migration 배너로만 알린다.
+      setSyncState("idle");
+      return false;
+    }
+
+    setMigrationError(false);
+    const merged = readStoredValue(storageKeys.subscriptions, []);
+    subscriptionsRef.current = Array.isArray(merged) ? merged : [];
+    setSubscriptions(subscriptionsRef.current);
+    await cancelScheduledUserNotifications();
+    if (onAccountScopeChange) {
+      onAccountScopeChange();
+    } else {
+      await processRetryQueue(userId);
+    }
+    return true;
+  }, [onAccountScopeChange, processRetryQueue]);
 
   useEffect(() => {
     const handleStorage = (e) => {
@@ -199,40 +343,90 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
   const lastUserIdRef = useRef(profile?.user_id || null);
 
   useEffect(() => {
-    const currentUserId = profile?.user_id;
-    if (!currentUserId) {
-      lastUserIdRef.current = null;
-      return;
-    }
-
-    const previousOwner = readStoredValue(storageKeys.ownerUserId, null);
-    const isDifferentUser = previousOwner && previousOwner !== currentUserId;
-
+    const currentUserId = profile?.user_id || null;
+    const desiredPartition = currentUserId ? ownerPartitionId(currentUserId) : GUEST_PARTITION;
+    const activePartition = getActiveOwnerPartition();
     let active = true;
 
-    // 1) 다른 사용자로 전환된 경우: 이전 로컬 데이터 업로드 금지, 비우고 새 계정 데이터 로드
-    if (isDifferentUser) {
-      writeStoredValue(storageKeys.ownerUserId, currentUserId);
-      subscriptionsRef.current = [];
-      setSubscriptions([]);
-      writeStoredValue(storageKeys.subscriptions, []);
-      clearStoredValue(storageKeys.syncTombstones);
-      clearStoredValue(storageKeys.syncRetryQueue);
-      setPendingRetryCount(0);
-      setSyncState("idle");
-    } else {
-      writeStoredValue(storageKeys.ownerUserId, currentUserId);
+    const switchPartition = async () => {
+      const previousOwner = readStoredValue(storageKeys.ownerUserId, null);
+      const previousKnownUserId = lastUserIdRef.current;
+      const departingUserId = previousKnownUserId && previousKnownUserId !== currentUserId
+        ? previousKnownUserId
+        : previousOwner && previousOwner !== currentUserId
+          ? previousOwner
+          : null;
+      const isDifferentUser = Boolean(
+        departingUserId && shouldWipeLocalDataForIncomingUser(departingUserId, currentUserId)
+      );
+
+      if (currentUserId && isDifferentUser) {
+        clearUserScopedData(departingUserId);
+        const proofsCleared = await clearAllCancelProofs(departingUserId);
+        if (!proofsCleared) console.warn("Could not clear cancel proofs on account switch.");
+      } else if (currentUserId) {
+        const pendingMigration = hasPendingGuestMigration(currentUserId);
+        const needsFirstLoginMigration =
+          pendingMigration ||
+          (!previousOwner && !hasOwnerPartition(desiredPartition));
+        if (needsFirstLoginMigration) {
+          if (autoMigrationAttemptedUsers.has(currentUserId)) {
+            setMigrationError(pendingMigration);
+          } else {
+            autoMigrationAttemptedUsers.add(currentUserId);
+            const migrated = migrateGuestDataToOwner(currentUserId);
+            if (!migrated) {
+              console.warn("First-login guest migration is incomplete; continuing with the cloud partition.");
+              setMigrationError(true);
+            } else {
+              setMigrationError(false);
+            }
+          }
+        }
+      }
+
+      const profilePartition = profileRef.current?.user_id
+        ? ownerPartitionId(profileRef.current.user_id)
+        : GUEST_PARTITION;
+      if (profileRef.current) {
+        writePartitionValue(storageKeys.profile, profilePartition, profileRef.current);
+      }
+      await cancelScheduledUserNotifications();
+      if (currentUserId && isDifferentUser) {
+        // App 화면 상태 정리가 끝난 뒤 A 파티션에 남은 빈 키까지 다시 제거한다.
+        clearUserScopedData(departingUserId);
+      }
+      setActiveOwnerPartition(desiredPartition);
+      lastUserIdRef.current = currentUserId;
+      if (!active) return;
+      onAccountScopeChange?.();
+    };
+
+    if (activePartition !== desiredPartition) {
+      switchPartition().catch((error) => {
+        console.warn("account partition switch error:", error);
+        if (active) setSyncState("error");
+      });
+      return () => {
+        active = false;
+      };
     }
 
-    lastUserIdRef.current = currentUserId;
+    if (!currentUserId) {
+      lastUserIdRef.current = null;
+      return undefined;
+    }
 
-    // 2) 클라우드 구독 목록 조회 및 양방향 시각 비교 병합
-    fetchUserSubscriptions(currentUserId).then(async (cloudSubs) => {
+    const syncAccount = async () => {
+      lastUserIdRef.current = currentUserId;
+
+      // 2) 클라우드 구독 목록 조회 및 양방향 시각 비교 병합
+      const cloudSubs = await fetchLatestCloudSubscriptions(currentUserId);
       if (!active) return;
       const cloudList = Array.isArray(cloudSubs) ? cloudSubs : [];
       const tombstones = readStoredValue(storageKeys.syncTombstones, {});
 
-      const localList = isDifferentUser ? [] : (subscriptionsRef.current || []);
+      const localList = subscriptionsRef.current || [];
       const { merged, toUpload, toDeleteFromCloud } = mergeSubscriptions({
         localList,
         cloudList,
@@ -240,6 +434,8 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
       });
 
       setSubscriptions(merged);
+      writeStoredValue(storageKeys.subscriptions, merged);
+      writeStoredValue(storageKeys.ownerUserId, currentUserId);
 
       if (!active) return;
 
@@ -248,10 +444,10 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
         toUpload.forEach((sub) => {
           upsertDbSubscription(currentUserId, sub).then((saved) => {
             if (!saved) {
-              safeEnqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub });
+              safeEnqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub }, currentUserId);
             }
           }).catch(() => {
-            safeEnqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub });
+            safeEnqueueRetry({ id: sub.subscriptionId || sub.id, type: "upsert", data: sub }, currentUserId);
           });
         });
       }
@@ -261,10 +457,10 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
         toDeleteFromCloud.forEach((subId) => {
           deleteDbSubscription(currentUserId, subId).then((deleted) => {
             if (!deleted) {
-              safeEnqueueRetry({ id: subId, type: "delete" });
+              safeEnqueueRetry({ id: subId, type: "delete" }, currentUserId);
             }
           }).catch(() => {
-            safeEnqueueRetry({ id: subId, type: "delete" });
+            safeEnqueueRetry({ id: subId, type: "delete" }, currentUserId);
           });
         });
       }
@@ -274,13 +470,24 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
       }
 
       // 대기열에 있는 작업 재시도
-      processRetryQueue(currentUserId);
+      await processRetryQueue(currentUserId);
+    };
+
+    syncAccount().catch((error) => {
+      console.warn("account sync error:", error);
+      if (active) setSyncState("error");
     });
 
     return () => {
       active = false;
     };
-  }, [profile?.user_id, processRetryQueue, safeEnqueueRetry]);
+  }, [
+    profile?.user_id,
+    processRetryQueue,
+    safeEnqueueRetry,
+    onAccountScopeChange,
+    fetchLatestCloudSubscriptions,
+  ]);
 
   // Check past-due renewal for current month on home route
   useEffect(() => {
@@ -352,10 +559,10 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
     if (profile?.user_id) {
       upsertDbSubscription(profile.user_id, record).then((saved) => {
         if (!saved) {
-          safeEnqueueRetry({ id: record.subscriptionId, type: "upsert", data: record });
+          safeEnqueueRetry({ id: record.subscriptionId, type: "upsert", data: record }, profile?.user_id);
         }
       }).catch((err) => {
-        safeEnqueueRetry({ id: record.subscriptionId, type: "upsert", data: record });
+        safeEnqueueRetry({ id: record.subscriptionId, type: "upsert", data: record }, profile?.user_id);
         console.error(err);
       });
     }
@@ -372,10 +579,10 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
     if (updatedTarget && profile?.user_id) {
       upsertDbSubscription(profile.user_id, updatedTarget).then((saved) => {
         if (!saved) {
-          safeEnqueueRetry({ id: updatedTarget.subscriptionId, type: "upsert", data: updatedTarget });
+          safeEnqueueRetry({ id: updatedTarget.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
         }
       }).catch((err) => {
-        safeEnqueueRetry({ id: updatedTarget.subscriptionId, type: "upsert", data: updatedTarget });
+        safeEnqueueRetry({ id: updatedTarget.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
         console.error(err);
       });
     }
@@ -397,10 +604,10 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
     if (profile?.user_id) {
       upsertDbSubscription(profile.user_id, updatedTarget).then((saved) => {
         if (!saved) {
-          safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
+          safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
         }
       }).catch((err) => {
-        safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
+        safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
         console.error(err);
       });
     }
@@ -422,10 +629,10 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
     if (updatedTarget && profile?.user_id) {
       upsertDbSubscription(profile.user_id, updatedTarget).then((saved) => {
         if (!saved) {
-          safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
+          safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
         }
       }).catch((err) => {
-        safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget });
+        safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
         console.error(err);
       });
     }
@@ -469,10 +676,10 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
     if (profile?.user_id) {
       deleteDbSubscription(profile.user_id, target.subscriptionId).then((ok) => {
         if (!ok) {
-          safeEnqueueRetry({ id: target.subscriptionId, type: "delete" });
+          safeEnqueueRetry({ id: target.subscriptionId, type: "delete" }, profile?.user_id);
         }
       }).catch(() => {
-        safeEnqueueRetry({ id: target.subscriptionId, type: "delete" });
+        safeEnqueueRetry({ id: target.subscriptionId, type: "delete" }, profile?.user_id);
       });
     }
     const rawSaved = finalSaved != null ? finalSaved : target.amount;
@@ -500,10 +707,10 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
       if (profile?.user_id) {
         upsertDbSubscription(profile.user_id, updated).then((saved) => {
           if (!saved) {
-            safeEnqueueRetry({ id: updated.subscriptionId, type: "upsert", data: updated });
+            safeEnqueueRetry({ id: updated.subscriptionId, type: "upsert", data: updated }, profile?.user_id);
           }
         }).catch((err) => {
-          safeEnqueueRetry({ id: updated.subscriptionId, type: "upsert", data: updated });
+          safeEnqueueRetry({ id: updated.subscriptionId, type: "upsert", data: updated }, profile?.user_id);
           console.error(err);
         });
       }
@@ -524,10 +731,10 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
       if (profile?.user_id) {
         deleteDbSubscription(profile.user_id, renewalSubscription.subscriptionId).then((ok) => {
           if (!ok) {
-            safeEnqueueRetry({ id: renewalSubscription.subscriptionId, type: "delete" });
+            safeEnqueueRetry({ id: renewalSubscription.subscriptionId, type: "delete" }, profile?.user_id);
           }
         }).catch(() => {
-          safeEnqueueRetry({ id: renewalSubscription.subscriptionId, type: "delete" });
+          safeEnqueueRetry({ id: renewalSubscription.subscriptionId, type: "delete" }, profile?.user_id);
         });
       }
       setSavedAmount((amount) => amount + toMonthlyAmount(renewalSubscription));
@@ -545,22 +752,36 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
     if (profile?.user_id) {
       deleteDbSubscription(profile.user_id, targetId).then((ok) => {
         if (!ok) {
-          safeEnqueueRetry({ id: targetId, type: "delete" });
+          safeEnqueueRetry({ id: targetId, type: "delete" }, profile?.user_id);
         }
       }).catch(() => {
-        safeEnqueueRetry({ id: targetId, type: "delete" });
+        safeEnqueueRetry({ id: targetId, type: "delete" }, profile?.user_id);
       });
     }
   }, [profile?.user_id, subscriptions, safeEnqueueRetry]);
 
+  // 프로필은 새 계정으로 바뀌었지만 effect가 로컬 목록을 비우기 전인 한 렌더에서도 이전 목록을 노출하지 않는다.
+  const durableOwnerUserId = profile?.user_id
+    ? readStoredValue(storageKeys.ownerUserId, null)
+    : null;
+  const desiredPartition = profile?.user_id
+    ? ownerPartitionId(profile.user_id)
+    : GUEST_PARTITION;
+  const isAccountSwitching = Boolean(
+    getActiveOwnerPartition() !== desiredPartition ||
+    (profile?.user_id &&
+      ((lastUserIdRef.current && profile.user_id !== lastUserIdRef.current) ||
+        (durableOwnerUserId && profile.user_id !== durableOwnerUserId)))
+  );
+
   return {
     profile,
     setProfile,
-    subscriptions,
+    subscriptions: isAccountSwitching ? [] : subscriptions,
     setSubscriptions,
-    onboardingComplete,
+    onboardingComplete: isAccountSwitching ? false : onboardingComplete,
     setOnboardingComplete,
-    savedAmount,
+    savedAmount: isAccountSwitching ? 0 : savedAmount,
     setSavedAmount,
     selectedOnboarding,
     setSelectedOnboarding,
@@ -581,6 +802,9 @@ export function useSubscriptions({ currentRoute = "home", catalog = [] } = {}) {
     togglePinSubscription,
     muteSubscription,
     deleteSubscription,
+    refreshSubscriptions,
+    retryFirstLoginMigration,
+    migrationError,
     syncState,
     pendingRetryCount,
     retrySync: () => {

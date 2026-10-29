@@ -4,6 +4,13 @@
  * 동의 시각(agreedAt)과 방침 버전(policyVersion)을 함께 저장한다.
  */
 
+import {
+  getActiveOwnerPartition,
+  ownerPartitionId,
+  readStoredValue,
+  storageKeys,
+} from "./storage.js";
+
 export const CURRENT_POLICY_VERSION = "2026-10-19";
 
 const LEGACY_CHAT_CONSENT_KEY = "submate.chatConsent.v1";
@@ -31,6 +38,18 @@ function getUserConsentKey(userId, kind) {
   return `${USER_CONSENT_PREFIX}:${normUser}:${kind}`;
 }
 
+function resolveConsentOwner(userId, storage = null) {
+  // 테스트/명시 storage에서는 전달한 owner를 그대로 사용한다.
+  if (storage) return normalizeUserId(userId);
+  return getActiveOwnerPartition();
+}
+
+function getLegacyMigrationOwner(userId, storage = null) {
+  if (storage) return normalizeUserId(userId);
+  const ownerUserId = readStoredValue(storageKeys.ownerUserId, null);
+  return ownerPartitionId(ownerUserId);
+}
+
 /**
  * 1회 레거시 기기 단위 동의 마이그레이션.
  * 기존 기기 단위 동의(CHAT_CONSENT_KEY, CANCEL_AI_CONSENT_KEY)가 있으면
@@ -39,18 +58,18 @@ function getUserConsentKey(userId, kind) {
 export function migrateLegacyConsentIfNeeded(userId, storage = null) {
   const store = getStorage(storage);
   if (!store) return;
-  const normUser = normalizeUserId(userId);
+  const targetOwner = getLegacyMigrationOwner(userId, storage);
 
   // 1. Chat Consent
   try {
     const legacyChat = store.getItem(LEGACY_CHAT_CONSENT_KEY);
     if (legacyChat !== null) {
-      const userKey = getUserConsentKey(normUser, "chat");
+      const userKey = getUserConsentKey(targetOwner, "chat");
       if (!store.getItem(userKey)) {
         if (legacyChat === "granted") {
-          saveConsentRecord(normUser, "chat", true, { version: CURRENT_POLICY_VERSION }, store);
+          saveConsentRecord(targetOwner, "chat", true, { version: CURRENT_POLICY_VERSION }, store);
         } else {
-          saveConsentRecord(normUser, "chat", false, { version: CURRENT_POLICY_VERSION }, store);
+          saveConsentRecord(targetOwner, "chat", false, { version: CURRENT_POLICY_VERSION }, store);
         }
       }
       if (typeof store.removeItem === "function") {
@@ -65,12 +84,12 @@ export function migrateLegacyConsentIfNeeded(userId, storage = null) {
   try {
     const legacyCancel = store.getItem(LEGACY_CANCEL_CONSENT_KEY);
     if (legacyCancel !== null) {
-      const userKey = getUserConsentKey(normUser, "cancel");
+      const userKey = getUserConsentKey(targetOwner, "cancel");
       if (!store.getItem(userKey)) {
         if (legacyCancel === "granted" || legacyCancel === "true") {
-          saveConsentRecord(normUser, "cancel", true, { version: CURRENT_POLICY_VERSION }, store);
+          saveConsentRecord(targetOwner, "cancel", true, { version: CURRENT_POLICY_VERSION }, store);
         } else {
-          saveConsentRecord(normUser, "cancel", false, { version: CURRENT_POLICY_VERSION }, store);
+          saveConsentRecord(targetOwner, "cancel", false, { version: CURRENT_POLICY_VERSION }, store);
         }
       }
       if (typeof store.removeItem === "function") {
@@ -107,8 +126,8 @@ function saveConsentRecord(userId, kind, granted, { version = CURRENT_POLICY_VER
 export function readUserConsent(userId, kind, storage = null) {
   const store = getStorage(storage);
   if (!store) return false;
-  migrateLegacyConsentIfNeeded(userId, store);
-  const key = getUserConsentKey(userId, kind);
+  migrateLegacyConsentIfNeeded(userId, storage);
+  const key = getUserConsentKey(resolveConsentOwner(userId, storage), kind);
   try {
     const raw = store.getItem(key);
     if (!raw) return false;
@@ -122,8 +141,8 @@ export function readUserConsent(userId, kind, storage = null) {
 export function getUserConsentRecord(userId, kind, storage = null) {
   const store = getStorage(storage);
   if (!store) return null;
-  migrateLegacyConsentIfNeeded(userId, store);
-  const key = getUserConsentKey(userId, kind);
+  migrateLegacyConsentIfNeeded(userId, storage);
+  const key = getUserConsentKey(resolveConsentOwner(userId, storage), kind);
   try {
     const raw = store.getItem(key);
     if (!raw) return null;
@@ -136,18 +155,8 @@ export function getUserConsentRecord(userId, kind, storage = null) {
 export function setUserConsent(userId, kind, granted, { version = CURRENT_POLICY_VERSION } = {}, storage = null) {
   const store = getStorage(storage);
   if (!store) return Boolean(granted);
-  migrateLegacyConsentIfNeeded(userId, store);
-  saveConsentRecord(userId, kind, Boolean(granted), { version }, store);
-  // 레거시 키 호환성 지원: 구버전 테스트/호환성을 위해 레거시 키에도 동기화
-  try {
-    if (kind === "cancel") {
-      store.setItem(LEGACY_CANCEL_CONSENT_KEY, granted ? "granted" : "declined");
-    } else if (kind === "chat") {
-      store.setItem(LEGACY_CHAT_CONSENT_KEY, granted ? "granted" : "declined");
-    }
-  } catch {
-    // 레거시 키 동기화 실패 시 무시
-  }
+  migrateLegacyConsentIfNeeded(userId, storage);
+  saveConsentRecord(resolveConsentOwner(userId, storage), kind, Boolean(granted), { version }, store);
   return Boolean(granted);
 }
 
@@ -155,8 +164,8 @@ export function setUserConsent(userId, kind, granted, { version = CURRENT_POLICY
 export function revokeUserConsent(userId, kind, storage = null) {
   const store = getStorage(storage);
   if (!store) return;
-  migrateLegacyConsentIfNeeded(userId, store);
-  saveConsentRecord(userId, kind, false, { version: CURRENT_POLICY_VERSION }, store);
+  migrateLegacyConsentIfNeeded(userId, storage);
+  saveConsentRecord(resolveConsentOwner(userId, storage), kind, false, { version: CURRENT_POLICY_VERSION }, store);
 }
 
 /**

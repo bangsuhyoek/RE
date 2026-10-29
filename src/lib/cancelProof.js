@@ -5,12 +5,118 @@
  * - IndexedDB를 지원하지 않는 환경(node.js 테스트 등)에서는 in-memory Map으로 graceful fallback.
  */
 
+import {
+  getActiveOwnerPartition,
+  ownerPartitionId,
+  readStoredValue,
+  storageKeys,
+  writeStoredValue,
+} from "./storage.js";
+
 const DB_NAME = "submate";
 const STORE_NAME = "cancelProofs";
 const DB_VERSION = 1;
 
 // Node/non-browser in-memory fallback
 const memoryStore = new Map();
+
+function readPendingProofWipe() {
+  const value = readStoredValue(storageKeys.cancelProofWipePending, null);
+  if (!value) return null;
+  if (value === true) return { cutoffAt: "1970-01-01T00:00:00.000Z", ownerUserId: null };
+  if (typeof value === "string") return { cutoffAt: value, ownerUserId: null };
+  if (value?.cutoffAt) {
+    return { cutoffAt: value.cutoffAt, ownerUserId: value.ownerUserId || null };
+  }
+  return { cutoffAt: "1970-01-01T00:00:00.000Z", ownerUserId: null };
+}
+
+function proofCreatedAtMs(proof) {
+  const value = new Date(proof?.createdAt || proof?.cancelledAt || 0).getTime();
+  return Number.isFinite(value) ? value : 0;
+}
+
+function currentProofOwner() {
+  return getActiveOwnerPartition();
+}
+
+const normalizeProofOwner = (value) => {
+  if (!value) return null;
+  if (value === "guest" || String(value).startsWith("user:")) return String(value);
+  return ownerPartitionId(String(value));
+};
+
+function proofVisibleToOwner(proof, ownerUserId) {
+  if (proof?.ownerUserId) return normalizeProofOwner(proof.ownerUserId) === ownerUserId;
+  // 과거에 owner 없이 저장된 증빙은 마지막 실사용자에게 속한 것으로 간주한다.
+  const lastOwner = readStoredValue(storageKeys.ownerUserId, null);
+  return ownerUserId !== "guest" && ownerUserId === ownerPartitionId(lastOwner);
+}
+
+function proofBelongsToWipe(proof, ownerUserId) {
+  if (!ownerUserId) return true;
+  if (proof?.ownerUserId) return normalizeProofOwner(proof.ownerUserId) === ownerUserId;
+  // owner 없는 레거시 증빙은 마지막 실사용자의 wipe에 포함한다.
+  return ownerUserId !== "guest";
+}
+
+async function clearProofsBefore(cutoffMs, ownerUserId) {
+  for (const [id, proof] of memoryStore.entries()) {
+    if (proofBelongsToWipe(proof, ownerUserId) && proofCreatedAtMs(proof) <= cutoffMs) {
+      memoryStore.delete(id);
+    }
+  }
+  if (!hasIndexedDB()) return;
+
+  const db = await openDatabase();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.getAll();
+    req.onsuccess = () => {
+      for (const proof of req.result || []) {
+        if (proofBelongsToWipe(proof, ownerUserId) && proofCreatedAtMs(proof) <= cutoffMs) {
+          store.delete(proof.id);
+        }
+      }
+    };
+    req.onerror = () => reject(req.error || new Error("Failed to read cancel proofs for wipe"));
+    tx.oncomplete = () => {
+      db.close();
+      resolve();
+    };
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error || new Error("Failed to clear cancel proofs"));
+    };
+    tx.onabort = () => {
+      db.close();
+      reject(tx.error || new Error("Cancel proof clear aborted"));
+    };
+  });
+}
+
+async function ensurePendingProofWipe() {
+  const pending = readPendingProofWipe();
+  if (!pending) return true;
+  const cutoffMs = Date.parse(pending.cutoffAt);
+  const ownerUserId = normalizeProofOwner(pending.ownerUserId);
+  try {
+    await clearProofsBefore(
+      Number.isFinite(cutoffMs) ? cutoffMs : Infinity,
+      ownerUserId
+    );
+    writeStoredValue(storageKeys.cancelProofWipePending, false);
+    return true;
+  } catch (err) {
+    console.warn("clearAllCancelProofs retry error:", err);
+    return false;
+  }
+}
+
+export async function retryPendingCancelProofWipe() {
+  return ensurePendingProofWipe();
+}
 
 function hasIndexedDB() {
   return typeof indexedDB !== "undefined" && indexedDB !== null;
@@ -51,6 +157,7 @@ function generateId(recordId) {
  * @param {string|Date} [params.cancelledAt]
  * @param {string|null} [params.imageDataUrl]
  * @param {string|null} [params.note]
+ * @param {string|null} [params.ownerUserId] omit for current signed-in user; guests use "guest"
  * @returns {Promise<Object>}
  */
 export async function saveCancelProof({
@@ -62,7 +169,11 @@ export async function saveCancelProof({
   cancelledAt = new Date().toISOString(),
   imageDataUrl = null,
   note = null,
+  ownerUserId = undefined,
 }) {
+  const resolvedOwner = ownerUserId !== undefined
+    ? normalizeProofOwner(ownerUserId) || "guest"
+    : currentProofOwner();
   const proof = {
     id: generateId(recordId),
     recordId: recordId || null,
@@ -73,6 +184,7 @@ export async function saveCancelProof({
     cancelledAt: typeof cancelledAt === "string" ? cancelledAt : new Date(cancelledAt).toISOString(),
     imageDataUrl: imageDataUrl || null,
     note: note || null,
+    ownerUserId: resolvedOwner,
     createdAt: new Date().toISOString(),
   };
 
@@ -103,40 +215,12 @@ export async function saveCancelProof({
  * @param {string} recordId
  * @returns {Promise<Object|null>}
  */
-export async function getCancelProof(recordId) {
+export async function getCancelProof(recordId, ownerUserId = currentProofOwner()) {
   if (!recordId) return null;
-
-  if (!hasIndexedDB()) {
-    for (const proof of memoryStore.values()) {
-      if (proof.recordId === recordId || proof.subscriptionId === recordId || proof.id === recordId) {
-        return proof;
-      }
-    }
-    return null;
-  }
-
-  try {
-    const db = await openDatabase();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.getAll();
-      req.onsuccess = () => {
-        const all = req.result || [];
-        const match = all.find((p) => p.recordId === recordId || p.subscriptionId === recordId || p.id === recordId) || null;
-        resolve(match);
-      };
-      req.onerror = () => reject(req.error || new Error("Failed to get cancel proof"));
-      tx.oncomplete = () => db.close();
-    });
-  } catch {
-    for (const proof of memoryStore.values()) {
-      if (proof.recordId === recordId || proof.subscriptionId === recordId || proof.id === recordId) {
-        return proof;
-      }
-    }
-    return null;
-  }
+  const all = await listCancelProofs(normalizeProofOwner(ownerUserId) || "guest");
+  return all.find((proof) =>
+    proof.recordId === recordId || proof.subscriptionId === recordId || proof.id === recordId
+  ) || null;
 }
 
 /**
@@ -161,8 +245,12 @@ function normalizeServiceName(name) {
  * @param {string} [query.serviceName]
  * @returns {Promise<Object|null>}
  */
-export async function findCancelProof({ subscriptionId = null, recordId = null, serviceId = null, serviceName = null } = {}) {
-  const all = await listCancelProofs();
+export async function findCancelProof(
+  { subscriptionId = null, recordId = null, serviceId = null, serviceName = null } = {},
+  ownerUserId = currentProofOwner()
+) {
+  if (!(await ensurePendingProofWipe())) return null;
+  const all = await listCancelProofs(normalizeProofOwner(ownerUserId) || "guest");
   if (!all.length) return null;
 
   const targetSubId = subscriptionId || recordId;
@@ -187,11 +275,13 @@ export async function findCancelProof({ subscriptionId = null, recordId = null, 
   return null;
 }
 
-export async function listCancelProofs() {
+export async function listCancelProofs(ownerUserId = currentProofOwner()) {
+  if (!(await ensurePendingProofWipe())) return [];
+  const owner = normalizeProofOwner(ownerUserId) || "guest";
   if (!hasIndexedDB()) {
-    return Array.from(memoryStore.values()).sort(
-      (a, b) => new Date(b.createdAt || b.cancelledAt) - new Date(a.createdAt || a.cancelledAt)
-    );
+    return Array.from(memoryStore.values())
+      .filter((proof) => proofVisibleToOwner(proof, owner))
+      .sort((a, b) => new Date(b.createdAt || b.cancelledAt) - new Date(a.createdAt || a.cancelledAt));
   }
 
   try {
@@ -201,18 +291,35 @@ export async function listCancelProofs() {
       const store = tx.objectStore(STORE_NAME);
       const req = store.getAll();
       req.onsuccess = () => {
-        const list = (req.result || []).sort(
-          (a, b) => new Date(b.createdAt || b.cancelledAt) - new Date(a.createdAt || a.cancelledAt)
-        );
+        const list = (req.result || [])
+          .filter((proof) => proofVisibleToOwner(proof, owner))
+          .sort((a, b) => new Date(b.createdAt || b.cancelledAt) - new Date(a.createdAt || a.cancelledAt));
         resolve(list);
       };
       req.onerror = () => reject(req.error || new Error("Failed to list cancel proofs"));
       tx.oncomplete = () => db.close();
     });
   } catch {
-    return Array.from(memoryStore.values()).sort(
-      (a, b) => new Date(b.createdAt || b.cancelledAt) - new Date(a.createdAt || a.cancelledAt)
-    );
+    return Array.from(memoryStore.values())
+      .filter((proof) => proofVisibleToOwner(proof, owner))
+      .sort((a, b) => new Date(b.createdAt || b.cancelledAt) - new Date(a.createdAt || a.cancelledAt));
+  }
+}
+
+/** 지정한 사용자의 증빙 중 이 시각 이전에 만들어진 것만 삭제한다. */
+export async function clearAllCancelProofs(ownerUserId) {
+  if (!ownerUserId) return false;
+  const wipeOwner = normalizeProofOwner(ownerUserId);
+  const cutoffAt = new Date().toISOString();
+  const cutoffMs = Date.parse(cutoffAt);
+  try {
+    await clearProofsBefore(cutoffMs, wipeOwner);
+    writeStoredValue(storageKeys.cancelProofWipePending, false);
+    return true;
+  } catch (err) {
+    console.warn("clearAllCancelProofs error:", err);
+    writeStoredValue(storageKeys.cancelProofWipePending, { cutoffAt, ownerUserId: wipeOwner });
+    return false;
   }
 }
 

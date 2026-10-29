@@ -6,7 +6,10 @@ import {
   listCancelProofs,
   deleteCancelProof,
   findCancelProof,
+  clearAllCancelProofs,
+  retryPendingCancelProofWipe,
 } from "../src/lib/cancelProof.js";
+import { readStoredValue, storageKeys } from "../src/lib/storage.js";
 
 test("cancelProof in-memory fallback CRUD operations", async () => {
   // 1. Initial list empty or existing
@@ -137,4 +140,60 @@ test("findCancelProof matching order: subscriptionId/recordId > serviceId > norm
   await deleteCancelProof(p1.id);
   await deleteCancelProof(p2.id);
   await deleteCancelProof(p3.id);
+});
+
+test("clearAllCancelProofs removes every stored proof on account cleanup", async () => {
+  await saveCancelProof({ recordId: "account-a", serviceName: "A 서비스" });
+  await saveCancelProof({ recordId: "account-a-2", serviceName: "A 서비스 2" });
+  assert.ok((await listCancelProofs()).length >= 2);
+
+  assert.equal(await clearAllCancelProofs("guest"), true);
+  assert.deepEqual(await listCancelProofs(), []);
+});
+
+test("pending proof wipe blocks lookup and preserves proofs created after the failure", async () => {
+  const values = new Map();
+  globalThis.window = {
+    localStorage: {
+      getItem: (key) => values.get(key) ?? null,
+      setItem: (key, value) => values.set(key, String(value)),
+      removeItem: (key) => values.delete(key),
+    },
+  };
+  await saveCancelProof({ recordId: "old-a-proof", serviceName: "A 서비스" });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  globalThis.indexedDB = {
+    open() {
+      throw new Error("IndexedDB unavailable during wipe");
+    },
+  };
+  assert.equal(await clearAllCancelProofs("guest"), false);
+  const pending = readStoredValue(storageKeys.cancelProofWipePending, null);
+  assert.equal(typeof pending?.cutoffAt, "string");
+  assert.equal(pending?.ownerUserId, "guest");
+
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  const newer = await saveCancelProof({ recordId: "new-a-proof", serviceName: "새 서비스" });
+  assert.equal(await findCancelProof({ subscriptionId: "new-a-proof" }), null);
+  assert.equal(readStoredValue(storageKeys.cancelProofWipePending, null)?.cutoffAt, pending.cutoffAt);
+
+  delete globalThis.indexedDB;
+  assert.equal(await retryPendingCancelProofWipe(), true);
+  assert.equal(readStoredValue(storageKeys.cancelProofWipePending, false), false);
+  const remaining = await listCancelProofs();
+  assert.equal(remaining.length, 1);
+  assert.equal(remaining[0].id, newer.id);
+});
+
+test("cancel proofs are isolated by owner during switch cleanup", async () => {
+  await clearAllCancelProofs("guest");
+  const a = await saveCancelProof({ recordId: "proof-a", serviceName: "A", ownerUserId: "user-a" });
+  const b = await saveCancelProof({ recordId: "proof-b", serviceName: "B", ownerUserId: "user-b" });
+  const guest = await saveCancelProof({ recordId: "proof-guest", serviceName: "G", ownerUserId: "guest" });
+
+  assert.equal(await clearAllCancelProofs("user-a"), true);
+  assert.deepEqual(await listCancelProofs("user-a"), []);
+  assert.deepEqual(await listCancelProofs("user-b"), [b]);
+  assert.deepEqual(await listCancelProofs("guest"), [guest]);
+  assert.equal(a.ownerUserId, "user:user-a");
 });

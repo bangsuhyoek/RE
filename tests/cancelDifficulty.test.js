@@ -12,6 +12,7 @@ import {
   roundDurationTo10s,
   submitDifficultyReport,
 } from "../src/lib/cancelDifficulty.js";
+import { clearStoredValue, storageKeys, writeStoredValue } from "../src/lib/storage.js";
 
 // Mock localStorage for Node test environment
 if (typeof window === "undefined" || !window.localStorage) {
@@ -221,7 +222,7 @@ test("submitDifficultyReport: same service and same day duplicate submission gua
 
   // Mock successful submission recorded in localStorage by directly putting the dedupe key or via storage
   const dedupeKey = "disney-plus@2026-10-16";
-  window.localStorage.setItem("submate-mvp:difficulty-submitted", JSON.stringify([dedupeKey]));
+  writeStoredValue(storageKeys.difficultySubmitted, [dedupeKey]);
 
   // Second attempt: must return duplicate
   const secondRes = await submitDifficultyReport(row, { userId });
@@ -235,7 +236,7 @@ test("submitDifficultyReport: same service and same day duplicate submission gua
 
   // Cleanup
   revokeDifficultyConsent(userId);
-  window.localStorage.removeItem("submate-mvp:difficulty-submitted");
+  clearStoredValue(storageKeys.difficultySubmitted);
 });
 
 

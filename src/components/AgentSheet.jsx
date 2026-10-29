@@ -7,18 +7,24 @@ import { ActionCard } from "./agent/ActionCard";
 import { ConsentCard } from "./agent/ConsentCard";
 import {
   buildChatSnapshot,
-  clearChatHistory,
   getAuthToken,
   grantChatConsent,
-  loadChatHistory,
   readChatConsent,
   revokeChatConsent,
-  saveChatHistory,
   streamChat,
   ChatError,
 } from "../lib/chatClient";
 import { formatWon } from "../lib/dates";
-import { readEvidenceCases, readStoredValue, storageKeys, writeStoredValue } from "../lib/storage";
+import {
+  clearChatHistory,
+  getActiveOwnerPartition,
+  loadChatHistory,
+  readEvidenceCases,
+  readStoredValue,
+  saveChatHistory,
+  storageKeys,
+  writeStoredValue,
+} from "../lib/storage";
 import {
   appendDecisionToCase,
   createEvidenceCase,
@@ -546,14 +552,16 @@ export function AgentSheet({
   onUpdateSubscription,
   onSetAlerts,
 }) {
+  const chatPartition = getActiveOwnerPartition();
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [consentGranted, setConsentGranted] = useState(() => readChatConsent(userId));
+  const [consentGranted, setConsentGranted] = useState(() => readChatConsent(chatPartition));
   const [showConsentPrompt, setShowConsentPrompt] = useState(false);
   const [pendingUserText, setPendingUserText] = useState("");
   const [context, setContext] = useState({ lastSubscriptionId: null, lastIntent: null });
   const [activeInsight, setActiveInsight] = useState(initialInsight);
+  const [historyLoadedForUserId, setHistoryLoadedForUserId] = useState(null);
 
   const [approvals, setApprovals] = useState(() => readStoredValue(storageKeys.agentApprovals, {}));
   const [mandates, setMandates] = useState(() => readStoredValue(storageKeys.agentMandates, {}));
@@ -566,13 +574,20 @@ export function AgentSheet({
 
   // Sync consent state when userId changes
   useEffect(() => {
-    setConsentGranted(readChatConsent(userId));
-  }, [userId]);
+    setConsentGranted(readChatConsent(chatPartition));
+  }, [chatPartition, userId]);
 
 
   // Load chat history if messages is empty on mount
   useEffect(() => {
-    if (prevUserIdRef.current !== userId) { prevUserIdRef.current = userId; const saved = loadChatHistory(userId); onMessagesChange(saved); } else if (!messages || messages.length === 0) { const saved = loadChatHistory(userId); if (saved.length > 0) { onMessagesChange(saved); } }
+    if (prevUserIdRef.current !== userId) {
+      prevUserIdRef.current = userId;
+      onMessagesChange(loadChatHistory(chatPartition));
+    } else if (!messages || messages.length === 0) {
+      const saved = loadChatHistory(chatPartition);
+      if (saved.length > 0) onMessagesChange(saved);
+    }
+    setHistoryLoadedForUserId(userId);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- ����Ʈ �� ����� ���� �������� ��ȭ �̷��� �����ϱ� ���� messages/onMessagesChange ������� ������
   }, [userId]);
 
@@ -598,10 +613,11 @@ export function AgentSheet({
 
   // Persist messages whenever they change
   useEffect(() => {
-    if (messages && messages.length > 0) {
-      saveChatHistory(userId, messages);
+    // 계정 변경 직후 이전 사용자의 messages를 새 userId로 저장하지 않는다.
+    if (messages && messages.length > 0 && historyLoadedForUserId === userId) {
+      saveChatHistory(messages, chatPartition);
     }
-  }, [messages, userId]);
+  }, [chatPartition, historyLoadedForUserId, messages, userId]);
 
   // Reset context when messages are cleared
   useEffect(() => {
@@ -651,7 +667,7 @@ export function AgentSheet({
   }, [messages, userId]);
 
   const handleClearChat = () => {
-    clearChatHistory(userId);
+    clearChatHistory(chatPartition);
     onMessagesChange([]);
     setContext({ lastSubscriptionId: null, lastIntent: null });
     setActiveInsight(null);
@@ -659,13 +675,13 @@ export function AgentSheet({
   };
 
   const handleRevokeConsent = () => {
-    revokeChatConsent(userId);
+    revokeChatConsent(chatPartition);
     setConsentGranted(false);
     onToast?.("AI 데이터 전송을 껐어요. 간단 모드로 전환됩니다.");
   };
 
   const handleAcceptConsent = () => {
-    grantChatConsent(userId);
+    grantChatConsent(chatPartition);
     setConsentGranted(true);
     setShowConsentPrompt(false);
     if (pendingUserText) {
@@ -706,9 +722,14 @@ export function AgentSheet({
     const effectiveUsageAnswers = usageAnswers || readStoredValue(storageKeys.usageAnswers, {});
     let response = runAgent({ text, subscriptions, context, usageAnswers: effectiveUsageAnswers });
     if (response.type === "unknown" || response.type === "clarify") {
-      const isConsented = readChatConsent(userId);
+      const isConsented = readChatConsent(chatPartition);
       if (isConsented) {
-        const interpretation = await interpretWithAi(text, subscriptions, userId);
+        const interpretation = await interpretWithAi(
+          text,
+          subscriptions,
+          userId,
+          () => isConsented
+        );
         if (interpretation) {
           response = runAgent({ text, subscriptions, interpretation, context, usageAnswers: effectiveUsageAnswers });
         }

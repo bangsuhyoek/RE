@@ -13,12 +13,15 @@ Capacitor.PluginHeaders = [
       { name: "getPending", rtype: "promise" },
       { name: "cancel", rtype: "promise" },
       { name: "schedule", rtype: "promise" },
+      { name: "removeAllDeliveredNotifications", rtype: "promise" },
       { name: "registerActionTypes", rtype: "promise" },
     ],
   },
 ];
 
 let lastScheduled = [];
+let lastCanceled = [];
+let deliveredRemoved = 0;
 let lastRegisteredTypes = [];
 let permissionsResult = { display: "granted" };
 let pendingResult = { notifications: [] };
@@ -28,11 +31,16 @@ Capacitor.nativePromise = async (pluginName, methodName, options) => {
   if (methodName === "checkPermissions") return permissionsResult;
   if (methodName === "getPending") return pendingResult;
   if (methodName === "cancel") {
+    lastCanceled = options?.notifications || [];
     return {};
   }
   if (methodName === "schedule") {
     lastScheduled = options?.notifications || [];
     return { notifications: lastScheduled };
+  }
+  if (methodName === "removeAllDeliveredNotifications") {
+    deliveredRemoved += 1;
+    return {};
   }
   if (methodName === "registerActionTypes") {
     lastRegisteredTypes = options?.types || [];
@@ -50,12 +58,14 @@ const {
   MONTHLY_REPORT_NOTIFICATION_ID,
   MONTHLY_REPORT_TYPE,
   buildMonthlyReportNotification,
+  cancelScheduledUserNotifications,
   getPreviousMonthPaidTotal,
   resolveNotificationRoute,
   registerNotificationActionTypes,
   USAGE_CHECK_ACTION_TYPE_ID,
   buildD3NotificationContent,
 } = await import("../src/lib/notifications.js");
+const { getActiveOwnerPartition, getPartitionStorageKey } = await import("../src/lib/storage.js");
 
 const baseNow = new Date("2026-10-01T00:00:00.000Z");
 
@@ -220,7 +230,9 @@ test("clearAll 후 저장소가 빈 배열([])로 영속화된다", () => {
   const stored = getStoredNotifications();
   assert.deepEqual(stored, []);
 
-  const raw = globalThis.window.localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+  const raw = globalThis.window.localStorage.getItem(
+    getPartitionStorageKey(NOTIFICATION_STORAGE_KEY, getActiveOwnerPartition())
+  );
   assert.equal(raw, "[]");
 });
 
@@ -371,6 +383,24 @@ test("월간 요약 알림은 다음 달 1일 09시에 고정 ID로 한 번만 �
   assert.equal(secondRun.length, 1);
   assert.equal(secondRun[0].id, firstRun[0].id);
   assert.equal(new Date(secondRun[0].schedule.at).getTime(), at.getTime());
+});
+
+test("계정 정리 시 예약 알림과 전달된 알림을 모두 취소한다", async () => {
+  pendingResult = {
+    notifications: [
+      { id: 11, title: "이전 사용자 D-1", extra: { subscriptionId: "old-sub" } },
+      { id: MONTHLY_REPORT_NOTIFICATION_ID, title: "이전 사용자 월간 요약", extra: { type: MONTHLY_REPORT_TYPE } },
+    ],
+  };
+  lastCanceled = [];
+  deliveredRemoved = 0;
+
+  const ok = await cancelScheduledUserNotifications();
+  assert.equal(ok, true);
+  assert.equal(lastCanceled.length, 2);
+  assert.equal(deliveredRemoved, 1);
+
+  pendingResult = { notifications: [] };
 });
 
 test("1. 답변이 없을 때 cycle 1 D-3 알림은 질문 형태와 actionTypeId를 갖는다", async () => {
