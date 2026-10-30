@@ -1269,5 +1269,38 @@
         "description": "[플랜 취소]를 선택하여 해지합니다 (스토어 결제 시 구글플레이 구독 취소)."
       }
     ]
+  },
+  {
+    "id": "google-ai",
+    "name": "Google AI Pro",
+    "category": "SaaS",
+    "plan": "Google AI Pro",
+    "amount": 29000,
+    "brandColor": "#4285F4",
+    "cancelUrl": "https://support.google.com/googleplay/answer/7018481?hl=ko",
+    "aliases": [
+      "구글 AI",
+      "구글 AI 프로",
+      "제미나이",
+      "Gemini",
+      "Google AI Pro",
+      "구글 원"
+    ],
+    "monogram": "G",
+    "availablePlans": [
+      {
+        "plan": "Google AI Pro",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Google AI Pro",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "5TB 스토리지 · Gemini 4 Argon"
+      }
+    ],
+    "guideSteps": []
   }
 ]

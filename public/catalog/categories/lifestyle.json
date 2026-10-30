@@ -223,5 +223,69 @@
         "description": "하단 [구독 취소]를 누르고 취소 사유를 선택해 완료합니다."
       }
     ]
+  },
+  {
+    "id": "kakao-membership",
+    "name": "카카오멤버십",
+    "category": "생활/모빌리티",
+    "plan": "카카오멤버십",
+    "amount": 4900,
+    "brandColor": "#FEE500",
+    "cancelUrl": "https://my.kakao.com",
+    "aliases": [
+      "카카오멤버십",
+      "카카오 멤버십",
+      "kakao membership",
+      "카카오 통합멤버십",
+      "카카오 구독"
+    ],
+    "monogram": "K",
+    "availablePlans": [
+      {
+        "plan": "카카오멤버십",
+        "amount": 4900
+      }
+    ],
+    "plans": [
+      {
+        "name": "카카오멤버십",
+        "amount": 4900,
+        "billingCycle": "매월",
+        "quality": "선물하기·톡딜 적립 · 카카오페이지 캐시 · 이모티콘 플러스/톡클라우드 택1"
+      }
+    ],
+    "guideSteps": []
+  },
+  {
+    "id": "lg-udok",
+    "name": "LG유플러스 유독",
+    "category": "생활/모빌리티",
+    "plan": "유독 Pack",
+    "amount": 9900,
+    "brandColor": "#E6007E",
+    "cancelUrl": "https://www.lguplus.com/pogg",
+    "aliases": [
+      "유독",
+      "LG유플러스 유독",
+      "U+ 유독",
+      "유플러스 유독",
+      "udok"
+    ],
+    "monogram": "U",
+    "availablePlans": [
+      {
+        "plan": "유독 Pack",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "유독 Pack",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "eBook·디지털 매거진 + 커피·영화·쇼핑 혜택 결합 6종"
+      }
+    ],
+    "guideSteps": []
   }
 ]

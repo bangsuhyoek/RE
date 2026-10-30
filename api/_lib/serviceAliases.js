@@ -97,7 +97,7 @@ export const SERVICE_ALIAS_CATALOG = [
   {
     id: "google-one",
     name: "Google One",
-    aliases: ["google one", "구글원", "구글 원"]
+    aliases: ["google one", "구글원", "구글 AI 플랜"]
   },
   {
     id: "icloud",
@@ -488,5 +488,62 @@ export const SERVICE_ALIAS_CATALOG = [
     id: "t-universe",
     name: "T우주 우주패스",
     aliases: ["t universe", "우주패스", "t우주", "sk텔레콤 우주패스", "t우주 우주패스"]
+  },
+  {
+    "id": "apple-one",
+    "name": "Apple One",
+    "aliases": [
+      "애플원",
+      "애플 원",
+      "Apple One",
+      "apple one",
+      "애플 구독"
+    ]
+  },
+  {
+    "id": "google-ai",
+    "name": "Google AI Pro",
+    "aliases": [
+      "구글 AI",
+      "구글 AI 프로",
+      "제미나이",
+      "Gemini",
+      "Google AI Pro",
+      "구글 AI 플랜"
+    ]
+  },
+  {
+    "id": "ssg7club",
+    "name": "쓱7클럽",
+    "aliases": [
+      "쓱7클럽",
+      "쓱세븐클럽",
+      "SSG7",
+      "ssg7club",
+      "쓱클럽",
+      "SSG 멤버십"
+    ]
+  },
+  {
+    "id": "kakao-membership",
+    "name": "카카오멤버십",
+    "aliases": [
+      "카카오멤버십",
+      "카카오 멤버십",
+      "kakao membership",
+      "카카오 통합멤버십",
+      "카카오 구독"
+    ]
+  },
+  {
+    "id": "lg-udok",
+    "name": "LG유플러스 유독",
+    "aliases": [
+      "유독",
+      "LG유플러스 유독",
+      "U+ 유독",
+      "유플러스 유독",
+      "udok"
+    ]
   }
 ];

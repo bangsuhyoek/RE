@@ -17,9 +17,9 @@
     "monogram": "N",
     "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
     "benefitPeriod": "가입 후 첫 7일간",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "duolingo-14d-free",
@@ -39,9 +39,9 @@
     "monogram": "D",
     "campaignPeriod": "상시 진행 (신규 회원 웰컴 트라이얼)",
     "benefitPeriod": "가입 후 첫 1주간",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "naverplus-netflix",
@@ -63,8 +63,8 @@
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
     "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "naver-spotify-link",
@@ -86,8 +86,8 @@
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (네이버플러스 멤버십 파트너십)",
     "benefitPeriod": "네이버 멤버십 유지 기간 상시",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "disney-bundle-37",
@@ -110,8 +110,8 @@
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 제휴 (통합 번들 요금제)",
     "benefitPeriod": "번들 요금제 유지 기간 상시",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "skt-universe-youtube",
@@ -131,31 +131,9 @@
     "monogram": "SKT",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
-  },
-  {
-    "id": "adobe-student-66",
-    "category": "학생/연간",
-    "kind": "학생·교사 66% 특가 할인",
-    "title": "Adobe Creative Cloud",
-    "subtitle": "모든 앱 20종 66% 할인",
-    "description": "포토샵, 프리미어, 일러스트 등 20개 전 앱을 첫해 월 26,400원에 이용하세요. (연 62만 원 절약)",
-    "saving": 51700,
-    "originalPrice": 78100,
-    "offerPrice": 26400,
-    "dday": 14,
-    "sourceServiceIds": [
-      "adobe"
-    ],
-    "link": "https://www.adobe.com/kr/creativecloud/buy/students.html",
-    "monogram": "A",
-    "verifiedStatus": "LIVE_CONFIRMED",
-    "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
-    "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "notion-student-free",
@@ -175,9 +153,9 @@
     "monogram": "N",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "figma-edu-free",
@@ -197,8 +175,8 @@
     "monogram": "F",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED"
   },
   {
@@ -220,30 +198,8 @@
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (교육 기관 재학/재직 인증)",
     "benefitPeriod": "인증 후 1년 (매년 갱신 가능)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
-  },
-  {
-    "id": "disney-annual-16",
-    "category": "학생/연간",
-    "kind": "연간 결제 16% 할인 (2개월 무료 효과)",
-    "title": "Disney+",
-    "subtitle": "연간 결제로 2개월 무료 효과",
-    "description": "스탠다드 요금제를 연 99,000원에 결제하여 월 결제 대비 16% 절약하세요.",
-    "saving": 19800,
-    "originalPrice": 118800,
-    "offerPrice": 99000,
-    "dday": 365,
-    "sourceServiceIds": [
-      "disney"
-    ],
-    "link": "https://www.disneyplus.com/ko-kr",
-    "monogram": "D",
-    "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
-    "benefitPeriod": "결제일로부터 1년 (12개월)",
-    "lastCheckedAt": "2026-10-18T16:39:04.674Z",
-    "lastVerifiedAt": "2026-10-18T16:39:04.674Z",
-    "verifiedStatus": "LIVE_CONFIRMED"
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "wavve-annual-16",
@@ -263,9 +219,9 @@
     "monogram": "W",
     "campaignPeriod": "상시 운영 (공식 연간 할인 플랜)",
     "benefitPeriod": "결제일로부터 1년 (12개월)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "nintendo-family-plan",
@@ -285,9 +241,9 @@
     "monogram": "N",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "adobe-new-user-25",
@@ -308,8 +264,8 @@
     "verifiedStatus": "LIVE_CONFIRMED",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "youtube-lite-43",
@@ -329,8 +285,8 @@
     "monogram": "Y",
     "campaignPeriod": "상시 진행 (신규 회원 한정)",
     "benefitPeriod": "가입 후 첫 1개월",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED"
   },
   {
@@ -351,9 +307,9 @@
     "monogram": "M",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "canva-promo",
@@ -373,9 +329,9 @@
     "monogram": "C",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "github-copilot-promo",
@@ -395,9 +351,9 @@
     "monogram": "G",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "slack-pro-promo",
@@ -417,9 +373,9 @@
     "monogram": "S",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "ms365-promo",
@@ -439,9 +395,9 @@
     "monogram": "M",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "evernote-promo",
@@ -461,9 +417,9 @@
     "monogram": "E",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "1password-promo",
@@ -483,9 +439,9 @@
     "monogram": "1",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "youtube-promo",
@@ -505,9 +461,9 @@
     "monogram": "Y",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "appletv-promo",
@@ -527,9 +483,9 @@
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "spotify-promo",
@@ -549,9 +505,9 @@
     "monogram": "S",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "genie-promo",
@@ -571,9 +527,9 @@
     "monogram": "G",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "applemusic-promo",
@@ -593,9 +549,9 @@
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "ytmusic-promo",
@@ -615,9 +571,9 @@
     "monogram": "Y",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "millie-promo",
@@ -637,9 +593,9 @@
     "monogram": "밀",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "ridiselect-promo",
@@ -659,9 +615,9 @@
     "monogram": "리",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "welaaa-promo",
@@ -681,9 +637,9 @@
     "monogram": "윌",
     "benefitPeriod": "가입 후 첫 2주간",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "the-joongang-plus-promo",
@@ -703,9 +659,9 @@
     "monogram": "더",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "nyt-digital-promo",
@@ -725,9 +681,9 @@
     "monogram": "T",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "wsj-digital-promo",
@@ -747,9 +703,9 @@
     "monogram": "T",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "ft-digital-promo",
@@ -769,9 +725,9 @@
     "monogram": "F",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "audible-promo",
@@ -791,9 +747,9 @@
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "scribd-promo",
@@ -813,9 +769,9 @@
     "monogram": "S",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "naverplus-promo",
@@ -835,9 +791,9 @@
     "monogram": "네",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "yogipass-promo",
@@ -857,9 +813,9 @@
     "monogram": "요",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "ps-plus-promo",
@@ -879,9 +835,9 @@
     "monogram": "P",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "apple-arcade-promo",
@@ -901,9 +857,9 @@
     "monogram": "A",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "ea-play-promo",
@@ -923,9 +879,9 @@
     "monogram": "E",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   },
   {
     "id": "wow-subscription-promo",
@@ -945,8 +901,887 @@
     "monogram": "W",
     "benefitPeriod": "상시 진행 (공식 검증 완료)",
     "campaignPeriod": "상시 진행 (인증 프로모션)",
-    "lastCheckedAt": "2026-10-18T16:28:31.740Z",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
     "verifiedStatus": "LIVE_CONFIRMED",
-    "lastVerifiedAt": "2026-10-18T16:28:31.740Z"
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "apple-one-individual",
+    "category": "통신사/결합",
+    "kind": "Apple One 개인 월 14,900원, 8,100원 절약",
+    "title": "Apple One 개인",
+    "subtitle": "Apple One 개인 월 14,900원, 8,100원 절약",
+    "description": "개별 합산 23,000원(iCloud 50GB 1,100 + Apple TV 6,500 + Music 8,900 + Arcade 6,500) vs 14,900원. iCloud+ 50GB 포함, 무약정.",
+    "saving": 8100,
+    "originalPrice": 23000,
+    "offerPrice": 14900,
+    "dday": 30,
+    "sourceServiceIds": [
+      "applemusic",
+      "appletv",
+      "apple-arcade",
+      "icloud"
+    ],
+    "link": "https://www.apple.com/kr/apple-one/",
+    "monogram": "A",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "apple-one-family",
+    "category": "통신사/결합",
+    "kind": "Apple One 가족 월 20,900원, 10,000원 절약",
+    "title": "Apple One 가족",
+    "subtitle": "Apple 가족 공유 그룹 필요",
+    "description": "개별 합산 30,900원(iCloud 200GB 4,400 + Apple TV 6,500 + Music 가족 13,500 + Arcade 6,500) vs 20,900원. iCloud+ 200GB 포함, 무약정.",
+    "saving": 10000,
+    "originalPrice": 30900,
+    "offerPrice": 20900,
+    "dday": 30,
+    "sourceServiceIds": [
+      "applemusic",
+      "appletv",
+      "apple-arcade",
+      "icloud"
+    ],
+    "link": "https://www.apple.com/kr/apple-one/",
+    "monogram": "A",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "genie-millie",
+    "category": "음악",
+    "kind": "지니 X 밀리의 서재 월 13,498원 (정가 20,040원)",
+    "title": "지니 X 밀리의 서재",
+    "subtitle": "지니 X 밀리의 서재 월 13,498원 (정가 20,040원)",
+    "description": "지니 음악감상과 밀리의 서재를 묶은 상시 결합 이용권.",
+    "saving": 6542,
+    "originalPrice": 20040,
+    "offerPrice": 13498,
+    "dday": 30,
+    "sourceServiceIds": [
+      "genie",
+      "millie"
+    ],
+    "link": "https://pay.genie.co.kr/product/f_Product_Main",
+    "monogram": "G",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "spotify-duo",
+    "category": "음악",
+    "kind": "듀오 요금제로 2인 월 5,995원 절약",
+    "title": "Spotify 듀오",
+    "subtitle": "같은 주소에 사는 2인이 각자 계정 사용",
+    "description": "듀오 월 17,985원 vs 개인 2계정 11,990원×2=23,980원. 2인 전용, 개인 요금제 2개와 동일 혜택.",
+    "saving": 5995,
+    "originalPrice": 23980,
+    "offerPrice": 17985,
+    "dday": 30,
+    "sourceServiceIds": [
+      "spotify"
+    ],
+    "link": "https://www.spotify.com/kr-ko/premium/",
+    "monogram": "S",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "spotify-student",
+    "category": "학생/연간",
+    "kind": "학생 인증 시 월 5,390원 절약",
+    "title": "Spotify 학생",
+    "subtitle": "Spotify 학생 자격 검증 통과 필요.",
+    "description": "학생 월 6,600원 vs 개인 월 11,990원. 1개 계정, 인증 주기마다 재검증.",
+    "saving": 5390,
+    "originalPrice": 11990,
+    "offerPrice": 6600,
+    "dday": 30,
+    "sourceServiceIds": [
+      "spotify"
+    ],
+    "link": "https://www.spotify.com/kr-ko/premium/",
+    "monogram": "S",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "인증 유효 기간(통상 최대 4년)",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "spotify-basic",
+    "category": "음악",
+    "kind": "베이직 요금제로 월 3,300원 절약",
+    "title": "Spotify 베이직",
+    "subtitle": "베이직 요금제로 월 3,300원 절약",
+    "description": "베이직 월 8,690원 vs 개인 월 11,990원. 다운로드 기능 없음, 음질·재생 제한.",
+    "saving": 3300,
+    "originalPrice": 11990,
+    "offerPrice": 8690,
+    "dday": 30,
+    "sourceServiceIds": [
+      "spotify"
+    ],
+    "link": "https://www.spotify.com/kr-ko/premium/",
+    "monogram": "S",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "applemusic-family",
+    "category": "음악",
+    "kind": "가족 요금제로 5인 기준 월 31,000원 절약",
+    "title": "Apple Music 가족",
+    "subtitle": "Apple 가족 공유 그룹 필요",
+    "description": "가족 월 13,500원 vs 개인 8,900원×5=44,500원 (5인 기준). 구성원 각자 개인 계정, 신규 구독자는 첫 1개월 무료.",
+    "saving": 31000,
+    "originalPrice": 44500,
+    "offerPrice": 13500,
+    "dday": 30,
+    "sourceServiceIds": [
+      "applemusic"
+    ],
+    "link": "https://www.apple.com/kr/apple-music/",
+    "monogram": "A",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "netflix-ad-standard",
+    "category": "OTT",
+    "kind": "광고형 요금제로 월 6,500원 절약",
+    "title": "Netflix 광고형 스탠다드",
+    "subtitle": "일부 콘텐츠 시청 제한, 광고 노출",
+    "description": "광고형 스탠다드 월 7,000원 vs 스탠다드 월 13,500원. FHD, 동시접속 2대, 추가 회원 1명(월 4,000원).",
+    "saving": 6500,
+    "originalPrice": 13500,
+    "offerPrice": 7000,
+    "dday": 30,
+    "sourceServiceIds": [
+      "netflix"
+    ],
+    "link": "https://help.netflix.com/ko/node/24926",
+    "monogram": "N",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "netflix-extra-member",
+    "category": "OTT",
+    "kind": "가구 외 1인 추가 시 월 8,500원 절약",
+    "title": "Netflix 추가 회원",
+    "subtitle": "광고형 멤버십은 월 4,000원, 광고 없는 멤버십은 월 5,000원",
+    "description": "추가 회원 월 5,000원 vs 별도 스탠다드 13,500원. 추가 회원은 별도 계정·비밀번호, 요금은 본인 멤버십에 합산.",
+    "saving": 8500,
+    "originalPrice": 13500,
+    "offerPrice": 5000,
+    "dday": 30,
+    "sourceServiceIds": [
+      "netflix"
+    ],
+    "link": "https://help.netflix.com/ko/node/24926",
+    "monogram": "N",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "disney-standard-annual",
+    "category": "학생/연간",
+    "kind": "연간 결제로 월 1,917원 절약",
+    "title": "Disney+ 스탠다드 연간",
+    "subtitle": "연간 결제로 월 1,917원 절약",
+    "description": "연 115,000원÷12=9,583원 vs 월 11,500원. 2026-11-10부터 신규 가입자에게 적용되는 가격. 기존 구독자는 유지.",
+    "saving": 1917,
+    "originalPrice": 11500,
+    "offerPrice": 9583,
+    "dday": 30,
+    "sourceServiceIds": [
+      "disney"
+    ],
+    "link": "https://help.disneyplus.com/ko/article/disneyplus-ko-kr-price",
+    "monogram": "D",
+    "campaignPeriod": "상시 (2026-11-10 가격 개편)",
+    "benefitPeriod": "12개월 일시불",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "disney-premium-annual",
+    "category": "학생/연간",
+    "kind": "연간 결제로 월 2,750원 절약",
+    "title": "Disney+ 프리미엄 연간",
+    "subtitle": "연간 결제로 월 2,750원 절약",
+    "description": "연 165,000원÷12=13,750원 vs 월 16,500원. 2026-11-10부터 신규 가입자에게 적용, 4K UHD·동시접속 4대.",
+    "saving": 2750,
+    "originalPrice": 16500,
+    "offerPrice": 13750,
+    "dday": 30,
+    "sourceServiceIds": [
+      "disney"
+    ],
+    "link": "https://help.disneyplus.com/ko/article/disneyplus-ko-kr-price",
+    "monogram": "D",
+    "campaignPeriod": "상시 (2026-11-10 가격 개편)",
+    "benefitPeriod": "12개월 일시불",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "disney-tving-bundle",
+    "category": "통신사/결합",
+    "kind": "디즈니+·티빙 묶음으로 월 7,000원 절약",
+    "title": "Disney+ 티빙 번들",
+    "subtitle": "Disney+ 정책상 19세 미만은 이용 불가",
+    "description": "번들 월 18,000원 vs 디즈니+ 스탠다드 11,500원 + 티빙 스탠다드 13,500원 = 25,000원. 디즈니+ 스탠다드 + 티빙 스탠다드 구성, 해지는 구매처에서.",
+    "saving": 7000,
+    "originalPrice": 25000,
+    "offerPrice": 18000,
+    "dday": 30,
+    "sourceServiceIds": [
+      "disney",
+      "tving"
+    ],
+    "link": "https://help.disneyplus.com/ko/article/disneyplus-ko-kr-price",
+    "monogram": "D",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "disney-extra-member",
+    "category": "OTT",
+    "kind": "가구 외 1인 추가 시 월 6,500원 절약",
+    "title": "Disney+ 추가 회원",
+    "subtitle": "동시 1대 시청, 프로필 1개만 생성",
+    "description": "추가 회원 월 5,000원 vs 별도 스탠다드 11,500원. 스탠다드·프리미엄 가입자만 추가 가능.",
+    "saving": 6500,
+    "originalPrice": 11500,
+    "offerPrice": 5000,
+    "dday": 30,
+    "sourceServiceIds": [
+      "disney"
+    ],
+    "link": "https://help.disneyplus.com/ko/article/disneyplus-ko-kr-price",
+    "monogram": "D",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "tving-wavve-double-standard",
+    "category": "통신사/결합",
+    "kind": "두 OTT 묶음으로 월 9,400원 절약",
+    "title": "티빙·웨이브 더블 스탠다드",
+    "subtitle": "계정 연결 필요, 가구 구성원만 이용",
+    "description": "더블 스탠다드 월 15,000원 vs 정가 24,400원. 티빙 스탠다드 + 웨이브 스탠다드, 동시접속 2대(각 1대).",
+    "saving": 9400,
+    "originalPrice": 24400,
+    "offerPrice": 15000,
+    "dday": 30,
+    "sourceServiceIds": [
+      "tving",
+      "wavve"
+    ],
+    "link": "https://www.tving.com/membership/tving",
+    "monogram": "T",
+    "campaignPeriod": "2026-10-06 ~ 2027-01-31 (요금 카드 표기)",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "tving-wavve-double-basic",
+    "category": "통신사/결합",
+    "kind": "두 OTT 묶음으로 월 3,900원 절약",
+    "title": "티빙·웨이브 더블 베이직",
+    "subtitle": "계정 연결 필요",
+    "description": "더블 베이직 월 13,500원 vs 정가 17,400원. 티빙 베이직 + 웨이브 베이직, 동시접속 1대.",
+    "saving": 3900,
+    "originalPrice": 17400,
+    "offerPrice": 13500,
+    "dday": 30,
+    "sourceServiceIds": [
+      "tving",
+      "wavve"
+    ],
+    "link": "https://www.tving.com/membership/tving",
+    "monogram": "T",
+    "campaignPeriod": "2026-10-06 ~ 2027-01-31 (요금 카드 표기)",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "tving-wavve-double-slim",
+    "category": "통신사/결합",
+    "kind": "광고형 묶음으로 월 3,900원 절약",
+    "title": "티빙·웨이브 더블 슬림",
+    "subtitle": "광고 시청 필요, 계정 연결 필요",
+    "description": "더블 슬림 월 9,500원 vs 정가 13,400원. 광고형, 모바일·태블릿·PC 전용, 동시접속 1대.",
+    "saving": 3900,
+    "originalPrice": 13400,
+    "offerPrice": 9500,
+    "dday": 30,
+    "sourceServiceIds": [
+      "tving",
+      "wavve"
+    ],
+    "link": "https://www.tving.com/membership/tving",
+    "monogram": "T",
+    "campaignPeriod": "2026-10-06 ~ 2027-01-31 (요금 카드 표기)",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "tving-wavve-double-premium",
+    "category": "통신사/결합",
+    "kind": "최고 화질 묶음으로 월 11,400원 절약",
+    "title": "티빙·웨이브 더블 프리미엄",
+    "subtitle": "계정 연결 필요, 가구 구성원만 이용",
+    "description": "더블 프리미엄 월 19,500원 vs 정가 30,900원. 티빙 4K 일부 + 웨이브 최고화질, 동시접속 4대.",
+    "saving": 11400,
+    "originalPrice": 30900,
+    "offerPrice": 19500,
+    "dday": 30,
+    "sourceServiceIds": [
+      "tving",
+      "wavve"
+    ],
+    "link": "https://www.tving.com/membership/tving",
+    "monogram": "T",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "tving-wavve-double-ad",
+    "category": "통신사/결합",
+    "kind": "광고형 묶음으로 월 4,000원 절약",
+    "title": "티빙·웨이브 더블 광고형",
+    "subtitle": "일부 콘텐츠 제한, 캐스팅 미지원",
+    "description": "더블 광고형 스탠다드 월 7,000원 vs 정가 11,000원. 동시접속 2대, 다운로드 15회.",
+    "saving": 4000,
+    "originalPrice": 11000,
+    "offerPrice": 7000,
+    "dday": 30,
+    "sourceServiceIds": [
+      "tving",
+      "wavve"
+    ],
+    "link": "https://www.tving.com/membership/tving",
+    "monogram": "T",
+    "campaignPeriod": "2026-10-06 ~ 2027-01-31 (요금 카드 표기)",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "icloud-200gb-family",
+    "category": "생활/모빌리티",
+    "kind": "5인 공유로 월 1,100원 절약",
+    "title": "iCloud+ 200GB 가족 공유",
+    "subtitle": "가족 공유 그룹 필요",
+    "description": "200GB 월 4,400원 vs 50GB 1,100원×5=5,500원. 저장공간 공유, 비공개 릴레이 등 iCloud+ 기능 포함.",
+    "saving": 1100,
+    "originalPrice": 5500,
+    "offerPrice": 4400,
+    "dday": 30,
+    "sourceServiceIds": [
+      "icloud"
+    ],
+    "link": "https://www.apple.com/kr/icloud/",
+    "monogram": "A",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "xbox-gamepass-essential",
+    "category": "게임/엔터",
+    "kind": "Essential로 월 8,200원 절약",
+    "title": "Xbox Game Pass Essential",
+    "subtitle": "Essential로 월 8,200원 절약",
+    "description": "Essential 월 10,800원 vs Ultimate 월 19,000원. 50여 개 게임, 클라우드 월 5시간, 신작 당일 미포함.",
+    "saving": 8200,
+    "originalPrice": 19000,
+    "offerPrice": 10800,
+    "dday": 30,
+    "sourceServiceIds": [
+      "xbox-gamepass"
+    ],
+    "link": "https://www.xbox.com/ko-KR/xbox-game-pass",
+    "monogram": "X",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "xbox-gamepass-premium",
+    "category": "게임/엔터",
+    "kind": "Premium으로 월 4,100원 절약",
+    "title": "Xbox Game Pass Premium",
+    "subtitle": "Premium으로 월 4,100원 절약",
+    "description": "Premium 월 14,900원 vs Ultimate 월 19,000원. 200여 개 게임, 출시 1년 이내 신작, 클라우드 월 10시간.",
+    "saving": 4100,
+    "originalPrice": 19000,
+    "offerPrice": 14900,
+    "dday": 30,
+    "sourceServiceIds": [
+      "xbox-gamepass"
+    ],
+    "link": "https://www.xbox.com/ko-KR/xbox-game-pass",
+    "monogram": "X",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "xbox-pc-gamepass",
+    "category": "게임/엔터",
+    "kind": "PC 전용으로 월 3,500원 절약",
+    "title": "PC Game Pass",
+    "subtitle": "콘솔 클라우드 게임 미포함",
+    "description": "PC 전용 월 15,500원 vs Ultimate 월 19,000원. PC 게임 라이브러리만 제공.",
+    "saving": 3500,
+    "originalPrice": 19000,
+    "offerPrice": 15500,
+    "dday": 30,
+    "sourceServiceIds": [
+      "xbox-gamepass"
+    ],
+    "link": "https://www.xbox.com/ko-KR/xbox-game-pass",
+    "monogram": "X",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "월 정기결제",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "psplus-essential-annual",
+    "category": "게임/엔터",
+    "kind": "12개월 결제로 월 4,800원 절약",
+    "title": "PS Plus 에센셜 12개월",
+    "subtitle": "12개월 결제로 월 4,800원 절약",
+    "description": "12개월 86,400원÷12=7,200원 vs 월 12,000원. 월간 게임 2~3종, 온라인 멀티플레이, 클라우드 저장.",
+    "saving": 4800,
+    "originalPrice": 12000,
+    "offerPrice": 7200,
+    "dday": 30,
+    "sourceServiceIds": [
+      "ps-plus"
+    ],
+    "link": "https://www.playstation.com/ko-kr/ps-plus/",
+    "monogram": "P",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "12개월",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "psplus-extra-annual",
+    "category": "게임/엔터",
+    "kind": "12개월 결제로 월 5,850원 절약",
+    "title": "PS Plus 스페셜 12개월",
+    "subtitle": "12개월 결제로 월 5,850원 절약",
+    "description": "12개월 145,800원÷12=12,150원 vs 월 18,000원. 에센셜 + 게임 카탈로그 수백 종.",
+    "saving": 5850,
+    "originalPrice": 18000,
+    "offerPrice": 12150,
+    "dday": 30,
+    "sourceServiceIds": [
+      "ps-plus"
+    ],
+    "link": "https://www.playstation.com/ko-kr/ps-plus/",
+    "monogram": "P",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "12개월",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "speak-annual",
+    "category": "교육/어학",
+    "kind": "연간 결제로 월 16,125원 절약",
+    "title": "스픽 프리미엄 연간",
+    "subtitle": "웹 연간권 12개월 할부 결제 기준",
+    "description": "연 129,000원÷12=10,750원 vs 정가 322,500원÷12=26,875원. 정가 대비 60% 할인, 12개월 할부 청구.",
+    "saving": 16125,
+    "originalPrice": 26875,
+    "offerPrice": 10750,
+    "dday": 30,
+    "sourceServiceIds": [
+      "speak"
+    ],
+    "link": "https://www.speak.com/untitled",
+    "monogram": "S",
+    "campaignPeriod": "상시 (웹 연간권 할인가)",
+    "benefitPeriod": "12개월",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "speak-plus-annual",
+    "category": "교육/어학",
+    "kind": "연간 결제로 월 42,375원 절약",
+    "title": "스픽 프리미엄 플러스 연간",
+    "subtitle": "연간 결제로 월 42,375원 절약",
+    "description": "연 239,000원÷12=19,917원 vs 정가 747,500원÷12=62,292원. 정가 대비 68% 할인, 12개월 할부 청구.",
+    "saving": 42375,
+    "originalPrice": 62291,
+    "offerPrice": 19916,
+    "dday": 30,
+    "sourceServiceIds": [
+      "speak"
+    ],
+    "link": "https://www.speak.com/untitled",
+    "monogram": "S",
+    "campaignPeriod": "상시 (웹 연간권 할인가)",
+    "benefitPeriod": "12개월",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "kakaomembership-emoticon",
+    "category": "통신사/결합",
+    "kind": "이모티콘 플러스 무료 (정가 월 4,900원)",
+    "title": "카카오멤버십 X 이모티콘 플러스",
+    "subtitle": "이모티콘 플러스 무료 (정가 월 4,900원)",
+    "description": "월 4,900원 카카오멤버십에서 이모티콘 플러스와 톡클라우드 130GB 중 하나를 선택한다.",
+    "saving": 4900,
+    "originalPrice": 4900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "kakao-membership",
+      "kakaotalk-emoticon"
+    ],
+    "link": "https://membership.kakao.com/intro",
+    "monogram": "K",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "kakaomembership-melon",
+    "category": "통신사/결합",
+    "kind": "멜론 1,600원 캐시 매월",
+    "title": "카카오멤버십 X 멜론 캐시",
+    "subtitle": "멜론 1,600원 캐시 매월",
+    "description": "매월 멜론 1,600원 상당 캐시를 지원하고, 첫 가입자에게는 2개월분 캐시를 추가 지급한다.",
+    "saving": 1600,
+    "originalPrice": 1600,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "kakao-membership",
+      "melon"
+    ],
+    "link": "https://membership.kakao.com/intro",
+    "monogram": "K",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "kakaomembership-kakaopage",
+    "category": "통신사/결합",
+    "kind": "카카오페이지 2,000원 캐시 매월",
+    "title": "카카오멤버십 X 카카오페이지",
+    "subtitle": "카카오페이지 2,000원 캐시 매월",
+    "description": "카카오페이지 캐시 2,000원을 매월 제공한다. 회차 종료 시 미사용 캐시는 소멸한다.",
+    "saving": 2000,
+    "originalPrice": 2000,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "kakao-membership"
+    ],
+    "link": "https://membership.kakao.com/intro",
+    "monogram": "K",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:57:21.304Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:57:21.304Z"
+  },
+  {
+    "id": "udok-youtube-premium",
+    "category": "통신사/결합",
+    "kind": "YouTube Premium 월 13,900원 (정가 16,900원)",
+    "title": "유독 YouTube Premium",
+    "subtitle": "YouTube Premium 월 13,900원 (정가 16,900원)",
+    "description": "유독에서 YouTube Premium과 추가 혜택을 묶어 월 13,900원에 제공한다.",
+    "saving": 3000,
+    "originalPrice": 16900,
+    "offerPrice": 13900,
+    "dday": 30,
+    "sourceServiceIds": [
+      "lg-udok",
+      "youtube"
+    ],
+    "link": "https://www.lguplus.com/pogg/main",
+    "monogram": "U",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "udok-netflix-youtube",
+    "category": "통신사/결합",
+    "kind": "Netflix + YouTube Premium 연간권 월 18,900원 (정가 21,900원)",
+    "title": "유독 Netflix + YouTube Premium",
+    "subtitle": "Netflix + YouTube Premium 연간권 월 18,900원 (정가…",
+    "description": "Netflix와 YouTube Premium을 연간권으로 묶어 월 18,900원에 제공한다.",
+    "saving": 3000,
+    "originalPrice": 21900,
+    "offerPrice": 18900,
+    "dday": 30,
+    "sourceServiceIds": [
+      "lg-udok",
+      "netflix",
+      "youtube"
+    ],
+    "link": "https://www.lguplus.com/pogg/main",
+    "monogram": "U",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "udok-tving",
+    "category": "OTT",
+    "kind": "TVING 월 4,950원 (정가 5,500원)",
+    "title": "유독 TVING",
+    "subtitle": "TVING 월 4,950원 (정가 5,500원)",
+    "description": "TVING 이용권을 유독 할인가 월 4,950원에 제공한다.",
+    "saving": 550,
+    "originalPrice": 5500,
+    "offerPrice": 4950,
+    "dday": 30,
+    "sourceServiceIds": [
+      "lg-udok",
+      "tving"
+    ],
+    "link": "https://www.lguplus.com/pogg/main",
+    "monogram": "U",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "udok-disney",
+    "category": "OTT",
+    "kind": "Disney+ 월 9,405원 (정가 9,900원)",
+    "title": "유독 Disney+",
+    "subtitle": "Disney+ 월 9,405원 (정가 9,900원)",
+    "description": "Disney+ 이용권을 유독 할인가 월 9,405원에 제공한다.",
+    "saving": 495,
+    "originalPrice": 9900,
+    "offerPrice": 9405,
+    "dday": 30,
+    "sourceServiceIds": [
+      "lg-udok",
+      "disney"
+    ],
+    "link": "https://www.lguplus.com/pogg/main",
+    "monogram": "U",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "kt-disney-plus-standard",
+    "category": "통신사/결합",
+    "kind": "디즈니+ 스탠다드 월 8,900원 (정상가 9,900원)",
+    "title": "KT 디즈니+ (KT 구독) 스탠다드",
+    "subtitle": "KT 모바일 부가서비스로 가입해야 적용.",
+    "description": "KT 요금표의 정상가 9,900원과 할인가 8,900원 차액.",
+    "saving": 1000,
+    "originalPrice": 9900,
+    "offerPrice": 8900,
+    "dday": 30,
+    "sourceServiceIds": [
+      "disney"
+    ],
+    "link": "https://product.kt.com/wDic/productDetail.do?ItemCode=1583",
+    "monogram": "D",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "kt-disney-plus-premium",
+    "category": "통신사/결합",
+    "kind": "디즈니+ 프리미엄 월 12,900원 (정상가 13,900원)",
+    "title": "KT 디즈니+ (KT 구독) 프리미엄",
+    "subtitle": "KT 모바일 부가서비스로 가입해야 적용.",
+    "description": "KT 요금표의 정상가 13,900원과 할인가 12,900원 차액.",
+    "saving": 1000,
+    "originalPrice": 13900,
+    "offerPrice": 12900,
+    "dday": 30,
+    "sourceServiceIds": [
+      "disney"
+    ],
+    "link": "https://product.kt.com/wDic/productDetail.do?ItemCode=1583",
+    "monogram": "D",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "kt-disney-starbucks-standard",
+    "category": "통신사/결합",
+    "kind": "디즈니+ 스탠다드와 스타벅스 아메리카노 Tall을 월 9,900원에 (정상가 14,600원)",
+    "title": "KT 디즈니+ 스탠다드 + 스타벅스",
+    "subtitle": "매월 스타벅스 아메리카노 Tall 기프티쇼가 함께 발송되는 KT 구독 상품.",
+    "description": "KT 요금표: 정상가 14,600원, 프로모션가 9,900원. 차액 4,700원.",
+    "saving": 4700,
+    "originalPrice": 14600,
+    "offerPrice": 9900,
+    "dday": 30,
+    "sourceServiceIds": [
+      "disney"
+    ],
+    "link": "https://product.kt.com/wDic/productDetail.do?ItemCode=1610",
+    "monogram": "D",
+    "campaignPeriod": "프로모션가 2026년 12월 31일까지 제공",
+    "benefitPeriod": "프로모션가 2026년 12월 31일까지 제공",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "kt-disney-starbucks-premium",
+    "category": "통신사/결합",
+    "kind": "디즈니+ 프리미엄과 스타벅스 아메리카노 Tall을 월 13,900원에 (정상가 18,600원)",
+    "title": "KT 디즈니+ 프리미엄 + 스타벅스",
+    "subtitle": "스타벅스 아메리카노 Tall 기프티쇼 포함.",
+    "description": "KT 요금표: 정상가 18,600원, 프로모션가 13,900원. 차액 4,700원.",
+    "saving": 4700,
+    "originalPrice": 18600,
+    "offerPrice": 13900,
+    "dday": 30,
+    "sourceServiceIds": [
+      "disney"
+    ],
+    "link": "https://product.kt.com/wDic/productDetail.do?ItemCode=1610",
+    "monogram": "D",
+    "campaignPeriod": "프로모션가 2026년 12월 31일까지 제공",
+    "benefitPeriod": "프로모션가 2026년 12월 31일까지 제공",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "lgu-youtube-google-ai-pro",
+    "category": "통신사/결합",
+    "kind": "유튜브 프리미엄과 구글 AI Pro 결합 월 29,000원 (정가 43,900원, 34% 할인)",
+    "title": "LG U+ 유독 유튜브 프리미엄 + 구글 AI Pro",
+    "subtitle": "LG유플러스에서 유튜브 프리미엄/라이트 부가서비스나 요금제에 가입한 고객은 즉시…",
+    "description": "유독 상품 페이지 표기: 34% 할인, 월 29,000원, 정가 43,900원. 차액 14,900원.",
+    "saving": 14900,
+    "originalPrice": 43900,
+    "offerPrice": 29000,
+    "dday": 30,
+    "sourceServiceIds": [
+      "youtube",
+      "google-one"
+    ],
+    "link": "https://www.lguplus.com/pogg/product/youtube-google-ai-pro-26y-pack",
+    "monogram": "Y",
+    "campaignPeriod": "가입 후 24개월 할인 프로모션",
+    "benefitPeriod": "가입 후 24개월 할인 프로모션",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
+  },
+  {
+    "id": "ibk-narasarang-naver-membership",
+    "category": "100원/무료",
+    "kind": "네이버플러스 멤버십 월 구독료 100% 캐시백 (최대 4,900원)",
+    "title": "IBK 나라사랑카드 네이버플러스 멤버십 무료",
+    "subtitle": "병무청 발급소 신규 발급 후 이벤트 참여가 필요하고, 군 급여이체 조건을…",
+    "description": "페이지에 적힌 최대 4,900원 캐시백을 멤버십 월 구독료 전액으로 계산했다. 캐시백 방식이라 결제 후 환급된다.",
+    "saving": 4900,
+    "originalPrice": 4900,
+    "offerPrice": 0,
+    "dday": 30,
+    "sourceServiceIds": [
+      "naverplus"
+    ],
+    "link": "https://narasarang.ibk.co.kr/",
+    "monogram": "네",
+    "campaignPeriod": "상시",
+    "benefitPeriod": "상시",
+    "lastCheckedAt": "2026-10-30T13:53:09.696Z",
+    "verifiedStatus": "LIVE_CONFIRMED",
+    "lastVerifiedAt": "2026-10-30T13:53:09.696Z"
   }
 ]

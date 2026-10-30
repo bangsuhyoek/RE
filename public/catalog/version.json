@@ -1,8 +1,8 @@
 {
-  "version": "2026.09.14-1915",
-  "updatedAt": "2026-10-18T00:00:00.000Z",
-  "itemCount": 94,
-  "checksum": "20671878a23cf5e5c9e4cd1991692941609efd1111676d1795114c943bbeed31",
+  "version": "2026.10.30-1200",
+  "updatedAt": "2026-10-30T13:48:52.981Z",
+  "itemCount": 99,
+  "checksum": "aafb50076a4d9b03de32a909a74fba9a9bcede2c690e892a83b41ee8869fcde6",
   "services": [
     {
       "id": "netflix",

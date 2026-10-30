@@ -225,5 +225,48 @@
         "description": "[내가 누린 혜택 포기할게요] 선택 후 [해지 신청하기]를 누릅니다."
       }
     ]
+  },
+  {
+    "id": "ssg7club",
+    "name": "쓱7클럽",
+    "category": "쇼핑",
+    "plan": "쓱7클럽",
+    "amount": 2900,
+    "brandColor": "#E60012",
+    "cancelUrl": "https://www.ssg.com/membership/gate.ssg",
+    "aliases": [
+      "쓱7클럽",
+      "쓱세븐클럽",
+      "SSG7",
+      "ssg7club",
+      "쓱클럽",
+      "SSG 멤버십"
+    ],
+    "monogram": "7",
+    "availablePlans": [
+      {
+        "plan": "쓱7클럽",
+        "amount": 2900
+      },
+      {
+        "plan": "쓱7클럽+TVING",
+        "amount": 3900
+      }
+    ],
+    "plans": [
+      {
+        "name": "쓱7클럽",
+        "amount": 2900,
+        "billingCycle": "매월",
+        "quality": "장보기 7% 적립 · 매월 쿠폰"
+      },
+      {
+        "name": "쓱7클럽+TVING",
+        "amount": 3900,
+        "billingCycle": "매월",
+        "quality": "장보기 7% 적립 · TVING 무료"
+      }
+    ],
+    "guideSteps": []
   }
 ]

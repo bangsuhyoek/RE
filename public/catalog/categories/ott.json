@@ -676,5 +676,47 @@
         "description": "[구독 취소(Cancel subscription)]를 클릭하고 확인합니다."
       }
     ]
+  },
+  {
+    "id": "apple-one",
+    "name": "Apple One",
+    "category": "OTT",
+    "plan": "개인",
+    "amount": 14900,
+    "brandColor": "#000000",
+    "cancelUrl": "https://support.apple.com/ko-kr/118428",
+    "aliases": [
+      "애플원",
+      "애플 원",
+      "Apple One",
+      "apple one",
+      "애플 구독"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "개인",
+        "amount": 14900
+      },
+      {
+        "plan": "가족",
+        "amount": 20900
+      }
+    ],
+    "plans": [
+      {
+        "name": "개인",
+        "amount": 14900,
+        "billingCycle": "매월",
+        "quality": "iCloud+ 50GB · Apple TV · Apple Music · Apple Arcade"
+      },
+      {
+        "name": "가족",
+        "amount": 20900,
+        "billingCycle": "매월",
+        "quality": "iCloud+ 200GB · Apple TV · Apple Music · Apple Arcade · 최대 5명 공유"
+      }
+    ],
+    "guideSteps": []
   }
 ]

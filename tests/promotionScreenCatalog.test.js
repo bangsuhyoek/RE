@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import {
   buildPromotionCandidates,
   buildPromotionFilters,
@@ -12,6 +13,9 @@ import {
   splitPromotionSections,
 } from "../src/lib/promotionFilters.js";
 import { promotionCatalog, serviceCatalog } from "../src/data/subscriptionData.js";
+
+// 대상 제한 혜택의 판정은 라이브 노출 여부와 무관하므로 마스터 카탈로그를 기준으로 검증한다.
+const masterCatalog = JSON.parse(fs.readFileSync(new URL("../public/catalog/promotions-master.json", import.meta.url), "utf8"));
 
 const NOW = Date.parse("2026-10-29T00:00:00+09:00");
 
@@ -120,20 +124,20 @@ test("확인 날짜는 한국 시간 'M월 D일'로 표기한다", () => {
 });
 
 test("학생·교사·신규 가입자처럼 대상이 정해진 혜택은 맨 위 추천에서 빠지고, 목록에는 조건과 함께 남는다", () => {
-  const adobeUser = makeCandidates({ subscribedServiceIds: ["adobe"], subscribedCategories: ["SaaS"] });
+  const adobeUser = makeCandidates({ subscribedServiceIds: ["adobe"], subscribedCategories: ["SaaS"], promotions: masterCatalog });
   const student = adobeUser.find((p) => p.id === "adobe-student-66");
   assert.ok(student, "목록에는 남는다");
   assert.equal(student.eligibilityNote, "학생·교사 대상");
-  assert.equal(getEligibilityNote(promotionCatalog.find((p) => p.id === "adobe-new-user-25")), "신규 가입자 대상");
+  assert.equal(getEligibilityNote(masterCatalog.find((p) => p.id === "adobe-new-user-25")), "신규 가입자 대상");
 
   const top = pickTopPromotion(adobeUser);
   assert.ok(!top || !top.eligibilityNote, "대상이 정해진 혜택은 추천하지 않는다");
   assert.notEqual(top?.id, "adobe-student-66");
 
   // 대상 제한 혜택만 있으면 추천 카드가 없다
-  const onlyRestricted = makeCandidates({ promotions: promotionCatalog.filter((p) => ["adobe-student-66", "ms365-promo"].includes(p.id)) });
+  const onlyRestricted = makeCandidates({ promotions: masterCatalog.filter((p) => ["adobe-student-66", "ms365-promo"].includes(p.id)) });
   assert.equal(pickTopPromotion(onlyRestricted), null);
-  assert.equal(getEligibilityNote(promotionCatalog.find((p) => p.id === "youtube-lite-43")), null);
+  assert.equal(getEligibilityNote(masterCatalog.find((p) => p.id === "youtube-lite-43")), null);
 });
 
 test("이미 구독 중인 서비스의 신규 가입 체험은 보여주지 않고, 구독하지 않은 서비스의 체험은 '새로 시작하면 좋은 혜택'에 남는다", () => {

@@ -3,14 +3,14 @@
     "category": "SaaS",
     "slug": "saas",
     "displayName": "SaaS / 개발자 도구 / AI / 클라우드",
-    "count": 28,
+    "count": 29,
     "file": "/catalog/categories/saas.json"
   },
   {
     "category": "OTT",
     "slug": "ott",
     "displayName": "OTT / 동영상 스트리밍",
-    "count": 15,
+    "count": 16,
     "file": "/catalog/categories/ott.json"
   },
   {
@@ -38,7 +38,7 @@
     "category": "쇼핑",
     "slug": "shopping",
     "displayName": "디지털 플랫폼 & 배달/쇼핑 멤버십",
-    "count": 5,
+    "count": 6,
     "file": "/catalog/categories/shopping.json"
   },
   {
@@ -52,7 +52,7 @@
     "category": "생활/모빌리티",
     "slug": "lifestyle",
     "displayName": "모바일 앱 & 메신저 플랫폼 디지털 기능",
-    "count": 5,
+    "count": 7,
     "file": "/catalog/categories/lifestyle.json"
   }
 ]

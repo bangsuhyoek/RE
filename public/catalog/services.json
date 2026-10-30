@@ -2646,5 +2646,182 @@
         "quality": "HD"
       }
     ]
+  },
+  {
+    "id": "apple-one",
+    "name": "Apple One",
+    "category": "OTT",
+    "plan": "개인",
+    "amount": 14900,
+    "brandColor": "#000000",
+    "cancelUrl": "https://support.apple.com/ko-kr/118428",
+    "aliases": [
+      "애플원",
+      "애플 원",
+      "Apple One",
+      "apple one",
+      "애플 구독"
+    ],
+    "monogram": "A",
+    "availablePlans": [
+      {
+        "plan": "개인",
+        "amount": 14900
+      },
+      {
+        "plan": "가족",
+        "amount": 20900
+      }
+    ],
+    "plans": [
+      {
+        "name": "개인",
+        "amount": 14900,
+        "billingCycle": "매월",
+        "quality": "iCloud+ 50GB · Apple TV · Apple Music · Apple Arcade"
+      },
+      {
+        "name": "가족",
+        "amount": 20900,
+        "billingCycle": "매월",
+        "quality": "iCloud+ 200GB · Apple TV · Apple Music · Apple Arcade · 최대 5명 공유"
+      }
+    ]
+  },
+  {
+    "id": "google-ai",
+    "name": "Google AI Pro",
+    "category": "SaaS",
+    "plan": "Google AI Pro",
+    "amount": 29000,
+    "brandColor": "#4285F4",
+    "cancelUrl": "https://support.google.com/googleplay/answer/7018481?hl=ko",
+    "aliases": [
+      "구글 AI",
+      "구글 AI 프로",
+      "제미나이",
+      "Gemini",
+      "Google AI Pro",
+      "구글 AI 플랜"
+    ],
+    "monogram": "G",
+    "availablePlans": [
+      {
+        "plan": "Google AI Pro",
+        "amount": 29000
+      }
+    ],
+    "plans": [
+      {
+        "name": "Google AI Pro",
+        "amount": 29000,
+        "billingCycle": "매월",
+        "quality": "5TB 스토리지 · Gemini 4 Argon"
+      }
+    ]
+  },
+  {
+    "id": "ssg7club",
+    "name": "쓱7클럽",
+    "category": "쇼핑",
+    "plan": "쓱7클럽",
+    "amount": 2900,
+    "brandColor": "#E60012",
+    "cancelUrl": "https://www.ssg.com/membership/gate.ssg",
+    "aliases": [
+      "쓱7클럽",
+      "쓱세븐클럽",
+      "SSG7",
+      "ssg7club",
+      "쓱클럽",
+      "SSG 멤버십"
+    ],
+    "monogram": "7",
+    "availablePlans": [
+      {
+        "plan": "쓱7클럽",
+        "amount": 2900
+      },
+      {
+        "plan": "쓱7클럽+TVING",
+        "amount": 3900
+      }
+    ],
+    "plans": [
+      {
+        "name": "쓱7클럽",
+        "amount": 2900,
+        "billingCycle": "매월",
+        "quality": "장보기 7% 적립 · 매월 쿠폰"
+      },
+      {
+        "name": "쓱7클럽+TVING",
+        "amount": 3900,
+        "billingCycle": "매월",
+        "quality": "장보기 7% 적립 · TVING 무료"
+      }
+    ]
+  },
+  {
+    "id": "kakao-membership",
+    "name": "카카오멤버십",
+    "category": "생활/모빌리티",
+    "plan": "카카오멤버십",
+    "amount": 4900,
+    "brandColor": "#FEE500",
+    "cancelUrl": "https://my.kakao.com",
+    "aliases": [
+      "카카오멤버십",
+      "카카오 멤버십",
+      "kakao membership",
+      "카카오 통합멤버십",
+      "카카오 구독"
+    ],
+    "monogram": "K",
+    "availablePlans": [
+      {
+        "plan": "카카오멤버십",
+        "amount": 4900
+      }
+    ],
+    "plans": [
+      {
+        "name": "카카오멤버십",
+        "amount": 4900,
+        "billingCycle": "매월",
+        "quality": "선물하기·톡딜 적립 · 카카오페이지 캐시 · 이모티콘 플러스/톡클라우드 택1"
+      }
+    ]
+  },
+  {
+    "id": "lg-udok",
+    "name": "LG유플러스 유독",
+    "category": "생활/모빌리티",
+    "plan": "유독 Pack",
+    "amount": 9900,
+    "brandColor": "#E6007E",
+    "cancelUrl": "https://www.lguplus.com/pogg",
+    "aliases": [
+      "유독",
+      "LG유플러스 유독",
+      "U+ 유독",
+      "유플러스 유독",
+      "udok"
+    ],
+    "monogram": "U",
+    "availablePlans": [
+      {
+        "plan": "유독 Pack",
+        "amount": 9900
+      }
+    ],
+    "plans": [
+      {
+        "name": "유독 Pack",
+        "amount": 9900,
+        "billingCycle": "매월",
+        "quality": "eBook·디지털 매거진 + 커피·영화·쇼핑 혜택 결합 6종"
+      }
+    ]
   }
 ]
