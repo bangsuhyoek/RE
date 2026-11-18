@@ -39,7 +39,7 @@ test("기본 정렬은 결제일이 가까운 구독을 먼저 보여준다", ()
     { id: "sooner", name: "곧 결제", amount: 9900, dueDay: 30, nextBillingDate: "2026-10-30" },
   ];
 
-  const sorted = sortSubscriptions(subscriptions, "due");
+  const sorted = sortSubscriptions(subscriptions, "due", reference);
   const daysUntil = (sub) => {
     const charge = new Date(sub.nextBillingDate + "T00:00:00");
     return Math.round((charge - reference) / 86400000);

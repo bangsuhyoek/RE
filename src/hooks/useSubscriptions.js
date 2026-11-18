@@ -26,13 +26,19 @@ import { readHash } from "./useNavigation";
 import { supabase, mapDbToSubscription, upsertDbSubscription, deleteDbSubscription, fetchUserSubscriptions } from "../lib/supabase";
 import { cancelScheduledUserNotifications } from "../lib/notifications";
 import { clearAllCancelProofs } from "../lib/cancelProof";
-import { isDuplicateSubscription } from "../lib/subscriptionAdd";
+import {
+  findSubscriptionTarget,
+  isDuplicateSubscription,
+  matchesSubscriptionTarget,
+} from "../lib/subscriptionAdd";
 import { createSubscriptionId } from "../lib/ids";
 import {
   ensureStorageMigration,
   mergeSubscriptions,
   recordTombstone,
   getRetryQueue,
+  getStoredTombstones,
+  resolveRetryUpsert,
 } from "../lib/subscriptionSync";
 import { toMonthlyAmount } from "../lib/subscriptionMath";
 
@@ -140,12 +146,16 @@ export function useSubscriptions({ currentRoute = "home", catalog = [], onAccoun
   }, [subscriptions, profile]);
 
   useEffect(() => {
-    writeStoredValue(storageKeys.onboardingComplete, onboardingComplete);
-  }, [onboardingComplete]);
+    if (profile) {
+      writeStoredValue(storageKeys.onboardingComplete, onboardingComplete);
+    }
+  }, [onboardingComplete, profile]);
 
   useEffect(() => {
-    writeStoredValue(storageKeys.savedAmount, savedAmount);
-  }, [savedAmount]);
+    if (profile) {
+      writeStoredValue(storageKeys.savedAmount, savedAmount);
+    }
+  }, [savedAmount, profile]);
 
   // 재시도 큐 처리 함수 (앱 시작 및 온라인 복귀 시 실행)
   const processRetryQueue = useCallback(async (userId) => {
@@ -165,8 +175,22 @@ export function useSubscriptions({ currentRoute = "home", catalog = [], onAccoun
     setSyncState("syncing");
 
     for (const item of queue) {
-      if (item.type === "upsert" && item.data) {
-        const res = await upsertDbSubscription(userId, item.data);
+      if (item.type === "upsert") {
+        // 데이터가 없는 깨진 upsert 항목은 resolveRetryUpsert가 drop으로 돌려 대기열에서 지운다.
+        // 저장소에는 병합이 끝난 최신 목록이 먼저 기록되므로 이 값과 비교한다.
+        const storedList = readStoredValue(storageKeys.subscriptions, []);
+        const plan = resolveRetryUpsert(item, {
+          localList: Array.isArray(storedList) ? storedList : subscriptionsRef.current || [],
+          tombstones: getStoredTombstones(),
+        });
+        if (plan.action === "drop") {
+          writeStoredValue(
+            storageKeys.syncRetryQueue,
+            removeRetryQueueItemForUser(getRetryQueue(), item, userId)
+          );
+          continue;
+        }
+        const res = await upsertDbSubscription(userId, plan.data);
         if (res) {
           writeStoredValue(
             storageKeys.syncRetryQueue,
@@ -572,48 +596,53 @@ export function useSubscriptions({ currentRoute = "home", catalog = [], onAccoun
   }, [subscriptions, profile?.user_id, safeEnqueueRetry]);
 
   const updateSubscription = useCallback((subscriptionId, update, notify) => {
-    const target = subscriptions.find((s) => s.subscriptionId === subscriptionId || s.id === subscriptionId);
+    const target = findSubscriptionTarget(subscriptions, subscriptionId);
+    if (!target) return;
     const nowIso = new Date().toISOString();
-    const updatedTarget = target ? { ...target, ...update, updatedAt: nowIso } : null;
+    const updatedTarget = { ...target, ...update, updatedAt: nowIso };
+    const retryId = updatedTarget.subscriptionId || updatedTarget.id;
 
-    if (updatedTarget && profile?.user_id) {
+    if (profile?.user_id) {
       upsertDbSubscription(profile.user_id, updatedTarget).then((saved) => {
         if (!saved) {
-          safeEnqueueRetry({ id: updatedTarget.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
+          safeEnqueueRetry({ id: retryId, type: "upsert", data: updatedTarget }, profile?.user_id);
         }
       }).catch((err) => {
-        safeEnqueueRetry({ id: updatedTarget.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
+        safeEnqueueRetry({ id: retryId, type: "upsert", data: updatedTarget }, profile?.user_id);
         console.error(err);
       });
     }
     setSubscriptions((current) =>
       current.map((subscription) =>
-        subscription.subscriptionId === subscriptionId ? { ...subscription, ...update, updatedAt: nowIso } : subscription
+        matchesSubscriptionTarget(subscription, target)
+          ? updatedTarget
+          : subscription
       )
     );
     notify?.("구독 정보를 저장했어요.");
   }, [subscriptions, profile?.user_id, safeEnqueueRetry]);
 
   const togglePinSubscription = useCallback((subscriptionId, notify) => {
-    const target = subscriptions.find((s) => s.subscriptionId === subscriptionId || s.id === subscriptionId);
+    const target = findSubscriptionTarget(subscriptions, subscriptionId);
     if (!target) return;
     const newPinned = !target.isPinned && !target.pinned;
     const nowIso = new Date().toISOString();
     const updatedTarget = { ...target, isPinned: newPinned, pinned: newPinned, updatedAt: nowIso };
+    const retryId = target.subscriptionId || target.id;
 
     if (profile?.user_id) {
       upsertDbSubscription(profile.user_id, updatedTarget).then((saved) => {
         if (!saved) {
-          safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
+          safeEnqueueRetry({ id: retryId, type: "upsert", data: updatedTarget }, profile?.user_id);
         }
       }).catch((err) => {
-        safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
+        safeEnqueueRetry({ id: retryId, type: "upsert", data: updatedTarget }, profile?.user_id);
         console.error(err);
       });
     }
     setSubscriptions((current) =>
       current.map((subscription) =>
-        (subscription.subscriptionId === target.subscriptionId || subscription.id === target.id)
+        matchesSubscriptionTarget(subscription, target)
           ? updatedTarget
           : subscription
       )
@@ -622,23 +651,27 @@ export function useSubscriptions({ currentRoute = "home", catalog = [], onAccoun
   }, [subscriptions, profile?.user_id, safeEnqueueRetry]);
 
   const muteSubscription = useCallback((subscriptionId, notify) => {
-    const target = subscriptions.find((s) => s.subscriptionId === subscriptionId || s.id === subscriptionId);
+    const target = findSubscriptionTarget(subscriptions, subscriptionId);
+    if (!target) return;
     const nowIso = new Date().toISOString();
-    const updatedTarget = target ? { ...target, alertD3: false, alertD1: false, updatedAt: nowIso } : null;
+    const updatedTarget = { ...target, alertD3: false, alertD1: false, updatedAt: nowIso };
+    const retryId = target.subscriptionId || target.id;
 
-    if (updatedTarget && profile?.user_id) {
+    if (profile?.user_id) {
       upsertDbSubscription(profile.user_id, updatedTarget).then((saved) => {
         if (!saved) {
-          safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
+          safeEnqueueRetry({ id: retryId, type: "upsert", data: updatedTarget }, profile?.user_id);
         }
       }).catch((err) => {
-        safeEnqueueRetry({ id: target.subscriptionId, type: "upsert", data: updatedTarget }, profile?.user_id);
+        safeEnqueueRetry({ id: retryId, type: "upsert", data: updatedTarget }, profile?.user_id);
         console.error(err);
       });
     }
     setSubscriptions((current) =>
       current.map((subscription) =>
-        subscription.subscriptionId === subscriptionId ? { ...subscription, alertD3: false, alertD1: false, updatedAt: nowIso } : subscription
+        matchesSubscriptionTarget(subscription, target)
+          ? updatedTarget
+          : subscription
       )
     );
     notify?.("사전 알림을 모두 껐어요.");

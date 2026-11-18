@@ -1,6 +1,7 @@
 // 구독 데이터 동기화 알고리즘: 수정 시각(updated_at) 비교 병합, tombstone 오프라인 삭제, 실패 재시도 대기열
 
 import { readStoredValue, writeStoredValue, storageKeys, STORAGE_SCHEMA_VERSION } from "./storage.js";
+import { matchesSubscriptionTarget } from "./subscriptionAdd.js";
 
 /**
  * 타임스탬프 파싱 (ISO 문자열 또는 밀리초 숫자)
@@ -162,6 +163,44 @@ export function dequeueRetry(id, type) {
   const q = getRetryQueue();
   const filtered = q.filter((i) => !(i.id === id && i.type === type));
   writeStoredValue(storageKeys.syncRetryQueue, filtered);
+}
+
+/**
+ * 재시도 대기열의 upsert 항목을 실제로 보낼지, 어떤 데이터로 보낼지 정한다.
+ * 대기열에는 실패한 시점의 사본이 남아 있으므로 그대로 보내면
+ * - 그 뒤 삭제한 구독이 서버에 되살아나고,
+ * - 그 뒤 저장한 더 새로운 수정이 예전 값으로 덮어써진다.
+ * 규칙
+ * - 데이터가 없는 깨진 항목은 버린다.
+ * - 삭제 기록(tombstone)이 있으면 삭제가 이긴다: 삭제 시각이 수정 이후이거나, 둘 중 하나의 시각을 알 수 없으면 버린다.
+ *   (다시 추가한 구독은 새 subscriptionId를 받으므로 정상 편집이 사라지지 않는다.)
+ * - 로컬 사본이 있으면 그것을 보낸다. 로컬 상태는 편집마다 즉시 바뀌므로 최신 의도로 본다.
+ *   두 시각이 모두 유효하고 대기 사본이 더 새로울 때만 대기 사본을 보낸다.
+ * @returns {{ action: "drop" } | { action: "upsert", data: object }}
+ */
+export function resolveRetryUpsert(item, { localList = [], tombstones = {} } = {}) {
+  if (!item || !item.data) return { action: "drop" };
+  const id = item.data.subscriptionId || item.id || item.data.id;
+  const queuedTime = parseTimestamp(item.data.updatedAt || item.data.createdAt);
+
+  if (id && tombstones?.[id]) {
+    const deletedAt = parseTimestamp(tombstones[id]);
+    if (!queuedTime || !deletedAt || deletedAt >= queuedTime) {
+      return { action: "drop" };
+    }
+  }
+
+  const target = item.data.subscriptionId ? item.data : { ...item.data, subscriptionId: id };
+  const local = Array.isArray(localList)
+    ? localList.find((sub) => matchesSubscriptionTarget(sub, target))
+    : null;
+  if (!local) return { action: "upsert", data: item.data };
+
+  const localTime = parseTimestamp(local.updatedAt || local.createdAt);
+  if (queuedTime && localTime && queuedTime > localTime) {
+    return { action: "upsert", data: item.data };
+  }
+  return { action: "upsert", data: local };
 }
 
 /**

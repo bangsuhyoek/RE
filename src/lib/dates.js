@@ -1,5 +1,13 @@
 export const parseLocalDate = (dateStr) => {
   if (!dateStr || typeof dateStr !== "string") return null;
+  // 시각과 시간대가 붙은 ISO 값(예: createdAt "2026-09-11T23:30:00.000Z")은 기기 시간대 날짜로 바꾼다.
+  // 앞 10자리만 자르면 한국 오전 0~9시에 만든 값이 하루 전 날짜가 된다.
+  if (/^\d{4}-\d{1,2}-\d{1,2}T\d{2}:\d{2}.*(?:Z|[+-]\d{2}:?\d{2})$/i.test(dateStr.trim())) {
+    const instant = new Date(dateStr.trim());
+    if (!Number.isNaN(instant.getTime())) {
+      return new Date(instant.getFullYear(), instant.getMonth(), instant.getDate());
+    }
+  }
   const match = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (!match) {
     const fallback = new Date(dateStr);
@@ -100,6 +108,12 @@ export const isPastDueThisCycle = (subscription, reference = new Date()) => {
   // subscription.createdAt 기준이 오늘 결제일(thisCycleDue) 이후라면 이번 주기 갱신 확인 제외
   const createdDate = subscription.createdAt ? parseLocalDate(subscription.createdAt) : null;
   const isYearly = subscription.billingCycle === "매년";
+
+  // 사용자가 지정한 다음 결제일(무료체험 종료일 포함)이 아직 오지 않았으면 이번 주기에 확인할 결제가 없다.
+  const explicitNext = subscription.nextBillingDate ? parseLocalDate(subscription.nextBillingDate) : null;
+  if (explicitNext && startOfDay(explicitNext) >= today) {
+    return false;
+  }
 
   if (isYearly) {
     let thisYearDue = null;

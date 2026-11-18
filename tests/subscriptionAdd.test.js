@@ -2,8 +2,10 @@
 import assert from "node:assert/strict";
 import {
   calculateEqualShare,
+  findSubscriptionTarget,
   hasRecordedPaymentMethod,
   isDuplicateSubscription,
+  matchesSubscriptionTarget,
   normalizePaymentMethod,
   normalizeSubscriptionPlan,
   normalizeSourceType,
@@ -153,4 +155,20 @@ test("체험 프로모션 절약 문구: 1회성/무료 체험 프로모션은 '
     offerPrice: 5000,
   };
   assert.equal(resolveSavingText(regularMonthly), "월 5,000원 절약");
+});
+
+test("matchesSubscriptionTarget: 같은 카탈로그 id를 공유하는 2개 구독 중 대상 subscriptionId 하나만 일치한다", () => {
+  const subs = [
+    { id: "netflix", subscriptionId: "manual-1", name: "넷플릭스 (본가)", amount: 17000 },
+    { id: "netflix", subscriptionId: "manual-2", name: "넷플릭스 (자취)", amount: 13500 },
+  ];
+  const target = findSubscriptionTarget(subs, "manual-1");
+  assert.equal(target?.name, "넷플릭스 (본가)");
+  assert.equal(matchesSubscriptionTarget(subs[0], target), true);
+  assert.equal(matchesSubscriptionTarget(subs[1], target), false);
+
+  // subscriptionId가 없는 레거시/임시 항목은 non-null id로만 매칭되고, 양쪽 모두 빈 값이면 절대 매칭되지 않는다
+  assert.equal(matchesSubscriptionTarget({ id: "custom-1" }, { id: "custom-1" }), true);
+  assert.equal(matchesSubscriptionTarget({}, {}), false);
+  assert.equal(matchesSubscriptionTarget({ id: undefined, subscriptionId: undefined }, { id: undefined }), false);
 });

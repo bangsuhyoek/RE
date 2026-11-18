@@ -129,3 +129,22 @@ export function isDuplicateSubscription(
     );
   });
 }
+
+export function findSubscriptionTarget(subscriptions = [], subscriptionIdOrId) {
+  if (!Array.isArray(subscriptions) || subscriptionIdOrId == null || subscriptionIdOrId === "") {
+    return null;
+  }
+  return (
+    subscriptions.find((s) => s?.subscriptionId === subscriptionIdOrId) ||
+    subscriptions.find((s) => s?.id === subscriptionIdOrId) ||
+    null
+  );
+}
+
+export function matchesSubscriptionTarget(subscription, target) {
+  if (!subscription || !target) return false;
+  if (target.subscriptionId != null && target.subscriptionId !== "") {
+    return subscription.subscriptionId === target.subscriptionId;
+  }
+  return target.id != null && target.id !== "" && subscription.id === target.id;
+}

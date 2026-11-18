@@ -16,12 +16,12 @@ export const SUBSCRIPTION_SORTS = {
  * - amount: 월 환산 금액이 높은 순 (연간 구독도 공정하게 비교)
  * - recent: 최근 등록순
  */
-export function compareSubscriptions(a, b, sort) {
+export function compareSubscriptions(a, b, sort, reference = new Date()) {
   if (sort === SUBSCRIPTION_SORTS.AMOUNT) return toMonthlyAmount(b) - toMonthlyAmount(a);
   if (sort === SUBSCRIPTION_SORTS.RECENT) return new Date(b.createdAt) - new Date(a.createdAt);
-  return daysUntilCharge(a) - daysUntilCharge(b);
+  return daysUntilCharge(a, reference) - daysUntilCharge(b, reference);
 }
 
-export function sortSubscriptions(subscriptions = [], sort = SUBSCRIPTION_SORTS.DUE) {
-  return [...subscriptions].sort((a, b) => compareSubscriptions(a, b, sort));
+export function sortSubscriptions(subscriptions = [], sort = SUBSCRIPTION_SORTS.DUE, reference = new Date()) {
+  return [...subscriptions].sort((a, b) => compareSubscriptions(a, b, sort, reference));
 }
