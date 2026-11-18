@@ -6,6 +6,7 @@ import {
   decideCancelTopCard,
   hasMoneyRelevantWarning,
   getCancelGuidanceCopy,
+  isHttpsUrl,
   NATIVE_GUIDE_SUPPORTED_SERVICES,
   isNativeGuideSupported,
   canShowManualComplete,
@@ -399,4 +400,15 @@ test("readCancelAiConsent 및 setCancelAiConsent: 기본값은 false이며 명�
   assert.equal(setCancelAiConsent(false, mockStorage), false);
   assert.equal(mockStorage.getItem(CANCEL_AI_CONSENT_KEY), null);
   assert.equal(readCancelAiConsent(mockStorage), false);
+});
+
+test("isHttpsUrl: 공백 제거 후 https 스킴만 허용하고 http/localhost/javascript 스킴은 차단한다", () => {
+  assert.equal(isHttpsUrl("https://www.netflix.com/cancelplan"), true);
+  assert.equal(isHttpsUrl("  HTTPS://accounts.google.com/  "), true);
+  assert.equal(isHttpsUrl("http://www.netflix.com/cancelplan"), false);
+  assert.equal(isHttpsUrl("http://localhost:5173/cancel"), false);
+  assert.equal(isHttpsUrl("javascript:alert(1)"), false);
+  assert.equal(isHttpsUrl("data:text/html,<script>"), false);
+  assert.equal(isHttpsUrl(""), false);
+  assert.equal(isHttpsUrl(null), false);
 });

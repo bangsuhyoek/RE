@@ -28,6 +28,7 @@ import {
   decideCancelTopCard,
   hasMoneyRelevantWarning,
   getCancelGuidanceCopy,
+  isHttpsUrl,
   readCancelAiConsent,
   setCancelAiConsent,
 } from "../lib/cancelBrowser";
@@ -39,12 +40,12 @@ import { addCancelReminder } from "../lib/notifications";
 const COMPLETE_LABEL = "해지 완료했어요";
 
 const openExternal = (url) => {
-  if (!url) return;
-  const isHttp = /^https?:\/\//i.test(url);
-  if (Capacitor.isNativePlatform() && isHttp) {
-    Browser.open({ url }).catch(() => window.open(url, "_blank", "noopener,noreferrer"));
+  if (!isHttpsUrl(url)) return;
+  const safeUrl = url.trim();
+  if (Capacitor.isNativePlatform()) {
+    Browser.open({ url: safeUrl }).catch(() => window.open(safeUrl, "_blank", "noopener,noreferrer"));
   } else {
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.open(safeUrl, "_blank", "noopener,noreferrer");
   }
 };
 
@@ -235,7 +236,7 @@ export function CancelModal({
         !Capacitor.isNativePlatform() &&
         !railPlan &&
         !hasMoneyRelevantWarning(timingAdvice) &&
-        subscription.cancelUrl &&
+        isHttpsUrl(subscription.cancelUrl) &&
         usesServicePage
     )
   );
@@ -370,13 +371,17 @@ export function CancelModal({
 
   const goToCancel = async () => {
     if (!subscription.cancelUrl) return;
+    if (!isHttpsUrl(subscription.cancelUrl)) {
+      onToast?.("안전한 https 해지 링크만 열 수 있어요.");
+      return;
+    }
 
     sessionRef.current?.incrementStep();
     setCancelSessionActive(true);
     setUserDismissedQuestion(false);
 
     if (!isNative) {
-      window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
+      window.open(subscription.cancelUrl.trim(), "_blank", "noopener,noreferrer");
       setShowBrowserModal(true);
       return;
     }
@@ -405,7 +410,7 @@ export function CancelModal({
     }
 
     if (res?.action === "FALLBACK_WEB") {
-      window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
+      window.open(subscription.cancelUrl.trim(), "_blank", "noopener,noreferrer");
       setShowBrowserModal(true);
       return;
     }
@@ -415,9 +420,13 @@ export function CancelModal({
 
   const openInSystemBrowser = () => {
     if (!subscription.cancelUrl) return;
+    if (!isHttpsUrl(subscription.cancelUrl)) {
+      onToast?.("안전한 https 해지 링크만 열 수 있어요.");
+      return;
+    }
     sessionRef.current?.incrementStep();
     setCancelSessionActive(true);
-    window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
+    window.open(subscription.cancelUrl.trim(), "_blank", "noopener,noreferrer");
     onToast?.(`${subscription.name} 해지 페이지를 브라우저에서 열었어요.`);
     markFirstStepDone();
   };
@@ -445,7 +454,7 @@ export function CancelModal({
   };
 
   const openPromotion = () => {
-    if (promotion?.link) window.open(promotion.link, "_blank", "noopener,noreferrer");
+    if (isHttpsUrl(promotion?.link)) window.open(promotion.link.trim(), "_blank", "noopener,noreferrer");
   };
 
   if (topCardState === "celebration") {

@@ -145,6 +145,13 @@ public class CancelBrowserActivity extends AppCompatActivity {
         if (serviceId == null) serviceId = "";
         String serviceName = getIntent().getStringExtra("serviceName");
         currentCancelUrl = getIntent().getStringExtra("cancelUrl");
+        if (!isHttpsUrl(currentCancelUrl)) {
+            Toast.makeText(this, "https 주소만 열 수 있어요.", Toast.LENGTH_SHORT).show();
+            setResult(RESULT_CANCELED);
+            finish();
+            return;
+        }
+        currentCancelUrl = currentCancelUrl.trim();
         String stepsJson = getIntent().getStringExtra("guideStepsJson");
         String aiEndpoint = getIntent().getStringExtra("aiEndpoint");
         String aiAuthToken = getIntent().getStringExtra("aiAuthToken");
@@ -262,7 +269,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
                 String targetUrl = (webView != null && webView.getUrl() != null && !webView.getUrl().isEmpty())
                     ? webView.getUrl()
                     : currentCancelUrl;
-                if (targetUrl != null && !targetUrl.isEmpty()) {
+                if (isHttpsUrl(targetUrl)) {
                     try {
                         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl));
                         browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -893,9 +900,19 @@ public class CancelBrowserActivity extends AppCompatActivity {
             }
         });
 
-        if (url != null && !url.trim().isEmpty()) {
-            webView.loadUrl(url);
+        if (isHttpsUrl(url)) {
+            webView.loadUrl(url.trim());
         }
+    }
+
+    private static boolean isHttpsUrl(String url) {
+        if (url == null) return false;
+        String trimmed = url.trim();
+        if (!trimmed.regionMatches(true, 0, "https://", 0, 8)) return false;
+        Uri uri = Uri.parse(trimmed);
+        return "https".equalsIgnoreCase(uri.getScheme())
+                && uri.getHost() != null
+                && !uri.getHost().trim().isEmpty();
     }
 
     private boolean handleCustomScheme(String url) {
@@ -913,7 +930,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
                     WebSecurityPolicy policy = (guideRoute != null && guideRoute.getSecurityPolicy() != null)
                             ? guideRoute.getSecurityPolicy()
                             : new WebSecurityPolicy();
-                    if (policy.isHttpOrHttps(fallbackUrl) && policy.isAllowedHost(fallbackUrl)) {
+                    if (isHttpsUrl(fallbackUrl) && policy.isAllowedHost(fallbackUrl)) {
                         webView.loadUrl(fallbackUrl);
                         return true;
                     }
@@ -998,7 +1015,7 @@ public class CancelBrowserActivity extends AppCompatActivity {
 
             holder.ivStepThumb.setImageBitmap(null);
             holder.ivStepThumb.setTag(item.imageUrl);
-            if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
+            if (isHttpsUrl(item.imageUrl)) {
                 final String targetUrl = item.imageUrl;
                 executor.execute(() -> {
                     HttpURLConnection conn = null;

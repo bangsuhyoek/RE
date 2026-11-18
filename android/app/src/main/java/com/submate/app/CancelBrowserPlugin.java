@@ -2,6 +2,7 @@ package com.submate.app;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -44,6 +45,11 @@ public class CancelBrowserPlugin extends Plugin {
         String serviceId = call.getString("serviceId", "");
         String serviceName = call.getString("serviceName", "");
         String cancelUrl = call.getString("cancelUrl", "");
+        if (!isHttpsUrl(cancelUrl)) {
+            call.reject("https 주소만 열 수 있어요.", "INVALID_URL");
+            return;
+        }
+        String safeCancelUrl = cancelUrl.trim();
         String guideStepsJson = call.getArray("guideSteps") != null
                 ? call.getArray("guideSteps").toString()
                 : "[]";
@@ -53,12 +59,22 @@ public class CancelBrowserPlugin extends Plugin {
         Intent intent = new Intent(getContext(), CancelBrowserActivity.class);
         intent.putExtra("serviceId", serviceId);
         intent.putExtra("serviceName", serviceName);
-        intent.putExtra("cancelUrl", cancelUrl);
+        intent.putExtra("cancelUrl", safeCancelUrl);
         intent.putExtra("guideStepsJson", guideStepsJson);
         intent.putExtra("aiEndpoint", aiEndpoint);
         intent.putExtra("aiAuthToken", aiAuthToken);
 
         startActivityForResult(call, intent, "handleCancelBrowserResult");
+    }
+
+    private static boolean isHttpsUrl(String url) {
+        if (url == null) return false;
+        String trimmed = url.trim();
+        if (!trimmed.regionMatches(true, 0, "https://", 0, 8)) return false;
+        Uri uri = Uri.parse(trimmed);
+        return "https".equalsIgnoreCase(uri.getScheme())
+                && uri.getHost() != null
+                && !uri.getHost().trim().isEmpty();
     }
 
     @ActivityCallback
@@ -132,7 +148,7 @@ public class CancelBrowserPlugin extends Plugin {
     @PluginMethod
     public void crawlHub(PluginCall call) {
         String url = call.getString("url", "");
-        if (url == null || !url.startsWith("https://")) {
+        if (!isHttpsUrl(url)) {
             call.reject("https 주소만 열 수 있어요.", "INVALID_URL");
             return;
         }
@@ -140,7 +156,7 @@ public class CancelBrowserPlugin extends Plugin {
         intent.putExtra("mode", "crawl");
         intent.putExtra("serviceId", call.getString("hubId", ""));
         intent.putExtra("serviceName", call.getString("hubName", "결제 허브"));
-        intent.putExtra("cancelUrl", url);
+        intent.putExtra("cancelUrl", url.trim());
         intent.putExtra("guideStepsJson", "[]");
         startActivityForResult(call, intent, "handleCrawlHubResult");
     }

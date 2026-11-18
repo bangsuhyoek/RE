@@ -3,6 +3,7 @@ import { Capacitor } from "@capacitor/core";
 import {
   openCancelBrowser,
   isNativeGuideSupported,
+  isHttpsUrl,
   canShowManualComplete,
   getStepVisualMeta,
 } from "../lib/cancelBrowser";
@@ -96,13 +97,14 @@ export function CancelBrowserModal({
   })();
 
   const openWebsite = async () => {
-    if (!subscription.cancelUrl) return;
+    if (!isHttpsUrl(subscription.cancelUrl)) return;
+    const safeCancelUrl = subscription.cancelUrl.trim();
 
     if (Capacitor.isNativePlatform()) {
       const result = await openCancelBrowser({
         serviceId: subscription.id,
         serviceName: subscription.name,
-        cancelUrl: subscription.cancelUrl,
+        cancelUrl: safeCancelUrl,
         guideSteps: steps,
       });
       if (result?.action === "COMPLETED" || result?.status === "completed") {
@@ -112,7 +114,7 @@ export function CancelBrowserModal({
       if (result?.action !== "FALLBACK_WEB") return;
     }
 
-    window.open(subscription.cancelUrl, "_blank", "noopener,noreferrer");
+    window.open(safeCancelUrl, "_blank", "noopener,noreferrer");
   };
 
   const goToStep = (index) => {

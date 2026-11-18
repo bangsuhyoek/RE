@@ -10,6 +10,18 @@ const NativeCancelBrowser = registerPlugin("CancelBrowser");
 
 export const CANCEL_AI_CONSENT_KEY = "submate.cancelAiConsent.v1";
 
+export function isHttpsUrl(url) {
+  if (typeof url !== "string") return false;
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "https:" && Boolean(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * AI 해지 도우미(버튼 이름 Google Gemini 전송) 선택 동의 여부 조회
  * - 기본값은 false(미동의)이며 사용자가 명시적으로 켰을 때만 true 반환
