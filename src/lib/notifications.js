@@ -2,19 +2,52 @@ import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { daysUntilCharge, formatWon, getNextChargeDate, toLocalDateKey } from "./dates.js";
 import { readStoredValue, writeStoredValue, storageKeys } from "./storage.js";
-import { formatKoreanDateTime } from "./businessDays.js";
 import { buildCareNotifications } from "./careFeed.js";
-import { toMonthlyAmount } from "./subscriptionMath.js";
-import { findCheaperPlan, unusedStreak, isUsageThrottled, hasUsageAnswerForCycle } from "./usageCheck.js";
 import { getCachedCatalog } from "../data/catalogLoader.js";
+import {
+  AGENT_INSIGHT_NOTIFICATION_TYPE,
+  CANCEL_REMINDER_TYPE,
+  MONTHLY_REPORT_TYPE,
+  NOTIFICATION_STORAGE_KEY,
+  scheduledAt,
+  stringHashCode,
+} from "./notifications/core.js";
+import { buildD3NotificationContent, buildMonthlyReportNotification } from "./notifications/content.js";
+import { cancelReminderNotification, readCancelReminders } from "./notifications/cancelReminders.js";
 
-export const NOTIFICATION_STORAGE_KEY = storageKeys.notifications;
-export const NOTIFICATION_SETTINGS_KEY = storageKeys.notificationSettings;
-export const DEFAULT_NOTIFICATION_DURATION = 2500; // 사용자 피드백 반영: 2~3초 내 빠른 자동 사라짐 (2.5초)
-export const CANCEL_REMINDER_TYPE = "cancel_reminder";
-export const AGENT_INSIGHT_NOTIFICATION_TYPE = "agent_insight";
-export const MONTHLY_REPORT_TYPE = "monthly_report";
-export const MONTHLY_REPORT_NOTIFICATION_ID = 300000000;
+export {
+  AGENT_INSIGHT_LAST_NOTIFIED_KEY,
+  AGENT_INSIGHT_NOTIFICATION_TYPE,
+  CANCEL_REMINDER_TYPE,
+  DEFAULT_NOTIFICATION_DURATION,
+  MONTHLY_REPORT_NOTIFICATION_ID,
+  MONTHLY_REPORT_TYPE,
+  NOTIFICATION_SETTINGS_KEY,
+  NOTIFICATION_STORAGE_KEY,
+  USAGE_CHECK_ACTION_TYPE_ID,
+  scheduledAt,
+} from "./notifications/core.js";
+export {
+  buildD3NotificationContent,
+  buildMonthlyReportNotification,
+  createTestNotification,
+  getMonthlyReportScheduleAt,
+  getPreviousMonthPaidTotal,
+} from "./notifications/content.js";
+export {
+  addCancelReminder,
+  readCancelReminders,
+  takeDueCancelReminders,
+} from "./notifications/cancelReminders.js";
+export {
+  checkNotificationPermission,
+  initAndroidNotificationChannel,
+  registerNotificationActionTypes,
+  requestNotificationPermission,
+  sendAppNotification,
+  sendBrowserNotification,
+} from "./notifications/permissions.js";
+export { scheduleAgentInsightNotification } from "./notifications/agentInsight.js";
 
 const CARE_CANCEL_TYPES = new Set(["trial_d2", "rotation_cancel"]);
 const CARE_HOME_TYPES = new Set(["cancel_check", "settlement_due", "rotation_resume"]);
@@ -50,119 +83,6 @@ export function resolveNotificationRoute(extra = {}) {
     return { kind: "renewal", subscriptionId };
   }
   return null;
-}
-
-/** 매달 1일 09시 요약 시각. 1일 09시 전이면 아직 오지 않은 오늘 09시 알림을 유지한다. */
-export function getMonthlyReportScheduleAt(now = new Date()) {
-  const todayAtNine = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0, 0);
-  if (now.getDate() === 1 && now < todayAtNine) return todayAtNine;
-  return new Date(now.getFullYear(), now.getMonth() + 1, 1, 9, 0, 0, 0);
-}
-
-/** 요약 예정일의 바로 전 달에 이미 구독 중이던 유료 서비스의 월 환산 예상 결제액. */
-export function getPreviousMonthPaidTotal(subscriptions = [], now = new Date()) {
-  const scheduledFor = getMonthlyReportScheduleAt(now);
-  const reportMonthEnd = new Date(scheduledFor.getFullYear(), scheduledFor.getMonth(), 1);
-  return (Array.isArray(subscriptions) ? subscriptions : []).reduce((total, subscription) => {
-    if (!subscription || subscription.status === "cancelled") return total;
-    if (subscription.isTrial || subscription.status === "trial") return total;
-    const createdAt = subscription.createdAt ? new Date(subscription.createdAt) : null;
-    if (createdAt && !Number.isNaN(createdAt.getTime()) && createdAt >= reportMonthEnd) {
-      return total;
-    }
-    return total + toMonthlyAmount(subscription);
-  }, 0);
-}
-
-/** 매달 1일 09시에 지난달 예상 결제액과 누적 절약액을 알리는 고정 ID 알림. */
-export function buildMonthlyReportNotification(subscriptions = [], savedAmount = 0, now = new Date()) {
-  const paidTotal = getPreviousMonthPaidTotal(subscriptions, now);
-  const safeSavedAmount = Number.isFinite(Number(savedAmount)) ? Math.max(0, Number(savedAmount)) : 0;
-  const scheduledFor = getMonthlyReportScheduleAt(now);
-  return {
-    id: MONTHLY_REPORT_NOTIFICATION_ID,
-    title: "꾸독 월간 요약",
-    body: `지난달 예상 결제액은 ${formatWon(paidTotal)}, 지금까지 아낀 금액은 ${formatWon(safeSavedAmount)}이에요.`,
-    channelId: "submate-billing-channel",
-    ...scheduledAt(scheduledFor),
-    extra: { type: MONTHLY_REPORT_TYPE },
-  };
-}
-export const USAGE_CHECK_ACTION_TYPE_ID = "usage_check";
-
-/**
- * 결제 3일 전(D-3) 알림 내용 생성:
- * 1. 2회 이상 연속 미사용(unusedStreak >= 2) -> 해지 권유 알림 (눌러서 해지 상세로 이동)
- * 2. 최근 2회 연속 '잘 썼어요'(isUsageThrottled) -> 기존 안내형 D-3 알림
- * 3. 이번 주기 답변 이미 존재 -> 기존 안내형 D-3 알림
- * 4. 연간/비월간 구독 또는 2회차(cycle > 1) 또는 무료체험 -> 기존 안내형 알림
- * 5. 그 외 -> 사용 여부를 묻는 액션 버튼 알림
- */
-export function buildD3NotificationContent({
-  subscription,
-  chargeDate,
-  cycleIndex = 0,
-  answers = {},
-  catalog = [],
-}) {
-  const name = subscription.name || "구독";
-  const isTrial = Boolean(subscription.isTrial || subscription.status === "trial");
-  const isMonthly = (subscription.billingCycle || "매월") !== "매년";
-  const subKey = subscription.subscriptionId || subscription.id;
-  const cycleNumber = cycleIndex + 1;
-  const cycleDateKey = chargeDate ? toLocalDateKey(chargeDate) : toLocalDateKey(new Date());
-
-  // 기존 안내형 D-3 폴백
-  const informational = {
-    title: `[결제 D-3] ${name} 결제 예정`,
-    body: `3일 뒤 ${name} ${formatWon(subscription.amount)}이 결제될 예정입니다.`,
-    extra: { subscriptionId: subKey, cycle: cycleNumber, type: "billing_d3", cycleKey: cycleDateKey },
-    actionTypeId: undefined,
-  };
-
-  // 월간 정기 구독의 1회차 주기(cycle 1)에만 질문/권유 로직 적용
-  if (cycleIndex !== 0 || isTrial || !isMonthly) {
-    return informational;
-  }
-
-  const streak = unusedStreak(answers, subscription, cycleDateKey);
-  if (streak >= 2) {
-    const monthlyAmount = toMonthlyAmount(subscription);
-    const cheaper = findCheaperPlan(subscription, catalog);
-    const title = `${name} ${streak}달째 거의 안 쓰셨어요`;
-    let body = `그동안 ${formatWon(streak * monthlyAmount)} 나갔어요. 3일 뒤 또 결제돼요. 눌러서 해지를 확인하세요.`;
-    if (cheaper) {
-      body += ` 더 싼 ${cheaper.name}(${formatWon(cheaper.amount)})도 있어요.`;
-    }
-    return {
-      title,
-      body,
-      extra: { subscriptionId: subKey, cycle: cycleNumber, type: "usage_cancel_suggest", cycleKey: cycleDateKey },
-      actionTypeId: undefined,
-    };
-  }
-
-  if (isUsageThrottled(answers, subscription) || hasUsageAnswerForCycle(answers, subscription, chargeDate)) {
-    return informational;
-  }
-
-  return {
-    title: `${name}, 3일 뒤 ${formatWon(subscription.amount)}`,
-    body: `이번 달 ${name} 잘 쓰셨어요? 알림을 내려서 바로 답해 주세요.`,
-    extra: { subscriptionId: subKey, cycle: cycleNumber, type: "usage_check", cycleKey: cycleDateKey },
-    actionTypeId: USAGE_CHECK_ACTION_TYPE_ID,
-  };
-}
-
-/**
- * 예약 알림 필드. 오전 9시 안내라 분 단위 정확도는 필요 없으므로 부정확 알람을 쓴다.
- * - isExactNotification: false — 기본값(true)이면 Android 12+에서 정확한 알람 권한이 없을 때
- *   플러그인이 예약할 때마다 시스템 '알람 및 리마인더' 설정 화면을 연다(앱 실행마다 재예약됨).
- * - allowWhileIdle: true — 없으면 기기를 깨우지 않는 AlarmManager.set(RTC)이 되어
- *   절전(Doze) 중에는 화면을 켤 때까지 밀린다. 켜면 setAndAllowWhileIdle로 최대 1시간 안에 울린다.
- */
-export function scheduledAt(at) {
-  return { schedule: { at, allowWhileIdle: true }, isExactNotification: false };
 }
 
 // 부정확 알람은 예정 시각보다 최대 1시간(절전 중에는 더) 늦게 온다. 그 사이 다시 예약하면서 대기 알림을
@@ -205,6 +125,7 @@ export function parseAlertTimeTo24Hours(ampm = "오전", hour = "09") {
 /**
  * Generate alert items for subscriptions based on D-3, D-1, and TODAY rules
  */
+
 export function generateSubscriptionAlerts(subscriptions, referenceDate = new Date(), options = {}) {
   const alerts = [];
   const answers = options.usageAnswers || readStoredValue(storageKeys.usageAnswers, {});
@@ -339,272 +260,6 @@ export function generateSubscriptionAlerts(subscriptions, referenceDate = new Da
   }
 
   return alerts;
-}
-
-/**
- * Creates a single test notification for a given subscription
- */
-export function createTestNotification(subscription, forcedType = "auto") {
-  const isTrial = Boolean(subscription.isTrial || subscription.status === "trial");
-  const type = forcedType === "auto" ? (isTrial ? "trial_d1" : "billing_d3") : forcedType;
-
-  let badge = "D-3";
-  let title = `[결제 D-3] ${subscription.name} 결제 예정`;
-  let message = `3일 뒤 ${subscription.name} ${formatWon(subscription.amount)}이 결제될 예정입니다.`;
-  let daysUntil = 3;
-
-  if (type === "trial_d1") {
-    badge = "TRIAL D-1";
-    title = `[체험 만료 D-1] ${subscription.name} 무료체험 종료`;
-    message = `내일 ${subscription.name} 무료체험이 종료되고 ${formatWon(subscription.amount)}이 결제됩니다.`;
-    daysUntil = 1;
-  } else if (type === "billing_d1") {
-    badge = "D-1";
-    title = `[결제 D-1] ${subscription.name} 결제 예정`;
-    message = `내일 ${subscription.name} ${formatWon(subscription.amount)}이 결제될 예정입니다.`;
-    daysUntil = 1;
-  }
-
-  return {
-    id: `test-alert-${subscription.subscriptionId || subscription.id}-${Date.now()}`,
-    subscriptionId: subscription.subscriptionId || subscription.id,
-    serviceName: subscription.name,
-    amount: subscription.amount,
-    plan: subscription.plan,
-    monogram: subscription.monogram || subscription.name?.slice(0, 1) || "S",
-    category: subscription.category || "기타",
-    type,
-    badge,
-    title,
-    message,
-    timestamp: new Date().toISOString(),
-    daysUntil,
-    read: false,
-    isTest: true,
-  };
-}
-
-/**
- * Request browser Web Notification permission
- */
-/**
- * Unified notification permission requester for both Web & Native (Capacitor)
- */
-export async function checkNotificationPermission() {
-  if (typeof window === "undefined") {
-    return "unsupported";
-  }
-  if (Capacitor.isNativePlatform()) {
-    try {
-      const status = await LocalNotifications.checkPermissions();
-      return status.display === "granted" ? "granted" : status.display === "denied" ? "denied" : "default";
-    } catch {
-      return "denied";
-    }
-  }
-  if (!("Notification" in window)) {
-    return "unsupported";
-  }
-  return Notification.permission;
-}
-
-export async function initAndroidNotificationChannel() {
-  if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android") {
-    try {
-      await LocalNotifications.createChannel({
-        id: "submate-billing-channel",
-        name: "꾸독 결제 알림",
-        description: "구독 결제일 사전 알림 및 갱신 안내",
-        importance: 4,
-        visibility: 1,
-        vibration: true,
-      });
-    } catch (e) {
-      console.warn("Failed to create Android notification channel:", e);
-    }
-  }
-  await registerNotificationActionTypes();
-}
-
-export async function registerNotificationActionTypes() {
-  if (Capacitor.isNativePlatform()) {
-    try {
-      await LocalNotifications.registerActionTypes({
-        types: [
-          {
-            id: USAGE_CHECK_ACTION_TYPE_ID,
-            actions: [
-              { id: "used", title: "잘 썼어요" },
-              { id: "unused", title: "거의 안 썼어요" },
-            ],
-          },
-        ],
-      });
-    } catch (e) {
-      console.warn("Failed to register notification action types:", e);
-    }
-  }
-}
-
-export async function requestNotificationPermission() {
-  if (typeof window === "undefined") {
-    return "unsupported";
-  }
-
-  // Native App (Android / iOS)
-  if (Capacitor.isNativePlatform()) {
-    try {
-      const status = await LocalNotifications.requestPermissions();
-      return status.display === "granted" ? "granted" : "denied";
-    } catch (e) {
-      console.warn("Native notification permission request failed:", e);
-      return "denied";
-    }
-  }
-
-  // Web Browser
-  if (!("Notification" in window)) {
-    return "unsupported";
-  }
-  try {
-    const permission = await Notification.requestPermission();
-    return permission;
-  } catch {
-    return "denied";
-  }
-}
-
-/**
- * Send native browser Notification if supported and allowed
- */
-export function sendBrowserNotification(title, options = {}) {
-  if (typeof window === "undefined" || !("Notification" in window)) {
-    return false;
-  }
-  if (Notification.permission === "granted") {
-    try {
-      new Notification(title, {
-        icon: "/favicon.ico",
-        badge: "/favicon.ico",
-        ...options,
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  }
-  return false;
-}
-
-/**
- * Unified notification sender for both Web and Native (Capacitor)
- */
-export async function sendAppNotification(title, options = {}) {
-  if (typeof window === "undefined") return false;
-
-  if (Capacitor.isNativePlatform()) {
-    try {
-      const notifId = Math.floor(Math.random() * 1000000) + 1;
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            id: notifId,
-            title,
-            body: options.body || options.message || "",
-            channelId: "submate-billing-channel",
-            ...(options.at ? scheduledAt(options.at) : {}),
-            extra: options.extra || {},
-          },
-        ],
-      });
-      return true;
-    } catch (err) {
-      console.warn("LocalNotifications.schedule error:", err);
-      return false;
-    }
-  }
-
-  return sendBrowserNotification(title, options);
-}
-
-function stringHashCode(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return hash;
-}
-
-// 해지 다시 알림: 어카운트인포처럼 정해진 시간에만 해지되는 곳을 이용시간 밖에 눌렀을 때, 다음 해지 가능 시각에 알린다.
-export function readCancelReminders() {
-  const list = readStoredValue(storageKeys.cancelReminders, []);
-  return Array.isArray(list) ? list : [];
-}
-
-function cancelReminderNotification(reminder) {
-  return {
-    id: Math.abs(stringHashCode(reminder.id)) % 100000000,
-    title: reminder.title || `[해지 가능] ${reminder.serviceName} 지금 해지할 수 있어요`,
-    body: reminder.body || `${reminder.routeLabel || "해지"} 이용시간이 시작됐어요. 눌러서 해지를 이어가세요.`,
-    channelId: "submate-billing-channel",
-    ...scheduledAt(new Date(reminder.at)),
-    extra: { subscriptionId: reminder.subscriptionId, type: CANCEL_REMINDER_TYPE },
-  };
-}
-
-// title/body/badge를 넘기면 어카운트인포 이용시간 문구 대신 그 문구로 알린다(결제일 전날·갱신 7일 전 알림 등).
-export async function addCancelReminder({ subscription, at, routeLabel = "어카운트인포", title, body, badge }) {
-  const subscriptionId = subscription.subscriptionId || subscription.id;
-  const reminder = {
-    id: `cancel-reminder-${subscriptionId}-${new Date(at).getTime()}`,
-    subscriptionId,
-    serviceName: subscription.name,
-    routeLabel,
-    at: new Date(at).toISOString(),
-    ...(title ? { title } : {}),
-    ...(body ? { body } : {}),
-    ...(badge ? { badge } : {}),
-  };
-  // 같은 구독의 다시 알림은 하나만 둔다.
-  const others = readCancelReminders().filter((item) => item.subscriptionId !== subscriptionId);
-  writeStoredValue(storageKeys.cancelReminders, [...others, reminder]);
-
-  let scheduled = false;
-  if (Capacitor.isNativePlatform()) {
-    try {
-      const perm = await LocalNotifications.checkPermissions();
-      if (perm.display !== "granted") {
-        const requested = await LocalNotifications.requestPermissions();
-        if (requested.display !== "granted") return { reminder, scheduled: false };
-      }
-      await LocalNotifications.schedule({ notifications: [cancelReminderNotification(reminder)] });
-      scheduled = true;
-    } catch (err) {
-      console.warn("cancel reminder schedule error:", err);
-    }
-  }
-  return { reminder, scheduled };
-}
-
-// 시각이 지난 다시 알림을 꺼내 알림 센터 항목으로 바꾸고 저장소에서 지운다.
-export function takeDueCancelReminders(now = new Date()) {
-  const list = readCancelReminders();
-  const due = list.filter((item) => new Date(item.at) <= now);
-  if (due.length === 0) return [];
-  writeStoredValue(storageKeys.cancelReminders, list.filter((item) => new Date(item.at) > now));
-  return due.map((item) => ({
-    id: item.id,
-    subscriptionId: item.subscriptionId,
-    serviceName: item.serviceName,
-    monogram: item.serviceName?.slice(0, 1) || "S",
-    type: CANCEL_REMINDER_TYPE,
-    badge: item.badge || "해지 가능",
-    title: item.title || `[해지 가능] ${item.serviceName} 지금 해지할 수 있어요`,
-    message: item.body || `${formatKoreanDateTime(new Date(item.at))}부터 ${item.routeLabel || "해지"} 이용시간이에요.`,
-    timestamp: item.at,
-    read: false,
-  }));
 }
 
 /**
@@ -819,63 +474,6 @@ export async function cancelScheduledUserNotifications() {
     return true;
   } catch (err) {
     console.warn("cancelScheduledUserNotifications error:", err);
-    return false;
-  }
-}
-
-
-
-// ============================================================================
-// Agent Proactive Insight Notification Support
-// ============================================================================
-export const AGENT_INSIGHT_LAST_NOTIFIED_KEY = storageKeys.agentInsightsLastNotified;
-
-/**
- * Schedule or send at most one local notification per KST day for the top high-priority insight.
- * Dedupe by insight id and KST day key.
- * Uses ID range 200,000,000 ~ 299,999,999 (billing alert is <100M, care is 100M~200M).
- */
-export async function scheduleAgentInsightNotification(insight, now = new Date()) {
-  if (!insight || insight.priority !== "high") return false;
-  if (!Capacitor.isNativePlatform()) return false;
-
-  try {
-    const perm = await LocalNotifications.checkPermissions();
-    if (perm.display !== "granted") return false;
-
-    // Check if already notified today in KST
-    const todayKey = toLocalDateKey(now);
-    const lastNotified = readStoredValue(AGENT_INSIGHT_LAST_NOTIFIED_KEY, null);
-    if (lastNotified && (lastNotified.dateKey === todayKey || lastNotified.insightId === insight.id)) {
-      return false;
-    }
-
-    const notifId = 200000000 + (Math.abs(stringHashCode(insight.id)) % 100000000);
-    await LocalNotifications.schedule({
-      notifications: [
-        {
-          id: notifId,
-          title: "꾸독",
-          body: insight.message || insight.title || "",
-          channelId: "submate-billing-channel",
-          extra: {
-            insightId: insight.id,
-            subscriptionId: insight.subscriptionId || null,
-            type: AGENT_INSIGHT_NOTIFICATION_TYPE,
-            insight,
-          },
-        },
-      ],
-    });
-
-    writeStoredValue(AGENT_INSIGHT_LAST_NOTIFIED_KEY, {
-      dateKey: todayKey,
-      insightId: insight.id,
-      timestamp: now.toISOString(),
-    });
-    return true;
-  } catch (err) {
-    console.warn("scheduleAgentInsightNotification error:", err);
     return false;
   }
 }
