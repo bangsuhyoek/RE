@@ -21,7 +21,8 @@ export const receiptServiceCatalog = [
   {
     id: "coupang",
     name: "쿠팡 와우",
-    aliases: ["coupang wow", "coupang", "쿠팡 와우", "쿠팡와우", "쿠팡"],
+    // '로켓와우클럽 월회비', '와우 멤버십' 메일에는 '쿠팡플레이 특별 혜택' 같은 다른 서비스 이름도 함께 나오므로 와우 별칭을 길게 둔다.
+    aliases: ["coupang wow", "coupang", "쿠팡 와우", "쿠팡와우", "쿠팡", "와우 멤버십", "와우멤버십", "로켓와우클럽"],
     plans: [{ name: "와우 멤버십", aliases: ["wow membership", "와우 멤버십", "와우"], amount: 7890, billingCycle: "매월" }],
   },
   {
@@ -98,36 +99,115 @@ export const detectService = (text, lines) => {
   return { service: null, source: "missing" };
 };
 
+/**
+ * 구독 결제로 볼 최소 금액(원). 이보다 작은 금액은 결제 금액 후보로 쓰지 않는다.
+ * 카드 등록·본인 확인용 인증 결제와 소액 결제(100~900원대)를 구독으로 잘못 잡지 않기 위한 값이며,
+ * 등록된 요금 중 가장 낮은 값(컬리멤버스 1,900원)보다 낮다. 안드로이드 결제 알림 파서
+ * (PaymentParser.MIN_SUBSCRIPTION_AMOUNT_KRW)도 같은 값을 쓴다.
+ */
+export const MIN_SUBSCRIPTION_AMOUNT_KRW = 1000;
+
+// ── 결제 금액·구독 판정 공통 규칙 (안드로이드 PaymentParser.java와 같은 단어 목록) ──
+
+// 금액 바로 앞에 붙어 결제 금액이 아님을 나타내는 말 ('잔액 500,000원', '누적 승인금액 523,400원', '포인트 적립 300원').
+export const NON_CHARGE_PREFIX_PATTERN =
+  /(잔액|잔여|누적|한도|포인트|적립(?:금|예정)?|할인|캐시백|쿠폰|마일리지|페이백|리워드|사용\s*가능|이용\s*가능|VAT|부가세|부가가치세|세액)(?:\s*(?:사용|이용|결제|승인|청구))?(?:\s*(?:금액|액))?\s*[:：|]*\s*(?:krw|₩|￦)?\s*$/i;
+// 금액 바로 뒤에 붙어 결제 금액이 아님을 나타내는 말 ('300원 적립', '2,000원(할인)').
+export const NON_CHARGE_SUFFIX_PATTERN = /^\s*[([]?\s*(?:적립|할인|캐시백|페이백|포인트|쿠폰|리워드|환급|사용\s*가능)/;
+// 취소·환불 알림. '취소문의', '환불불가', '취소 가능' 같은 결제 안내 문구는 제외한다.
+export const CANCEL_OR_REFUND_PATTERN = new RegExp(
+  [
+    "결제\\s*취소|승인\\s*취소|취소\\s*승인|주문\\s*취소|취소되었습니다|취소\\s*완료",
+    "환불\\s*완료|환불\\s*처리|환불\\s*되었습니다|환불\\s*진행",
+    "(?<![가-힣])(?:취소|환불)(?![가-힣])(?!\\s*(?:문의|가능|불가|안내|규정|정책|수수료))",
+    "\\b(?:refund(?:ed)?|cancell?ed|reversal|voided)\\b",
+    // 환불 대신 크레딧을 돌려주는 'Credit note'와 '플랜이 갱신되지 않습니다' 같은 해지 예약 안내.
+    "credit\\s*note|갱신되지\\s*않|(?:will\\s*not|won't)\\s*(?:auto-?)?renew",
+  ].join("|"),
+  "i"
+);
+// 카드 등록·본인 확인·결제수단 확인용 인증 결제와 임시 승인.
+export const VERIFICATION_CHARGE_PATTERN =
+  /(카드\s*(?:인증|등록|확인)|본인\s*(?:인증|확인)\s*(?:결제|승인)|인증\s*(?:결제|승인|금액)|결제\s*수단\s*(?:등록|확인|인증)|유효성\s*(?:확인|검사|검증)|가승인|임시\s*승인|테스트\s*결제|test\s*(?:charge|payment)|temporary\s*(?:hold|authori[sz]ation)|authori[sz]ation\s*hold|card\s*verification|verification\s*charge|pre-?auth)/i;
+
+/** 결제 금액 자리의 숫자가 잔액·누적·포인트·할인 같은 다른 금액인지. */
+export const isNonChargeAmountContext = (text, start, end) =>
+  NON_CHARGE_PREFIX_PATTERN.test(String(text).slice(0, start)) || NON_CHARGE_SUFFIX_PATTERN.test(String(text).slice(end));
+
+/**
+ * 글 전체가 환불·크레딧·결제 취소·해지 안내인지. 제목 역할을 하는 앞 두 줄만 본다.
+ * 정상 영수증 본문의 "언제든지 구독을 취소할 수 있습니다", "요금제 취소" 같은 안내 문구로 영수증을 버리지 않기 위해서다.
+ */
+export const isCancellationDocument = (text) => {
+  const head = String(text || "")
+    .replace(/\r/g, "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("\n");
+  return CANCEL_OR_REFUND_PATTERN.test(head);
+};
+
+/**
+ * 앱스토어 단건 구매 영수증인지. Google Play 영수증은 단건 구매("○○에서 구매하셨습니다")와
+ * 구독("구독권을 구매하셨습니다", "구독이 갱신되어", "자동 갱신되는 정기 결제", 무료 체험)을 문구로 구분한다.
+ * 실제 메일함 표본에서 Google Play 영수증 58건 중 47건이 게임 아이템·웹툰 쿠키 같은 단건 구매였다.
+ */
+export const isOneTimeStoreReceipt = (text) => {
+  const value = String(text || "");
+  return (
+    /Google\s*Play(?:의|에서)\s.{0,80}?에서\s*구매하셨습니다/.test(value) &&
+    !/(구독|정기\s*결제|자동\s*갱신|무료\s*체험)/.test(value)
+  );
+};
+
+/**
+ * Google Play 구독 영수증에 적힌 판매자 이름("Google Play에서 Chess.com, LLC의 구독권을 구매하셨습니다").
+ * 판매자가 적혀 있으면 금액 지문으로 다른 서비스(같은 139,000원인 Disney+ 등)를 추정하지 않고 이 이름을 쓴다.
+ */
+export const extractStoreSeller = (text) => {
+  const match = String(text || "").match(/Google\s*Play(?:에서|를 통한)\s+(.{1,60}?)(?:의\s*구독권을\s*구매|\s*구독이\s*갱신|의\s*무료\s*체험)/);
+  return match ? match[1].replace(/\s+/g, " ").trim() : "";
+};
+
 export const toAmount = (value) => {
   if (value === null || value === undefined) return null;
   const number = Number(String(value).replace(/[^0-9]/g, ""));
-  return Number.isFinite(number) && number >= 1000 && number <= 2_000_000 ? number : null;
+  return Number.isFinite(number) && number >= MIN_SUBSCRIPTION_AMOUNT_KRW && number <= 2_000_000 ? number : null;
 };
 
 export const toDollarAmount = (value, rate = 1350) => {
   if (value === null || value === undefined) return null;
   const num = parseFloat(String(value).replace(/[^0-9.]/g, ""));
   if (Number.isFinite(num) && num > 0 && num <= 2000) {
-    return Math.round(num * rate);
+    const krw = Math.round(num * rate);
+    // 환율로 바꾼 뒤에도 구독 최소 금액보다 작으면(예: USD 0.50 인증 결제) 결제 금액으로 쓰지 않는다.
+    return krw >= MIN_SUBSCRIPTION_AMOUNT_KRW ? krw : null;
   }
   return null;
 };
 
 export const collectAmounts = (text) => {
   const amounts = [];
-  const labeledPattern = /(?:결제\s*금액|승인\s*금액|청구\s*금액|이용\s*금액|최종\s*금액|합계|총액)\s*[:：-]?\s*(?:krw|₩|￦)?\s*([0-9][0-9,]{2,})\s*(?:원|krw)?/gi;
-  const wonPattern = /(?:krw|₩|￦)?\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,7})\s*(?:원|krw)/gi;
-  const dollarPattern = /(?:\$|usd)\s*([0-9]+(?:\.[0-9]{1,2})?)|([0-9]+(?:\.[0-9]{1,2})?)\s*(?:usd|\$)/gi;
+  // 표 형식 메일('최종 결제 금액 | ₩ 1,000')도 읽는다. 할인 전 금액보다 '최종' 금액을 우선한다(selectAmount).
+  const labeledPattern = /(최종\s*결제\s*금액|결제\s*금액|승인\s*금액|청구\s*금액|이용\s*금액|최종\s*금액|합계|총액)\s*[|:：-]*\s*(?:krw|₩|￦)?\s*([0-9][0-9,]{2,})\s*(?:원|krw)?/gi;
+  // '₩11,990의 요금'처럼 '원' 없이 통화 기호만 앞에 붙은 금액도 읽는다.
+  const wonPattern = /(?:krw|₩|￦)\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,7})(?![0-9,])|([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,7})\s*(?:원|krw)/gi;
+  const dollarPattern = /(?:\$|(?<![a-z])usd)\s*([0-9]+(?:\.[0-9]{1,2})?)|(?<![0-9.])([0-9]+(?:\.[0-9]{1,2})?)\s*(?:usd(?![a-z])|\$)/gi;
   let match;
   while ((match = labeledPattern.exec(text)) !== null) {
-    const amount = toAmount(match[1]);
-    if (amount) amounts.push({ amount, source: "labeled-amount" });
+    if (isNonChargeAmountContext(text, match.index, match.index + match[0].length)) continue;
+    const amount = toAmount(match[2]);
+    if (amount) amounts.push({ amount, source: "labeled-amount", final: /^최종/.test(match[1]) });
   }
   while ((match = wonPattern.exec(text)) !== null) {
-    const amount = toAmount(match[1]);
+    if (isNonChargeAmountContext(text, match.index, match.index + match[0].length)) continue;
+    const amount = toAmount(match[1] || match[2]);
     if (amount) amounts.push({ amount, source: "won-amount" });
   }
   while ((match = dollarPattern.exec(text)) !== null) {
+    if (isNonChargeAmountContext(text, match.index, match.index + match[0].length)) continue;
     const raw = match[1] || match[2];
     const amount = toDollarAmount(raw);
     if (amount) amounts.push({ amount, source: "dollar-amount" });
@@ -137,7 +217,9 @@ export const collectAmounts = (text) => {
 
 export const selectAmount = (text, service) => {
   const amounts = collectAmounts(text);
-  const labeled = amounts.find((entry) => entry.source === "labeled-amount");
+  const labeled =
+    amounts.find((entry) => entry.source === "labeled-amount" && entry.final) ||
+    amounts.find((entry) => entry.source === "labeled-amount");
   if (labeled) return labeled;
 
   if (service) {
@@ -202,8 +284,15 @@ export const detectPaymentMethod = (text, lines) => {
 };
 
 export const detectBillingCycle = (text, plan) => {
-  if (/(?:연간|연 결제|12\s*개월|1\s*년|yearly|annual)/i.test(text)) return { billingCycle: "매년", source: "explicit-cycle" };
-  if (/(?:매월|월간|월 결제|1\s*개월|monthly)/i.test(text)) return { billingCycle: "매월", source: "explicit-cycle" };
+  // 영수증 본문에는 '(월간)' 요금제 표시 뒤에 '연간 요금제를 보유한 경우…' 같은 안내가 붙기도 하므로
+  // 두 표시가 모두 있으면 먼저 나온 쪽(요금제 줄)을 쓰고 확인 필요로 표시한다. '2021년'의 '1년'은 주기가 아니다.
+  const annual = text.search(/(?:연간|연 결제|12\s*개월|(?<![0-9])1\s*년|yearly|annual)/i);
+  const monthly = text.search(/(?:매월|월간|월 결제|(?<![0-9])1\s*개월|monthly)/i);
+  if (annual >= 0 && monthly >= 0) {
+    return { billingCycle: annual < monthly ? "매년" : "매월", source: "conflicting-cycle-needs-review" };
+  }
+  if (annual >= 0) return { billingCycle: "매년", source: "explicit-cycle" };
+  if (monthly >= 0) return { billingCycle: "매월", source: "explicit-cycle" };
   if (plan?.billingCycle) return { billingCycle: plan.billingCycle, source: "catalog-inference" };
   return { billingCycle: "매월", source: "default-needs-review" };
 };
@@ -225,11 +314,13 @@ export const detectPlan = (text, lines, service, amount) => {
 };
 
 export function parseReceiptText(rawText) {
-  const text = String(rawText || "").trim();
+  // 메일 본문의 추적 링크 주소 안 숫자(…88usd…)를 금액으로 읽지 않도록 주소는 먼저 지운다.
+  const text = String(rawText || "").replace(/https?:\/\/[^\s)\]>"']+/gi, " ").trim();
   if (!text) return { ok: false, code: "NO_TEXT", message: "이미지에서 글자를 읽지 못했습니다." };
 
   const lines = normalizedLines(text);
   const serviceResult = detectService(text, lines);
+  const storeSeller = serviceResult.service ? "" : extractStoreSeller(text);
   const amountResult = selectAmount(text, serviceResult.service);
   const planResult = detectPlan(text, lines, serviceResult.service, amountResult.amount);
   const dueDayResult = detectDueDay(text, lines);
@@ -250,7 +341,7 @@ export function parseReceiptText(rawText) {
     ok: true,
     data: {
       serviceId: serviceResult.service?.id || "",
-      name: serviceResult.service?.name || "",
+      name: serviceResult.service?.name || storeSeller,
       plan: planResult.plan,
       amount: amountResult.amount || "",
       dueDay: dueDayResult.dueDay || "",
@@ -258,7 +349,7 @@ export function parseReceiptText(rawText) {
       paymentMethod: paymentResult.paymentMethod,
     },
     fieldSources: {
-      name: serviceResult.source,
+      name: serviceResult.service ? serviceResult.source : storeSeller ? "store-seller" : serviceResult.source,
       plan: planResult.source,
       amount: amountResult.source,
       dueDay: dueDayResult.source,

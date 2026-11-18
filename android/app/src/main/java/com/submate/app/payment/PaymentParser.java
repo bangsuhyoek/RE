@@ -17,6 +17,7 @@ public class PaymentParser {
         public final String category;
         public final List<String> aliases;
         public final Set<Integer> allowedAmounts;
+        public final Set<Integer> annualAmounts = new HashSet<>(); // allowedAmounts 중 연간 결제 요금
         public final boolean strictAmountCheck; // 복합 플랫폼(쿠팡 등)인 경우 금액 필수 일치 여부
 
         public KnownService(String id, String name, String category, boolean strictAmountCheck, Integer[] amounts, String... aliases) {
@@ -31,6 +32,12 @@ public class PaymentParser {
                 this.aliases.add(a.toLowerCase());
             }
         }
+
+        KnownService annual(Integer... amounts) {
+            annualAmounts.addAll(Arrays.asList(amounts));
+            allowedAmounts.addAll(Arrays.asList(amounts));
+            return this;
+        }
     }
 
     public static final List<KnownService> KNOWN_SERVICES = new ArrayList<>();
@@ -40,7 +47,7 @@ public class PaymentParser {
         KNOWN_SERVICES.add(new KnownService("netflix", "Netflix", "OTT", false, new Integer[]{5500, 13500, 17000}, "넷플릭스", "netflix.com"));
         KNOWN_SERVICES.add(new KnownService("youtube", "YouTube Premium", "OTT", false, new Integer[]{8690, 10450, 14900}, "유튜브", "youtube", "google youtube", "구글유튜브"));
         KNOWN_SERVICES.add(new KnownService("tving", "티빙", "OTT", false, new Integer[]{5500, 9500, 13500, 17000}, "tving", "cj enm"));
-        KNOWN_SERVICES.add(new KnownService("disney", "Disney+", "OTT", false, new Integer[]{9900, 13900, 99000, 139000}, "디즈니+", "디즈니플러스", "disneyplus", "disney"));
+        KNOWN_SERVICES.add(new KnownService("disney", "Disney+", "OTT", false, new Integer[]{9900, 13900}, "디즈니+", "디즈니플러스", "disneyplus", "disney").annual(99000, 139000));
         KNOWN_SERVICES.add(new KnownService("watcha", "왓챠", "OTT", false, new Integer[]{7900, 12900}, "watcha"));
         KNOWN_SERVICES.add(new KnownService("wavve", "웨이브", "OTT", false, new Integer[]{7900, 10900, 13900}, "wavve"));
         KNOWN_SERVICES.add(new KnownService("laftel", "라프텔", "OTT", false, new Integer[]{9900, 14900}, "laftel"));
@@ -48,7 +55,7 @@ public class PaymentParser {
 
         // 쇼핑 & 커머스 (쿠팡 등 복합 플랫폼은 일반 주문 오탐 방지를 위해 strictAmountCheck = true)
         KNOWN_SERVICES.add(new KnownService("coupang", "쿠팡 와우", "쇼핑", true, new Integer[]{4990, 7890}, "쿠팡", "coupang", "쿠팡와우", "와우멤버십"));
-        KNOWN_SERVICES.add(new KnownService("naver", "네이버플러스 멤버십", "쇼핑", true, new Integer[]{4900, 46800}, "네이버플러스", "네이버멤버십", "네이버", "네이버파이낸셜"));
+        KNOWN_SERVICES.add(new KnownService("naver", "네이버플러스 멤버십", "쇼핑", true, new Integer[]{4900}, "네이버플러스", "네이버멤버십", "네이버", "네이버파이낸셜").annual(46800));
         KNOWN_SERVICES.add(new KnownService("baemin-club", "배민클럽", "쇼핑", true, new Integer[]{1990, 3990}, "배민클럽", "배달의민족", "우아한형제들"));
         KNOWN_SERVICES.add(new KnownService("yogipass", "요기패스X", "쇼핑", true, new Integer[]{2900, 4900}, "요기패스", "요기패스x", "위대한상상"));
         KNOWN_SERVICES.add(new KnownService("kurly-members", "컬리멤버스", "쇼핑", true, new Integer[]{1900}, "컬리멤버스", "마켓컬리"));
@@ -72,20 +79,47 @@ public class PaymentParser {
         KNOWN_SERVICES.add(new KnownService("midjourney", "Midjourney", "AI/생산성", false, new Integer[]{13500, 14000, 40500}, "미드저니", "midjourney"));
         KNOWN_SERVICES.add(new KnownService("figma", "Figma Professional", "AI/생산성", false, new Integer[]{16200, 20250, 21000}, "피그마", "figma"));
         KNOWN_SERVICES.add(new KnownService("canva", "Canva Pro", "AI/생산성", false, new Integer[]{14000, 14900}, "캔바", "canva"));
-        KNOWN_SERVICES.add(new KnownService("ms365", "Microsoft 365", "AI/생산성", false, new Integer[]{8900, 11900, 89000}, "마이크로소프트365", "microsoft 365", "office 365"));
+        KNOWN_SERVICES.add(new KnownService("ms365", "Microsoft 365", "AI/생산성", false, new Integer[]{8900, 11900}, "마이크로소프트365", "microsoft 365", "office 365").annual(89000));
         KNOWN_SERVICES.add(new KnownService("github-copilot", "GitHub Copilot", "AI/생산성", false, new Integer[]{13500, 14000}, "깃허브", "github", "copilot"));
 
         // 도서 & 교육 & 통신사 구독
-        KNOWN_SERVICES.add(new KnownService("millie", "밀리의서재", "도서", false, new Integer[]{9900, 99000}, "밀리", "밀리의 서재"));
+        KNOWN_SERVICES.add(new KnownService("millie", "밀리의서재", "도서", false, new Integer[]{9900}, "밀리", "밀리의 서재").annual(99000));
         KNOWN_SERVICES.add(new KnownService("ridiselect", "리디셀렉트", "도서", false, new Integer[]{4900}, "리디", "리디북스", "ridi"));
         KNOWN_SERVICES.add(new KnownService("welaaa", "윌라 오디오북", "도서", false, new Integer[]{9900, 12500}, "윌라", "welaaa"));
-        KNOWN_SERVICES.add(new KnownService("duolingo-super", "Duolingo Super", "교육", false, new Integer[]{12900, 14000, 89000}, "듀오링고", "duolingo"));
+        KNOWN_SERVICES.add(new KnownService("duolingo-super", "Duolingo Super", "교육", false, new Integer[]{12900, 14000}, "듀오링고", "duolingo").annual(89000));
         KNOWN_SERVICES.add(new KnownService("skt-universe", "T 우주패스", "기타", false, new Integer[]{4900, 9900}, "우주패스", "t우주"));
         KNOWN_SERVICES.add(new KnownService("lgu-yudok", "U+ 유독", "기타", false, new Integer[]{4900, 9900, 13900}, "유독"));
-        KNOWN_SERVICES.add(new KnownService("apple", "Apple One", "기타", true, new Integer[]{14900, 20900, 3300, 4400, 8900}, "apple.com/bill", "애플"));
+        // APPLE.COM/BILL은 앱스토어 인앱 구독을 모두 대신 청구하므로 요금표로 거르지 않는다(AGGREGATOR_SERVICE_IDS).
+        KNOWN_SERVICES.add(new KnownService("apple", "Apple One", "기타", false, new Integer[]{14900, 20900, 3300, 4400, 8900}, "apple.com/bill", "애플"));
     }
 
     public static final int USD_KRW_EXCHANGE_RATE = 1350;
+
+    /**
+     * 구독 결제로 볼 최소 금액(원). 이보다 작은 결제는 구독으로 판정하지 않는다.
+     * - 카드 등록·본인 확인용 인증 결제와 소액 결제(100~900원대)가 구독 감지 알림으로 뜨는 문제를 막는다.
+     * - 앱의 다른 금액 파서(영수증·공유 문자·명세서, api/_lib/receiptParser.js MIN_SUBSCRIPTION_AMOUNT_KRW)와 같은 기준이다.
+     * - 등록된 요금 중 가장 낮은 값(컬리멤버스 1,900원)보다 낮다.
+     * 무료체험 알림은 예외로, 소액 금액 대신 서비스 정가(또는 0원)로 처리한다.
+     */
+    public static final int MIN_SUBSCRIPTION_AMOUNT_KRW = 1000;
+
+    /** 서비스 이름이 맞아도 등록 요금 중 최저가의 이 비율보다 싸면 그 서비스 결제로 보지 않는다(할인·광고형 요금 여유 포함). */
+    public static final double MIN_PRICE_RATIO = 0.5;
+
+    /** 서비스 이름이 맞아도 등록 요금 중 최고가의 이 배수보다 비싸면 그 서비스 결제로 보지 않는다(월 요금 1년치 연간 결제까지 허용). */
+    public static final double MAX_PRICE_MULTIPLIER = 12.0;
+
+    /** 알림에 연간 결제 표시(연간·1년·annual 등)가 있으면 최고가의 이 배수까지 허용한다(연간 요금 + 환율·요금 인상 여유 50%). */
+    public static final double ANNUAL_PRICE_MULTIPLIER = 18.0;
+
+    /**
+     * 앱스토어처럼 여러 앱의 인앱 구독을 대신 청구하는 곳. 요금표로 거르지 않고
+     * 최소 금액과 이 상한(연간 인앱 구독까지 포함하는 넉넉한 값)만 본다.
+     */
+    public static final Set<String> AGGREGATOR_SERVICE_IDS = new HashSet<>(Collections.singletonList("apple"));
+    public static final int AGGREGATOR_MAX_AMOUNT_KRW = 300_000;
+
     private static class AmountCandidate {
         int amount;
         String currency;
@@ -121,14 +155,40 @@ public class PaymentParser {
             "|(?i:USD)\s*([0-9]+(?:[.][0-9]{2})?)" +
             "|[₩￦]\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)"
     );
-    private static final Pattern RECURRING_KEYWORD = Pattern.compile("(정기|자동결제|정기결제|매월|구독|멤버십|와우|플러스멤버십|월간|인보이스|invoice|receipt|주문\\s*영수증|결제\\s*영수증|갱신)", Pattern.CASE_INSENSITIVE);
+    // 구독이라는 직접 신호. '결제 영수증', '주문 영수증', 'receipt', '와우' 같은 말은 일반 쇼핑 결제에도 붙으므로 여기 넣지 않는다.
+    private static final Pattern RECURRING_KEYWORD = Pattern.compile("(정기|자동\\s*결제|자동\\s*갱신|매월|구독|멤버십|월간|연간|갱신|subscription|renew)", Pattern.CASE_INSENSITIVE);
+    // 쇼핑 겸용 플랫폼에서 멤버십 요금 자체를 청구했다는 신호. '멤버십 적립/혜택'은 쇼핑 결제의 부가 문구라 제외한다.
+    private static final Pattern MEMBERSHIP_BILLING = Pattern.compile("(정기\\s*결제|자동\\s*결제|멤버십\\s*(?:요금|이용료|회비|정기|결제|갱신|가입)|구독료|월\\s*회비)", Pattern.CASE_INSENSITIVE);
     private static final Pattern TRIAL_KEYWORD = Pattern.compile("(무료\\s*체험|체험\\s*기간|체험판|free\\s*trial|첫\\s*달\\s*0원|0원\\s*시작|체험\\s*종료)", Pattern.CASE_INSENSITIVE);
     private static final Pattern PG_MASKED_MERCHANT = Pattern.compile("(google\\s*\\*\\s*services|google\\s*play|구글플레이|애플코리아|apple\\.com/bill|이니시스|kg이니시스|토스페이먼츠|나이스페이|다날|케이씨피|nhn\\s*kcp)", Pattern.CASE_INSENSITIVE);
     private static final Pattern NEGATIVE_KEYWORD = Pattern.compile("(결제\s*취소|승인\s*취소|취소\s*승인|주문\s*취소|취소되었습니다|취소\s*완료|환불\s*완료|환불\s*처리|환불\s*되었습니다|환불\s*진행|반품|카드대금|후불교통|교통카드|송금|이체|적금|대출|이자|현금서비스|배송완료|장바구니)");
+    // 'KB국민카드 1234 취소 홍*동 17,000원'처럼 단독으로 쓰인 취소·환불. '취소문의', '환불불가', '취소 가능'은 결제 안내 문구라 제외한다.
+    private static final Pattern CANCEL_OR_REFUND_TOKEN = Pattern.compile(
+            "(?<![가-힣])(?:취소|환불)(?![가-힣])(?!\\s*(?:문의|가능|불가|안내|규정|정책|수수료))"
+            + "|\\b(?:refund(?:ed)?|cancell?ed|reversal|voided)\\b"
+            // 환불 대신 크레딧을 돌려주는 'Credit note'와 '플랜이 갱신되지 않습니다' 같은 해지 예약 안내.
+            + "|credit\\s*note|갱신되지\\s*않|(?:will\\s*not|won't)\\s*(?:auto-?)?renew",
+            Pattern.CASE_INSENSITIVE);
+    // 카드 등록·본인 확인·결제수단 확인용 인증 결제와 임시 승인. 구독 결제가 아니다.
+    private static final Pattern VERIFICATION_KEYWORD = Pattern.compile(
+            "(카드\\s*(?:인증|등록|확인)|본인\\s*(?:인증|확인)\\s*(?:결제|승인)|인증\\s*(?:결제|승인|금액)|결제\\s*수단\\s*(?:등록|확인|인증)"
+            + "|유효성\\s*(?:확인|검사|검증)|가승인|임시\\s*승인|테스트\\s*결제|test\\s*(?:charge|payment)"
+            + "|temporary\\s*(?:hold|authori[sz]ation)|authori[sz]ation\\s*hold|card\\s*verification|verification\\s*charge|pre-?auth)",
+            Pattern.CASE_INSENSITIVE);
     private static final Pattern WITHDRAWAL_NEGATIVE = Pattern.compile("(ATM|계좌|이체|송금|예금|입금)");
     private static final Pattern CARD_APPROVAL_HINT = Pattern.compile("(체크카드|체크|승인|결제)");
     private static final Pattern BUSINESS_SUFFIX = Pattern.compile("(헤어|미용실|치과|식당|마트|로지스틱스|물류|카페|베이커리|의원|병원|모텔|호텔|빌딩|세탁|주유소|약국|분식|반점)");
-    private static final Pattern BALANCE_PREFIX = Pattern.compile("(잔액|잔여|누적|한도)\s*:?\s*$");
+    // 금액 바로 앞에 붙어 결제 금액이 아님을 나타내는 말 ('잔액 500,000원', '누적 사용금액 123,000원', '포인트 적립 300원', '할인금액: 2,000원').
+    private static final Pattern NON_CHARGE_PREFIX = Pattern.compile(
+            "(잔액|잔여|누적|한도|포인트|적립(?:금|예정)?|할인|캐시백|쿠폰|마일리지|페이백|리워드|사용\\s*가능|이용\\s*가능|VAT|부가세|부가가치세|세액)"
+            + "(?:\\s*(?:사용|이용|결제|승인|청구))?(?:\\s*(?:금액|액))?\\s*[:：|]*\\s*(?:KRW|₩|￦)?\\s*$", Pattern.CASE_INSENSITIVE);
+    // 연간 결제 표시. 있으면 연간 요금 상한(ANNUAL_PRICE_MULTIPLIER)과 연간 멤버십 요금 근접 판정을 쓴다.
+    private static final Pattern ANNUAL_HINT = Pattern.compile(
+            "(연간|(?<![가-힣])연\\s*(?:결제|회비|이용료)|(?<![0-9])1\\s*년|12\\s*개월|annual|yearly|per\\s*year|/\\s*년|/\\s*yr)",
+            Pattern.CASE_INSENSITIVE);
+    // 금액 바로 뒤에 붙어 결제 금액이 아님을 나타내는 말 ('300원 적립', '2,000원(할인)').
+    private static final Pattern NON_CHARGE_SUFFIX = Pattern.compile(
+            "^\\s*[(\\[]?\\s*(?:적립|할인|캐시백|페이백|포인트|쿠폰|리워드|환급|사용\\s*가능)");
     private static final Pattern PAYMENT_VERB = Pattern.compile("(결제|승인|출금|사용)");
 
     public static ParsedPayment parse(String packageName, String title, String body) {
@@ -142,6 +202,10 @@ public class PaymentParser {
 
         // 1. 제외 키워드(취소, 대금, 이체 등)가 포함된 경우 즉시 기각
         if (NEGATIVE_KEYWORD.matcher(combined).find()) {
+            return null;
+        }
+        // 1-1. 단독으로 쓰인 취소·환불 알림, 카드 등록·본인 확인용 인증 결제는 구독이 아니다.
+        if (CANCEL_OR_REFUND_TOKEN.matcher(combined).find() || VERIFICATION_KEYWORD.matcher(combined).find()) {
             return null;
         }
 
@@ -162,9 +226,10 @@ public class PaymentParser {
             int matchStart = amountMatcher.start();
             int matchEnd = amountMatcher.end();
 
-            // 금액 바로 앞에 잔액/잔여/누적/한도 접두어가 붙어 있는지 확인
+            // 금액 앞뒤에 잔액·누적·포인트·적립·할인 같은 말이 붙어 있으면 결제 금액이 아니다.
             String prefix = combined.substring(0, matchStart);
-            if (BALANCE_PREFIX.matcher(prefix).find()) {
+            String suffix = combined.substring(matchEnd);
+            if (NON_CHARGE_PREFIX.matcher(prefix).find() || NON_CHARGE_SUFFIX.matcher(suffix).find()) {
                 continue;
             }
 
@@ -200,6 +265,9 @@ public class PaymentParser {
                 } catch (NumberFormatException ignored) {}
             }
         }
+
+        // 구독 최소 금액보다 작은 금액(인증 결제·소액 결제·수수료)은 결제 금액 후보에서 뺀다.
+        candidates.removeIf(c -> c.amount < MIN_SUBSCRIPTION_AMOUNT_KRW);
 
         int amount = 0;
         String currency = "KRW";
@@ -302,13 +370,27 @@ public class PaymentParser {
         boolean hasRecurringKeyword = RECURRING_KEYWORD.matcher(combined).find() || isTrial;
 
         // 5. 복합 플랫폼(쿠팡, 네이버 등) 금액 일치성 검증 (Price Matcher)
-        if (bestMatch != null) {
-            if (bestMatch.strictAmountCheck) {
-                boolean isAmountMatched = bestMatch.allowedAmounts.contains(amount);
-                // 금액이 일치하지 않고 명시적 정기결제/멤버십 단어도 없다면 -> 일반 쇼핑 결제이므로 기각!
-                if (!isAmountMatched && !hasRecurringKeyword) {
+        boolean hasAnnualHint = ANNUAL_HINT.matcher(combined).find();
+        if (bestMatch != null && amount > 0) {
+            double maxMultiplier = hasAnnualHint ? ANNUAL_PRICE_MULTIPLIER : MAX_PRICE_MULTIPLIER;
+            if (AGGREGATOR_SERVICE_IDS.contains(bestMatch.id)) {
+                if (amount > AGGREGATOR_MAX_AMOUNT_KRW) {
                     return null;
                 }
+            } else if (bestMatch.strictAmountCheck) {
+                // 쇼핑 겸용 플랫폼은 멤버십 요금과 정확히 같은 금액이거나, 멤버십 요금 청구 문구('월회비', '멤버십 요금' 등)가 있을 때만 받는다.
+                // 실제 쿠팡 주문 메일에는 멤버십 요금 근처 가격(5,630원·8,860원·9,900원)의 일반 상품이 흔해서 '가까운 금액'은 근거가 되지 못한다.
+                // ('결제 영수증', '주문 영수증', '멤버십 적립'도 일반 쇼핑 결제와 구별할 수 없다.)
+                boolean membershipBilling = MEMBERSHIP_BILLING.matcher(combined).find();
+                boolean exactPrice = bestMatch.allowedAmounts.contains(amount);
+                boolean explicitBilling = membershipBilling
+                        && isPlausibleServiceAmount(amount, bestMatch.allowedAmounts, maxMultiplier);
+                if (!exactPrice && !explicitBilling) {
+                    return null;
+                }
+            } else if (!isPlausibleServiceAmount(amount, bestMatch.allowedAmounts, maxMultiplier)) {
+                // 이름만 같고 금액이 그 서비스 요금과 동떨어지면(예: '지니' 편의점 2,500원) 그 서비스 결제로 보지 않는다.
+                return null;
             }
         }
 
@@ -391,6 +473,14 @@ public class PaymentParser {
         if (amount == 4900) return findKnownById("naver");
         if (amount == 17000 || amount == 13500) return findKnownById("netflix");
         return candidates.get(0);
+    }
+
+    /** 금액이 그 서비스 결제로 볼 만한 범위(최저가 x MIN_PRICE_RATIO ~ 최고가 x maxMultiplier)인지. */
+    static boolean isPlausibleServiceAmount(int amount, Set<Integer> knownAmounts, double maxMultiplier) {
+        if (knownAmounts == null || knownAmounts.isEmpty()) return true;
+        int min = Collections.min(knownAmounts);
+        int max = Collections.max(knownAmounts);
+        return amount >= min * MIN_PRICE_RATIO && amount <= max * maxMultiplier;
     }
 
     private static KnownService findKnownById(String id) {

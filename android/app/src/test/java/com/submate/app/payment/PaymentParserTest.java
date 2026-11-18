@@ -338,10 +338,14 @@ public class PaymentParserTest {
         assertEquals(Math.round(9.99 * PaymentParser.USD_KRW_EXCHANGE_RATE), p6.amount);
         assertTrue(p6.isEstimated);
 
-        PaymentParser.ParsedPayment p7 = PaymentParser.parse("com.shcard.smartpay", "신한카드", "유튜브 900원 결제");
-        assertNotNull("900원 인식 실패", p7);
-        assertEquals(900, p7.amount);
+        PaymentParser.ParsedPayment p7 = PaymentParser.parse("com.shcard.smartpay", "신한카드", "유튜브 14900원 결제");
+        assertNotNull("쉼표 없는 14900원 인식 실패", p7);
+        assertEquals(14900, p7.amount);
         assertEquals("KRW", p7.currency);
+
+        // 구독 최소 금액(1,000원)보다 작은 결제는 서비스 이름이 맞아도 구독으로 보지 않는다.
+        assertNull("900원 결제는 구독으로 판정하면 안 됩니다.",
+                PaymentParser.parse("com.shcard.smartpay", "신한카드", "유튜브 900원 결제"));
     }
     @Test
     public void testDedupDifferentServicesSameAmountNotMerged() {

@@ -1,4 +1,14 @@
-import { parseReceiptText, collectAmounts, parseDayFromValue, detectPaymentMethod } from "../../api/_lib/receiptParser.js";
+import {
+  parseReceiptText,
+  collectAmounts,
+  parseDayFromValue,
+  detectPaymentMethod,
+  MIN_SUBSCRIPTION_AMOUNT_KRW,
+  CANCEL_OR_REFUND_PATTERN,
+  VERIFICATION_CHARGE_PATTERN,
+  isCancellationDocument,
+  isOneTimeStoreReceipt,
+} from "../../api/_lib/receiptParser.js";
 import { detectTrialText } from "./trialGuard.js";
 import { scanInstalledSubscriptionApps, scanActivePaymentNotifications } from "./paymentCapture.js";
 import { isDuplicateSubscription } from "./subscriptionAdd.js";
@@ -97,9 +107,18 @@ export const SUBSCRIPTION_HUBS = [
   },
 ];
 
-const NEGATIVE_LINE_PATTERN = /(취소|환불|승인취소|결제취소|반품|카드대금|후불교통|교통카드|송금|이체|ATM|적금|대출|이자|현금서비스|배송완료|장바구니)/i;
+// 구독이 아닌 거래. 취소·환불·인증 결제는 receiptParser.js의 공통 규칙(안드로이드 파서와 같은 목록)으로 따로 본다.
+const NEGATIVE_LINE_PATTERN = /(반품|카드대금|후불교통|교통카드|송금|이체|ATM|적금|대출|이자|현금서비스|배송완료|장바구니)/i;
+// '쿠페이(계좌이체)', '[계좌이체]결제'처럼 괄호 안 결제수단 표시는 송금·이체 거래가 아니다.
+const PAYMENT_METHOD_LABEL_PATTERN = /[([]\s*[^()[\]]{0,10}계좌\s*이체\s*[)\]]/g;
+const isNonSubscriptionLine = (chunk) => {
+  const text = String(chunk || "").replace(PAYMENT_METHOD_LABEL_PATTERN, " ");
+  return NEGATIVE_LINE_PATTERN.test(text) || CANCEL_OR_REFUND_PATTERN.test(text) || VERIFICATION_CHARGE_PATTERN.test(text);
+};
 const RECURRING_HINT_PATTERN = /(정기|자동결제|정기결제|매월|구독|멤버십|와우|플러스멤버십|월간|연간|자동이체|빌링|인보이스|invoice|receipt|주문\s*영수증|결제\s*영수증|갱신)/i;
 const PG_MASKED_PATTERN = /(google\s*\*?\s*services|google\s*play|구글플레이|애플코리아|apple\.com\/bill|이니시스|kg이니시스|토스페이먼츠|나이스페이|다날|케이씨피|nhn\s*kcp)/i;
+/** 가맹점이 PG사·앱스토어 이름으로만 찍힌 결제인지. 이때만 금액 지문으로 서비스를 추정한다. */
+export const isPgMaskedText = (text) => PG_MASKED_PATTERN.test(String(text || ""));
 const OFFLINE_SUFFIX_PATTERN = /(헤어|미용실|치과|식당|마트|로지스틱스|물류|카페|베이커리|의원|병원|모텔|호텔|빌딩|세탁|주유소|약국|분식|반점|편의점|택시)/;
 // 결제 허브 화면에서 이미 끝났거나 갱신되지 않는 구독을 가려낸다. '구독 취소' 버튼 글자는 걸러내지 않는다.
 const HUB_NEGATIVE_PATTERN = /(취소됨|만료됨|해지됨|해지\s*예정|만료\s*예정|결제\s*취소|승인\s*취소|환불\s*완료)/;
@@ -107,6 +126,25 @@ const HUB_RECURRING_PATTERN = /(\/\s*(월|년|month|year)|매월|매년|다음\s
 const ANNUAL_HINT_PATTERN = /(\/\s*년|\/\s*year|연간|매년|yearly|annual)/i;
 const MONTHLY_HINT_PATTERN = /(\/\s*월|\/\s*month|월간|매월|monthly)/i;
 const WON_PREFIX_PATTERN = /(?:₩|￦|krw)\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,7})/i;
+// 쇼핑 겸용 플랫폼(쿠팡·네이버 등)에서 멤버십 요금 자체를 청구했다는 문구. '주문 영수증', '멤버십 적립'은 일반 쇼핑 결제에도 붙는다.
+const MEMBERSHIP_BILLING_PATTERN = /(정기\s*결제|자동\s*결제|멤버십\s*(?:요금|이용료|회비|정기|결제|갱신|가입)|구독료|월\s*회비)/;
+
+// 쇼핑 겸용 플랫폼 결제가 멤버십 요금인지. 등록 요금과 정확히 같거나 '월회비'·'멤버십 요금' 같은 청구 문구가 있어야 한다.
+// 실제 쿠팡 주문 메일에는 멤버십 요금 근처 가격의 일반 상품이 흔해 '가까운 금액'은 근거가 되지 못한다(안드로이드 파서와 같은 규칙).
+function isPlatformMembershipCharge(amount, spec, chunk) {
+  return spec.amounts.includes(amount) || MEMBERSHIP_BILLING_PATTERN.test(chunk);
+}
+
+// 영수증 파서(serviceAliases.js)의 서비스 ID를 이 파일의 쇼핑 겸용 플랫폼 규칙 ID로 맞춘다.
+const RECEIPT_TO_SPEC_ID = { naverplus: "naver", "kurly-pass": "kurly-members" };
+
+/** 쿠팡·네이버 같은 쇼핑 겸용 플랫폼의 일반 주문 영수증인지(멤버십 요금과 다르고 청구 문구도 없음). */
+export function isShoppingPlatformOrder(serviceId, amount, text) {
+  const specId = RECEIPT_TO_SPEC_ID[serviceId] || serviceId;
+  const spec = DISCOVERY_SERVICE_SPECS.find((item) => item.id === specId);
+  const value = Number(amount) || 0;
+  return Boolean(spec?.strictAmount && value > 0 && !isPlatformMembershipCharge(value, spec, String(text || "")));
+}
 
 function cleanToken(value = "") {
   return String(value || "").toLowerCase().replace(/[^a-z0-9가-힣]/g, "");
@@ -119,7 +157,7 @@ function extractAmount(chunk) {
   const match = String(chunk || "").match(WON_PREFIX_PATTERN);
   if (!match) return 0;
   const value = Number(match[1].replace(/,/g, ""));
-  return value >= 1000 && value <= 2_000_000 ? value : 0;
+  return value >= MIN_SUBSCRIPTION_AMOUNT_KRW && value <= 2_000_000 ? value : 0;
 }
 
 function pad2(value) {
@@ -350,6 +388,11 @@ function extractUnknownMerchantName(line) {
 export function scanStatementText(rawText, { catalog = [], existingSubscriptions = [], installedServiceIds = [], now = new Date() } = {}) {
   const text = String(rawText || "").trim();
   if (!text) return { items: [], stats: { totalLines: 0, detectedCount: 0 } };
+  // 환불·크레딧·해지 안내 문서는 본문의 금액 줄이 결제처럼 보여도 구독으로 올리지 않는다.
+  // 앱스토어 단건 구매 영수증도 같다.
+  if (isCancellationDocument(text) || isOneTimeStoreReceipt(text)) {
+    return { items: [], stats: { totalLines: 0, detectedCount: 0 } };
+  }
 
   const rawLines = text
     .replace(/\r/g, "")
@@ -372,9 +415,15 @@ export function scanStatementText(rawText, { catalog = [], existingSubscriptions
 
   const detectedMap = new Map();
   const unknownCandidates = new Map();
+  // 취소·환불이나 쇼핑 주문으로 걸러낸 글이 있으면 아래 영수증 분석 대체 경로로 되살리지 않는다.
+  let rejectedChunks = 0;
 
   for (const chunk of chunks) {
-    if (NEGATIVE_LINE_PATTERN.test(chunk)) continue;
+    if (isNonSubscriptionLine(chunk)) {
+      // 금액이 있는 거래 줄을 걸러낸 경우만 센다. '30일 무료반품' 같은 혜택 안내 줄은 영수증 분석 대체 경로를 막지 않는다.
+      if (collectAmounts(chunk).length > 0) rejectedChunks += 1;
+      continue;
+    }
 
     const trialInfo = detectTrialText(chunk, now);
     const amount = extractAmount(chunk);
@@ -392,9 +441,10 @@ export function scanStatementText(rawText, { catalog = [], existingSubscriptions
     let detectionReason = "서비스명 일치";
 
     if (spec && spec.strictAmount) {
-      const priceMatches = spec.amounts.includes(amount);
-      if (!priceMatches && !hasRecurringHint) {
-        spec = null;
+      // 쿠팡·네이버 같은 쇼핑 겸용 플랫폼의 일반 주문은 멤버십으로도, 이름 모를 구독으로도 올리지 않는다.
+      if (amount > 0 && !isPlatformMembershipCharge(amount, spec, chunk)) {
+        rejectedChunks += 1;
+        continue;
       }
     }
 
@@ -439,6 +489,8 @@ export function scanStatementText(rawText, { catalog = [], existingSubscriptions
       continue;
     }
 
+    // 이름 모를 가맹점은 금액이 있는 결제 줄만 후보로 둔다. 무료체험 안내 문장의 금액 없는 줄('Google', '23.에')이 구독 후보가 되지 않게 한다.
+    if (!(amount > 0)) continue;
     const merchant = extractUnknownMerchantName(chunk);
     if (!merchant || OFFLINE_SUFFIX_PATTERN.test(merchant)) continue;
     const merchantKey = cleanToken(merchant) + "_" + String(amount);
@@ -476,11 +528,17 @@ export function scanStatementText(rawText, { catalog = [], existingSubscriptions
     }
   }
 
-  if (detectedMap.size === 0) {
+  // 쇼핑 겸용 플랫폼의 일반 주문으로 걸러낸 글을 영수증 분석으로 다시 구독으로 만들지 않는다.
+  if (detectedMap.size === 0 && rejectedChunks === 0) {
     const single = parseReceiptText(text);
-    if (single.ok && (single.data?.name || single.data?.amount)) {
+    // 금액을 못 찾은 글(해지 예약 안내, 결제 실패 안내, 마케팅 메일)은 서비스 이름만으로 구독을 만들지 않는다.
+    if (
+      single.ok &&
+      Number(single.data?.amount) > 0 &&
+      !isShoppingPlatformOrder(single.data.serviceId, single.data.amount, text)
+    ) {
       const inferred =
-        !single.data.serviceId && single.data.amount
+        !single.data.serviceId && !single.data.name && isPgMaskedText(text)
           ? inferServiceByPriceFingerprint(single.data.amount, installedServiceIds)
           : null;
       const name = single.data.name || inferred?.name || "";
