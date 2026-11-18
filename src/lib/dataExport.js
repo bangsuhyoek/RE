@@ -9,7 +9,7 @@ import {
 import { readEvidenceConsent } from "./evidenceStore.js";
 import { readDifficultyConsent } from "./cancelDifficulty.js";
 import { readCancelAiConsent } from "./cancelBrowser.js";
-import { CHAT_CONSENT_KEY } from "./chatClient.js";
+import { readChatConsent } from "./chatClient.js";
 
 /**
  * 사용자 내보내기용 JSON 데이터를 구성합니다.
@@ -36,10 +36,10 @@ export function buildExportPayload({
   const consents = {
     evidenceConsent: Boolean(readEvidenceConsent(userId)),
     difficultyConsent: Boolean(readDifficultyConsent(userId)),
-    cancelAiConsent: Boolean(readCancelAiConsent()),
-    chatConsent: Boolean(readStoredValue(CHAT_CONSENT_KEY, false)),
-    agentMandates: readStoredValue(storageKeys.agentMandates, []),
-    approvalRequests: readStoredValue(storageKeys.agentApprovals, []),
+    cancelAiConsent: Boolean(readCancelAiConsent(null, userId)),
+    chatConsent: Boolean(readChatConsent(userId)),
+    agentMandates: readStoredValue(storageKeys.agentMandates, {}),
+    approvalRequests: readStoredValue(storageKeys.agentApprovals, {}),
   };
 
   return {

@@ -11,7 +11,8 @@ import {
   storageKeys,
 } from "./storage.js";
 
-export const CURRENT_POLICY_VERSION = "2026-10-19";
+export const CURRENT_POLICY_VERSION = "2026-10-30";
+const LEGACY_POLICY_VERSION = "2026-10-19";
 
 const LEGACY_CHAT_CONSENT_KEY = "submate.chatConsent.v1";
 const LEGACY_CANCEL_CONSENT_KEY = "submate.cancelAiConsent.v1";
@@ -67,9 +68,9 @@ export function migrateLegacyConsentIfNeeded(userId, storage = null) {
       const userKey = getUserConsentKey(targetOwner, "chat");
       if (!store.getItem(userKey)) {
         if (legacyChat === "granted") {
-          saveConsentRecord(targetOwner, "chat", true, { version: CURRENT_POLICY_VERSION }, store);
+          saveConsentRecord(targetOwner, "chat", true, { version: LEGACY_POLICY_VERSION }, store);
         } else {
-          saveConsentRecord(targetOwner, "chat", false, { version: CURRENT_POLICY_VERSION }, store);
+          saveConsentRecord(targetOwner, "chat", false, { version: LEGACY_POLICY_VERSION }, store);
         }
       }
       if (typeof store.removeItem === "function") {
@@ -87,9 +88,9 @@ export function migrateLegacyConsentIfNeeded(userId, storage = null) {
       const userKey = getUserConsentKey(targetOwner, "cancel");
       if (!store.getItem(userKey)) {
         if (legacyCancel === "granted" || legacyCancel === "true") {
-          saveConsentRecord(targetOwner, "cancel", true, { version: CURRENT_POLICY_VERSION }, store);
+          saveConsentRecord(targetOwner, "cancel", true, { version: LEGACY_POLICY_VERSION }, store);
         } else {
-          saveConsentRecord(targetOwner, "cancel", false, { version: CURRENT_POLICY_VERSION }, store);
+          saveConsentRecord(targetOwner, "cancel", false, { version: LEGACY_POLICY_VERSION }, store);
         }
       }
       if (typeof store.removeItem === "function") {
@@ -132,7 +133,7 @@ export function readUserConsent(userId, kind, storage = null) {
     const raw = store.getItem(key);
     if (!raw) return false;
     const record = JSON.parse(raw);
-    return Boolean(record && record.granted);
+    return Boolean(record && record.granted && record.policyVersion === CURRENT_POLICY_VERSION);
   } catch {
     return false;
   }

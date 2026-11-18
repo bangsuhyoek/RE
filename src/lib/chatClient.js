@@ -3,6 +3,15 @@ import { supabase } from "./supabase.js";
 import { getNextChargeDate, toLocalDateKey } from "./dates.js";
 import { getPaymentMethodInfo } from "./paymentMethod.js";
 import { unusedStreak } from "./usageCheck.js";
+import {
+  clearChatHistory as clearPartitionChatHistory,
+  getPartitionStorageKey,
+  GUEST_PARTITION,
+  loadChatHistory as loadPartitionChatHistory,
+  ownerPartitionId,
+  saveChatHistory as savePartitionChatHistory,
+  storageKeys,
+} from "./storage.js";
 
 import {
   readUserConsent,
@@ -57,6 +66,15 @@ export function sanitizePaymentMethod(method = "") {
   return cleaned || null;
 }
 
+function hasUsageAnswerForSubscription(usageAnswers, subscription) {
+  if (!usageAnswers || typeof usageAnswers !== "object") return false;
+  const ids = [subscription.subscriptionId, subscription.id].filter(Boolean);
+  if (ids.length === 0) return false;
+  return Object.entries(usageAnswers).some(([key, value]) =>
+    ids.some((id) => value?.subscriptionId === id || key.startsWith(id + "@"))
+  );
+}
+
 /**
  * Maps app subscription objects to the snapshot shape required by the /api/chat endpoint.
  */
@@ -85,14 +103,19 @@ export function buildChatSnapshot(subscriptions = [], now = new Date(), usageAns
     const grossAmount = Number(sub.grossAmount ?? sub.amount);
 
     let usageStr = null;
+    let usageStatus = "unanswered";
     if (usageAnswers && typeof usageAnswers === "object") {
       try {
         const streak = unusedStreak(usageAnswers, sub);
         if (streak > 0) {
+          usageStatus = "unused";
           usageStr = streak + "달 연속 미사용";
+        } else if (hasUsageAnswerForSubscription(usageAnswers, sub)) {
+          usageStatus = "used";
         }
       } catch {
         usageStr = null;
+        usageStatus = "unanswered";
       }
     }
 
@@ -112,6 +135,8 @@ export function buildChatSnapshot(subscriptions = [], now = new Date(), usageAns
       alertD3: Boolean(sub.alertD3),
       alertD1: Boolean(sub.alertD1),
       usage: usageStr,
+      usageStatus,
+      cancelUrl: sub.cancelUrl || undefined,
     };
   });
 
@@ -138,8 +163,51 @@ export function getChatStorageKey(userId = null) {
   return userId ? `${CHAT_HISTORY_PREFIX}:${userId}` : `${CHAT_HISTORY_PREFIX}:guest`;
 }
 
+function toChatPartitionId(userId = null) {
+  if (!userId || userId === GUEST_PARTITION) return GUEST_PARTITION;
+  const str = String(userId);
+  return str.startsWith("user:") ? str : ownerPartitionId(str);
+}
+
+function legacyUserIdFrom(userId = null) {
+  if (!userId || userId === GUEST_PARTITION) return null;
+  const str = String(userId);
+  return str.startsWith("user:") ? str.slice(5) : str;
+}
+
+function migrateLegacyChatHistoryIfNeeded(userId = null) {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  const storage = window.localStorage;
+  const partition = toChatPartitionId(userId);
+  const legacyKey = getChatStorageKey(legacyUserIdFrom(userId));
+  try {
+    const legacyRaw = storage.getItem(legacyKey);
+    if (legacyRaw === null) return null;
+    const partitionKey = getPartitionStorageKey(storageKeys.chatHistory, partition);
+    if (storage.getItem(partitionKey) === null) {
+      const parsed = JSON.parse(legacyRaw);
+      if (Array.isArray(parsed)) {
+        const saved = savePartitionChatHistory(parsed, partition);
+        if (!saved) {
+          return parsed.slice(-MAX_PERSISTED_MESSAGES);
+        }
+      }
+    }
+    storage.removeItem(legacyKey);
+    return null;
+  } catch {
+    // 레거시 마이그레이션 실패 시 무시
+    return null;
+  }
+}
+
 export function loadChatHistory(userId = null) {
   try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const fallbackLegacy = migrateLegacyChatHistoryIfNeeded(userId);
+      if (fallbackLegacy) return fallbackLegacy;
+      return loadPartitionChatHistory(toChatPartitionId(userId));
+    }
     const raw = getClientStorage().getItem(getChatStorageKey(userId));
     if (!raw) return [];
     const list = JSON.parse(raw);
@@ -152,6 +220,11 @@ export function loadChatHistory(userId = null) {
 export function saveChatHistory(userId = null, messages = []) {
   try {
     const list = Array.isArray(messages) ? messages.slice(-MAX_PERSISTED_MESSAGES) : [];
+    if (typeof window !== "undefined" && window.localStorage) {
+      migrateLegacyChatHistoryIfNeeded(userId);
+      savePartitionChatHistory(list, toChatPartitionId(userId));
+      return;
+    }
     getClientStorage().setItem(getChatStorageKey(userId), JSON.stringify(list));
   } catch {
     // 스토리지 저장 실패 시 무시
@@ -160,6 +233,11 @@ export function saveChatHistory(userId = null, messages = []) {
 
 export function clearChatHistory(userId = null) {
   try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      migrateLegacyChatHistoryIfNeeded(userId);
+      clearPartitionChatHistory(toChatPartitionId(userId));
+      return;
+    }
     getClientStorage().removeItem(getChatStorageKey(userId));
   } catch {
     // 스토리지 삭제 실패 시 무시
@@ -259,6 +337,49 @@ export function formatMessagesForServer(messages = []) {
   return filtered.slice(-12);
 }
 
+const CHAT_CONTEXT_LIMITS = {
+  insightId: 200,
+  insightText: 200,
+  insightType: 40,
+  subscriptionId: 120,
+};
+
+/** Keep only the bounded insight fields the server accepts. */
+export function buildChatRequestContext(context = null) {
+  if (!context || typeof context !== "object") return null;
+  const normalized = {};
+  for (const [field, limit] of Object.entries(CHAT_CONTEXT_LIMITS)) {
+    if (typeof context[field] === "string" && context[field].trim()) {
+      normalized[field] = context[field].trim().slice(0, limit);
+    }
+  }
+  return Object.keys(normalized).length > 0 ? normalized : null;
+}
+
+export function buildChatRequestPayload({ messages = [], snapshot, context = null } = {}) {
+  const payload = {
+    messages: formatMessagesForServer(messages),
+    snapshot: snapshot || { today: getKstDateString(), subscriptions: [] },
+  };
+  const requestContext = buildChatRequestContext(context);
+  if (requestContext) payload.context = requestContext;
+  return payload;
+}
+
+/** "작업을 반영했어요" may only be shown when the owning handler reports success. */
+export function normalizeActionHandlerResult(result, fallbackError = "작업을 반영하지 못했어요. 다시 시도해 주세요.") {
+  if (result === false) return { ok: false, error: fallbackError };
+  if (result && typeof result === "object" && result.ok === false) {
+    const error = typeof result.error === "string" && result.error.trim() ? result.error.trim() : fallbackError;
+    return { ok: false, error };
+  }
+  return { ok: true, error: null };
+}
+
+export function releaseActionLock(inFlight, actionId) {
+  inFlight?.delete?.(actionId);
+}
+
 /**
  * streamChat connects to POST /api/chat and streams SSE events.
  */
@@ -269,13 +390,7 @@ export async function streamChat({ messages = [], snapshot, context, signal, onE
   }
 
   const endpoint = getApiEndpoint("/api/chat");
-  const payload = {
-    messages: formatMessagesForServer(messages),
-    snapshot: snapshot || { today: getKstDateString(), subscriptions: [] },
-  };
-  if (context && (context.insightId || context.insightText)) {
-    payload.context = context;
-  }
+  const payload = buildChatRequestPayload({ messages, snapshot, context });
 
   let response;
   try {

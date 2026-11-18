@@ -91,6 +91,14 @@ export const CHAT_TOOL_DECLARATIONS = [
     },
   },
   {
+    name: "get_unused_subscriptions",
+    description: "사용 기록에서 미사용으로 확인된 구독을 조회합니다. '안 쓰는 구독' 질문에 사용합니다.",
+    parameters: {
+      type: "OBJECT",
+      properties: {},
+    },
+  },
+  {
     name: "get_cancel_info",
     description: "특정 구독의 해지 방법, 경로 및 링크 정보를 조회합니다.",
     parameters: {
@@ -177,6 +185,7 @@ export const TOOL_LABELS = {
   get_upcoming_payments: "다가오는 결제 일정을 확인하고 있어요",
   compare_subscriptions: "구독 정보를 비교하고 있어요",
   find_subscription: "구독을 찾고 있어요",
+  get_unused_subscriptions: "안 쓰는 구독을 확인하고 있어요",
   get_cancel_info: "해지 가이드를 찾고 있어요",
   propose_add_subscription: "구독 추가 카드를 준비하고 있어요",
   propose_update_subscription: "구독 수정 카드를 준비하고 있어요",
@@ -192,10 +201,44 @@ const isValidDateStr = (dateStr) => {
   return !isNaN(d.getTime());
 };
 
+const normalizeServiceKey = (value) => String(value || "").toLowerCase().replace(/[\s_()]+/g, "");
+
+const matchesServiceAlias = (entry, queryKeys) => {
+  const candidates = [entry.id, entry.name, ...(entry.aliases || [])];
+  return candidates.some((candidate) => queryKeys.has(normalizeServiceKey(candidate)));
+};
+
+function resolveCancelGuide(subscription) {
+  const directKeys = [subscription.serviceId, subscription.name]
+    .map(normalizeServiceKey)
+    .filter(Boolean);
+  const aliasEntry = SERVICE_ALIAS_CATALOG.find((entry) => matchesServiceAlias(entry, new Set(directKeys)));
+  const candidateKeys = [
+    ...directKeys,
+    ...(aliasEntry ? [aliasEntry.id, aliasEntry.name, ...(aliasEntry.aliases || [])] : []),
+  ];
+
+  let fallbackWithHelp = null;
+  for (const key of candidateKeys) {
+    const guide = getCancelGuide(key, {
+      name: subscription.name,
+      cancelUrl: subscription.cancelUrl,
+    });
+    if (guide?.verified) return guide;
+    if (!fallbackWithHelp && guide?.helpUrl) fallbackWithHelp = guide;
+  }
+
+  return fallbackWithHelp || getCancelGuide(subscription.serviceId || subscription.name, {
+    name: subscription.name,
+    cancelUrl: subscription.cancelUrl,
+  });
+}
+
 // Pure tool executors over snapshot
 export const executeTool = ({ name, args, snapshot, emitAction }) => {
   const subscriptions = Array.isArray(snapshot?.subscriptions) ? snapshot.subscriptions : [];
   const todayStr = snapshot?.today || getKstDateString();
+  const usageStatusOf = (s) => s.usageStatus || (typeof s.usage === "string" && s.usage.trim() ? "unused" : "unanswered");
 
   switch (name) {
     case "list_subscriptions": {
@@ -220,7 +263,43 @@ export const executeTool = ({ name, args, snapshot, emitAction }) => {
           paymentMethod: s.paymentMethod,
           status: s.status,
           trialEndDate: s.trialEndDate,
+          alertD3: s.alertD3,
+          alertD1: s.alertD1,
+          usage: s.usage,
+          usageStatus: usageStatusOf(s),
         })),
+      };
+    }
+
+    case "get_unused_subscriptions": {
+      const active = subscriptions.filter((s) => (s.status || "active").toLowerCase() !== "cancelled");
+      const assessed = active.filter((s) => usageStatusOf(s) === "used" || usageStatusOf(s) === "unused");
+      const unused = assessed
+        .filter((s) => usageStatusOf(s) === "unused")
+        .map((s) => ({
+          id: s.id,
+          name: s.name,
+          plan: s.plan,
+          amount: s.amount,
+          billingCycle: s.billingCycle,
+          nextChargeDate: s.nextChargeDate,
+          usage: s.usage,
+        }));
+      const hasRecords = assessed.length > 0;
+      const message = active.length === 0
+        ? "확인할 활성 구독이 없어요."
+        : !hasRecords
+          ? "사용 체크 답변 기록이 아직 없어요. 먼저 이번 달 사용 여부를 확인해 달라고 안내하세요."
+          : unused.length === 0
+            ? "사용 체크 기록은 있지만 안 쓰는 구독은 없어요."
+            : null;
+      return {
+        hasRecords,
+        assessedCount: assessed.length,
+        count: unused.length,
+        unused,
+        subscriptions: unused,
+        ...(message ? { message } : {}),
       };
     }
 
@@ -501,36 +580,46 @@ export const executeTool = ({ name, args, snapshot, emitAction }) => {
 
       let guide = null;
       try {
-        guide = getCancelGuide(sub.serviceId || sub.name);
+        guide = resolveCancelGuide(sub);
       } catch (e) {
         console.warn("getCancelGuide error:", e);
       }
 
-      if (guide) {
+      if (!guide) {
         return {
           subscriptionId: sub.id,
           name: sub.name,
           serviceId: sub.serviceId,
-          hasGuide: true,
-          cancelUrl: guide.cancelUrl || guide.officialUrl,
-          estimatedMinutes: guide.estimatedMinutes,
-          difficulty: guide.difficulty,
-          routes: (guide.routes || []).map((r) => ({
-            id: r.id,
-            label: r.label,
-            steps: r.steps,
-          })),
-          precautions: guide.precautions || [],
-          retentionOffers: guide.retentionOffers || [],
+          hasGuide: false,
+          steps: [],
+          notes: [],
+          cancelUrl: sub.cancelUrl || "",
+          message: "해지 가이드를 불러오지 못했어요. 앱의 해지 안내 페이지에서 확인해 주세요.",
         };
       }
 
+      const altRoutes = (guide.altRoutes || []).map((route) => ({
+        id: route.id,
+        label: route.label,
+        steps: route.steps || [],
+        notes: route.notes || [],
+      }));
       return {
         subscriptionId: sub.id,
         name: sub.name,
         serviceId: sub.serviceId,
-        hasGuide: false,
-        message: "이 서비스의 상세 해지 가이드는 앱 내 해지 안내 페이지에서 확인하실 수 있습니다.",
+        hasGuide: Boolean(guide.verified),
+        cancelUrl: guide.cancelUrl || guide.helpUrl || sub.cancelUrl || "",
+        helpUrl: guide.helpUrl || "",
+        helpLabel: guide.helpLabel || "",
+        checkedAt: guide.checkedAt || null,
+        sources: guide.sources || [],
+        steps: guide.steps || [],
+        notes: guide.notes || [],
+        altRoutes,
+        ...(guide.verified
+          ? {}
+          : { message: "공식 자료로 확인한 상세 단계는 없지만, 공통 해지 안내와 공식 도움말을 확인할 수 있어요." }),
       };
     }
 

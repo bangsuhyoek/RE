@@ -304,6 +304,105 @@ test("get_cancel_info retrieves cancel guide if available", () => {
   assert.ok(typeof res.hasGuide === "boolean");
 });
 
+test("get_cancel_info maps steps/notes/cancelUrl and resolves Korean service aliases", () => {
+  const aliasSnapshot = {
+    today: "2026-10-18",
+    subscriptions: [
+      { id: "sub-n", name: "넷플릭스", amount: 13500, billingCycle: "매월", status: "active" },
+      { id: "sub-y", name: "YouTube Premium", amount: 14900, billingCycle: "매월", status: "active" },
+    ],
+  };
+
+  const netflix = executeTool({
+    name: "get_cancel_info",
+    args: { subscriptionId: "sub-n" },
+    snapshot: aliasSnapshot,
+  });
+  assert.equal(netflix.hasGuide, true);
+  assert.ok(netflix.steps.length >= 2);
+  assert.ok(netflix.notes.length > 0);
+  assert.equal(netflix.cancelUrl, "https://www.netflix.com/cancelplan");
+  assert.equal(netflix.routes, undefined);
+
+  const youtube = executeTool({
+    name: "get_cancel_info",
+    args: { subscriptionId: "sub-y" },
+    snapshot: aliasSnapshot,
+  });
+  assert.equal(youtube.hasGuide, true);
+  assert.equal(youtube.cancelUrl, "https://www.youtube.com/paid_memberships");
+  assert.ok(youtube.steps[0].description.includes("paid_memberships"));
+});
+
+test("get_cancel_info without a verified guide returns generic steps and hasGuide=false", () => {
+  const res = executeTool({
+    name: "get_cancel_info",
+    args: { subscriptionId: "sub-custom" },
+    snapshot: {
+      today: "2026-10-18",
+      subscriptions: [{ id: "sub-custom", name: "나만의 구독", cancelUrl: "https://example.com/cancel", status: "active" }],
+    },
+  });
+  assert.equal(res.hasGuide, false);
+  assert.ok(res.steps.length >= 2);
+  assert.deepEqual(res.notes, []);
+  assert.equal(res.cancelUrl, "https://example.com/cancel");
+  assert.match(res.message, /공식/);
+});
+
+test("get_cancel_info keeps an alias help URL when the guide is not verified", () => {
+  const res = executeTool({
+    name: "get_cancel_info",
+    args: { subscriptionId: "sub-yogi" },
+    snapshot: {
+      today: "2026-10-18",
+      subscriptions: [{ id: "sub-yogi", name: "요기패스X", status: "active" }],
+    },
+  });
+  assert.equal(res.hasGuide, false);
+  assert.equal(res.helpUrl, "https://www.yogiyo.co.kr/mobile/#/faq/");
+  assert.equal(res.cancelUrl, res.helpUrl);
+});
+
+test("get_unused_subscriptions returns only subscriptions with an unused usage answer", () => {
+  const res = executeTool({
+    name: "get_unused_subscriptions",
+    args: {},
+    snapshot: {
+      today: "2026-10-18",
+      subscriptions: [
+        { id: "unused-1", name: "넷플릭스", status: "active", usage: "3달 연속 미사용", usageStatus: "unused" },
+        { id: "used-1", name: "유튜브", status: "active", usage: null, usageStatus: "used" },
+        { id: "new-1", name: "왓챠", status: "active", usage: null, usageStatus: "unanswered" },
+        { id: "cancelled-1", name: "티빙", status: "cancelled", usage: "2달 연속 미사용", usageStatus: "unused" },
+      ],
+    },
+  });
+  assert.equal(res.hasRecords, true);
+  assert.equal(res.assessedCount, 2);
+  assert.equal(res.count, 1);
+  assert.equal(res.unused[0].id, "unused-1");
+  assert.equal(res.unused[0].usage, "3달 연속 미사용");
+});
+
+test("get_unused_subscriptions tells the model to ask for a usage check when no records exist", () => {
+  const res = executeTool({
+    name: "get_unused_subscriptions",
+    args: {},
+    snapshot: {
+      today: "2026-10-18",
+      subscriptions: [
+        { id: "new-1", name: "넷플릭스", status: "active", usageStatus: "unanswered" },
+        { id: "new-2", name: "유튜브", status: "active", usageStatus: "unanswered" },
+      ],
+    },
+  });
+  assert.equal(res.hasRecords, false);
+  assert.equal(res.assessedCount, 0);
+  assert.deepEqual(res.unused, []);
+  assert.match(res.message, /사용 체크/);
+});
+
 test("propose_add_subscription validates strictly and emits action", () => {
   const actions = [];
   const emitAction = (a) => actions.push(a);

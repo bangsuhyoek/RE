@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   buildChatSnapshot,
+  buildChatRequestPayload,
   createSSEParser,
   formatMessagesForServer,
   getAuthToken,
@@ -9,6 +10,8 @@ import {
   saveChatHistory,
   clearChatHistory,
   MAX_PERSISTED_MESSAGES,
+  normalizeActionHandlerResult,
+  releaseActionLock,
 } from "../src/lib/chatClient.js";
 
 test("buildChatSnapshot: annual plans, sharing personal share, no card numbers, cancelled included with status", () => {
@@ -83,6 +86,7 @@ test("buildChatSnapshot: annual plans, sharing personal share, no card numbers, 
   assert.equal(netflix.nextChargeDate, "2026-10-25");
   assert.equal(netflix.paymentMethod, "신한카드");
   assert.equal(netflix.status, "active");
+  assert.equal(netflix.usageStatus, "unanswered");
   const coupang = snapshot.subscriptions[1];
   assert.equal(coupang.billingCycle, "매년");
   assert.equal(coupang.nextChargeDate, "2027-01-15");
@@ -96,6 +100,26 @@ test("buildChatSnapshot: annual plans, sharing personal share, no card numbers, 
   assert.equal(youtube.status, "trial");
   assert.equal(youtube.paymentMethod, "카카오페이");
   assert.equal(youtube.trialEndDate, "2026-10-20");
+});
+
+test("buildChatSnapshot distinguishes unused, used, and unanswered usage records", () => {
+  const subscriptions = [
+    { subscriptionId: "sub-unused", name: "넷플릭스", amount: 13500, billingCycle: "매월", dueDay: 25, status: "active" },
+    { subscriptionId: "sub-used", name: "유튜브", amount: 14900, billingCycle: "매월", dueDay: 5, status: "active" },
+    { subscriptionId: "sub-new", name: "왓챠", amount: 7900, billingCycle: "매월", dueDay: 20, status: "active" },
+  ];
+  const usageAnswers = {
+    "sub-unused@2026-09-25": { answer: "unused", subscriptionId: "sub-unused" },
+    "sub-unused@2026-08-25": { answer: "used", subscriptionId: "sub-unused" },
+    "sub-used@2026-10-05": { answer: "used", subscriptionId: "sub-used" },
+    "sub-used@2026-09-05": { answer: "unused", subscriptionId: "sub-used" },
+  };
+  const snapshot = buildChatSnapshot(subscriptions, new Date(2026, 9, 18), usageAnswers);
+  assert.equal(snapshot.subscriptions[0].usageStatus, "unused");
+  assert.equal(snapshot.subscriptions[0].usage, "1달 연속 미사용");
+  assert.equal(snapshot.subscriptions[1].usageStatus, "used");
+  assert.equal(snapshot.subscriptions[1].usage, null);
+  assert.equal(snapshot.subscriptions[2].usageStatus, "unanswered");
 });
 
 test("createSSEParser: handles split chunks across multiple boundaries and CRLF/LF", () => {
@@ -132,6 +156,37 @@ test("formatMessagesForServer: limits to last 12 messages and <= 1000 chars per 
     assert.ok(m.content.length <= 1000);
     assert.ok(m.role === "user" || m.role === "assistant");
   }
+});
+
+test("buildChatRequestPayload carries the insight subscription and type to the server", () => {
+  const payload = buildChatRequestPayload({
+    messages: [{ role: "user", text: "해지 방법 알려줘" }],
+    snapshot: { today: "2026-10-30", subscriptions: [] },
+    context: {
+      insightId: "trial_ending:sub-1:2026-11-01",
+      insightType: "trial_ending",
+      subscriptionId: "sub-1",
+      insightText: "넷플릭스 무료체험이 끝나요",
+      ignored: "not forwarded",
+    },
+  });
+  assert.deepEqual(payload.context, {
+    insightId: "trial_ending:sub-1:2026-11-01",
+    insightText: "넷플릭스 무료체험이 끝나요",
+    insightType: "trial_ending",
+    subscriptionId: "sub-1",
+  });
+});
+
+test("failed action results never become success and the retry lock is released", () => {
+  const result = normalizeActionHandlerResult({ ok: false, error: "저장 실패" });
+  assert.deepEqual(result, { ok: false, error: "저장 실패" });
+  assert.equal(result.ok ? "작업을 반영했어요." : null, null);
+
+  const inFlight = new Set(["act-1"]);
+  assert.equal(inFlight.has("act-1"), true);
+  releaseActionLock(inFlight, "act-1");
+  assert.equal(inFlight.has("act-1"), false, "a failed card must be retryable");
 });
 
 test("History persistence: localStorage capping to 30 messages and clearing", () => {
@@ -231,4 +286,56 @@ test("History persistence: preserves captured action.before snapshot across relo
     billingCycle: "매월",
     plan: "스탠다드",
   });
+});
+
+test("chatClient: 레거시 chat-history 키를 storage.js 파티션 키로 1회 이전하고 기존 새 키를 덮어쓰지 않는다", async () => {
+  const { getPartitionStorageKey, ownerPartitionId, storageKeys } = await import("../src/lib/storage.js");
+  const mockStore = {
+    "submate:chat-history:user-legacy": JSON.stringify([{ id: "m-old", role: "user", text: "이전 대화" }]),
+  };
+  globalThis.window = {
+    localStorage: {
+      getItem: (k) => mockStore[k] ?? null,
+      setItem: (k, v) => { mockStore[k] = String(v); },
+      removeItem: (k) => { delete mockStore[k]; },
+    },
+  };
+
+  const loaded = loadChatHistory("user-legacy");
+  assert.equal(loaded.length, 1);
+  assert.equal(loaded[0].text, "이전 대화");
+  assert.equal(mockStore["submate:chat-history:user-legacy"], undefined);
+
+  const partitionKey = getPartitionStorageKey(storageKeys.chatHistory, ownerPartitionId("user-legacy"));
+  assert.equal(JSON.parse(mockStore[partitionKey])[0].id, "m-old");
+
+  // 새 키가 이미 비어 있지 않으면 레거시 키가 남아 있어도 새 키를 덮어쓰지 않고 레거시만 지운다
+  mockStore["submate:chat-history:user-legacy"] = JSON.stringify([{ id: "m-stale", role: "user", text: "낡은 대화" }]);
+  const loadedAgain = loadChatHistory("user-legacy");
+  assert.equal(loadedAgain[0].id, "m-old");
+  assert.equal(mockStore["submate:chat-history:user-legacy"], undefined);
+});
+
+test("chatClient: 파티션 키 저장 실패 시 레거시 chat-history 키를 지우지 않고 보존한다", () => {
+  const legacyKey = "submate:chat-history:user-quota-fail";
+  const mockStore = {
+    [legacyKey]: JSON.stringify([{ id: "m-keep", role: "user", text: "보존할 대화" }]),
+  };
+  globalThis.window = {
+    localStorage: {
+      getItem: (k) => mockStore[k] ?? null,
+      setItem: (k, v) => {
+        if (k.startsWith("submate-mvp:owner:")) {
+          throw Object.assign(new Error("QuotaExceededError"), { name: "QuotaExceededError", code: 22 });
+        }
+        mockStore[k] = String(v);
+      },
+      removeItem: (k) => { delete mockStore[k]; },
+    },
+  };
+
+  const loaded = loadChatHistory("user-quota-fail");
+  assert.equal(loaded.length, 1);
+  assert.equal(loaded[0].id, "m-keep");
+  assert.ok(mockStore[legacyKey], "저장 실패 시 레거시 키가 유지되어야 한다");
 });

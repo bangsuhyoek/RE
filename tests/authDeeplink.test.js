@@ -112,7 +112,7 @@ test("계정별 동의 저장: 사용자 ID별(비로그인 guest)로 동의 시
   assert.equal(readUserConsent(userA, "chat", storage), false);
 });
 
-test("기존 기기 단위 동의 마이그레이션: 현재 사용자 것으로 1회 이전 후 레거시 키 삭제", () => {
+test("기존 기기 단위 동의 마이그레이션: 이전 버전으로 보존해 재동의를 요구하고 레거시 키 삭제", () => {
   const mockStore = new Map();
   const storage = {
     getItem: (k) => (mockStore.has(k) ? mockStore.get(k) : null),
@@ -127,7 +127,14 @@ test("기존 기기 단위 동의 마이그레이션: 현재 사용자 것으로
   // 마이그레이션 수행
   migrateLegacyConsentIfNeeded("migrated-user", storage);
 
-  // 이전된 사용자에게 동의가 저장되어야 함
+  // 이전된 동의는 현재 정책 버전으로 자동 승격하지 않는다.
+  assert.equal(readUserConsent("migrated-user", "chat", storage), false);
+  assert.equal(readUserConsent("migrated-user", "cancel", storage), false);
+  assert.notEqual(getUserConsentRecord("migrated-user", "chat", storage).policyVersion, CURRENT_POLICY_VERSION);
+  assert.notEqual(getUserConsentRecord("migrated-user", "cancel", storage).policyVersion, CURRENT_POLICY_VERSION);
+
+  setUserConsent("migrated-user", "chat", true, {}, storage);
+  setUserConsent("migrated-user", "cancel", true, {}, storage);
   assert.equal(readUserConsent("migrated-user", "chat", storage), true);
   assert.equal(readUserConsent("migrated-user", "cancel", storage), true);
 
@@ -151,6 +158,35 @@ test("간단 모드 (동의 없음/철회): /api/agent 절대 호출 안 함 (nu
 
     assert.equal(res, null);
     assert.equal(serverCalled, false, "AI 동의가 없으면 서버를 절대 호출하지 않아야 합니다.");
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("레거시 동의는 재동의 전까지 /api/agent를 호출하지 않는다", async () => {
+  const mockStore = new Map([["submate.chatConsent.v1", "granted"]]);
+  const storage = {
+    getItem: (k) => (mockStore.has(k) ? mockStore.get(k) : null),
+    setItem: (k, v) => mockStore.set(k, String(v)),
+    removeItem: (k) => mockStore.delete(k),
+  };
+  migrateLegacyConsentIfNeeded("legacy-user", storage);
+  let serverCalled = false;
+  const originalFetch = global.fetch;
+  global.fetch = async () => {
+    serverCalled = true;
+    return { ok: true, json: async () => ({ ok: true }) };
+  };
+
+  try {
+    const result = await interpretWithAi(
+      "넷플릭스 해지해줘",
+      [{ id: "netflix", name: "Netflix" }],
+      "legacy-user",
+      (id) => readUserConsent(id, "chat", storage)
+    );
+    assert.equal(result, null);
+    assert.equal(serverCalled, false);
   } finally {
     global.fetch = originalFetch;
   }

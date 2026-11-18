@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import chatHandler from "../api/chat.js";
+import chatHandler, { CHAT_SYSTEM_INSTRUCTION } from "../api/chat.js";
 import agentHandler from "../api/agent.js";
 import ocrHandler from "../api/ocr.js";
 import cancelHandler from "../api/cancel-next-step.js";
@@ -699,7 +699,7 @@ test("12. chat aborts controller and halts rounds when response closes premature
   }
 });
 
-test("13. chat falls back to KST date string when snapshot.today is omitted", async () => {
+test("13. chat places KST date in untrusted app data, not the static system instruction", async () => {
   const originalFetch = globalThis.fetch;
   const originalEnv = { ...process.env };
   process.env.SUPABASE_URL = "https://example.supabase.co";
@@ -753,7 +753,10 @@ test("13. chat falls back to KST date string when snapshot.today is omitted", as
       day: "2-digit",
     });
     const expectedKstToday = kstFormatter.format(new Date());
-    assert.ok(sysPrompt.includes(expectedKstToday), "System instruction should include KST today date");
+    const appData = capturedRequestBody.contents?.[0]?.parts?.[0]?.text || "";
+    assert.equal(sysPrompt, CHAT_SYSTEM_INSTRUCTION);
+    assert.ok(!sysPrompt.includes(expectedKstToday), "Dynamic date must stay out of the system instruction");
+    assert.ok(appData.includes(expectedKstToday), "KST today date should be in the app data block");
   } finally {
     globalThis.fetch = originalFetch;
     process.env = originalEnv;
