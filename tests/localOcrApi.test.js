@@ -71,12 +71,21 @@ test("Vite 로컬 API 미들웨어에서 OPTIONS preflight 요청이 204로 정�
   const agentPreflight = await runMiddleware({ method: "OPTIONS", url: "/api/agent" });
   assert.equal(agentPreflight.response.statusCode, 204);
   assert.equal(agentPreflight.response.writableEnded, true);
+
+  const cancelPreflight = await runMiddleware({ method: "OPTIONS", url: "/api/cancel-next-step" });
+  assert.equal(cancelPreflight.response.statusCode, 204);
+  assert.equal(cancelPreflight.response.writableEnded, true);
+
+  const deletePreflight = await runMiddleware({ method: "OPTIONS", url: "/api/account-delete" });
+  assert.equal(deletePreflight.response.statusCode, 204);
+  assert.equal(deletePreflight.response.writableEnded, true);
 });
 
 test("Vite 로컬 API 미들웨어에서 본문 파싱 오류(400) 시 CORS 헤더가 포함된다", async () => {
   const request = Readable.from([Buffer.from("invalid json {")]);
   request.method = "POST";
   request.url = "/api/ocr";
+  request.headers = { origin: "http://localhost:5173" };
 
   let raw = "";
   const headers = new Map();
@@ -84,6 +93,9 @@ test("Vite 로컬 API 미들웨어에서 본문 파싱 오류(400) 시 CORS 헤�
     statusCode: 200,
     headersSent: false,
     writableEnded: false,
+    getHeader(name) {
+      return headers.get(name.toLowerCase());
+    },
     setHeader(name, value) {
       headers.set(name.toLowerCase(), value);
     },
@@ -95,7 +107,8 @@ test("Vite 로컬 API 미들웨어에서 본문 파싱 오류(400) 시 CORS 헤�
   };
   await createLocalOcrMiddleware()(request, response, () => {});
   assert.equal(response.statusCode, 400);
-  assert.equal(headers.get("access-control-allow-origin"), "*");
+  assert.equal(headers.get("access-control-allow-origin"), "http://localhost:5173");
+  assert.equal(headers.get("vary"), "Origin");
   assert.equal(headers.get("access-control-allow-methods"), "POST, OPTIONS");
   assert.equal(headers.get("access-control-allow-headers"), "Content-Type, Authorization");
   const payload = JSON.parse(raw);

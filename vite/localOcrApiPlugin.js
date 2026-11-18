@@ -1,11 +1,16 @@
 import ocrHandler from "../api/ocr.js";
 import agentHandler from "../api/agent.js";
 import chatHandler from "../api/chat.js";
+import cancelNextStepHandler from "../api/cancel-next-step.js";
+import accountDeleteHandler from "../api/account-delete.js";
+import { applyCors } from "../api/_lib/cors.js";
 
 const LOCAL_API_ROUTES = {
   "/api/ocr": ocrHandler,
   "/api/agent": agentHandler,
   "/api/chat": chatHandler,
+  "/api/cancel-next-step": cancelNextStepHandler,
+  "/api/account-delete": accountDeleteHandler,
 };
 
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
@@ -103,9 +108,7 @@ export const createLocalOcrMiddleware = () => async (request, response, next) =>
     await routeHandler(request, createResponseAdapter(response));
   } catch (error) {
     if (response.writableEnded) return;
-    response.setHeader("Access-Control-Allow-Origin", "*");
-    response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    applyCors(request, response);
     response.statusCode = error?.statusCode || 500;
     response.setHeader("Content-Type", "application/json; charset=utf-8");
     response.end(JSON.stringify({
