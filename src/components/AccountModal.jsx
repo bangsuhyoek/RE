@@ -5,7 +5,7 @@ import { readEvidenceCases } from "../lib/storage";
 import { deleteAllEvidence, grantEvidenceConsent, readEvidenceConsent, revokeEvidenceConsent } from "../lib/evidenceStore";
 import { grantDifficultyConsent, readDifficultyConsent, revokeDifficultyConsent } from "../lib/cancelDifficulty";
 import { supabase } from "../lib/supabase";
-import { requestAccountDeletion, clearDeviceData } from "../lib/accountClient";
+import { requestAccountDeletion } from "../lib/accountClient";
 import { exportUserData } from "../lib/dataExport";
 import {
   getCaptureSourceSettings,
@@ -246,6 +246,7 @@ export function AccountModal({
   onClose,
   onUpdateNickname,
   onLogout,
+  onAccountDeleted,
   onTestPaymentDetection,
   onRequestPaymentCapture,
 }) {
@@ -437,9 +438,8 @@ export function AccountModal({
         {/* 회원 탈퇴 (데이터 영구 파기 및 로컬 정리) */}
         <AccountDeletionSection
           userId={userId}
-          onToast={onToast}
           onClose={onClose}
-          onLogout={onLogout}
+          onAccountDeleted={onAccountDeleted}
         />
       </div>
 
@@ -494,7 +494,7 @@ function DataExportSection({ userId, profile, onToast }) {
 }
 
 /** 회원 탈퇴 구역 (지워지는 항목 설명, '탈퇴' 확인 입력, 진행/실패 표시, 로컬 정리 후 로그아웃) */
-function AccountDeletionSection({ userId, onToast, onClose, onLogout }) {
+function AccountDeletionSection({ userId, onClose, onAccountDeleted }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmInput, setConfirmInput] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -504,6 +504,10 @@ function AccountDeletionSection({ userId, onToast, onClose, onLogout }) {
 
   const handleDelete = async () => {
     if (!isConfirmed || deleting) return;
+    if (typeof onAccountDeleted !== "function") {
+      setErrorMsg("탈퇴 처리를 시작할 수 없습니다. 다시 시도해 주세요.");
+      return;
+    }
     setDeleting(true);
     setErrorMsg("");
 
@@ -518,12 +522,8 @@ function AccountDeletionSection({ userId, onToast, onClose, onLogout }) {
         await requestAccountDeletion({ token, confirmation: "탈퇴" });
       }
 
-      // 기기 로컬 데이터 영구 삭제
-      clearDeviceData();
-
-      onToast?.("회원 탈퇴 및 모든 데이터 삭제가 완료되었어요.");
       onClose?.();
-      onLogout?.();
+      await onAccountDeleted(userId);
     } catch (err) {
       console.error("탈퇴 처리 실패:", err?.code || "FAILED");
       setErrorMsg(err.message || "탈퇴 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");

@@ -1,7 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { clearDeviceData, requestAccountDeletion } from "../src/lib/accountClient.js";
-import { storageKeys } from "../src/lib/storage.js";
+import { clearDeviceData, completeLocalAccountDeletion, requestAccountDeletion } from "../src/lib/accountClient.js";
+import {
+  clearUserScopedData,
+  getActiveOwnerPartition,
+  GUEST_PARTITION,
+  ownerPartitionId,
+  setActiveOwnerPartition,
+  storageKeys,
+  writePartitionValue,
+  writeStoredValue,
+} from "../src/lib/storage.js";
 
 function createMockStorage(initial = {}) {
   const store = new Map(Object.entries(initial));
@@ -46,6 +55,95 @@ test("clearDeviceData: submate 접두어 및 storageKeys 관련 로컬 데이터
   assert.equal(mockStorage.getItem("sb-my-token"), null);
   // 다른 앱의 키는 보존되어야 함
   assert.equal(mockStorage.getItem("other_app_key"), "do_not_touch");
+});
+
+test("clearDeviceData: preserveKeys에 지정된 재시도 플래그는 보존한다", () => {
+  const mockStorage = createMockStorage({
+    [storageKeys.subscriptions]: "[]",
+    [storageKeys.cancelProofWipePending]: JSON.stringify({ cutoffAt: "2026-11-14T00:00:00.000Z" }),
+    "sb-my-token": "secret",
+  });
+
+  clearDeviceData(mockStorage, { preserveKeys: [storageKeys.cancelProofWipePending] });
+
+  assert.equal(mockStorage.getItem(storageKeys.subscriptions), null);
+  assert.equal(mockStorage.getItem("sb-my-token"), null);
+  assert.ok(mockStorage.getItem(storageKeys.cancelProofWipePending));
+});
+
+test("completeLocalAccountDeletion: 게스트 탈퇴와 부분 정리 실패 시에도 계속 진행하며 증빙 재시도 플래그를 보존한다", async () => {
+  const calls = [];
+  const preservedSets = [];
+
+  const guestResult = await completeLocalAccountDeletion({
+    userId: null,
+    signOutLocal: async () => { calls.push("signOutLocal"); },
+    clearProofs: async (owner) => { calls.push("clearProofs:" + owner); return true; },
+    cancelNotifications: async () => { calls.push("cancelNotif"); return true; },
+    clearBrowserSession: async () => { calls.push("clearBrowser"); },
+    clearUserScope: (id) => { calls.push("clearScope:" + id); },
+    clearStorage: (_s, opts) => { preservedSets.push(opts?.preserveKeys || []); },
+  });
+
+  assert.equal(guestResult.ok, true);
+  assert.equal(calls.includes("signOutLocal"), false);
+  assert.equal(calls.includes("clearProofs:guest"), true);
+  assert.equal(calls.includes("cancelNotif"), true);
+  assert.equal(calls.includes("clearBrowser"), true);
+  assert.deepEqual(preservedSets[0], []);
+
+  const partialFailResult = await completeLocalAccountDeletion({
+    userId: "user-1",
+    signOutLocal: async () => { throw new Error("offline"); },
+    clearProofs: async () => false,
+    cancelNotifications: async () => { throw new Error("notif failed"); },
+    clearBrowserSession: async () => {},
+    clearUserScope: () => {},
+    clearStorage: (_s, opts) => { preservedSets.push(opts?.preserveKeys || []); },
+  });
+
+  assert.equal(partialFailResult.ok, false);
+  assert.equal(partialFailResult.proofsCleared, false);
+  assert.equal(partialFailResult.notificationsCleared, false);
+  assert.deepEqual(preservedSets[1], [storageKeys.cancelProofWipePending]);
+});
+
+test("completeLocalAccountDeletion: activeOwnerPartition을 guest로 되돌려 탈퇴 후 후속 쓰기가 삭제된 사용자 파티션에 남지 않는다", async () => {
+  const mockStorage = createMockStorage();
+  const prevWindow = globalThis.window;
+  globalThis.window = { localStorage: mockStorage };
+  try {
+    const userId = "user-deleted-99";
+    const partition = ownerPartitionId(userId);
+    setActiveOwnerPartition(partition);
+    writePartitionValue(storageKeys.subscriptions, partition, [{ subscriptionId: "s1" }]);
+    writePartitionValue(storageKeys.notifications, partition, [{ id: "n1" }]);
+
+    await completeLocalAccountDeletion({
+      userId,
+      clearProofs: async () => true,
+      cancelNotifications: async () => true,
+      clearBrowserSession: async () => {},
+      clearUserScope: clearUserScopedData,
+      clearStorage: (_s, opts) => clearDeviceData(mockStorage, opts),
+    });
+
+    assert.equal(getActiveOwnerPartition(), GUEST_PARTITION);
+    // 탈퇴 직후 후속 상태 쓰기가 일어나도 삭제된 사용자 파티션 키가 생성되지 않아야 한다
+    writeStoredValue(storageKeys.notifications, []);
+
+    const leakedKeys = [];
+    for (let i = 0; i < mockStorage.length; i++) {
+      const key = mockStorage.key(i);
+      if (key?.startsWith(`submate-mvp:owner:${partition}:`)) {
+        leakedKeys.push(key);
+      }
+    }
+    assert.deepEqual(leakedKeys, []);
+  } finally {
+    setActiveOwnerPartition(GUEST_PARTITION);
+    globalThis.window = prevWindow;
+  }
 });
 
 test("requestAccountDeletion: 토큰이 없으면 AUTH_REQUIRED 에러를 던진다", async () => {

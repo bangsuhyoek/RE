@@ -1,10 +1,11 @@
 import { getApiEndpoint } from "./apiBase.js";
-import { storageKeys } from "./storage.js";
+import { GUEST_PARTITION, setActiveOwnerPartition, storageKeys } from "./storage.js";
 
 /**
  * 기기에 보관된 로컬 캐시, 설정, 세션 데이터를 모두 영구 삭제합니다.
  */
-export function clearDeviceData(storage = null) {
+export function clearDeviceData(storage = null, { preserveKeys = [] } = {}) {
+  const preserve = new Set(Array.isArray(preserveKeys) ? preserveKeys : []);
   const store = storage || (typeof window !== "undefined" ? window.localStorage : null);
   if (store) {
     try {
@@ -26,6 +27,7 @@ export function clearDeviceData(storage = null) {
       }
 
       for (const key of keysToRemove) {
+        if (preserve.has(key)) continue;
         try {
           store.removeItem(key);
         } catch {
@@ -45,6 +47,71 @@ export function clearDeviceData(storage = null) {
       // 무시
     }
   }
+}
+
+/**
+ * 서버 탈퇴 성공(또는 게스트 탈퇴) 후 기기 내 민감 데이터·세션·알림을 정리합니다.
+ * 일부 로컬 정리가 실패해도 예외를 전파하지 않고 로그인 화면 복귀를 보장하며,
+ * IndexedDB 증빙 삭제 실패 시 cancelProofWipePending을 보존해 다음 실행에서 재정리합니다.
+ */
+export async function completeLocalAccountDeletion({
+  userId = null,
+  signOutLocal = null,
+  clearProofs,
+  cancelNotifications,
+  clearBrowserSession,
+  clearUserScope,
+  clearStorage = clearDeviceData,
+  resetActivePartition = () => setActiveOwnerPartition(GUEST_PARTITION),
+} = {}) {
+  if (userId && typeof signOutLocal === "function") {
+    try {
+      await signOutLocal();
+    } catch (err) {
+      console.warn("Local signOut during account deletion failed:", err);
+    }
+  }
+
+  const [proofResult, notifResult, browserResult] = await Promise.allSettled([
+    typeof clearProofs === "function" ? clearProofs(userId || "guest") : Promise.resolve(true),
+    typeof cancelNotifications === "function" ? cancelNotifications() : Promise.resolve(true),
+    typeof clearBrowserSession === "function" ? clearBrowserSession() : Promise.resolve(),
+  ]);
+
+  const proofsCleared = proofResult.status === "fulfilled" && proofResult.value === true;
+  const notificationsCleared = notifResult.status === "fulfilled" && notifResult.value !== false;
+  const browserCleared = browserResult.status === "fulfilled";
+
+  if (!proofsCleared) console.warn("Could not clear all local cancel proofs during account deletion.");
+  if (!notificationsCleared) console.warn("Could not cancel all local notifications during account deletion.");
+  if (!browserCleared) console.warn("Could not clear cancel browser session during account deletion.");
+
+  if (typeof resetActivePartition === "function") {
+    try {
+      resetActivePartition();
+    } catch (err) {
+      console.warn("resetActivePartition failed during account deletion:", err);
+    }
+  }
+
+  if (userId && typeof clearUserScope === "function") {
+    try {
+      clearUserScope(userId);
+    } catch (err) {
+      console.warn("clearUserScope failed during account deletion:", err);
+    }
+  }
+
+  clearStorage(null, {
+    preserveKeys: proofsCleared ? [] : [storageKeys.cancelProofWipePending],
+  });
+
+  return {
+    ok: proofsCleared && notificationsCleared && browserCleared,
+    proofsCleared,
+    notificationsCleared,
+    browserCleared,
+  };
 }
 
 /**

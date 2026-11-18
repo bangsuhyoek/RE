@@ -27,6 +27,7 @@ import {
 } from "./lib/storage";
 import { persistEvidenceCase } from "./lib/evidenceStore";
 import { clearAllCancelProofs, retryPendingCancelProofWipe } from "./lib/cancelProof";
+import { clearDeviceData, completeLocalAccountDeletion } from "./lib/accountClient";
 import {
   cancelScheduledUserNotifications,
   generateSubscriptionAlerts,
@@ -919,6 +920,52 @@ function AppContent({ onAccountToast, onUserScopeChange }) {
     }
   };
 
+  const handleAccountDeleted = async (deletedUserId = null) => {
+    setAccountOpen(false);
+    const targetUserId = deletedUserId || profile?.user_id || null;
+    const isRemoteUser = Boolean(isSupabaseConfigured && targetUserId);
+
+    googleAuthNotifiedUserRef.current = null;
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("submate_google_login_notified_user");
+      } catch {
+        // 세션 스토리지 접근이 막힌 환경(시크릿 모드 등)에서는 무시한다
+      }
+    }
+    clearConsentOnSignOut();
+    clearAll();
+    care.clearRotation();
+    setProfile(null);
+    setSubscriptions([]);
+    setOnboardingComplete(false);
+    navigate("login");
+
+    explicitLogoutInProgressRef.current = true;
+    let cleanupResult;
+    try {
+      cleanupResult = await completeLocalAccountDeletion({
+        userId: targetUserId,
+        signOutLocal: isRemoteUser && supabase?.auth
+          ? () => supabase.auth.signOut({ scope: "local" })
+          : null,
+        clearProofs: clearAllCancelProofs,
+        cancelNotifications: cancelScheduledUserNotifications,
+        clearBrowserSession: clearCancelBrowserSession,
+        clearUserScope: clearUserScopedData,
+        clearStorage: clearDeviceData,
+      });
+    } finally {
+      explicitLogoutInProgressRef.current = false;
+    }
+
+    onAccountToast?.(
+      cleanupResult.ok
+        ? "회원 탈퇴 및 모든 데이터 삭제가 완료되었어요."
+        : "회원 탈퇴가 완료되었어요. 일부 기기 데이터는 다음 실행 시 자동으로 마저 정리돼요."
+    );
+  };
+
 
 
   const handleUpdateNickname = (newNickname) => {
@@ -1338,6 +1385,7 @@ function AppContent({ onAccountToast, onUserScopeChange }) {
           onTestPaymentDetection={handleTestPaymentDetection}
           onRequestPaymentCapture={handleRequestPaymentCapture}
           onLogout={handleLogout}
+          onAccountDeleted={handleAccountDeleted}
         />
       )}
       </Suspense>
