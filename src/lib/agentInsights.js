@@ -2,25 +2,16 @@ import { daysUntilCharge, formatWon, getNextChargeDate, toLocalDateKey } from ".
 import { toMonthlyAmount } from "./subscriptionMath.js";
 import { isTrialSubscription } from "./trialGuard.js";
 import { unusedStreak } from "./usageCheck.js";
+import { readStoredValue, storageKeys, writeStoredValue } from "./storage.js";
 
-export const AGENT_INSIGHT_DISMISSED_KEY = "submate-mvp:agent-insights:dismissed";
-export const AGENT_INSIGHT_SNOOZED_KEY = "submate-mvp:agent-insights:snoozed";
+export const AGENT_INSIGHT_DISMISSED_KEY = storageKeys.agentInsightsDismissed;
+export const AGENT_INSIGHT_SNOOZED_KEY = storageKeys.agentInsightsSnoozed;
 
 const SNOOZE_DURATION_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
 
-function getStorage() {
-  if (typeof window === "undefined" || !window.localStorage) {
-    return null;
-  }
-  return window.localStorage;
-}
-
 export function readDismissedInsights() {
-  const storage = getStorage();
-  if (!storage) return [];
   try {
-    const raw = storage.getItem(AGENT_INSIGHT_DISMISSED_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
+    const parsed = readStoredValue(AGENT_INSIGHT_DISMISSED_KEY, []);
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -28,10 +19,8 @@ export function readDismissedInsights() {
 }
 
 export function writeDismissedInsights(list) {
-  const storage = getStorage();
-  if (!storage) return;
   try {
-    storage.setItem(AGENT_INSIGHT_DISMISSED_KEY, JSON.stringify(Array.isArray(list) ? list : []));
+    writeStoredValue(AGENT_INSIGHT_DISMISSED_KEY, Array.isArray(list) ? list : []);
   } catch {
     // 스토리지 접근 실패 시 무시
   }
@@ -51,11 +40,8 @@ export function isInsightDismissed(id) {
 }
 
 export function readSnoozedInsights(now = new Date()) {
-  const storage = getStorage();
-  if (!storage) return {};
   try {
-    const raw = storage.getItem(AGENT_INSIGHT_SNOOZED_KEY);
-    const parsed = raw ? JSON.parse(raw) : {};
+    const parsed = readStoredValue(AGENT_INSIGHT_SNOOZED_KEY, {});
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
     const nowTime = now instanceof Date ? now.getTime() : new Date(now).getTime();
     let changed = false;
@@ -77,10 +63,11 @@ export function readSnoozedInsights(now = new Date()) {
 }
 
 export function writeSnoozedInsights(record) {
-  const storage = getStorage();
-  if (!storage) return;
   try {
-    storage.setItem(AGENT_INSIGHT_SNOOZED_KEY, JSON.stringify(record && typeof record === "object" ? record : {}));
+    writeStoredValue(
+      AGENT_INSIGHT_SNOOZED_KEY,
+      record && typeof record === "object" && !Array.isArray(record) ? record : {}
+    );
   } catch {
     // 스토리지 접근 실패 시 무시
   }

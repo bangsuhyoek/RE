@@ -59,6 +59,8 @@ test("clearUserScopedData는 해당 owner 파티션만 지우고 기기 설정�
     storageKeys.syncRetryQueue,
     storageKeys.chatHistory,
     storageKeys.notifications,
+    storageKeys.agentInsightsDismissed,
+    storageKeys.agentInsightsSnoozed,
     storageKeys.agentInsightsLastNotified,
     storageKeys.difficultyConsent,
     storageKeys.difficultySubmitted,

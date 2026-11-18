@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Check, X, ArrowRight, Bell, CreditCard, PlusCircle, Trash2, Info } from "lucide-react";
-import { formatWon } from "../../lib/dates.js";
-import { Button } from "../ui.jsx";
+import { formatWon, getNextChargeDate } from "../../lib/dates.js";
+import { ConfirmCard } from "./ConfirmCard";
+
+const monthDay = (date) => (date instanceof Date && !Number.isNaN(date.getTime()) ? date.getMonth() + 1 + "월 " + date.getDate() + "일" : null);
+const arrow = (before, after) => (before === undefined || before === null || before === "" ? String(after) : before + " → " + after);
 
 export function ActionCard({
   action,
@@ -10,6 +12,8 @@ export function ActionCard({
   onCancel,
 }) {
   const [loading, setLoading] = useState(false);
+  // 확인을 눌렀는데도 카드가 그대로면(실패) 카드 안에 실패 문장을 보여 준다. 실제 처리·토스트는 onConfirm 이 한다.
+  const [attempted, setAttempted] = useState(false);
 
   const { type, payload, summary, status, before } = action;
   const isDone = status === "executed" || action.done;
@@ -64,6 +68,7 @@ export function ActionCard({
       await onConfirm?.(action);
     } finally {
       setLoading(false);
+      setAttempted(true);
     }
   };
 
@@ -72,173 +77,64 @@ export function ActionCard({
     onCancel?.(action);
   };
 
-  const renderDiff = () => {
-    switch (type) {
-      case "add_subscription": {
-        return (
-          <div className="space-y-1.5 text-[12px] text-ink-secondary">
-            <div className="flex items-center justify-between">
-              <span className="text-ink-tertiary">서비스</span>
-              <span className="font-semibold text-ink">{payload.name}</span>
-            </div>
-            {payload.plan && (
-              <div className="flex items-center justify-between">
-                <span className="text-ink-tertiary">요금제</span>
-                <span className="font-semibold text-ink">{payload.plan}</span>
-              </div>
-            )}
-            <div className="flex items-center justify-between">
-              <span className="text-ink-tertiary">금액</span>
-              <span className="font-bold text-ink">{formatWon(payload.amount)}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-ink-tertiary">결제 주기</span>
-              <span className="font-medium text-ink">{payload.billingCycle || "매월"}</span>
-            </div>
-            {(payload.nextChargeDate || payload.billingDay) && (
-              <div className="flex items-center justify-between">
-                <span className="text-ink-tertiary">결제일</span>
-                <span className="font-medium text-ink">
-                  {payload.nextChargeDate || ("매월 " + payload.billingDay + "일")}
-                </span>
-              </div>
-            )}
-            {payload.paymentMethod && (
-              <div className="flex items-center justify-between">
-                <span className="text-ink-tertiary">결제 수단</span>
-                <span className="font-medium text-ink">{payload.paymentMethod}</span>
-              </div>
-            )}
-          </div>
-        );
-      }
+  const subName = beforeSnapshot?.name || targetSub?.name || null;
+  const logoServiceId = targetSub?.serviceId || targetSub?.id || payload?.serviceId || null;
 
+  const buildRows = () => {
+    switch (type) {
+      case "add_subscription":
+        return [
+          { label: "금액", value: formatWon(payload.amount) },
+          { label: "결제 주기", value: payload.billingCycle || "매월" },
+          {
+            label: "결제일",
+            value: payload.nextChargeDate || (payload.billingDay ? "매월 " + payload.billingDay + "일" : null),
+          },
+          { label: "결제 수단", value: payload.paymentMethod || null },
+        ];
       case "update_subscription": {
         const changes = payload.changes || {};
-        const displayName = beforeSnapshot?.name || targetSub?.name || "선택한 구독";
-        return (
-          <div className="space-y-2 text-[12px] text-ink-secondary">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-1.5">
-              <span className="text-ink-tertiary">대상 구독</span>
-              <span className="font-bold text-ink">{displayName}</span>
-            </div>
-
-            {changes.amount !== undefined && (
-              <div className="flex items-center justify-between">
-                <span className="text-ink-tertiary">금액</span>
-                <span className="inline-flex items-center gap-1.5 font-bold">
-                  <span className="text-ink-tertiary line-through">
-                    {formatWon(beforeSnapshot?.amount ?? beforeSnapshot?.grossAmount ?? targetSub?.amount ?? targetSub?.grossAmount)}
-                  </span>
-                  <ArrowRight size={12} className="text-ink-tertiary" />
-                  <span className="text-brand-ink">{formatWon(changes.amount)}</span>
-                </span>
-              </div>
-            )}
-
-            {changes.plan !== undefined && (
-              <div className="flex items-center justify-between">
-                <span className="text-ink-tertiary">요금제</span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="text-ink-tertiary">{beforeSnapshot?.plan || targetSub?.plan || "기본"}</span>
-                  <ArrowRight size={12} className="text-ink-tertiary" />
-                  <span className="font-semibold text-ink">{changes.plan}</span>
-                </span>
-              </div>
-            )}
-
-            {changes.billingCycle !== undefined && (
-              <div className="flex items-center justify-between">
-                <span className="text-ink-tertiary">결제 주기</span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="text-ink-tertiary">{beforeSnapshot?.billingCycle || targetSub?.billingCycle || "매월"}</span>
-                  <ArrowRight size={12} className="text-ink-tertiary" />
-                  <span className="font-semibold text-ink">{changes.billingCycle}</span>
-                </span>
-              </div>
-            )}
-
-            {(changes.nextChargeDate !== undefined || changes.billingDay !== undefined) && (
-              <div className="flex items-center justify-between">
-                <span className="text-ink-tertiary">결제일</span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="text-ink-tertiary">
-                    {beforeSnapshot?.nextChargeDate ||
-                      beforeSnapshot?.nextBillingDate ||
-                      (beforeSnapshot?.billingDay ? ("매월 " + beforeSnapshot.billingDay + "일") : null) ||
-                      (beforeSnapshot?.dueDay ? ("매월 " + beforeSnapshot.dueDay + "일") : null) ||
-                      targetSub?.nextBillingDate ||
-                      (targetSub?.dueDay ? ("매월 " + targetSub.dueDay + "일") : "-")}
-                  </span>
-                  <ArrowRight size={12} className="text-ink-tertiary" />
-                  <span className="font-semibold text-ink">
-                    {changes.nextChargeDate || ("매월 " + changes.billingDay + "일")}
-                  </span>
-                </span>
-              </div>
-            )}
-
-            {changes.paymentMethod !== undefined && (
-              <div className="flex items-center justify-between">
-                <span className="text-ink-tertiary">결제 수단</span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="text-ink-tertiary">{beforeSnapshot?.paymentMethod || targetSub?.paymentMethod || "미등록"}</span>
-                  <ArrowRight size={12} className="text-ink-tertiary" />
-                  <span className="font-semibold text-ink">{changes.paymentMethod}</span>
-                </span>
-              </div>
-            )}
-          </div>
-        );
+        const rows = [];
+        if (changes.amount !== undefined) {
+          const prev = beforeSnapshot?.amount ?? beforeSnapshot?.grossAmount ?? targetSub?.amount ?? targetSub?.grossAmount;
+          rows.push({ label: "금액", value: arrow(prev === undefined ? null : formatWon(prev), formatWon(changes.amount)) });
+        }
+        if (changes.plan !== undefined) {
+          rows.push({ label: "요금제", value: arrow(beforeSnapshot?.plan || targetSub?.plan || "기본", changes.plan) });
+        }
+        if (changes.billingCycle !== undefined) {
+          rows.push({ label: "결제 주기", value: arrow(beforeSnapshot?.billingCycle || targetSub?.billingCycle || "매월", changes.billingCycle) });
+        }
+        if (changes.nextChargeDate !== undefined || changes.billingDay !== undefined) {
+          const prev =
+            beforeSnapshot?.nextChargeDate ||
+            beforeSnapshot?.nextBillingDate ||
+            (beforeSnapshot?.billingDay ? "매월 " + beforeSnapshot.billingDay + "일" : null) ||
+            (beforeSnapshot?.dueDay ? "매월 " + beforeSnapshot.dueDay + "일" : null) ||
+            targetSub?.nextBillingDate ||
+            (targetSub?.dueDay ? "매월 " + targetSub.dueDay + "일" : "-");
+          rows.push({ label: "결제일", value: arrow(prev, changes.nextChargeDate || "매월 " + changes.billingDay + "일") });
+        }
+        if (changes.paymentMethod !== undefined) {
+          rows.push({ label: "결제 수단", value: arrow(beforeSnapshot?.paymentMethod || targetSub?.paymentMethod || "미등록", changes.paymentMethod) });
+        }
+        return rows;
       }
-
-      case "set_alerts": {
-        const targetName = payload.subscriptionId === "all"
-          ? "전체 구독"
-          : (beforeSnapshot?.name || targetSub?.name || "선택한 구독");
-        return (
-          <div className="space-y-1.5 text-[12px] text-ink-secondary">
-            <div className="flex items-center justify-between">
-              <span className="text-ink-tertiary">알림 대상</span>
-              <span className="font-bold text-ink">{targetName}</span>
-            </div>
-            {payload.alertD3 !== undefined && (
-              <div className="flex items-center justify-between">
-                <span className="text-ink-tertiary">3일 전 알림</span>
-                <span className={"font-semibold " + (payload.alertD3 ? "text-brand-ink" : "text-ink-tertiary")}>
-                  {payload.alertD3 ? "켜기 (D-3)" : "끄기"}
-                </span>
-              </div>
-            )}
-            {payload.alertD1 !== undefined && (
-              <div className="flex items-center justify-between">
-                <span className="text-ink-tertiary">1일 전 알림</span>
-                <span className={"font-semibold " + (payload.alertD1 ? "text-brand-ink" : "text-ink-tertiary")}>
-                  {payload.alertD1 ? "켜기 (D-1)" : "끄기"}
-                </span>
-              </div>
-            )}
-          </div>
-        );
-      }
-
+      case "set_alerts":
+        return [
+          payload.alertD3 !== undefined ? { label: "3일 전 알림", value: payload.alertD3 ? "켜기" : "끄기" } : null,
+          payload.alertD1 !== undefined ? { label: "1일 전 알림", value: payload.alertD1 ? "켜기" : "끄기" } : null,
+        ].filter(Boolean);
       case "open_cancel": {
-        const displayName = beforeSnapshot?.name || targetSub?.name || payload.subscriptionId;
-        return (
-          <div className="space-y-1.5 text-[12px] text-ink-secondary">
-            <div className="flex items-center justify-between">
-              <span className="text-ink-tertiary">해지 대상</span>
-              <span className="font-bold text-ink">{displayName}</span>
-            </div>
-            <p className="text-[12px] text-ink-muted">
-              확인을 누르면 해지 안내 및 공식 사이트 이동 화면이 열려요.
-            </p>
-          </div>
-        );
+        const amount = targetSub?.amount ?? beforeSnapshot?.amount;
+        const next = targetSub ? monthDay(getNextChargeDate(targetSub)) : null;
+        return [
+          { label: "해지 확정", value: (subName || "서비스") + "에서 직접 눌러요" },
+          next ? { label: "다음 결제", value: next + (amount !== undefined && amount !== null ? " · " + formatWon(amount) : "") } : null,
+        ].filter(Boolean);
       }
-
       default:
-        return <pre className="text-[11px] text-ink-tertiary">{JSON.stringify(payload, null, 2)}</pre>;
+        return [];
     }
   };
 
@@ -246,84 +142,76 @@ export function ActionCard({
     if (summary) return summary;
     switch (type) {
       case "add_subscription": return (payload.name || "구독") + " 추가";
-      case "update_subscription": return (beforeSnapshot?.name || targetSub?.name || "구독") + " 정보 수정";
-      case "set_alerts": return "알림 설정 변경";
-      case "open_cancel": return (beforeSnapshot?.name || targetSub?.name || "구독") + " 해지";
+      case "update_subscription": return (subName || "구독") + " 정보 수정";
+      case "set_alerts": return payload?.subscriptionId === "all" ? "전체 구독 알림 설정" : (subName || "구독") + " 알림 설정";
+      case "open_cancel": return (subName || "구독") + " 해지";
       default: return "요청된 작업";
     }
   };
 
+  const baseSubtitle =
+    type === "add_subscription" ? payload.plan || null :
+    type === "set_alerts" ? (payload?.subscriptionId === "all" ? "모든 구독" : null) :
+    type === "update_subscription" ? targetSub?.plan || null :
+    type === "open_cancel" ? targetSub?.plan || null : null;
+
+  let subtitle = baseSubtitle;
+  let note = null;
+  let noteTone = "muted";
+  let steps = [];
+  let secondary = null;
+  let primary = null;
+
+  if (isDone) {
+    subtitle = type === "open_cancel" ? "해지 안내를 열었어요" : "반영했어요";
+    if (type === "open_cancel") {
+      steps = [
+        { label: "해지 방법 확인", state: "done" },
+        { label: (subName || "서비스") + "에서 해지 확정하기", state: "now" },
+        { label: "다음 결제일에 청구 안 됐는지 확인", state: "next" },
+      ];
+    }
+  } else if (isCancelled) {
+    subtitle = "그만뒀어요";
+  } else {
+    if (isTargetMissing) {
+      note = "해당 구독을 찾을 수 없어요.";
+      noteTone = "danger";
+    } else if (isNoopUpdate) {
+      note = "이미 같은 값이에요.";
+    } else if (attempted && !loading) {
+      note = "반영하지 못했어요. 다시 시도해 주세요.";
+      noteTone = "danger";
+    } else if (type === "open_cancel") {
+      note = "진행하면 해지 안내와 공식 해지 페이지가 열려요. 비밀번호와 카드번호는 받지 않아요.";
+    }
+    if (isNoopUpdate) {
+      secondary = { label: "닫기", onClick: handleCancelClick, disabled: loading };
+    } else {
+      secondary = { label: "그만두기", onClick: handleCancelClick, disabled: loading || isTargetMissing };
+      primary = {
+        label: loading ? "처리 중..." : attempted ? "다시 시도" : "진행할게요",
+        onClick: handleConfirmClick,
+        disabled: loading || isTargetMissing,
+      };
+    }
+  }
+
   return (
-    <div className="mt-3 rounded-2xl border-2 border-gray-900 bg-white p-4 shadow-xs" data-testid="agent-action-card">
-      <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
-        <div className="flex items-center gap-1.5">
-          {type === "add_subscription" && <PlusCircle size={15} className="text-brand-ink" />}
-          {type === "update_subscription" && <CreditCard size={15} className="text-brand-ink" />}
-          {type === "set_alerts" && <Bell size={15} className="text-brand-ink" />}
-          {type === "open_cancel" && <Trash2 size={15} className="text-[#D22030]" />}
-          <span className="text-[13px] font-extrabold text-ink">{getTitle()}</span>
-        </div>
-        {isDone && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-bold text-brand-ink">
-            <Check size={12} /> 반영했어요
-          </span>
-        )}
-        {isCancelled && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-ink-tertiary">
-            <X size={12} /> 취소함
-          </span>
-        )}
-      </div>
-
-      <div className="my-3 rounded-xl bg-gray-50 p-3">
-        {isTargetMissing && (
-          <p className="mb-2 rounded-lg bg-[#FEECE8] px-2.5 py-1 text-[11px] font-semibold text-[#D22030]">
-            해당 구독을 찾을 수 없어요.
-          </p>
-        )}
-        {isNoopUpdate && !isDone && !isCancelled && (
-          <p className="mb-2 flex items-center gap-1 rounded-lg bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand-ink">
-            <Info size={12} /> 이미 같은 값이에요.
-          </p>
-        )}
-        {renderDiff()}
-      </div>
-
-      {!isDone && !isCancelled && (
-        <div className="flex gap-2">
-          {isNoopUpdate ? (
-            <Button
-              size="compact"
-              variant="secondary"
-              className="flex-1"
-              disabled={loading}
-              onClick={handleCancelClick}
-            >
-              닫기
-            </Button>
-          ) : (
-            <>
-              <Button
-                size="compact"
-                variant="secondary"
-                className="flex-1"
-                disabled={loading || isTargetMissing}
-                onClick={handleCancelClick}
-              >
-                취소
-              </Button>
-              <Button
-                size="compact"
-                className="flex-[2]"
-                disabled={loading || isTargetMissing}
-                onClick={handleConfirmClick}
-              >
-                {loading ? "처리 중..." : "확인"}
-              </Button>
-            </>
-          )}
-        </div>
-      )}
-    </div>
+    <ConfirmCard
+      testId="agent-action-card"
+      serviceId={logoServiceId}
+      name={type === "add_subscription" ? payload?.name || "" : subName || ""}
+      title={getTitle()}
+      subtitle={subtitle}
+      rows={buildRows()}
+      note={note}
+      noteTone={noteTone}
+      steps={steps}
+      secondary={secondary}
+      primary={primary}
+      className={isCancelled ? "opacity-70" : ""}
+    />
   );
 }
+

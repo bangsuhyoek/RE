@@ -397,23 +397,54 @@ function AppContent({ onAccountToast, onUserScopeChange }) {
   const handleAddSubscriptionFromAgent = useCallback((payload) => {
     const dueDay = payload.billingDay || (payload.nextChargeDate ? Number(String(payload.nextChargeDate).split("-")[2]) : 1);
     const nextBillingDate = payload.billingCycle === "매년" ? payload.nextChargeDate : null;
-    return handleAddSubscription({
-      ...payload,
-      dueDay,
-      nextBillingDate,
-    }, notify);
+    try {
+      const added = handleAddSubscription({
+        ...payload,
+        dueDay,
+        nextBillingDate,
+      }, notify);
+      if (added === false) {
+        return { ok: false, error: "이미 등록된 구독이에요. 기존 카드에서 정보를 수정해 주세요." };
+      }
+      return { ok: true, error: null };
+    } catch {
+      return { ok: false, error: "구독을 추가하지 못했어요. 다시 시도해 주세요." };
+    }
   }, [handleAddSubscription, notify]);
 
   const handleUpdateSubscriptionFromAgent = useCallback((id, changes) => {
-    const mapped = { ...changes }; if (changes.billingDay !== undefined) { mapped.dueDay = Number(changes.billingDay); } else if (changes.nextChargeDate) { const parsedDay = Number(String(changes.nextChargeDate).split("-")[2]); if (Number.isFinite(parsedDay) && parsedDay >= 1 && parsedDay <= 31) { mapped.dueDay = parsedDay; } } if (changes.nextChargeDate !== undefined) { mapped.nextBillingDate = changes.nextChargeDate; } if (changes.amount !== undefined) { mapped.amount = Number(changes.amount); } updateSubscription(id, mapped, notify);
-  }, [updateSubscription, notify]);
+    const target = subscriptions.find((s) => (s.subscriptionId || s.id) === id || s.id === id);
+    if (!target) return { ok: false, error: "해당 구독을 찾을 수 없어요." };
+    try {
+      const mapped = { ...changes };
+      if (changes.billingDay !== undefined) {
+        mapped.dueDay = Number(changes.billingDay);
+      } else if (changes.nextChargeDate) {
+        const parsedDay = Number(String(changes.nextChargeDate).split("-")[2]);
+        if (Number.isFinite(parsedDay) && parsedDay >= 1 && parsedDay <= 31) mapped.dueDay = parsedDay;
+      }
+      if (changes.nextChargeDate !== undefined) mapped.nextBillingDate = changes.nextChargeDate;
+      if (changes.amount !== undefined) mapped.amount = Number(changes.amount);
+      updateSubscription(target.subscriptionId || id, mapped, notify);
+      return { ok: true, error: null };
+    } catch {
+      return { ok: false, error: "구독 정보를 수정하지 못했어요. 다시 시도해 주세요." };
+    }
+  }, [subscriptions, updateSubscription, notify]);
 
   const handleSetAlertsFromAgent = useCallback((id, { alertD3, alertD1 }) => {
-    if (id === "all") {
-      subscriptions.filter((s) => s.status !== "cancelled").forEach((s) => updateSubscription(s.subscriptionId || s.id, { alertD3, alertD1 }));
-      notify("모든 구독의 사전 알림을 설정했어요.");
-    } else {
-      updateSubscription(id, { alertD3, alertD1 }, notify);
+    try {
+      if (id === "all") {
+        subscriptions.filter((s) => s.status !== "cancelled").forEach((s) => updateSubscription(s.subscriptionId || s.id, { alertD3, alertD1 }));
+        notify("모든 구독의 사전 알림을 설정했어요.");
+      } else {
+        const target = subscriptions.find((s) => (s.subscriptionId || s.id) === id || s.id === id);
+        if (!target) return { ok: false, error: "해당 구독을 찾을 수 없어요." };
+        updateSubscription(target.subscriptionId || id, { alertD3, alertD1 }, notify);
+      }
+      return { ok: true, error: null };
+    } catch {
+      return { ok: false, error: "알림 설정을 변경하지 못했어요. 다시 시도해 주세요." };
     }
   }, [subscriptions, updateSubscription, notify]);
 

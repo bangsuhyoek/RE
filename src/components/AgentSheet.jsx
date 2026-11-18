@@ -1,10 +1,22 @@
 import { useEffect, useRef, useState } from "react";
-import { Capacitor } from "@capacitor/core";
-import { Browser } from "@capacitor/browser";
-import { AlertTriangle, Check, CloudUpload, Copy, ExternalLink, FileText, Fingerprint, Loader2, Send, Square, Trash2, ShieldCheck, MessageCircle, TrendingDown, TrendingUp, X } from "lucide-react";
-import { BottomSheet, Button } from "./ui";
+import { Loader2, SquarePen, X } from "lucide-react";
+import { BottomSheet } from "./ui";
 import { ActionCard } from "./agent/ActionCard";
-import { ConsentCard } from "./agent/ConsentCard";
+import { ConsentSheet } from "./agent/ConsentCard";
+import { Composer } from "./agent/Composer";
+import { SuggestionList } from "./agent/SuggestionList";
+import { buildAgentSuggestions } from "./agent/agentSuggestions";
+import { AssistantText, ErrorRow, FollowUpChips, Note, ToolSummary, UserBubble } from "./agent/agentParts";
+import {
+  ActionResponse,
+  AlertResponse,
+  ServiceInfoResponse,
+  SpendingResponse,
+  TopCostResponse,
+  UnusedResponse,
+  UpcomingResponse,
+} from "./agent/ResponseCards";
+
 import {
   buildChatSnapshot,
   getAuthToken,
@@ -13,31 +25,23 @@ import {
   revokeChatConsent,
   streamChat,
   ChatError,
+  normalizeActionHandlerResult,
+  releaseActionLock,
 } from "../lib/chatClient";
 import { formatWon, normalizeWonText } from "../lib/dates";
-// D-day 글자는 3일 이내(오늘 포함)만 빨강.
-const isUrgentDDay = (label) => {
-  const text = String(label || "");
-  const m = /D-(\d+)/.exec(text);
-  return /오늘/.test(text) || (m ? Number(m[1]) <= 3 : false);
-};
 import {
   clearChatHistory,
   getActiveOwnerPartition,
   loadChatHistory,
-  readEvidenceCases,
+  readCancelHistory,
   readStoredValue,
   saveChatHistory,
   storageKeys,
   writeStoredValue,
 } from "../lib/storage";
 import {
-  appendDecisionToCase,
-  createEvidenceCase,
   createMandate,
   decideApproval,
-  formatEvidenceSummary,
-  isMandateActive,
   mergeApproval,
   mergeMandates,
   resolveApproval,
@@ -47,27 +51,14 @@ import {
 import { interpretWithAi } from "../lib/agentClient";
 import { decideApprovalOnServer, fetchApprovals, mergeServerApprovals, recordApprovalRequest } from "../lib/approvalStore";
 import { createMandateOnServer, fetchMandates, revokeMandateOnServer } from "../lib/mandateStore";
-import { grantEvidenceConsent, persistEvidenceCase, pullServerEvidence, readEvidenceConsent } from "../lib/evidenceStore";
-import { canUseDeviceAuth, confirmUserPresence } from "../lib/deviceAuth";
-import { ComplaintDrafts } from "./ComplaintDrafts";
-import { findCancelProof } from "../lib/cancelProof";
-
-const STATUS_TEXT = {
-  approved: "허용함",
-  approved_once: "이번만 허용함",
-  approved_mandate: "항상 허용 범위 안이라 자동으로 허용함",
-  declined: "거절함",
-  expired: "시간이 지나 만료됨",
-};
+import { pullServerEvidence } from "../lib/evidenceStore";
+import { confirmUserPresence } from "../lib/deviceAuth";
 
 const DEVICE_AUTH_FAIL_TEXT = {
   not_enrolled: "휴대폰 잠금(지문·얼굴·PIN)을 먼저 설정해 주세요.",
   unavailable: "이 기기에서는 본인 확인을 쓸 수 없어요.",
   cancelled: "본인 확인을 취소했어요. 범위를 만들지 않았어요.",
 };
-
-const isExpiredPending = (approval, now = Date.now()) =>
-  approval?.status === "pending" && new Date(approval.dueAt).getTime() < now;
 
 const approvalsInMessages = (messages) => messages.flatMap((message) => {
   const response = message.response;
@@ -77,471 +68,28 @@ const approvalsInMessages = (messages) => messages.flatMap((message) => {
   return [];
 });
 
-const copyText = async (value, onToast, successMessage) => {
-  try {
-    await navigator.clipboard.writeText(value);
-    onToast?.(successMessage);
-  } catch {
-    onToast?.("복사하지 못했어요. 길게 눌러 직접 복사해 주세요.");
-  }
+const toInsightContext = (insight) => {
+  if (!insight) return null;
+  return {
+    insightId: insight.id,
+    insightType: insight.kind,
+    subscriptionId: insight.subscriptionId,
+    insightText: insight.title + ": " + insight.message,
+  };
 };
 
-const openExternal = (url) => {
-  if (!url) return;
-  if (Capacitor.isNativePlatform()) {
-    Browser.open({ url }).catch(() => window.open(url, "_blank", "noopener,noreferrer"));
-  } else {
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
+// 스트림 오류는 답 끝에 "\n(메시지)" 로 붙는다. 화면에서는 본문과 오류 줄로 나눠 보여 준다.
+const RATE_LIMIT_TEXT = "요청이 몰려 잠시 지연되고 있어요. 잠시 후 다시 시도해 주세요.";
+const ERROR_TAIL = /\n\(([^()\n]+)\)$/;
+const splitAssistantError = (text) => {
+  const value = String(text || "");
+  if (value === RATE_LIMIT_TEXT) return { body: "", error: value };
+  const match = ERROR_TAIL.exec(value);
+  return match ? { body: value.slice(0, match.index), error: match[1] } : { body: value, error: null };
 };
 
-const ALERT_STATUS_TEXT = {
-  approved_once: "새 금액으로 계속 쓰기로 했어요",
-  declined: "해지하기로 했어요",
-};
+const DONE_FOLLOW_UPS = ["다음 주에 나갈 돈 알려줘", "한 달 구독료 얼마 나가?"];
 
-function DecisionBadge({ status, decidedAt, labels = STATUS_TEXT }) {
-  const time = decidedAt ? new Date(decidedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }) : "";
-  const positive = status === "approved" || status === "approved_once" || status === "approved_mandate";
-  return (
-    <div className={"mt-3 flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-bold " + (positive ? "bg-gray-100 text-ink-secondary" : "bg-gray-100 text-ink-muted")}>
-      {positive ? <Check size={14} /> : <X size={14} />}
-      {labels[status] || STATUS_TEXT[status] || status}{time ? " · " + time : ""}
-    </div>
-  );
-}
-
-function ToolTrace({ tools }) {
-  if (!tools?.length) return null;
-  return (
-    <div className="mb-2 flex flex-wrap gap-1">
-      {tools.map((tool) => (
-        <span key={tool} className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[12px] font-semibold text-ink-muted">
-          <Check size={10} /> {tool}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function SpendingResponse({ response }) {
-  return (
-    <div className="rounded-xl border border-gray-100 bg-white p-4">
-      <ToolTrace tools={response.toolsUsed} />
-      <div className="flex items-center gap-2">
-        <span className="grid h-8 w-8 place-items-center rounded-xl bg-gray-100 text-ink-secondary"><TrendingUp size={16} /></span>
-        <div>
-          <p className="text-[14px] font-bold text-ink">월 총 {formatWon(response.monthly)}</p>
-          <p className="text-[13px] font-medium text-ink-tertiary">활성 구독 {response.count}개 기준</p>
-        </div>
-      </div>
-      <p className="mt-3 text-[13px] leading-relaxed text-gray-800">{normalizeWonText(response.summary)}</p>
-      <div className="mt-3 rounded-xl bg-gray-50 p-3 text-[12px] text-ink-secondary">
-        <div className="flex justify-between py-1 border-b border-gray-100">
-          <span>월 지출 합계</span>
-          <span className="font-bold text-ink">{formatWon(response.monthly)}</span>
-        </div>
-        <div className="flex justify-between py-1 pt-1.5">
-          <span>연간 예상 지출</span>
-          <span className="font-bold text-ink">{formatWon(response.yearly)}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TopCostResponse({ response, onStartCancel }) {
-  return (
-    <div className="rounded-xl border border-gray-100 bg-white p-4">
-      <ToolTrace tools={response.toolsUsed} />
-      <p className="text-[14px] font-bold text-ink">{normalizeWonText(response.summary)}</p>
-      <div className="mt-3 space-y-2">
-        {response.items.map((item, idx) => (
-          <div key={item.subscriptionId || idx} className="flex items-center justify-between rounded-xl bg-gray-50 p-3">
-            <div className="flex items-center gap-2.5">
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-gray-200 text-[13px] font-bold text-ink-secondary">
-                {idx + 1}
-              </span>
-              <div>
-                <p className="text-[13px] font-bold text-ink">{item.name}</p>
-                <p className="text-[13px] text-ink-tertiary">
-                  {item.billingCycle === "매년" ? "연 " + formatWon(item.amount) + " (월 환산 " + formatWon(item.monthlyEquivalent) + ")" : item.plan || "월 결제"}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[13px] font-bold text-ink">{formatWon(item.monthlyEquivalent)}/월</span>
-              {onStartCancel && (
-                <button
-                  type="button"
-                  onClick={() => onStartCancel(item.subscriptionId)}
-                  className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-[13px] font-semibold text-ink-muted hover:border-gray-900"
-                >
-                  해지
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function UnusedResponse({ response, onStartCancel }) {
-  return (
-    <div className="rounded-xl border border-gray-100 bg-white p-4">
-      <ToolTrace tools={response.toolsUsed} />
-      <div className="flex items-center gap-2">
-        <span className="grid h-8 w-8 place-items-center rounded-xl bg-danger-soft text-danger">
-          <TrendingDown size={16} />
-        </span>
-        <p className="text-[14px] font-bold text-ink">안 쓰는 구독 점검</p>
-      </div>
-      <p className="mt-2 text-[13px] leading-relaxed text-gray-800">{normalizeWonText(response.summary)}</p>
-      {response.items?.length > 0 && (
-        <div className="mt-3 space-y-2">
-          {response.items.map((item) => (
-            <div key={item.subscriptionId} className="flex items-center justify-between rounded-xl bg-gray-50 p-3">
-              <div>
-                <p className="text-[13px] font-bold text-ink">{item.name}</p>
-                <p className="text-[13px] font-medium text-danger">{item.streak}달 연속 '거의 안 씀'</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] font-bold text-ink">{formatWon(item.amount)}</span>
-                {onStartCancel && (
-                  <button
-                    type="button"
-                    onClick={() => onStartCancel(item.subscriptionId)}
-                    className="rounded-lg bg-gray-900 px-2.5 py-1 text-[13px] font-semibold text-white"
-                  >
-                    해지하기
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ServiceInfoResponse({ response, onStartCancel }) {
-  return (
-    <div className="rounded-xl border border-gray-100 bg-white p-4">
-      <ToolTrace tools={response.toolsUsed} />
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-[15px] font-bold text-ink">{response.serviceName}</p>
-          {response.plan && <p className="text-[13px] font-medium text-ink-tertiary">{response.plan}</p>}
-        </div>
-        <span className="text-[15px] font-bold text-ink">{formatWon(response.amount)}</span>
-      </div>
-      <div className="mt-3 rounded-xl bg-gray-50 p-3 text-[12px] text-ink-secondary space-y-1.5">
-        <div className="flex justify-between">
-          <span>결제 주기</span>
-          <span className="font-semibold text-ink">{response.billingCycle}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>다음 결제일</span>
-          <span className="font-semibold text-ink">{response.nextPaymentDate}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>결제 수단</span>
-          <span className="font-semibold text-ink">{response.paymentMethod}</span>
-        </div>
-      </div>
-      {onStartCancel && (
-        <Button size="compact" variant="outline" fullWidth className="mt-3" onClick={() => onStartCancel(response.subscriptionId)}>
-          {response.serviceName} 해지 진행
-        </Button>
-      )}
-    </div>
-  );
-}
-
-function RefundDraft({ refund, onToast }) {
-  const [lang, setLang] = useState("ko");
-  const draft = refund.draft[lang];
-  const copy = () => copyText(draft, onToast, "환불 요청서를 복사했어요.");
-  return (
-    <div className="mt-3 rounded-xl border border-gray-100 bg-white p-3.5">
-      <div className="flex items-center justify-between">
-        <strong className="text-[13px] font-bold text-ink">환불 요청서 ({refund.requestTo} 제출용)</strong>
-        <div className="flex rounded-lg bg-gray-100 p-0.5 text-[13px] font-bold">
-          {["ko", "en"].map((code) => (
-            <button key={code} type="button" onClick={() => setLang(code)} className={"rounded-md px-2 py-0.5 " + (lang === code ? "bg-white text-ink" : "text-ink-tertiary")}>
-              {code === "ko" ? "한국어" : "English"}
-            </button>
-          ))}
-        </div>
-      </div>
-      <pre className="mt-2 max-h-44 overflow-y-auto whitespace-pre-wrap rounded-xl bg-gray-50 p-3 font-sans text-[12px] leading-relaxed text-gray-800">{draft}</pre>
-      <p className="mt-2 text-[13px] leading-relaxed text-ink-tertiary">{refund.note} 카드번호는 끝 4자리만 넣었어요.</p>
-      <div className="mt-2.5 flex gap-2">
-        <Button size="compact" variant="secondary" className="flex-1" onClick={copy} prefixIcon={<Copy size={14} />}>복사</Button>
-        {refund.url && (
-          <Button size="compact" variant="outline" className="flex-1" onClick={() => openExternal(refund.url)} prefixIcon={<ExternalLink size={14} />}>
-            {refund.urlLabel || "요청 페이지 열기"}
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ActionResponse({ response, approval, onDecide, onStartCancel, onToast }) {
-  const decided = approval.status !== "pending";
-  const allowed = approval.status === "approved";
-  return (
-    <div>
-      <ToolTrace tools={response.toolsUsed} />
-      <div className="rounded-2xl bg-gray-50 p-3.5">
-        <p className="text-[12px] font-bold text-ink-secondary">확인한 것</p>
-        <dl className="mt-2 space-y-1.5">
-          {response.findings.map((item) => (
-            <div key={item.label} className="flex gap-2 text-[12px] leading-relaxed">
-              <dt className="w-[68px] shrink-0 font-semibold text-ink-tertiary">{item.label}</dt>
-              <dd className="font-medium text-gray-800">{item.value}</dd>
-            </div>
-          ))}
-        </dl>
-        {response.wantsRefund && (
-          response.policy ? (
-            <div className="mt-2">
-              <p className="text-[12px] leading-relaxed text-gray-800">{response.policy.summary}</p>
-              <button type="button" onClick={() => openExternal(response.policy.sourceUrl)} className="mt-1 inline-flex items-center gap-1 text-[13px] font-semibold text-ink">
-                <ExternalLink size={11} /> 출처: {response.policy.sourceLabel}{response.policy.verifiedAt ? " · " + response.policy.verifiedAt + " 확인" : ""}
-              </button>
-            </div>
-          ) : (
-            <p className="mt-2 text-[13px] text-ink-tertiary">이 서비스의 공식 환불 정책은 아직 꾸독이 확인하지 못했어요. 최종 결정은 서비스 회사가 해요.</p>
-          )
-        )}
-      </div>
-
-      <div className="mt-3 rounded-xl border border-gray-100 bg-white p-4" data-testid="agent-approval-card">
-        <div className="flex items-center gap-1.5 text-[12px] font-bold text-ink"><ShieldCheck size={14} /> 승인 요청</div>
-        <p className="mt-1.5 text-[15px] font-bold text-ink">이렇게 진행할까요?</p>
-        <ol className="mt-2 space-y-1">
-          {response.steps.map((step, index) => (
-            <li key={step} className="text-[13px] font-medium text-gray-800">{index + 1}. {step}</li>
-          ))}
-        </ol>
-        <p className="mt-2.5 text-[13px] leading-relaxed text-ink-tertiary">로그인과 마지막 해지 확정은 직접 눌러 주세요. 꾸독은 비밀번호와 카드번호를 받지 않아요.</p>
-        {decided ? (
-          <DecisionBadge status={approval.status} decidedAt={approval.decidedAt} />
-        ) : (
-          <div className="mt-3 flex gap-2">
-            <Button size="compact" variant="secondary" className="flex-1" onClick={() => onDecide(approval, "deny")}>그만두기</Button>
-            <Button size="compact" className="flex-[2]" onClick={() => onDecide(approval, "allow")}>허용하고 진행</Button>
-          </div>
-        )}
-      </div>
-
-      {allowed && (
-        <div className="mt-1">
-          {response.wantsRefund && response.refund && <RefundDraft refund={response.refund} onToast={onToast} />}
-          {response.wantsCancel && (
-            <Button size="default" fullWidth className="mt-3" onClick={() => onStartCancel(response.subscriptionId, { autoOpen: true })}>
-              {response.hasCancelUrl ? response.serviceName + " 해지 페이지 열기" : response.serviceName + " 해지 안내 보기"}
-            </Button>
-          )}
-        </div>
-      )}
-      {approval.status === "declined" && <p className="mt-2 text-[12px] text-ink-muted">그만뒀어요. 필요하면 언제든 다시 말해 주세요.</p>}
-      {approval.status === "expired" && <p className="mt-2 text-[12px] text-ink-muted">승인 시간이 지났어요. 다시 요청해 주세요.</p>}
-    </div>
-  );
-}
-
-function MandateConfirm({ item, busy, onCancel, onConfirm }) {
-  return (
-    <div className="mt-3 rounded-xl bg-gray-50 p-3" data-testid="agent-mandate-confirm">
-      <p className="text-[12px] font-bold text-ink">{item.serviceName} 갱신이 {formatWon(item.amount)} 이하이면 앞으로 묻지 않고 허용으로 기록해요.</p>
-      <ul className="mt-1.5 space-y-0.5 text-[13px] leading-relaxed text-ink-secondary">
-        <li>· 금액이 오르거나 무료체험이 끝나면 다시 물어봐요.</li>
-        <li>· 1년 뒤 끝나고, 언제든 해제할 수 있어요.</li>
-        <li>· 꾸독은 결제를 막지 않아요. 원하지 않으면 해지해야 멈춰요.</li>
-      </ul>
-      <div className="mt-2.5 flex gap-2">
-        <Button size="compact" variant="secondary" className="flex-1" onClick={onCancel} disabled={busy}>취소</Button>
-        <Button size="compact" className="flex-[2]" onClick={onConfirm} disabled={busy} prefixIcon={canUseDeviceAuth() ? <Fingerprint size={14} /> : null}>
-          {canUseDeviceAuth() ? "본인 확인하고 허용" : "확인하고 허용"}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function UpcomingResponse({ response, approvals, mandates, onDecide, onStartCancel, onCreateMandate, onRevokeMandate }) {
-  const [confirmingId, setConfirmingId] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const confirmMandate = async (item) => {
-    setBusy(true);
-    const created = await onCreateMandate(item);
-    setBusy(false);
-    if (created) setConfirmingId(null);
-  };
-  return (
-    <div>
-      <ToolTrace tools={response.toolsUsed} />
-      <p className="text-[14px] font-semibold text-ink">{normalizeWonText(response.summary)}</p>
-      <div className="mt-2.5 space-y-2.5">
-        {response.items.map((item) => {
-          const stored = resolveApproval(approvals, item.approval);
-          const approval = isExpiredPending(stored) ? { ...stored, status: "expired" } : stored;
-          const mandate = mandates[item.subscriptionId];
-          const mandateActive = isMandateActive(mandate);
-          return (
-            <div key={item.approval.id} className="rounded-xl border border-gray-100 bg-white p-3.5" data-testid="agent-renewal-card">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  {item.isTrial && (
-                    <span className="mb-1 inline-block rounded-md bg-danger-soft px-1.5 py-0.5 text-[12px] font-bold text-danger">무료체험 종료 → 유료 전환</span>
-                  )}
-                  <p className="truncate text-[14px] font-bold text-ink">{item.serviceName} <span className="font-medium text-ink-tertiary">{item.plan}</span></p>
-                  <p className="mt-0.5 text-[12px] text-ink-muted">{item.dateLabel} 결제 · {item.payment}</p>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="text-[14px] font-bold text-ink">{formatWon(item.amount)}</p>
-                  <span className={"text-[13px] font-semibold " + (isUrgentDDay(item.dDay) ? "text-danger" : "text-ink-tertiary")}>{item.dDay}</span>
-                </div>
-              </div>
-              {approval.status === "pending" ? (
-                confirmingId === approval.id ? (
-                  <MandateConfirm item={item} busy={busy} onCancel={() => setConfirmingId(null)} onConfirm={() => confirmMandate(item)} />
-                ) : (
-                  <>
-                    <div className="mt-3 flex gap-2">
-                      <Button size="compact" variant="secondary" className="flex-1" onClick={() => onDecide(approval, "allow_once")}>{item.isTrial ? "유료로 계속 쓰기" : "이번만 허용"}</Button>
-                      <Button size="compact" variant="outline" className="flex-1" onClick={() => { onDecide(approval, "deny"); onStartCancel(item.subscriptionId); }}>거절하고 해지</Button>
-                    </div>
-                    {!item.isTrial && (
-                      <button type="button" onClick={() => setConfirmingId(approval.id)} className="mt-2 w-full rounded-xl py-1.5 text-[12px] font-bold text-ink hover:bg-gray-100">
-                        이 금액 이하면 항상 허용
-                      </button>
-                    )}
-                  </>
-                )
-              ) : (
-                <>
-                  <DecisionBadge status={approval.status} decidedAt={approval.decidedAt} />
-                  {approval.status === "approved_mandate" && mandateActive && (
-                    <div className="mt-2 flex items-center justify-between gap-2 text-[13px] text-ink-muted">
-                      <span>항상 허용 · {formatWon(mandate.maxAmount)} 이하 · {new Date(mandate.expiresAt).toLocaleDateString("ko-KR")}까지</span>
-                      <button type="button" onClick={() => onRevokeMandate(item.subscriptionId)} className="shrink-0 font-bold text-danger">해제</button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      {response.items.length > 0 && (
-        <p className="mt-2.5 text-[13px] leading-relaxed text-ink-tertiary">꾸독은 결제를 직접 막을 수 없어요. 원하지 않는 결제는 해지해야 멈춰요.</p>
-      )}
-    </div>
-  );
-}
-
-function EvidenceConsent({ userId, onToast }) {
-  const [consented, setConsented] = useState(() => Boolean(readEvidenceConsent(userId)));
-  const [busy, setBusy] = useState(false);
-  if (!userId) return <p className="mt-2 text-[13px] leading-relaxed text-ink-tertiary">증빙은 이 기기에만 저장돼요. 로그인하면 계정에 보관할 수 있어요.</p>;
-  if (consented) {
-    return <p className="mt-2 flex items-center gap-1 text-[13px] font-semibold text-ink"><Check size={12} /> 계정에 보관 중 · 만든 날부터 1년 뒤 자동 삭제</p>;
-  }
-  const grant = async () => {
-    setBusy(true);
-    const ok = await grantEvidenceConsent(userId);
-    setBusy(false);
-    setConsented(true);
-    onToast?.(ok ? "증빙을 계정에 보관했어요. 내 계정 관리에서 언제든 지울 수 있어요." : "보관에 동의했어요. 일부 증빙은 연결되면 다시 올릴게요.");
-  };
-  return (
-    <div className="mt-3 rounded-xl border border-gray-200 bg-white p-3" data-testid="agent-evidence-consent">
-      <p className="text-[12px] font-bold text-ink">증빙을 내 계정에 보관할까요? (선택)</p>
-      <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">
-        서비스명, 결제 금액·일시, 결제수단 이름과 카드 끝 4자리, 해지 일시, 꾸독 승인 기록을 보관해요. 휴대폰을 바꿔도 남고, 만든 날부터 1년 뒤 자동으로 지워져요. 내 계정 관리에서 언제든 지울 수 있어요.
-      </p>
-      <Button size="compact" variant="outline" fullWidth className="mt-2" onClick={grant} disabled={busy} prefixIcon={<CloudUpload size={14} />}>동의하고 계정에 보관</Button>
-    </div>
-  );
-}
-
-function AlertResponse({ response, approval, onDecide, onStartCancel, onUpdateAmount, onToast, userId }) {
-  const [cancelProof, setCancelProof] = useState(null);
-  useEffect(() => {
-    if (response.kind === "charged_after_cancel") {
-      findCancelProof({
-        subscriptionId: response.cancelRecordSubscriptionId || response.subscriptionId,
-        serviceId: response.serviceId,
-        serviceName: response.serviceName,
-      }).then((found) => {
-        setCancelProof(found || null);
-      });
-    }
-  }, [response.kind, response.cancelRecordSubscriptionId, response.subscriptionId, response.serviceId, response.serviceName]);
-  const decidable = Boolean(approval && response.subscriptionId);
-  const currentCase = () => {
-    const base = readEvidenceCases()[createEvidenceCase(response).id] || createEvidenceCase(response);
-    return appendDecisionToCase(base, approval);
-  };
-  // 경고 카드에서 결정하면 그 결정을 증빙 사건에 붙인다.
-  const decidedStatus = approval?.status;
-  useEffect(() => {
-    if (!decidedStatus || decidedStatus === "pending") return;
-    persistEvidenceCase(userId, currentCase());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [decidedStatus, userId]);
-  const copyEvidence = () => {
-    const withDecision = currentCase();
-    persistEvidenceCase(userId, withDecision);
-    copyText(formatEvidenceSummary(withDecision), onToast, "증빙 기록을 복사했어요. 신고나 환불 요청에 붙여 넣으세요.");
-  };
-  return (
-    <div>
-      <ToolTrace tools={response.toolsUsed} />
-      <div className="rounded-2xl border border-danger-line bg-white p-4" data-testid="agent-alert-card">
-        <div className="flex items-center gap-1.5 text-[12px] font-bold text-danger"><AlertTriangle size={14} /> 결제 경고</div>
-        <p className="mt-1.5 text-[15px] font-bold text-ink">{normalizeWonText(response.title)}</p>
-        <dl className="mt-2 space-y-1.5">
-          {response.findings.map((item) => (
-            <div key={item.label} className="flex gap-2 text-[12px] leading-relaxed">
-              <dt className="w-[68px] shrink-0 font-semibold text-ink-tertiary">{item.label}</dt>
-              <dd className="font-medium text-gray-800">{item.value}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-2.5 text-[13px] leading-relaxed text-ink-muted">{response.notice}</p>
-        {decidable && (
-          approval.status === "pending" ? (
-            <div className="mt-3 flex gap-2">
-              <Button size="compact" variant="outline" className="flex-1" onClick={() => { onDecide(approval, "deny"); onStartCancel(response.subscriptionId); }}>해지하기</Button>
-              <Button size="compact" variant="secondary" className="flex-1" onClick={() => { onDecide(approval, "allow_once"); onUpdateAmount?.(response); }}>
-                {response.kind === "trial_conversion" ? "유료로 계속 쓰기" : "새 금액으로 계속 쓰기"}
-              </Button>
-            </div>
-          ) : (
-            <DecisionBadge status={approval.status} decidedAt={approval.decidedAt} labels={ALERT_STATUS_TEXT} />
-          )
-        )}
-      </div>
-      {response.kind !== "charged_after_cancel" && response.refund && (
-        <RefundDraft refund={response.refund} onToast={onToast} />
-      )}
-      {response.kind === "charged_after_cancel" && (
-        <ComplaintDrafts caseInfo={response} proof={cancelProof} refund={response.refund} onToast={onToast} />
-      )}
-      <Button size="compact" variant="secondary" fullWidth className="mt-3" onClick={copyEvidence} prefixIcon={<FileText size={14} />}>증빙 기록 복사</Button>
-      <EvidenceConsent userId={userId} onToast={onToast} />
-      <p className="mt-2 text-[13px] leading-relaxed text-ink-tertiary">꾸독은 이미 된 결제를 취소할 수 없어요. 환불은 서비스 회사나 카드사에 직접 요청해야 해요.</p>
-    </div>
-  );
-}
 
 export function AgentSheet({
   subscriptions,
@@ -565,6 +113,7 @@ export function AgentSheet({
   const [consentGranted, setConsentGranted] = useState(() => readChatConsent(chatPartition));
   const [showConsentPrompt, setShowConsentPrompt] = useState(false);
   const [pendingUserText, setPendingUserText] = useState("");
+  const [pendingInsightContext, setPendingInsightContext] = useState(null);
   const [context, setContext] = useState({ lastSubscriptionId: null, lastIntent: null });
   const [activeInsight, setActiveInsight] = useState(initialInsight);
   const [historyLoadedForUserId, setHistoryLoadedForUserId] = useState(null);
@@ -610,6 +159,7 @@ export function AgentSheet({
         role: "assistant",
         text: initialInsight.title + "\n" + initialInsight.message,
         quickReplies: initialInsight.quickReplies || [],
+        insightContext: toInsightContext(initialInsight),
         insightId: initialInsight.id,
         insightText: initialInsight.title + ": " + initialInsight.message,
       };
@@ -693,7 +243,9 @@ export function AgentSheet({
     if (pendingUserText) {
       const textToRun = pendingUserText;
       setPendingUserText("");
-      executeSend(textToRun, true);
+      const contextToRun = pendingInsightContext;
+      setPendingInsightContext(null);
+      executeSend(textToRun, true, contextToRun);
     }
   };
 
@@ -703,7 +255,8 @@ export function AgentSheet({
     if (pendingUserText) {
       const textToRun = pendingUserText;
       setPendingUserText("");
-      executeLocalAgent(textToRun);
+      setPendingInsightContext(null);
+      executeLocalAgent(textToRun, null, null, pendingInsightContext);
     }
   };
 
@@ -718,7 +271,7 @@ export function AgentSheet({
   };
 
   // Local fallback runner
-  const executeLocalAgent = async (text, assistantMsgId = null, baseHistory = null) => {
+  const executeLocalAgent = async (text, assistantMsgId = null, baseHistory = null, insightContext = null) => {
     setLoading(true);
     const effectiveHistory = baseHistory || [...messages, { id: "u-" + Date.now(), role: "user", text }];
     if (!baseHistory) {
@@ -726,18 +279,25 @@ export function AgentSheet({
     }
 
     const effectiveUsageAnswers = usageAnswers || readStoredValue(storageKeys.usageAnswers, {});
-    let response = runAgent({ text, subscriptions, context, usageAnswers: effectiveUsageAnswers });
+    const localContext = insightContext?.subscriptionId
+      ? { ...context, lastSubscriptionId: insightContext.subscriptionId }
+      : context;
+    const targetSub = insightContext?.subscriptionId
+      ? subscriptions.find((s) => (s.subscriptionId || s.id) === insightContext.subscriptionId || s.id === insightContext.subscriptionId)
+      : null;
+    const localText = targetSub?.name && !text.includes(targetSub.name) ? targetSub.name + " " + text : text;
+    let response = runAgent({ text: localText, subscriptions, context: localContext, usageAnswers: effectiveUsageAnswers });
     if (response.type === "unknown" || response.type === "clarify") {
       const isConsented = readChatConsent(chatPartition);
       if (isConsented) {
         const interpretation = await interpretWithAi(
-          text,
+          localText,
           subscriptions,
           userId,
           () => isConsented
         );
         if (interpretation) {
-          response = runAgent({ text, subscriptions, interpretation, context, usageAnswers: effectiveUsageAnswers });
+          response = runAgent({ text: localText, subscriptions, interpretation, context: localContext, usageAnswers: effectiveUsageAnswers });
         }
       }
     }
@@ -769,7 +329,7 @@ export function AgentSheet({
   };
 
   // Main send dispatcher
-  const send = async (raw) => {
+  const send = async (raw, insightContext = null) => {
     const text = String(raw || "").trim();
     if (!text || loading || isStreaming) return;
     setInput("");
@@ -779,23 +339,24 @@ export function AgentSheet({
 
     if (hasSession && !consentGranted) {
       setPendingUserText(text);
+      setPendingInsightContext(insightContext);
       setShowConsentPrompt(true);
       return;
     }
 
     if (hasSession && consentGranted) {
-      executeSend(text, true);
+      executeSend(text, true, insightContext);
     } else {
-      executeLocalAgent(text);
+      executeLocalAgent(text, null, null, insightContext);
     }
   };
 
-  const executeSend = async (text, useStream = true) => {
+  const executeSend = async (text, useStream = true, insightContext = null) => {
     const history = [...messages, { id: "u-" + Date.now(), role: "user", text }];
     onMessagesChange(history);
 
     if (!useStream) {
-      executeLocalAgent(text, null, history);
+      executeLocalAgent(text, null, history, insightContext);
       return;
     }
 
@@ -818,12 +379,8 @@ export function AgentSheet({
     const effectiveUsageAnswers = usageAnswers || readStoredValue(storageKeys.usageAnswers, {});
     const snapshot = buildChatSnapshot(subscriptions, new Date(), effectiveUsageAnswers);
 
-    let chatContext = null;
-    if (activeInsight) {
-      chatContext = {
-        insightId: activeInsight.id,
-        insightText: activeInsight.title + ": " + activeInsight.message,
-      };
+    let chatContext = insightContext || toInsightContext(activeInsight);
+    if (chatContext) {
       setActiveInsight(null);
     }
 
@@ -967,43 +524,128 @@ export function AgentSheet({
         return;
       }
 
-      if (accumulatedText.length > 0 || accumulatedActions.length > 0) { onMessagesChange((curr) => curr.map((m) => m.id === assistantMsgId ? { ...m, text: accumulatedText + "\n(연결이 끊겨 답변이 중단되었어요.)", isStreaming: false } : m)); return; } executeLocalAgent(text, assistantMsgId, history);
+      if (accumulatedText.length > 0 || accumulatedActions.length > 0) { onMessagesChange((curr) => curr.map((m) => m.id === assistantMsgId ? { ...m, text: accumulatedText + "\n(연결이 끊겨 답변이 중단되었어요.)", isStreaming: false } : m)); return; } executeLocalAgent(text, assistantMsgId, history, chatContext);
     }
   };
 
   // Action card confirmation handler
   const handleConfirmAction = async (action) => {
-    const { id, type, payload, summary } = action; if (!id || executingActionIdsRef.current.has(id)) return; executingActionIdsRef.current.add(id); const isValidDate = (str) => typeof str === "string" && /^\d{4}-\d{2}-\d{2}$/.test(str) && !isNaN(new Date(str + "T00:00:00Z").getTime()); const isValidDay = (d) => Number.isInteger(Number(d)) && Number(d) >= 1 && Number(d) <= 31;
+    const { id, type, payload = {}, summary } = action;
+    if (!id || executingActionIdsRef.current.has(id)) return;
+    executingActionIdsRef.current.add(id);
+
+    const isValidDate = (str) => typeof str === "string" && /^\d{4}-\d{2}-\d{2}$/.test(str) && !isNaN(new Date(str + "T00:00:00Z").getTime());
+    const isValidDay = (d) => Number.isInteger(Number(d)) && Number(d) >= 1 && Number(d) <= 31;
+    const showFailure = (message) => onToast?.(message);
 
     try {
       if (type === "add_subscription") {
         if (!payload.name || payload.name.trim() === "") {
-          onToast?.("구독 이름이 필요해요.");
+          showFailure("구독 이름이 필요해요.");
           return;
         }
         const numericAmount = Number(payload.amount);
-        if (Number.isNaN(numericAmount) || numericAmount < 0) { onToast?.("유효한 금액이 필요해요."); return; } if (payload.billingDay !== undefined && !isValidDay(payload.billingDay)) { onToast?.("결제일은 1~31일 사이여야 해요."); return; } if (payload.nextChargeDate !== undefined && !isValidDate(payload.nextChargeDate)) { onToast?.("결제일 형식이 올바르지 않아요."); return; }
-        const success = await onAddSubscription?.(payload);
-        if (success === false) return;
+        if (Number.isNaN(numericAmount) || numericAmount < 0) {
+          showFailure("유효한 금액이 필요해요.");
+          return;
+        }
+        if (payload.billingDay !== undefined && !isValidDay(payload.billingDay)) {
+          showFailure("결제일은 1~31일 사이여야 해요.");
+          return;
+        }
+        if (payload.nextChargeDate !== undefined && !isValidDate(payload.nextChargeDate)) {
+          showFailure("결제일 형식이 올바르지 않아요.");
+          return;
+        }
+        if (typeof onAddSubscription !== "function") {
+          showFailure("구독 추가 기능을 사용할 수 없어요.");
+          return;
+        }
+        const outcome = normalizeActionHandlerResult(
+          await onAddSubscription(payload),
+          "구독을 추가하지 못했어요. 다시 시도해 주세요."
+        );
+        if (!outcome.ok) {
+          showFailure(outcome.error);
+          return;
+        }
       } else if (type === "update_subscription") {
         const subId = payload.subscriptionId;
         const exists = subscriptions.some((s) => (s.subscriptionId || s.id) === subId || s.id === subId);
         if (!exists) {
-          onToast?.("해당 구독을 찾을 수 없어요.");
+          showFailure("해당 구독을 찾을 수 없어요.");
           return;
         }
-        const changes = payload.changes || {}; if (changes.amount !== undefined) { const num = Number(changes.amount); if (Number.isNaN(num) || num < 0) { onToast?.("유효한 금액이 필요해요."); return; } } if (changes.billingDay !== undefined && !isValidDay(changes.billingDay)) { onToast?.("결제일은 1~31일 사이여야 해요."); return; } if (changes.nextChargeDate !== undefined && changes.nextChargeDate !== null && !isValidDate(changes.nextChargeDate)) { onToast?.("결제일 형식이 올바르지 않아요."); return; } const target = subscriptions.find((s) => (s.subscriptionId || s.id) === subId || s.id === subId); await onUpdateSubscription?.(target?.subscriptionId || subId, changes);
+        const changes = payload.changes || {};
+        if (changes.amount !== undefined) {
+          const num = Number(changes.amount);
+          if (Number.isNaN(num) || num < 0) {
+            showFailure("유효한 금액이 필요해요.");
+            return;
+          }
+        }
+        if (changes.billingDay !== undefined && !isValidDay(changes.billingDay)) {
+          showFailure("결제일은 1~31일 사이여야 해요.");
+          return;
+        }
+        if (changes.nextChargeDate !== undefined && changes.nextChargeDate !== null && !isValidDate(changes.nextChargeDate)) {
+          showFailure("결제일 형식이 올바르지 않아요.");
+          return;
+        }
+        if (typeof onUpdateSubscription !== "function") {
+          showFailure("구독 수정 기능을 사용할 수 없어요.");
+          return;
+        }
+        const target = subscriptions.find((s) => (s.subscriptionId || s.id) === subId || s.id === subId);
+        const outcome = normalizeActionHandlerResult(
+          await onUpdateSubscription(target?.subscriptionId || subId, changes),
+          "구독 정보를 수정하지 못했어요. 다시 시도해 주세요."
+        );
+        if (!outcome.ok) {
+          showFailure(outcome.error);
+          return;
+        }
       } else if (type === "set_alerts") {
-        if (payload.subscriptionId !== "all") { const exists = subscriptions.some((s) => (s.subscriptionId || s.id) === payload.subscriptionId || s.id === payload.subscriptionId); if (!exists) { onToast?.("해당 구독을 찾을 수 없어요."); return; } } await onSetAlerts?.(payload.subscriptionId, { alertD3: payload.alertD3, alertD1: payload.alertD1 });
+        if (payload.subscriptionId !== "all") {
+          const exists = subscriptions.some((s) => (s.subscriptionId || s.id) === payload.subscriptionId || s.id === payload.subscriptionId);
+          if (!exists) {
+            showFailure("해당 구독을 찾을 수 없어요.");
+            return;
+          }
+        }
+        if (typeof onSetAlerts !== "function") {
+          showFailure("알림 설정 기능을 사용할 수 없어요.");
+          return;
+        }
+        const outcome = normalizeActionHandlerResult(
+          await onSetAlerts(payload.subscriptionId, { alertD3: payload.alertD3, alertD1: payload.alertD1 }),
+          "알림 설정을 변경하지 못했어요. 다시 시도해 주세요."
+        );
+        if (!outcome.ok) {
+          showFailure(outcome.error);
+          return;
+        }
       } else if (type === "open_cancel") {
-        const target = subscriptions.find((s) => (s.subscriptionId || s.id) === payload.subscriptionId || s.id === payload.subscriptionId); if (!target) { onToast?.("해당 구독을 찾을 수 없어요."); return; } onStartCancel?.(target.subscriptionId || target.id);
+        const target = subscriptions.find((s) => (s.subscriptionId || s.id) === payload.subscriptionId || s.id === payload.subscriptionId);
+        if (!target) {
+          showFailure("해당 구독을 찾을 수 없어요.");
+          return;
+        }
+        if (typeof onStartCancel !== "function") {
+          showFailure("해지 안내를 열 수 없어요. 다시 시도해 주세요.");
+          return;
+        }
+        onStartCancel(target.subscriptionId || target.id);
+      } else {
+        showFailure("지원하지 않는 작업이에요.");
+        return;
       }
 
       // Mark action done
       onMessagesChange((curr) => {
         const updated = curr.map((m) => {
           if (!m.actions) return m;
-          executingActionIdsRef.current.delete(id); const nextActions = m.actions.map((act) => act.id === id ? { ...act, status: "executed", done: true } : act);
+          const nextActions = m.actions.map((act) => act.id === id ? { ...act, status: "executed", done: true } : act);
           return { ...m, actions: nextActions };
         });
         const summaryText = summary || (
@@ -1022,7 +664,10 @@ export function AgentSheet({
       });
       onToast?.("요청하신 작업을 반영했어요.");
     } catch {
-      executingActionIdsRef.current.delete(id); onToast?.("작업 처리 중 오류가 발생했습니다.");
+      showFailure("작업 처리 중 오류가 발생했습니다.");
+    } finally {
+      // Every failure path must release the card so the user can retry it.
+      releaseActionLock(executingActionIdsRef.current, id);
     }
   };
 
@@ -1106,147 +751,117 @@ export function AgentSheet({
     send(option.name + " " + verb);
   };
 
-  const defaultSuggestions = [
-    "넷플릭스랑 디즈니 합치면 얼마야?",
-    "다음 주에 나갈 돈 알려줘",
-    "유튜브 프리미엄 금액 바꿔줘",
-    "한 달 총 지출 얼마야?",
-    "안 쓰는 구독 있어?",
-    (subscriptions[0]?.name || "넷플릭스") + " 해지하고 환불 받아줘",
-  ];
+  // 아래는 표현 전용 상태다. 대화·실행 로직은 위 핸들러가 그대로 맡는다.
+  const [online, setOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine !== false));
+  useEffect(() => {
+    const goOnline = () => setOnline(true);
+    const goOffline = () => setOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
+
+  const suggestions = messages.length === 0
+    ? buildAgentSuggestions({ subscriptions, cancelHistory: readCancelHistory() })
+    : null;
+  const busy = loading || isStreaming;
+  const lastMessageId = messages.length ? messages[messages.length - 1].id : null;
+  const retryFor = (index) => {
+    const previousUser = messages.slice(0, index).reverse().find((m) => m.role === "user");
+    return previousUser ? () => send(previousUser.text) : null;
+  };
 
   return (
-    <BottomSheet onClose={onClose} label="꾸독에게 맡기기">
-      <div className="flex min-h-[60vh] flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-gray-100 text-ink">
-              <MessageCircle size={17} />
-            </span>
-            <div>
-              <h2 className="text-[17px] font-bold tracking-tight text-ink">꾸독에게 맡기기</h2>
-              <p className="text-[13px] font-medium text-ink-tertiary">해지·환불·결제 예정을 대신 챙겨요. 실행 전엔 꼭 물어볼게요.</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            {consentGranted && (
-              <button
-                type="button"
-                onClick={handleRevokeConsent}
-                className="rounded-lg px-2 py-1 text-[13px] font-medium text-ink-tertiary hover:bg-gray-100 hover:text-ink"
-                title="AI 데이터 전송 끄기"
-              >
-                AI 데이터 전송 끄기
-              </button>
-            )}
-            {messages.length > 0 && (
-              <button
-                type="button"
-                onClick={handleClearChat}
-                className="grid h-9 w-9 place-items-center rounded-lg text-ink-tertiary hover:bg-gray-100 hover:text-ink"
-                aria-label="대화 지우기"
-                title="대화 지우기"
-              >
-                <Trash2 size={16} />
-              </button>
-            )}
+    <BottomSheet onClose={onClose} label="꾸독에게 맡기기" layout="chat">
+      {/* 고정 머리말 */}
+      <div className="flex h-12 shrink-0 items-center pl-5 pr-2">
+        <h2 className="min-w-0 flex-1 truncate text-[17px] font-bold tracking-[-0.03em] text-ink">꾸독에게 맡기기</h2>
+        {messages.length > 0 && (
+          <button
+            type="button"
+            onClick={handleClearChat}
+            className="grid h-11 w-11 place-items-center rounded-xl text-ink-muted hover:bg-gray-100"
+            aria-label="새 대화"
+            title="새 대화"
+          >
+            <SquarePen size={21} strokeWidth={1.7} />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onClose}
+          className="grid h-11 w-11 place-items-center rounded-xl text-ink-muted hover:bg-gray-100"
+          aria-label="닫기"
+        >
+          <X size={22} strokeWidth={1.8} />
+        </button>
+      </div>
+
+      {!online && (
+        <p className="shrink-0 bg-gray-100 px-5 py-2.5 text-[13px] text-ink-muted" role="status" data-testid="agent-offline">
+          인터넷에 연결되어 있지 않아요 · 간단 모드로 답해요
+        </p>
+      )}
+
+      {/* 대화만 스크롤한다 */}
+      <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 pb-4 pt-1" aria-live="polite">
+        {consentGranted && (
+          <div className="mb-2 flex justify-center">
             <button
               type="button"
-              onClick={onClose}
-              className="grid h-9 w-9 place-items-center rounded-lg text-ink-tertiary hover:bg-gray-100"
-              aria-label="닫기"
+              onClick={handleRevokeConsent}
+              className="min-h-[32px] rounded-lg px-2 text-[13px] text-ink-tertiary hover:text-ink-muted"
+              title="AI 데이터 전송 끄기"
             >
-              <X size={18} />
+              AI로 답하는 중 · AI 데이터 전송 끄기
             </button>
           </div>
-        </div>
+        )}
 
-        {/* Message body */}
-        <div className="mt-4 flex-1 space-y-4" aria-live="polite">
-          {showConsentPrompt && (
-            <ConsentCard
-              onAccept={handleAcceptConsent}
-              onDecline={handleDeclineConsent}
-            />
-          )}
+        {suggestions && (
+          <SuggestionList
+            tasks={suggestions.tasks}
+            prompts={suggestions.prompts}
+            hasSubscriptions={suggestions.hasSubscriptions}
+            onSelect={(prompt) => send(prompt)}
+          />
+        )}
 
-          {messages.length === 0 && !showConsentPrompt && (
-            <div className="rounded-2xl bg-gray-50 p-4">
-              <p className="text-[13px] font-semibold text-gray-800">이렇게 말해 보세요</p>
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
-                {defaultSuggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => send(suggestion)}
-                    className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:border-gray-900"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {messages.map((message) => {
+        <div className="space-y-6">
+          {messages.map((message, index) => {
             if (message.role === "user") {
-              return (
-                <div key={message.id} className="flex justify-end">
-                  <p className="max-w-[80%] rounded-2xl rounded-br-md bg-gray-900 px-3.5 py-2.5 text-[14px] font-medium text-white">
-                    {normalizeWonText(message.text)}
-                  </p>
-                </div>
-              );
+              return <UserBubble key={message.id} text={message.text} />;
             }
 
             if (message.role === "assistant") {
+              const { body, error } = splitAssistantError(message.text);
+              const showDoneChips = String(message.id).startsWith("a-done-") && message.id === lastMessageId;
               return (
-                <div key={message.id} className="max-w-full space-y-2">
-                  {/* Tool chips */}
-                  {message.tools && message.tools.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {message.tools.map((t, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[13px] font-semibold text-ink-muted"
-                        >
-                          <Check size={11} className="text-ink" />
-                          {t.label || t.name}
-                        </span>
-                      ))}
-                    </div>
+                <div key={message.id} className="max-w-full">
+                  <ToolSummary tools={message.tools || []} working={Boolean(message.isStreaming && !message.text)} />
+                  {message.isStreaming && !message.text && !(message.tools && message.tools.length) && (
+                    <p className="flex items-center gap-2 text-[13px] text-ink-tertiary">
+                      <Loader2 size={14} className="animate-spin" aria-hidden="true" /> 답을 준비하고 있어요
+                    </p>
                   )}
+                  {body && <AssistantText streaming={Boolean(message.isStreaming)}>{normalizeWonText(body)}</AssistantText>}
+                  {error && <ErrorRow message={error} bare={!body} onRetry={retryFor(index)} disabled={busy} />}
 
-                  {/* Text content */}
-                  {message.text && (
-                    <div className="rounded-2xl bg-gray-50 p-3.5 text-[14px] leading-relaxed text-gray-800 whitespace-pre-wrap">
-                      {normalizeWonText(message.text)}
-                      {message.isStreaming && (
-                        <span className="inline-block h-3.5 w-1.5 ml-0.5 bg-gray-900 animate-pulse align-middle" />
-                      )}
-                    </div>
-                  )}
-
-                  {/* Quick replies from insight */}
                   {message.quickReplies && message.quickReplies.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {message.quickReplies.map((reply) => (
-                        <button
-                          key={reply}
-                          type="button"
-                          onClick={() => send(reply)}
-                          className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800 hover:border-gray-900"
-                        >
-                          {reply}
-                        </button>
-                      ))}
+                    <div className="mt-3">
+                      <FollowUpChips
+                        items={message.quickReplies}
+                        disabled={busy}
+                        onSelect={(reply) => send(reply, message.insightContext || null)}
+                      />
                     </div>
                   )}
 
-                  {/* Action cards */}
                   {message.actions && message.actions.length > 0 && (
-                    <div className="space-y-3">
+                    <div className="mt-3 space-y-3">
                       {message.actions.map((act) => (
                         <ActionCard
                           key={act.id}
@@ -1259,56 +874,59 @@ export function AgentSheet({
                     </div>
                   )}
 
-                  {/* Fallback indicator */}
-                  {message.fallbackNote && (
-                    <p className="text-[13px] text-ink-tertiary">간단 모드로 답했어요.</p>
+                  {showDoneChips && (
+                    <div className="mt-3">
+                      <FollowUpChips items={DONE_FOLLOW_UPS} disabled={busy} onSelect={(item) => send(item)} />
+                    </div>
                   )}
+
+                  {message.fallbackNote && <Note className="mt-1.5">간단 모드로 답했어요.</Note>}
                 </div>
               );
             }
 
-            // Existing role === "agent" responses
+            // 로컬 규칙 엔진(role === "agent") 응답
+            const response = message.response;
             return (
               <div key={message.id} className="max-w-full">
-                {message.fallbackNote && (
-                  <p className="mb-1 text-[13px] text-ink-tertiary">간단 모드로 답했어요.</p>
-                )}
-                {message.response?.type === "action" && (
+                {message.fallbackNote && <Note className="mb-1.5">간단 모드로 답했어요.</Note>}
+                {response?.type === "action" && (
                   <ActionResponse
-                    response={message.response}
-                    approval={resolveApproval(approvals, message.response.approval)}
+                    response={response}
+                    approval={resolveApproval(approvals, response.approval)}
+                    subscriptions={subscriptions}
                     onDecide={decide}
                     onStartCancel={onStartCancel}
                     onToast={onToast}
                   />
                 )}
-                {message.response?.type === "upcoming" && (
+                {response?.type === "upcoming" && (
                   <UpcomingResponse
-                    response={message.response}
+                    response={response}
                     approvals={approvals}
                     mandates={mandates}
+                    subscriptions={subscriptions}
                     onDecide={decide}
                     onStartCancel={onStartCancel}
                     onCreateMandate={createMandateFor}
                     onRevokeMandate={revokeMandateFor}
                   />
                 )}
-                {message.response?.type === "spending" && (
-                  <SpendingResponse response={message.response} />
+                {response?.type === "spending" && <SpendingResponse response={response} />}
+                {response?.type === "top_cost" && (
+                  <TopCostResponse response={response} subscriptions={subscriptions} onStartCancel={onStartCancel} />
                 )}
-                {message.response?.type === "top_cost" && (
-                  <TopCostResponse response={message.response} onStartCancel={onStartCancel} />
+                {response?.type === "unused" && (
+                  <UnusedResponse response={response} subscriptions={subscriptions} onStartCancel={onStartCancel} />
                 )}
-                {message.response?.type === "unused" && (
-                  <UnusedResponse response={message.response} onStartCancel={onStartCancel} />
+                {response?.type === "service_info" && (
+                  <ServiceInfoResponse response={response} subscriptions={subscriptions} onStartCancel={onStartCancel} />
                 )}
-                {message.response?.type === "service_info" && (
-                  <ServiceInfoResponse response={message.response} onStartCancel={onStartCancel} />
-                )}
-                {message.response?.type === "alert" && (
+                {response?.type === "alert" && (
                   <AlertResponse
-                    response={message.response}
-                    approval={message.response.approval ? resolveApproval(approvals, message.response.approval) : null}
+                    response={response}
+                    approval={response.approval ? resolveApproval(approvals, response.approval) : null}
+                    subscriptions={subscriptions}
                     onDecide={decide}
                     onStartCancel={onStartCancel}
                     onUpdateAmount={onUpdateAmount}
@@ -1316,31 +934,19 @@ export function AgentSheet({
                     userId={userId}
                   />
                 )}
-                {(message.response?.type === "unknown" || message.response?.type === "clarify") && (
+                {(response?.type === "unknown" || response?.type === "clarify") && (
                   <div>
-                    <p className="text-[14px] font-medium text-gray-800">{normalizeWonText(message.response.message)}</p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {message.response.type === "clarify"
-                        ? message.response.options.map((option) => (
-                            <button
-                              key={option.id}
-                              type="button"
-                              onClick={() => clarify(message.response, option)}
-                              className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800"
-                            >
-                              {option.name}
-                            </button>
-                          ))
-                        : message.response.suggestions.map((suggestion) => (
-                            <button
-                              key={suggestion}
-                              type="button"
-                              onClick={() => send(suggestion)}
-                              className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-gray-800"
-                            >
-                              {suggestion}
-                            </button>
-                          ))}
+                    <AssistantText>{normalizeWonText(response.message)}</AssistantText>
+                    <div className="mt-3">
+                      {response.type === "clarify" ? (
+                        <FollowUpChips
+                          items={response.options.map((option) => ({ label: option.name, option }))}
+                          disabled={busy}
+                          onSelect={(item) => clarify(response, item.option)}
+                        />
+                      ) : (
+                        <FollowUpChips items={response.suggestions} disabled={busy} onSelect={(suggestion) => send(suggestion)} />
+                      )}
                     </div>
                   </div>
                 )}
@@ -1349,52 +955,19 @@ export function AgentSheet({
           })}
 
           {loading && (
-            <div className="flex items-center gap-2 text-[12px] font-medium text-ink-tertiary">
-              <Loader2 size={14} className="animate-spin" /> 구독 정보를 확인하고 있어요
-            </div>
+            <p className="flex items-center gap-2 text-[13px] text-ink-tertiary">
+              <Loader2 size={14} className="animate-spin" aria-hidden="true" /> 구독 정보를 확인하고 있어요
+            </p>
           )}
-          <div ref={endRef} />
         </div>
-
-        {/* Input form */}
-        <form
-          className="sticky bottom-0 mt-4 flex items-center gap-2 bg-white pt-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            send(input);
-          }}
-        >
-          <input
-            value={input}
-            disabled={isStreaming}
-            onChange={(event) => setInput(event.target.value)}
-            placeholder="예: 넷플릭스랑 디즈니 합치면 얼마야?"
-            aria-label="꾸독에게 요청하기"
-            className="min-h-[46px] flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3.5 text-[14px] text-ink outline-none focus:border-gray-900 disabled:bg-gray-100 disabled:text-ink-tertiary"
-          />
-          {isStreaming ? (
-            <Button
-              type="button"
-              size="icon"
-              variant="secondary"
-              onClick={handleStop}
-              aria-label="생성 중지"
-              title="생성 중지"
-            >
-              <Square size={14} className="fill-current text-ink" />
-            </Button>
-          ) : (
-            <Button
-              type="submit"
-              size="icon"
-              disabled={!input.trim() || loading}
-              aria-label="보내기"
-            >
-              <Send size={17} />
-            </Button>
-          )}
-        </form>
+        <div ref={endRef} />
       </div>
+
+      {/* 고정 입력창: 시트가 키보드만큼 줄어 항상 키보드 위에 붙는다 */}
+      <Composer value={input} onChange={setInput} onSubmit={send} onStop={handleStop} streaming={isStreaming} busy={loading} />
+
+      {showConsentPrompt && <ConsentSheet onAccept={handleAcceptConsent} onDecline={handleDeclineConsent} />}
     </BottomSheet>
   );
 }
+

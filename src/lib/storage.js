@@ -61,6 +61,8 @@ const PARTITIONED_STORAGE_KEYS = new Set([
   storageKeys.syncRetryQueue,
   storageKeys.chatHistory,
   storageKeys.notifications,
+  storageKeys.agentInsightsDismissed,
+  storageKeys.agentInsightsSnoozed,
   storageKeys.agentInsightsLastNotified,
   storageKeys.difficultyConsent,
   storageKeys.difficultySubmitted,
